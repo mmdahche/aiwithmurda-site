@@ -1,4 +1,4 @@
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
@@ -9,5 +9,3 @@ for (const route of routes) {
   await mkdir(join(dist, route), { recursive: true });
   await copyFile(join(dist, "index.html"), join(dist, route, "index.html"));
 }
-
-await writeFile(join(dist, "CNAME"), "aiwithmurda.com\n");

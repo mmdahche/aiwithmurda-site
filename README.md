@@ -21,9 +21,9 @@ Then open the local Vite URL.
 
 ## Deploy
 
-The production target is Render Static Sites with Cloudflare DNS.
+The production target is Render Static Sites with Cloudflare DNS. The clean path is to create a Render Blueprint from this repo so Render reads `render.yaml`.
 
-Render should use:
+If creating the Static Site manually instead, use:
 
 ```bash
 npm install && npm run build

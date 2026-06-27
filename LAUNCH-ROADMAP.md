@@ -23,7 +23,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 ## Launch Order
 
 1. Push this project to a GitHub repo Render can read.
-2. Create a Render Static Site from that repo using `render.yaml`.
+2. Create a Render Blueprint from that repo so Render reads `render.yaml`.
 3. Add `aiwithmurda.com` as the custom domain in Render.
 4. Put the domain on Cloudflare DNS if it is not there already.
 5. Point Cloudflare DNS to the Render `onrender.com` service URL.
@@ -36,6 +36,8 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
    - v3: Supabase-backed dashboard with admin write flow
 
 ## Render Static Site Settings
+
+Use these same values if creating the Static Site manually instead of through the Blueprint flow.
 
 - Service type: Static Site
 - Build command: `npm install && npm run build`
@@ -61,7 +63,6 @@ Cloudflare SSL/TLS:
 
 - Domain purchased: done
 - Site routes generated: done
-- `CNAME` generated into `dist/`: done
 - `render.yaml` created: done
 - Public-safe pages separated from `/admin`: done
 - Render service live: pending
