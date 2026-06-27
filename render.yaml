@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: aiwithmurda-site
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    domains:
+      - aiwithmurda.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

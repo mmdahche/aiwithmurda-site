@@ -19,6 +19,24 @@ npm run dev
 
 Then open the local Vite URL.
 
+## Deploy
+
+The production target is Render Static Sites with Cloudflare DNS.
+
+Render should use:
+
+```bash
+npm install && npm run build
+```
+
+Publish directory:
+
+```text
+dist
+```
+
+The `render.yaml` blueprint defines the static site, custom domain, and SPA rewrite rule for direct visits to `/60`, `/live`, `/tools`, `/start`, and `/admin`.
+
 ## Workflow
 
 1. Open `Daily Log` every morning and set the day's goal.
