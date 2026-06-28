@@ -152,6 +152,7 @@ Subscriber capture:
 - Resend is a delivery layer; Supabase is the durable list of record.
 - Reserved smoke-test domains such as `example.com` should not trigger outbound email sends.
 - Admin audience visibility lives at `GET /api/admin/subscribers/summary`, guarded by `ADMIN_API_TOKEN`; it returns aggregate counts and source timestamps, not private email addresses.
+- Subscriber welcome and purchase access emails should use branded HTML plus plain-text fallback from server-side templates.
 
 Recovery rule:
 

@@ -17,6 +17,7 @@ const productKey = "future_proof_method";
 const productName = "The Future Proof Method";
 const productSubtitle = "New Wave Operator Kit";
 const productPriceCents = 4700;
+const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
 const memberAssets = [
   {
     key: "quickstart",
@@ -256,6 +257,100 @@ function shouldSendEmail(email) {
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
 }
 
+function baseEmailTemplate({ preheader, title, intro, bullets = [], primaryUrl, primaryLabel, footer }) {
+  const bulletMarkup = bullets.length
+    ? `<ul style="margin:24px 0;padding:0;list-style:none;">${bullets
+        .map(
+          (item) =>
+            `<li style="margin:0 0 12px;padding:14px 16px;border:1px solid #24402c;border-radius:8px;background:#0f1914;color:#dff5e5;">${item}</li>`,
+        )
+        .join("")}</ul>`
+    : "";
+
+  return `<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#060a09;color:#f4fbf6;font-family:Inter,Arial,sans-serif;">
+    <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">${preheader}</span>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#060a09;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #26352f;border-radius:8px;background:#0d1311;overflow:hidden;">
+            <tr>
+              <td style="padding:28px 28px 0;">
+                <p style="margin:0 0 18px;color:#61e36d;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">AI with Murda</p>
+                <h1 style="margin:0;color:#f4fbf6;font-size:36px;line-height:1.02;letter-spacing:0;">${title}</h1>
+                <p style="margin:18px 0 0;color:#bfd0c7;font-size:16px;line-height:1.6;">${intro}</p>
+                ${bulletMarkup}
+                <a href="${primaryUrl}" style="display:inline-block;margin:4px 0 26px;padding:14px 18px;border-radius:7px;background:#61e36d;color:#061008;font-weight:900;text-decoration:none;">${primaryLabel}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px 28px;border-top:1px solid #26352f;color:#9dafac;font-size:13px;line-height:1.5;">
+                ${footer}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function buildWelcomeEmail() {
+  return {
+    subject: "You are on the 60-day build log",
+    text: [
+      "You are in.",
+      "",
+      "I will send the daily receipts: scoreboard movement, the best clip, what shipped, what broke, and tomorrow's promise.",
+      "",
+      `Open the public dashboard: ${siteUrl}/60`,
+      `Preview the first drop: ${siteUrl}/kit`,
+    ].join("\n"),
+    html: baseEmailTemplate({
+      preheader: "Daily receipts from the 60-day AI operator sprint.",
+      title: "You are on the build log.",
+      intro:
+        "The sprint starts with the Day 0 setup, then turns into a daily receipt: what moved, what shipped, what broke, and what I am doing tomorrow.",
+      bullets: [
+        "Scoreboard movement: revenue, followers, emails, clips, builds, calls.",
+        "Best clip or proof asset from the day.",
+        "The honest lesson from whatever worked or failed.",
+      ],
+      primaryUrl: `${siteUrl}/60`,
+      primaryLabel: "Open the scoreboard",
+      footer: `You joined from aiwithmurda.com. The first paid drop is <a href="${siteUrl}/kit" style="color:#61e36d;">${productName}</a>.`,
+    }),
+  };
+}
+
+function buildAccessEmail() {
+  return {
+    subject: "Your Future Proof Method access is ready",
+    text: [
+      "Your member profile is unlocked.",
+      "",
+      `Open the member hub: ${siteUrl}/members`,
+      `Open the public dashboard: ${siteUrl}/60`,
+    ].join("\n"),
+    html: baseEmailTemplate({
+      preheader: "Your member profile is unlocked.",
+      title: "Your operator kit is unlocked.",
+      intro:
+        "Your profile now has access to the first version of The Future Proof Method. Start with the Quickstart Map, then use the daily checklist and proof templates while the sprint evolves.",
+      bullets: [
+        "Quickstart Map for the first setup session.",
+        "Daily Operator Checklist for the repeatable sprint rhythm.",
+        "Prompt workflows and proof receipts for turning work into assets.",
+      ],
+      primaryUrl: `${siteUrl}/members`,
+      primaryLabel: "Open member hub",
+      footer: `This access email was sent by AI with Murda after Stripe confirmed ${productName}.`,
+    }),
+  };
+}
+
 async function countSubscribersSince(isoDate = null) {
   let query = supabaseAdmin
     .from("subscribers")
@@ -359,11 +454,13 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
         });
 
         if (resend && session.customer_details?.email) {
+          const accessEmail = buildAccessEmail();
           await resend.emails.send({
-            from: process.env.RESEND_FROM || "AI with Murda <murad@aiwithmurda.com>",
+            from: process.env.RESEND_FROM || defaultEmailFrom,
             to: session.customer_details.email,
-            subject: "Your Future Proof Method access is ready",
-            html: `<p>Your member profile is unlocked.</p><p><a href="${siteUrl}/members">Open the member hub</a></p>`,
+            subject: accessEmail.subject,
+            text: accessEmail.text,
+            html: accessEmail.html,
           });
         }
       }
@@ -525,11 +622,13 @@ app.post("/api/subscribe", async (req, res) => {
   }
 
   if (resend && shouldSendEmail(email)) {
+    const welcomeEmail = buildWelcomeEmail();
     await resend.emails.send({
-      from: process.env.RESEND_FROM || "AI with Murda <murad@aiwithmurda.com>",
+      from: process.env.RESEND_FROM || defaultEmailFrom,
       to: email,
-      subject: "You are on the 60-day build log",
-      html: `<p>You are in. I will send the daily receipts, scoreboard movement, best clip, and what broke.</p><p><a href="${siteUrl}/60">Open the public dashboard</a></p>`,
+      subject: welcomeEmail.subject,
+      text: welcomeEmail.text,
+      html: welcomeEmail.html,
     });
   }
 
