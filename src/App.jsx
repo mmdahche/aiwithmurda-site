@@ -1735,6 +1735,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const activeModule = useMemo(() => {
     return productModules.find((module) => module.key === activeModuleKey) || null;
   }, [activeModuleKey]);
+  const assetsByTitle = useMemo(() => {
+    return new Map(assets.map((asset) => [asset.title.toLowerCase(), asset]));
+  }, [assets]);
 
   function mergeTaskProgress(items, nextItem) {
     const withoutItem = items.filter(
@@ -1925,10 +1928,24 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                 </article>
                 <article className="lesson-assets-card">
                   <span>Open with</span>
-                  <div className="workbench-assets">
-                    {activeModule.lesson.useWith.map((asset) => (
-                      <em key={asset}>{asset}</em>
-                    ))}
+                  <div className="lesson-download-list">
+                    {activeModule.lesson.useWith.map((assetTitle) => {
+                      const asset = assetsByTitle.get(assetTitle.toLowerCase());
+                      if (!asset) {
+                        return <em key={assetTitle}>{assetTitle}</em>;
+                      }
+                      return (
+                        <button
+                          key={asset.key}
+                          type="button"
+                          onClick={() => handleDownload(asset)}
+                          disabled={downloadState[asset.key] === "loading"}
+                        >
+                          <strong>{asset.title}</strong>
+                          <small>{downloadState[asset.key] === "loading" ? "Downloading..." : asset.kind}</small>
+                        </button>
+                      );
+                    })}
                   </div>
                 </article>
               </div>

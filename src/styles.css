@@ -2354,6 +2354,53 @@ button {
   font-weight: 900;
 }
 
+.lesson-download-list {
+  display: grid;
+  gap: 8px;
+}
+
+.lesson-download-list button,
+.lesson-download-list em {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  color: var(--text);
+  border: 1px solid rgba(97, 227, 109, 0.2);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.07);
+  text-align: left;
+}
+
+.lesson-download-list button {
+  cursor: pointer;
+}
+
+.lesson-download-list button:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+.lesson-download-list strong {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.lesson-download-list small {
+  color: var(--green);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.lesson-download-list em {
+  display: block;
+  color: #dff5e5;
+  font-size: 13px;
+  font-style: normal;
+}
+
 .kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3206,6 +3253,7 @@ button {
   .lesson-output-grid,
   .member-workbench,
   .workbench-prompt,
+  .lesson-download-list button,
   .member-grid,
   .kit-module-list,
   .start-form {
