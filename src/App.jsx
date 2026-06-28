@@ -879,6 +879,15 @@ function DayReceiptPage({ config, logs, day }) {
     { label: "Clips", value: formatNumber(record.clipsPosted), delta: signedNumber(gains.clipsPosted) },
     { label: "Builds", value: formatNumber(record.buildsShipped), delta: signedNumber(gains.buildsShipped) },
   ];
+  const receiptUrl = `${window.location.origin}/day/${record.day}`;
+  const shareCopy = [
+    `Day ${record.day} of the 60-day AI operator sprint: ${record.mainGoal}`,
+    record.shippedItems?.[0] ? `Shipped: ${record.shippedItems[0]}` : null,
+    record.lessonLearned ? `Lesson: ${record.lessonLearned}` : null,
+    `Receipt: ${receiptUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return (
     <main className="public-page day-receipt-page">
@@ -956,6 +965,14 @@ function DayReceiptPage({ config, logs, day }) {
           <span>Tomorrow</span>
           <p>{record.tomorrowPromise || "Not logged yet."}</p>
         </article>
+      </section>
+
+      <section className="public-section day-share-copy">
+        <div>
+          <span className="public-label">Clip caption seed</span>
+          <h2>Turn the receipt into a post.</h2>
+        </div>
+        <pre>{shareCopy}</pre>
       </section>
     </main>
   );

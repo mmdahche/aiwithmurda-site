@@ -1748,6 +1748,26 @@ button {
   gap: 28px;
 }
 
+.day-share-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(420px, 1fr);
+  align-items: start;
+  gap: 30px;
+}
+
+.day-share-copy pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 18px;
+  color: #d7e5dc;
+  border: 1px solid rgba(97, 227, 109, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  font: inherit;
+  line-height: 1.55;
+}
+
 .plain-list {
   display: grid;
   gap: 14px;
@@ -2520,6 +2540,7 @@ button {
   .public-hero,
   .day-receipt-hero,
   .day-empty-state,
+  .day-share-copy,
   .start-hero,
   .live-hero,
   .stream-command-section,
@@ -2642,6 +2663,7 @@ button {
   .day-receipt-grid,
   .day-receipt-notes,
   .day-empty-state,
+  .day-share-copy,
   .public-band,
   .public-cards,
   .start-proof-grid,
