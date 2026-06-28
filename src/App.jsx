@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  memberOnboardingSteps,
   memberStartPath,
   productAssetHighlights,
   productFaqItems,
@@ -1837,7 +1838,14 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     };
   }
 
+  function findModuleTask(moduleKey, taskKey) {
+    const module = productModules.find((item) => item.key === moduleKey);
+    const todo = module?.todos.find((item) => item.key === taskKey);
+    return module && todo ? { module, todo } : null;
+  }
+
   const activeModuleProgress = activeModule ? getModuleProgress(activeModule) : null;
+  const firstRun = progressState.summary.completed === 0;
 
   return (
     <section className="member-hub">
@@ -1872,11 +1880,65 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
             </>
           )}
         </div>
+        {nextMemberTask && (
+          <a className="secondary-link" href={`/members/module/${nextMemberTask.module.key}`}>
+            Open next module
+          </a>
+        )}
         <div className="next-action-stat">
           <strong>{progressState.summary.percent}%</strong>
           <span>complete</span>
         </div>
       </article>
+
+      <section className={`member-onboarding ${firstRun ? "fresh" : ""}`}>
+        <div className="member-onboarding-copy">
+          <span className="public-label">{firstRun ? "Start here" : "Activation path"}</span>
+          <h2>{firstRun ? "Your first 20 minutes are already decided." : "Keep the setup path tight."}</h2>
+          <p>
+            Work this in order: download the two setup files, open Module 1, then mark the first task only after the folder exists.
+          </p>
+        </div>
+        <div className="onboarding-step-list">
+          {memberOnboardingSteps.map((step, index) => {
+            const asset = step.assetTitle ? assetsByTitle.get(step.assetTitle.toLowerCase()) : null;
+            const taskCompleted =
+              step.moduleKey && step.taskKey ? completedTasks.has(`${step.moduleKey}:${step.taskKey}`) : false;
+            const downloaded = asset ? downloadState[asset.key] === "success" : false;
+            const isDone = taskCompleted || downloaded;
+            const taskMatch = step.moduleKey && step.taskKey ? findModuleTask(step.moduleKey, step.taskKey) : null;
+
+            return (
+              <article key={step.key} className={isDone ? "done" : ""}>
+                <strong>{String(index + 1).padStart(2, "0")}</strong>
+                <div>
+                  <span>{step.title}</span>
+                  <p>{step.body}</p>
+                </div>
+                {asset && (
+                  <button type="button" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
+                    {downloadState[asset.key] === "loading" ? "Downloading" : downloaded ? "Downloaded" : "Download"}
+                  </button>
+                )}
+                {step.href && (
+                  <a className="secondary-link" href={step.href}>
+                    Open
+                  </a>
+                )}
+                {taskMatch && (
+                  <button
+                    type="button"
+                    onClick={() => handleTaskToggle(taskMatch.module, taskMatch.todo, !taskCompleted)}
+                    disabled={taskSaving[`${taskMatch.module.key}:${taskMatch.todo.key}`] === "saving"}
+                  >
+                    {taskCompleted ? "Completed" : "Mark done"}
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="member-start-path">
         {memberStartPath.map((item) => (

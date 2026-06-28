@@ -118,6 +118,34 @@ export const memberStartPath = [
   },
 ];
 
+export const memberOnboardingSteps = [
+  {
+    key: "quickstart",
+    title: "Download the Quickstart Map",
+    body: "Set up folders, tracker, prompt capture, proof capture, and shutdown rhythm.",
+    assetTitle: "Quickstart Map",
+  },
+  {
+    key: "field-guide",
+    title: "Download the Module Field Guide",
+    body: "Use the module worksheets instead of trying to remember the process.",
+    assetTitle: "Module Field Guide",
+  },
+  {
+    key: "module-one",
+    title: "Open Module 1",
+    body: "Start with Command Setup before building or recording anything public.",
+    href: "/members/module/command-setup",
+  },
+  {
+    key: "first-task",
+    title: "Complete the first task",
+    body: "Create the command folder structure and mark it complete.",
+    moduleKey: "command-setup",
+    taskKey: "command-folders",
+  },
+];
+
 export const productAssetHighlights = [
   {
     title: "Module Roadmap",
