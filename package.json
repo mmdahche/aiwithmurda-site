@@ -10,7 +10,9 @@
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "start": "node server/index.mjs",
-    "smoke:funnel": "node scripts/smoke-funnel.mjs"
+    "smoke:funnel": "node scripts/smoke-funnel.mjs",
+    "smoke:tracker": "node scripts/smoke-tracker.mjs",
+    "sync:seed-logs": "node scripts/sync-seed-logs.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",

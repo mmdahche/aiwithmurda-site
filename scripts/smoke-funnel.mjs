@@ -1,41 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
-
-const rootDir = path.resolve(import.meta.dirname, "..");
-const defaultEnvPath = path.join(rootDir, ".secrets", "aiwithmurda.render.env");
-const envPath = process.argv[2] ? path.resolve(process.argv[2]) : defaultEnvPath;
-
-function parseEnvFile(filePath) {
-  const env = {};
-  const text = fs.readFileSync(filePath, "utf8");
-
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-
-    const eq = line.indexOf("=");
-    if (eq === -1) continue;
-
-    const key = line.slice(0, eq).trim();
-    let value = line.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    env[key] = value;
-  }
-
-  return env;
-}
-
-function requireEnv(env, key) {
-  if (env[key]) return env[key];
-  throw new Error(`Missing ${key} in ${envPath}`);
-}
+import { getSiteUrl, loadEnv, requireEnv } from "./env-loader.mjs";
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -43,8 +8,8 @@ async function fetchJson(url, options = {}) {
   return { response, data };
 }
 
-const env = { ...process.env, ...parseEnvFile(envPath) };
-const siteUrl = (env.SMOKE_SITE_URL || env.SITE_URL || "https://aiwithmurda.com").replace(/\/+$/, "");
+const env = loadEnv();
+const siteUrl = getSiteUrl(env);
 const supabaseUrl = requireEnv(env, "SUPABASE_URL");
 const supabaseAnonKey = requireEnv(env, "VITE_SUPABASE_ANON_KEY");
 const supabaseServiceRoleKey = requireEnv(env, "SUPABASE_SERVICE_ROLE_KEY");

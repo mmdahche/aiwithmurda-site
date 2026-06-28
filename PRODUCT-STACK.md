@@ -159,6 +159,8 @@ Gated assets:
 Smoke test:
 
 - Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, grants a temporary entitlement, downloads a gated asset, then expires the session and deletes the test user.
+- Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable and admin writes are blocked without the admin token.
+- Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
 
 ## July 28 Definition Of Done
 
