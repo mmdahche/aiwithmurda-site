@@ -146,6 +146,12 @@ Access flow:
 7. Webhook sends access email through Resend.
 8. Member hub unlocks product assets for that profile.
 
+Subscriber capture:
+
+- `/api/subscribe` must persist every valid email to Supabase `subscribers` before attempting optional Resend email/contact work.
+- Resend is a delivery layer; Supabase is the durable list of record.
+- Reserved smoke-test domains such as `example.com` should not trigger outbound email sends.
+
 Recovery rule:
 
 - If Stripe redirects back before the entitlement is visible, `/members` must show a retryable access recovery state, not a dead-end error. The buyer can refresh the Stripe session check or reload the profile without leaving the member hub.
@@ -160,6 +166,7 @@ Smoke test:
 
 - Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, grants a temporary entitlement, downloads a gated asset, then expires the session and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable and admin writes are blocked without the admin token.
+- Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, then deletes it.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
 
 Dashboard phase:

@@ -19,10 +19,10 @@ async function apiRequest(path, { method = "GET", body, token } = {}) {
   return data;
 }
 
-export function subscribeBuildLog({ email, name }) {
+export function subscribeBuildLog({ email, name, source = "start" }) {
   return apiRequest("/api/subscribe", {
     method: "POST",
-    body: { email, name },
+    body: { email, name, source },
   });
 }
 

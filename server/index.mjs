@@ -251,6 +251,11 @@ function validateDailyLog(log) {
   return true;
 }
 
+function shouldSendEmail(email) {
+  const domain = email.split("@").at(-1);
+  return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
+}
+
 async function grantEntitlement({ userId, email, session }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
 
@@ -408,10 +413,37 @@ app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
 app.post("/api/subscribe", async (req, res) => {
   const email = String(req.body?.email || "").trim().toLowerCase();
   const name = String(req.body?.name || "").trim();
+  const source = String(req.body?.source || "start").trim().slice(0, 80) || "start";
 
   if (!email || !email.includes("@")) {
     res.status(400).json({ error: "valid_email_required" });
     return;
+  }
+
+  if (supabaseAdmin) {
+    try {
+      await supabaseAdmin
+        .from("subscribers")
+        .upsert(
+          {
+            email,
+            first_name: name || null,
+            source,
+            last_seen_at: new Date().toISOString(),
+            unsubscribed_at: null,
+            metadata: {
+              user_agent: req.get("user-agent") || null,
+              referer: req.get("referer") || null,
+            },
+          },
+          { onConflict: "email" },
+        )
+        .throwOnError();
+    } catch (error) {
+      console.error("[subscribe-db]", error);
+      res.status(500).json({ error: "subscriber_capture_failed" });
+      return;
+    }
   }
 
   if (resend && (process.env.RESEND_SEGMENT_ID || process.env.RESEND_AUDIENCE_ID)) {
@@ -436,7 +468,7 @@ app.post("/api/subscribe", async (req, res) => {
     }
   }
 
-  if (resend) {
+  if (resend && shouldSendEmail(email)) {
     await resend.emails.send({
       from: process.env.RESEND_FROM || "AI with Murda <murad@aiwithmurda.com>",
       to: email,

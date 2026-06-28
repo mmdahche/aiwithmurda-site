@@ -12,6 +12,7 @@
     "start": "node server/index.mjs",
     "smoke:funnel": "node scripts/smoke-funnel.mjs",
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
+    "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
     "sync:seed-logs": "node scripts/sync-seed-logs.mjs"
   },
   "dependencies": {
