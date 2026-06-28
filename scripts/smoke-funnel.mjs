@@ -84,6 +84,10 @@ try {
   if (!Array.isArray(productModules) || productModules.length < 5) {
     throw new Error(`Product modules were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
+  const onboardingEmails = profile.data?.product?.onboardingEmails;
+  if (!Array.isArray(onboardingEmails) || onboardingEmails.length < 4) {
+    throw new Error(`Buyer onboarding emails were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
+  }
   const moduleWithoutLesson = productModules.find(
     (module) => !module.key || !module.lesson?.starterPrompt || !module.lesson?.output || !Array.isArray(module.todos),
   );
@@ -164,6 +168,7 @@ try {
           profileLookup: true,
           productAssetsExposed: true,
           productModulesExposed: true,
+          buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           lockedAssetsBlocked: true,

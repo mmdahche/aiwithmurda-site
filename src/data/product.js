@@ -146,6 +146,65 @@ export const memberOnboardingSteps = [
   },
 ];
 
+export const buyerOnboardingEmails = [
+  {
+    key: "day-0-access",
+    day: "Day 0",
+    subject: "Your Future Proof Method access is ready",
+    goal: "Get the buyer into the member hub and through the first setup files.",
+    ctaLabel: "Open member hub",
+    ctaHref: "/members",
+    bullets: [
+      "Download the Quickstart Map.",
+      "Download the Module Field Guide.",
+      "Open Module 1: Command Setup.",
+      "Create the command folder before marking anything complete.",
+    ],
+  },
+  {
+    key: "day-1-command-setup",
+    day: "Day 1",
+    subject: "Start with Command Setup, not another idea",
+    goal: "Push the buyer to complete Module 1 and create their operating surface.",
+    ctaLabel: "Open Module 1",
+    ctaHref: "/members/module/command-setup",
+    bullets: [
+      "Create folders for prompts, proof, content, and offers.",
+      "Set the first baseline in the tracker.",
+      "Pick one offer path to prove first.",
+      "Capture a screenshot of the setup as the first receipt.",
+    ],
+  },
+  {
+    key: "day-3-problem-proof",
+    day: "Day 3",
+    subject: "Pick the workflow that can become proof",
+    goal: "Move the buyer into Problem To Proof so the work has a clear buyer and metric.",
+    ctaLabel: "Open Module 2",
+    ctaHref: "/members/module/problem-to-proof",
+    bullets: [
+      "List 10 painful workflows or bottlenecks.",
+      "Score the top three by proof speed, buyer pain, viewer clarity, and money path.",
+      "Choose the smallest workflow worth showing.",
+      "Write the before state in one sentence.",
+    ],
+  },
+  {
+    key: "day-7-week-review",
+    day: "Day 7",
+    subject: "Turn the first week into an offer improvement",
+    goal: "Prompt the buyer to review proof, content, and the next offer move.",
+    ctaLabel: "Open Proof To Offer Canvas",
+    ctaHref: "/members/module/offer-follow-up",
+    bullets: [
+      "Choose the strongest proof receipt from the week.",
+      "Name the buyer who already feels that pain.",
+      "Rewrite one CTA or checkout promise.",
+      "Follow up with one warm lead and log the result.",
+    ],
+  },
+];
+
 export const productAssetHighlights = [
   {
     title: "Module Roadmap",

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  buyerOnboardingEmails,
   memberOnboardingSteps,
   memberStartPath,
   productAssetHighlights,
@@ -2707,6 +2708,19 @@ function SettingsView({
           </button>
           {offerOpsSummary?.checkedAt && <p className="panel-note">Checked {new Date(offerOpsSummary.checkedAt).toLocaleString()}</p>}
           {offerOpsMessage && <p className={`form-message ${offerOpsStatus}`}>{offerOpsMessage}</p>}
+        </article>
+        <article className="panel onboarding-email-panel">
+          <PanelTitle icon="email" title="Buyer Onboarding" right="Sequence" />
+          <div className="onboarding-email-list">
+            {buyerOnboardingEmails.map((email) => (
+              <div key={email.key}>
+                <span>{email.day}</span>
+                <strong>{email.subject}</strong>
+                <p>{email.goal}</p>
+                <em>{email.ctaLabel}</em>
+              </div>
+            ))}
+          </div>
         </article>
         <article className="panel settings-sync-panel">
           <PanelTitle icon="monitor" title="Public Sync" />

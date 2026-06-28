@@ -5,7 +5,14 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import Stripe from "stripe";
-import { productKey, productModules, productName, productPriceCents, productSubtitle } from "../src/data/product.js";
+import {
+  buyerOnboardingEmails,
+  productKey,
+  productModules,
+  productName,
+  productPriceCents,
+  productSubtitle,
+} from "../src/data/product.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -318,6 +325,7 @@ async function getMemberAccess(user) {
       price_cents: productPriceCents,
       modules: productModules.map(publicModule),
       assets: memberAssets.map(publicAsset),
+      onboardingEmails: buyerOnboardingEmails,
     },
   };
 }
@@ -471,24 +479,25 @@ function buildWelcomeEmail() {
 }
 
 function buildAccessEmail() {
+  const accessSteps = buyerOnboardingEmails[0]?.bullets || [];
   return {
     subject: "Your Future Proof Method access is ready",
     text: [
       "Your member profile is unlocked.",
       "",
       `Open the member hub: ${siteUrl}/members`,
-      "Start with the Module Roadmap, then mark off the checklist as you build.",
+      "Start with the activation path:",
+      ...accessSteps.map((item) => `- ${item}`),
       `Open the public dashboard: ${siteUrl}/60`,
     ].join("\n"),
     html: baseEmailTemplate({
       preheader: "Your member profile is unlocked.",
       title: "Your operator kit is unlocked.",
       intro:
-        "Your profile now has access to the first version of The Future Proof Method. Start with the Quickstart Map, then use the daily checklist and proof templates while the sprint evolves.",
+        "Your profile now has access to the first version of The Future Proof Method. Start with the activation path so the kit turns into work immediately.",
       bullets: [
-        "Module Roadmap and Module Field Guide with a trackable five-module checklist.",
-        "Quickstart Map, Daily Operator Checklist, and Prompt Workflow Pack.",
-        "Proof Receipts Template plus the Proof To Offer Canvas for turning proof into a CTA.",
+        ...accessSteps,
+        "Then use the trackable module checklist to keep moving.",
       ],
       primaryUrl: `${siteUrl}/members`,
       primaryLabel: "Open member hub",

@@ -844,6 +844,56 @@ button {
   font-weight: 900;
 }
 
+.onboarding-email-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.onboarding-email-list {
+  display: grid;
+  gap: 8px;
+}
+
+.onboarding-email-list div {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.onboarding-email-list span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.onboarding-email-list strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.onboarding-email-list p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.onboarding-email-list em {
+  width: max-content;
+  max-width: 100%;
+  padding: 6px 8px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--green);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .launch-readiness-panel {
   display: grid;
   grid-column: span 2;
