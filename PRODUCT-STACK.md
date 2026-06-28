@@ -162,6 +162,11 @@ Smoke test:
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable and admin writes are blocked without the admin token.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
 
+Dashboard phase:
+
+- Until launch, the public scoreboard must be visibly labeled as `Prelaunch preview`.
+- Preview records can be useful for stress-testing the system, but public UI must not imply those numbers are live Day 1 results.
+
 ## July 28 Definition Of Done
 
 - `/start` captures emails into Resend.

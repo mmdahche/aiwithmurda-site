@@ -619,6 +619,19 @@ button {
   text-transform: uppercase;
 }
 
+.overlay-mode {
+  display: inline-flex;
+  width: max-content;
+  margin-bottom: 10px;
+  padding: 7px 9px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--amber);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .command-overlay h2 strong {
   color: var(--green);
 }
@@ -718,6 +731,33 @@ button {
 
 .settings-sync-panel .primary-action {
   width: 100%;
+}
+
+.sync-state-card {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid rgba(255, 159, 26, 0.28);
+  border-radius: 8px;
+  background: rgba(26, 18, 7, 0.38);
+}
+
+.sync-state-card span {
+  color: var(--amber);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.sync-state-card strong {
+  font-size: 18px;
+}
+
+.sync-state-card p {
+  margin: 0;
+  color: #dbcbb2;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .key-value {
@@ -1089,6 +1129,30 @@ button {
   margin-top: 30px;
 }
 
+.prelaunch-inline {
+  display: grid;
+  gap: 6px;
+  max-width: 680px;
+  margin-top: 22px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 159, 26, 0.32);
+  border-radius: 8px;
+  background: rgba(26, 18, 7, 0.52);
+}
+
+.prelaunch-inline strong {
+  color: var(--amber);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.prelaunch-inline span {
+  color: #dbcbb2;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .primary-link,
 .secondary-link,
 .tool-card a {
@@ -1204,6 +1268,45 @@ button {
   margin-bottom: 34px;
 }
 
+.prelaunch-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 18px;
+  padding: 22px 26px;
+  border: 1px solid rgba(255, 159, 26, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 88% 22%, rgba(255, 159, 26, 0.12), transparent 28%),
+    rgba(21, 17, 9, 0.76);
+}
+
+.prelaunch-banner h2,
+.prelaunch-banner p {
+  margin: 0;
+}
+
+.prelaunch-banner h2 {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.prelaunch-banner p {
+  max-width: 760px;
+  margin-top: 8px;
+  color: #dbcbb2;
+  line-height: 1.5;
+}
+
+.prelaunch-banner strong {
+  color: #061008;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: var(--amber);
+  font-size: 13px;
+}
+
 .score-day {
   padding: 22px;
   border: 1px solid var(--border);
@@ -1219,6 +1322,11 @@ button {
   font-style: normal;
   font-size: 12px;
   letter-spacing: 0.1em;
+}
+
+.score-day em {
+  display: block;
+  line-height: 1.25;
 }
 
 .score-day strong {
@@ -1707,7 +1815,8 @@ button {
   .unlock-section,
   .access-recovery,
   .member-welcome,
-  .member-roadmap {
+  .member-roadmap,
+  .prelaunch-banner {
     grid-template-columns: 1fr;
   }
 

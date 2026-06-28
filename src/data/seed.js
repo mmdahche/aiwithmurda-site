@@ -5,6 +5,10 @@ export const sprintConfig = {
   totalDays: 60,
   publicGoalLabel: "$100K or 100K followers",
   familyReturnDate: "2026-09-25",
+  phase: "prelaunch",
+  prelaunchLabel: "Prelaunch preview",
+  prelaunchCopy:
+    "The dashboard is wired to production, but these numbers are rehearsal data until the live sprint begins on July 28, 2026.",
   goals: {
     revenue: 100000,
     followers: 100000,

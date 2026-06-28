@@ -14,6 +14,12 @@ if (!publicLogs.response.ok || !Array.isArray(publicLogs.data?.logs)) {
   throw new Error(`Public daily logs failed: ${publicLogs.response.status} ${JSON.stringify(publicLogs.data)}`);
 }
 
+const dashboardResponse = await fetch(`${siteUrl}/60/`);
+const dashboardHtml = await dashboardResponse.text();
+if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
+  throw new Error(`Public dashboard route failed: ${dashboardResponse.status}`);
+}
+
 const blockedWrite = await fetchJson(`${siteUrl}/api/admin/daily-logs`, {
   method: "PUT",
   headers: { "Content-Type": "application/json" },
@@ -30,6 +36,7 @@ console.log(
       siteUrl,
       checks: {
         publicLogsReadable: true,
+        publicDashboardRoute: true,
         adminWritesBlockedWithoutToken: true,
       },
       logs: {

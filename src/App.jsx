@@ -55,6 +55,28 @@ const productName = "The Future Proof Method";
 const productSubtitle = "New Wave Operator Kit";
 const adminTokenStorageKey = "aiwithmurda:admin-api-token";
 
+function isPrelaunch(config) {
+  return config.phase === "prelaunch";
+}
+
+function getPublicDataMode(config) {
+  if (!isPrelaunch(config)) {
+    return {
+      label: "Live sprint",
+      title: "Live scoreboard",
+      body: "These are the active public numbers for the 60-day AI operator sprint.",
+    };
+  }
+
+  return {
+    label: config.prelaunchLabel || "Prelaunch preview",
+    title: "Preview data is showing",
+    body:
+      config.prelaunchCopy ||
+      `The dashboard is wired to production, but these numbers are rehearsal data until ${config.startDate}.`,
+  };
+}
+
 const offerStack = [
   {
     title: productName,
@@ -95,6 +117,7 @@ function App() {
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
   const [remoteLogStatus, setRemoteLogStatus] = useState("local");
+  const [remoteLogMeta, setRemoteLogMeta] = useState({ count: 0, latestDay: null, loadedAt: null });
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -116,8 +139,14 @@ function App() {
         if (Array.isArray(data.logs) && data.logs.length > 0) {
           setLogs(data.logs);
           setRemoteLogStatus("live");
+          setRemoteLogMeta({
+            count: data.logs.length,
+            latestDay: data.logs.at(-1)?.day || null,
+            loadedAt: new Date().toISOString(),
+          });
         } else {
           setRemoteLogStatus("empty");
+          setRemoteLogMeta({ count: 0, latestDay: null, loadedAt: new Date().toISOString() });
         }
       } catch {
         if (mounted) setRemoteLogStatus("local");
@@ -313,7 +342,9 @@ function App() {
             config={sprintConfig}
             logs={logs}
             remoteLogStatus={remoteLogStatus}
+            remoteLogMeta={remoteLogMeta}
             setRemoteLogStatus={setRemoteLogStatus}
+            setRemoteLogMeta={setRemoteLogMeta}
             restoreSeedData={restoreSeedData}
           />
         )}
@@ -372,6 +403,8 @@ function PublicNav({ activeRoute }) {
 }
 
 function PublicHome({ config, latest }) {
+  const mode = getPublicDataMode(config);
+
   return (
     <main className="public-page">
       <section className="public-hero">
@@ -391,13 +424,19 @@ function PublicHome({ config, latest }) {
               See the first drop
             </a>
           </div>
+          {isPrelaunch(config) && (
+            <div className="prelaunch-inline">
+              <strong>{mode.label}</strong>
+              <span>{mode.body}</span>
+            </div>
+          )}
         </div>
         <div className="hero-command-card">
           <div className="hero-card-top">
-            <span>Command Center</span>
-            <strong>Day {latest.day} / {config.totalDays}</strong>
+            <span>{isPrelaunch(config) ? "Command Center Preview" : "Command Center"}</span>
+            <strong>{isPrelaunch(config) ? `Preview Day ${latest.day}` : `Day ${latest.day} / ${config.totalDays}`}</strong>
           </div>
-          <CommandOverlay config={config} latest={latest} logs={seedLogs} />
+          <CommandOverlay config={config} latest={latest} logs={seedLogs} preview={isPrelaunch(config)} />
         </div>
       </section>
 
@@ -426,6 +465,7 @@ function PublicDashboard({ config, logs, latest, weeks }) {
   const progressItems = buildProgressItems(config, latest);
   const spike = detectSpike(logs, latest);
   const currentWeek = weeks.at(-1);
+  const mode = getPublicDataMode(config);
 
   return (
     <main className="public-page">
@@ -439,11 +479,13 @@ function PublicDashboard({ config, logs, latest, weeks }) {
           </p>
         </div>
         <div className="score-day">
-          <span>Day</span>
+          <span>{isPrelaunch(config) ? "Preview Day" : "Day"}</span>
           <strong>{latest.day}</strong>
-          <em>/ {config.totalDays}</em>
+          <em>{isPrelaunch(config) ? `Live starts ${config.startDate}` : `/ ${config.totalDays}`}</em>
         </div>
       </section>
+
+      {isPrelaunch(config) && <PrelaunchBanner mode={mode} />}
 
       <section className="public-metrics">
         {progressItems.slice(0, 6).map((item) => (
@@ -475,6 +517,19 @@ function PublicDashboard({ config, logs, latest, weeks }) {
         )}
       </section>
     </main>
+  );
+}
+
+function PrelaunchBanner({ mode }) {
+  return (
+    <section className="prelaunch-banner">
+      <div>
+        <span className="public-label">{mode.label}</span>
+        <h2>{mode.title}</h2>
+        <p>{mode.body}</p>
+      </div>
+      <strong>Day 0 ready</strong>
+    </section>
   );
 }
 
@@ -1338,7 +1393,7 @@ function OverlayView({ config, latest, logs }) {
         <code>{window.location.origin}/?view=overlay</code>
       </div>
       <div className="overlay-showcase">
-        <CommandOverlay config={config} latest={latest} logs={logs} compact />
+        <CommandOverlay config={config} latest={latest} logs={logs} compact preview={isPrelaunch(config)} />
       </div>
     </section>
   );
@@ -1424,11 +1479,20 @@ function DeckView({ config, logs, weeks }) {
   );
 }
 
-function SettingsView({ config, logs, remoteLogStatus, setRemoteLogStatus, restoreSeedData }) {
+function SettingsView({
+  config,
+  logs,
+  remoteLogStatus,
+  remoteLogMeta,
+  setRemoteLogStatus,
+  setRemoteLogMeta,
+  restoreSeedData,
+}) {
   const latest = getLatestRecord(logs);
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
   const [syncStatus, setSyncStatus] = useState("idle");
   const [syncMessage, setSyncMessage] = useState("");
+  const mode = getPublicDataMode(config);
 
   function updateAdminToken(value) {
     setAdminToken(value);
@@ -1451,6 +1515,11 @@ function SettingsView({ config, logs, remoteLogStatus, setRemoteLogStatus, resto
     try {
       const data = await syncDailyLogs(logs, adminToken.trim());
       setRemoteLogStatus("live");
+      setRemoteLogMeta({
+        count: data.logs?.length || logs.length,
+        latestDay: data.logs?.at(-1)?.day || latest.day,
+        loadedAt: new Date().toISOString(),
+      });
       setSyncStatus("success");
       setSyncMessage(`Synced ${data.logs?.length || logs.length} daily records to the public dashboard.`);
     } catch (error) {
@@ -1474,9 +1543,22 @@ function SettingsView({ config, logs, remoteLogStatus, setRemoteLogStatus, resto
       <div className="settings-grid">
         <article className="panel settings-sync-panel">
           <PanelTitle icon="monitor" title="Public Sync" />
+          <div className="sync-state-card">
+            <span>{mode.label}</span>
+            <strong>{mode.title}</strong>
+            <p>{mode.body}</p>
+          </div>
           <KeyValue
             label="Source"
             value={remoteLogStatus === "live" ? "Supabase live" : remoteLogStatus === "empty" ? "Local fallback" : "Local only"}
+          />
+          <KeyValue
+            label="Public Records"
+            value={`${remoteLogMeta.count || 0} records${remoteLogMeta.latestDay ? ` · latest day ${remoteLogMeta.latestDay}` : ""}`}
+          />
+          <KeyValue
+            label="Loaded"
+            value={remoteLogMeta.loadedAt ? new Date(remoteLogMeta.loadedAt).toLocaleString() : "Not checked"}
           />
           <label className="field">
             <span>Admin Token</span>
@@ -1533,7 +1615,7 @@ function ProgressCard({ item }) {
   );
 }
 
-function CommandOverlay({ config, latest, logs, compact = false }) {
+function CommandOverlay({ config, latest, logs, compact = false, preview = false }) {
   const progress = buildProgressItems(config, latest);
   const spike = detectSpike(logs, latest);
 
@@ -1545,8 +1627,9 @@ function CommandOverlay({ config, latest, logs, compact = false }) {
       <div className="corner bottom-right" />
 
       <section>
+        {preview && <span className="overlay-mode">Prelaunch Preview</span>}
         <h2>
-          Day <strong>{latest.day}</strong> / {config.totalDays}
+          {preview ? "Preview Day" : "Day"} <strong>{latest.day}</strong> {preview ? "" : `/ ${config.totalDays}`}
         </h2>
         <div className="overlay-list">
           {progress.slice(0, 6).map((item) => (
