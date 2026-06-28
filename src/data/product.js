@@ -67,3 +67,26 @@ export const productModules = [
 ];
 
 export const productTaskCount = productModules.reduce((total, module) => total + module.todos.length, 0);
+
+export const productAssetHighlights = [
+  {
+    title: "Module Roadmap",
+    body: "The five-module path with to-do lists, done criteria, and proof outputs.",
+  },
+  {
+    title: "Daily Operator Checklist",
+    body: "Morning, live-build, clip, recap, and shutdown checklist for each sprint day.",
+  },
+  {
+    title: "Prompt Workflow Pack",
+    body: "Prompts for finding problems, scoping builds, judging outputs, and packaging proof.",
+  },
+  {
+    title: "Proof Receipts Template",
+    body: "Daily before/after receipt format for clips, recap posts, and the Day 60 review.",
+  },
+  {
+    title: "Proof To Offer Canvas",
+    body: "Worksheet for turning one build receipt into a buyer, promise, CTA, and follow-up list.",
+  },
+];

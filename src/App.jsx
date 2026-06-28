@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { productKey, productModules, productName, productSubtitle, productTaskCount } from "./data/product.js";
+import {
+  productAssetHighlights,
+  productKey,
+  productModules,
+  productName,
+  productSubtitle,
+  productTaskCount,
+} from "./data/product.js";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   createFutureMethodCheckout,
@@ -1343,6 +1350,25 @@ function StarterKitPage({ authSession, authReady }) {
                 ))}
               </ul>
               <em className="module-done">Done: {module.done}</em>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="public-section kit-assets-section">
+        <div>
+          <span className="public-label">Member assets</span>
+          <h2>The files behind the build.</h2>
+          <p>
+            The member hub unlocks these assets with your profile, plus the trackable module checklist
+            so the kit turns into action instead of another unread folder.
+          </p>
+        </div>
+        <div className="kit-asset-list">
+          {productAssetHighlights.map((asset) => (
+            <article key={asset.title}>
+              <strong>{asset.title}</strong>
+              <p>{asset.body}</p>
             </article>
           ))}
         </div>

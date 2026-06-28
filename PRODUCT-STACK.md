@@ -162,7 +162,7 @@ Gated assets:
 
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
 - The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
-- Current assets: Quickstart Map, Daily Operator Checklist, Prompt Workflow Pack, Proof Receipts Template, and Module Roadmap.
+- Current assets: Quickstart Map, Daily Operator Checklist, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, and Proof To Offer Canvas.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
 
 Smoke test:

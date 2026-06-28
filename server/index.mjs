@@ -66,6 +66,15 @@ const memberAssets = [
     downloadName: "future-proof-method-module-roadmap.md",
     mimeType: "text/markdown; charset=utf-8",
   },
+  {
+    key: "proof-to-offer-canvas",
+    title: "Proof To Offer Canvas",
+    kind: "Offer",
+    description: "Worksheet for turning one build receipt into a clear buyer, promise, CTA, objection bank, and follow-up list.",
+    fileName: "proof-to-offer-canvas.md",
+    downloadName: "future-proof-method-proof-to-offer-canvas.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
 ];
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -458,6 +467,7 @@ function buildAccessEmail() {
       "Your member profile is unlocked.",
       "",
       `Open the member hub: ${siteUrl}/members`,
+      "Start with the Module Roadmap, then mark off the checklist as you build.",
       `Open the public dashboard: ${siteUrl}/60`,
     ].join("\n"),
     html: baseEmailTemplate({
@@ -466,9 +476,9 @@ function buildAccessEmail() {
       intro:
         "Your profile now has access to the first version of The Future Proof Method. Start with the Quickstart Map, then use the daily checklist and proof templates while the sprint evolves.",
       bullets: [
-        "Quickstart Map for the first setup session.",
-        "Daily Operator Checklist for the repeatable sprint rhythm.",
-        "Prompt workflows and proof receipts for turning work into assets.",
+        "Module Roadmap with a trackable five-module checklist.",
+        "Quickstart Map, Daily Operator Checklist, and Prompt Workflow Pack.",
+        "Proof Receipts Template plus the Proof To Offer Canvas for turning proof into a CTA.",
       ],
       primaryUrl: `${siteUrl}/members`,
       primaryLabel: "Open member hub",
