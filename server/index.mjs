@@ -318,7 +318,7 @@ app.post("/api/checkout/future-proof-method", requireUser, async (req, res) => {
       },
     });
 
-    res.json({ url: session.url });
+    res.json({ url: session.url, session_id: session.id });
   } catch (error) {
     console.error("[checkout]", error);
     res.status(500).json({ error: "checkout_create_failed" });
