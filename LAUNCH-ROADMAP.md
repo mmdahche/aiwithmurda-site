@@ -14,11 +14,11 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 
 - `/` - campaign home
 - `/60` - public dashboard and scoreboard
-- `/live` - livestream hub
+- `/live` - livestream hub shell and stream command center
 - `/tools` - public tools/resources shelf
-- `/start` - email capture placeholder
+- `/start` - production email capture
 - `/kit` - first paid drop sales page
-- `/members` - gated delivery preview
+- `/members` - Supabase-gated member hub and asset delivery
 - `/admin` - private local control room for daily logging and exports
 - `/?view=overlay` - OBS overlay route
 
@@ -47,24 +47,23 @@ Why:
 3. Add `aiwithmurda.com` as the custom domain in Render.
 4. Put the domain on Cloudflare DNS if it is not there already.
 5. Point Cloudflare DNS to the Render `onrender.com` service URL.
-6. Replace preview/demo tracker data with Day 0 baseline before public promotion.
-7. Wire `/start` to a real email capture tool.
-8. Add stream embeds to `/live`.
-9. Build `/kit` checkout page and `/members` delivery shell.
-10. Decide publishing workflow for daily dashboard updates:
-   - v1: update data, rebuild, redeploy
-   - v2: public JSON file updated by script
-   - v3: Supabase-backed dashboard with admin write flow
+6. Replace preview/demo tracker data with Day 1 baseline before public promotion using `npm run baseline:launch:push`.
+7. Add final stream URLs/embeds to `/live` once the channels are chosen.
+8. Run a real purchase/access test under the intended Backbone Stripe mode before public sales push.
+9. Test OBS overlay in the actual streaming scene.
+10. Use the selected daily dashboard workflow:
+   - current: Supabase-backed dashboard with admin token write flow
+   - support scripts: `npm run smoke:tracker`, `npm run sync:seed-logs`, `npm run baseline:launch`
 
 ## Product Build Order Before July 28
 
-1. Resend domain, audience, daily build-log signup, welcome email.
+1. Resend signup capture, durable Supabase subscriber list, branded welcome email.
 2. Supabase Auth profiles and entitlements.
-3. Stripe product and Checkout Session endpoint for the $47 first paid drop: The Future Proof Method.
+3. Stripe Checkout Session endpoint for the $47 first paid drop: The Future Proof Method.
 4. Member hub shell with Start Here, Operator Workspace, Prompt Workflows, and Build Receipts.
-5. Starter Kit content assets uploaded into the member hub.
-6. Live hub embeds and stream command links.
-7. Workshop/live-build event page after the starter kit checkout works.
+5. Starter Kit content assets served through gated member downloads.
+6. Live hub shell and stream command links.
+7. Workshop/live-build event page after the starter kit checkout proves conversion.
 8. Cohort and sprint pages after the first paid/drop path is testable end to end.
 
 ## Render Web Service Settings
@@ -99,12 +98,16 @@ Cloudflare SSL/TLS:
 - Site routes generated: done
 - `render.yaml` created: done
 - Public-safe pages separated from `/admin`: done
-- Render service live: pending
-- Cloudflare DNS pointed at Render: pending
-- Email capture live: pending
-- Starter Kit checkout live: pending
-- Member area delivery live: pending
-- Livestream embed live: pending
-- Day 0 tracker baseline: pending
+- Render service live: done
+- Cloudflare DNS pointed at Render: done
+- Email capture live: done
+- Supabase durable subscriber list: done
+- Admin audience summary: done
+- Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
+- Member area delivery live: done
+- Social share metadata and OG card: done
+- Livestream hub shell: done
+- Final livestream embeds/URLs: pending channel decision
+- Day 1 tracker baseline command: done; run `npm run baseline:launch:push` on launch day only
 - OBS overlay tested in OBS: pending
-- Daily publish workflow selected: pending
+- Daily publish workflow selected: done; Supabase admin write flow

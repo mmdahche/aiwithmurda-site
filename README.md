@@ -46,4 +46,15 @@ The `render.yaml` blueprint defines the web service, custom domain, required env
 4. Use `Overlay` as the reference for the OBS browser source.
 5. Use `Deck` to review the growing Day 1-60 proof deck.
 
-The dashboard data still uses browser localStorage for the operator tracker. The product funnel now expects Supabase, Stripe, and Resend environment variables in production.
+The operator tracker saves locally while editing, then syncs public daily logs to Supabase through the guarded admin API. The product funnel expects Supabase, Stripe, Resend, and `ADMIN_API_TOKEN` environment variables in production.
+
+Useful production checks:
+
+```bash
+npm run smoke:tracker
+npm run smoke:subscribe
+npm run smoke:funnel
+npm run baseline:launch
+```
+
+`npm run baseline:launch` is a dry run. Use `npm run baseline:launch:push` only on launch day when replacing preview logs with the clean Day 1 baseline.
