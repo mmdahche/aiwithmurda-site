@@ -6,6 +6,7 @@ import {
   getDailyLogs,
   getMemberProfile,
   getSubscriberSummary,
+  getSystemStatus,
   subscribeBuildLog,
   syncDailyLogs,
   verifyCheckoutSession,
@@ -174,6 +175,9 @@ function App() {
   const [subscriberSummary, setSubscriberSummary] = useState(null);
   const [subscriberStatus, setSubscriberStatus] = useState("idle");
   const [subscriberMessage, setSubscriberMessage] = useState("");
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [systemStatusState, setSystemStatusState] = useState("idle");
+  const [systemStatusMessage, setSystemStatusMessage] = useState("");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -274,6 +278,9 @@ function App() {
     setSubscriberSummary(null);
     setSubscriberStatus("idle");
     setSubscriberMessage("");
+    setSystemStatus(null);
+    setSystemStatusState("idle");
+    setSystemStatusMessage("");
     if (value) {
       window.localStorage.setItem(adminTokenStorageKey, value);
     } else {
@@ -305,6 +312,31 @@ function App() {
       refreshSubscriberSummary();
     }
   }, [activeView, adminToken, refreshSubscriberSummary, subscriberStatus]);
+
+  const refreshSystemStatus = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setSystemStatusState("error");
+      setSystemStatusMessage("Add the admin token before checking system status.");
+      return;
+    }
+
+    setSystemStatusState("loading");
+    setSystemStatusMessage("");
+    try {
+      const data = await getSystemStatus(adminToken.trim());
+      setSystemStatus(data.status || null);
+      setSystemStatusState("success");
+    } catch (error) {
+      setSystemStatusState("error");
+      setSystemStatusMessage(error.message || "Could not load system status.");
+    }
+  }, [adminToken]);
+
+  useEffect(() => {
+    if (activeView === "settings" && adminToken.trim() && systemStatusState === "idle") {
+      refreshSystemStatus();
+    }
+  }, [activeView, adminToken, refreshSystemStatus, systemStatusState]);
 
   async function syncLogsToPublic(targetLogs, label) {
     if (!adminToken.trim()) {
@@ -497,8 +529,12 @@ function App() {
             subscriberSummary={subscriberSummary}
             subscriberStatus={subscriberStatus}
             subscriberMessage={subscriberMessage}
+            systemStatus={systemStatus}
+            systemStatusState={systemStatusState}
+            systemStatusMessage={systemStatusMessage}
             updateAdminToken={updateAdminToken}
             refreshSubscriberSummary={refreshSubscriberSummary}
+            refreshSystemStatus={refreshSystemStatus}
             syncLogsToPublic={syncLogsToPublic}
             restoreSeedData={restoreSeedData}
           />
@@ -1733,8 +1769,12 @@ function SettingsView({
   subscriberSummary,
   subscriberStatus,
   subscriberMessage,
+  systemStatus,
+  systemStatusState,
+  systemStatusMessage,
   updateAdminToken,
   refreshSubscriberSummary,
+  refreshSystemStatus,
   syncLogsToPublic,
   restoreSeedData,
 }) {
@@ -1839,6 +1879,27 @@ function SettingsView({
               <p>No subscriber events loaded yet.</p>
             )}
           </div>
+        </article>
+        <article className="panel system-panel">
+          <PanelTitle icon="settings" title="System" right={systemStatusState === "success" ? "Render" : "Admin"} />
+          <div className="system-grid">
+            <KeyValue label="Supabase" value={systemStatus?.supabase ? "Ready" : "Missing"} positive={systemStatus?.supabase} />
+            <KeyValue label="Stripe" value={systemStatus?.stripe ? "Ready" : "Missing"} positive={systemStatus?.stripe} />
+            <KeyValue label="Resend" value={systemStatus?.resend ? "Ready" : "Missing"} positive={systemStatus?.resend} />
+            <KeyValue label="Stripe Mode" value={systemStatus?.stripeMode || "Unknown"} />
+            <KeyValue label="Site URL" value={systemStatus?.siteUrl || "Not checked"} />
+            <KeyValue label="Commit" value={systemStatus?.renderCommit || "Local"} />
+          </div>
+          <button
+            type="button"
+            className="primary-action"
+            onClick={refreshSystemStatus}
+            disabled={systemStatusState === "loading"}
+          >
+            {systemStatusState === "loading" ? "Checking..." : "Refresh System"}
+          </button>
+          {systemStatus?.checkedAt && <p className="panel-note">Checked {new Date(systemStatus.checkedAt).toLocaleString()}</p>}
+          {systemStatusMessage && <p className={`form-message ${systemStatusState}`}>{systemStatusMessage}</p>}
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />

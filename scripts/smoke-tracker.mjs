@@ -1,4 +1,4 @@
-import { getSiteUrl, loadEnv } from "./env-loader.mjs";
+import { getSiteUrl, loadEnv, requireEnv } from "./env-loader.mjs";
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -8,6 +8,7 @@ async function fetchJson(url, options = {}) {
 
 const env = loadEnv();
 const siteUrl = getSiteUrl(env);
+const adminToken = requireEnv(env, "ADMIN_API_TOKEN");
 
 const publicLogs = await fetchJson(`${siteUrl}/api/daily-logs`);
 if (!publicLogs.response.ok || !Array.isArray(publicLogs.data?.logs)) {
@@ -29,6 +30,13 @@ if (blockedWrite.response.status !== 401 || blockedWrite.data?.error !== "invali
   throw new Error(`Admin guard failed: ${blockedWrite.response.status} ${JSON.stringify(blockedWrite.data)}`);
 }
 
+const systemStatus = await fetchJson(`${siteUrl}/api/admin/system/status`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (!systemStatus.response.ok || systemStatus.data?.ok !== true || !systemStatus.data?.status?.supabase) {
+  throw new Error(`Admin system status failed: ${systemStatus.response.status} ${JSON.stringify(systemStatus.data)}`);
+}
+
 console.log(
   JSON.stringify(
     {
@@ -38,6 +46,11 @@ console.log(
         publicLogsReadable: true,
         publicDashboardRoute: true,
         adminWritesBlockedWithoutToken: true,
+        adminSystemStatusReadable: true,
+      },
+      system: {
+        stripeMode: systemStatus.data.status.stripeMode,
+        renderCommit: systemStatus.data.status.renderCommit,
       },
       logs: {
         count: publicLogs.data.logs.length,

@@ -738,13 +738,24 @@ button {
   gap: 14px;
 }
 
-.audience-grid {
+.audience-grid,
+.system-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
-.audience-panel .primary-action {
+.system-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.system-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.audience-panel .primary-action,
+.system-panel .primary-action {
   width: 100%;
 }
 
@@ -827,6 +838,7 @@ button {
 
 .key-value strong {
   font-size: 22px;
+  overflow-wrap: anywhere;
 }
 
 .key-value strong.positive {
@@ -2161,6 +2173,7 @@ button {
 
   .side-nav,
   .audience-grid,
+  .system-grid,
   .metric-grid,
   .weekly-stats,
   .settings-grid,

@@ -579,6 +579,25 @@ app.get("/api/admin/subscribers/summary", requireAdmin, async (req, res) => {
   }
 });
 
+app.get("/api/admin/system/status", requireAdmin, (req, res) => {
+  const stripeKey = process.env.STRIPE_SECRET_KEY || "";
+  const stripeMode = stripeKey.startsWith("sk_live_") ? "live" : stripeKey.startsWith("sk_test_") ? "test" : "unknown";
+
+  res.json({
+    ok: true,
+    status: {
+      siteUrl,
+      supabase: Boolean(supabaseAdmin),
+      stripe: Boolean(stripe),
+      stripeMode,
+      resend: Boolean(resend),
+      renderCommit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) || null,
+      nodeEnv: process.env.NODE_ENV || "development",
+      checkedAt: new Date().toISOString(),
+    },
+  });
+});
+
 app.post("/api/subscribe", async (req, res) => {
   const email = String(req.body?.email || "").trim().toLowerCase();
   const name = String(req.body?.name || "").trim();

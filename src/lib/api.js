@@ -44,6 +44,12 @@ export function getSubscriberSummary(adminToken) {
   });
 }
 
+export function getSystemStatus(adminToken) {
+  return apiRequest("/api/admin/system/status", {
+    token: adminToken,
+  });
+}
+
 export function getMemberProfile(token) {
   return apiRequest("/api/me", { token });
 }
