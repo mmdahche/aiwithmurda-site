@@ -682,7 +682,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} />}
       {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
       {knownRoute === "/live" && <LiveHub latest={latest} streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
-      {knownRoute === "/tools" && <ToolsPage />}
+      {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && <MembersPage authSession={authSession} authReady={authReady} />}
@@ -1073,16 +1073,43 @@ function StreamDestinationLink({ item }) {
   return <div className="pending">{content}</div>;
 }
 
-function ToolsPage() {
+function ToolsPage({ latest }) {
+  const commandLinks = [
+    { command: "!dashboard", title: "Public scoreboard", href: "/60", body: "The live numbers, goals, weekly recap, and latest status." },
+    { command: "!today", title: `Day ${latest.day} receipt`, href: `/day/${latest.day}`, body: "The current daily proof page for clips and recaps." },
+    { command: "!live", title: "Live hub", href: "/live", body: "Stream room, pinned commands, run of show, and mode guardrails." },
+    { command: "OBS", title: "Overlay route", href: "/overlay", body: "Clean browser-source URL for the scoreboard overlay." },
+    { command: "!kit", title: productName, href: "/kit", body: "The first paid drop and member-product path." },
+    { command: "!start", title: "Build log", href: "/start", body: "Email capture for launch updates and daily receipts." },
+    { command: "!members", title: "Member hub", href: "/members", body: "Supabase login, checkout recovery, and gated assets." },
+    { command: "/obs", title: "Short OBS alias", href: "/obs", body: "Same overlay, shorter URL for browser source setup." },
+  ];
+
   return (
     <main className="public-page">
       <section className="public-section">
         <span className="public-label">Tools</span>
-        <h1>The systems behind the 60-day sprint.</h1>
+        <h1>Everything useful needs a command.</h1>
         <p>
-          These are the public-facing tools and resources that come out of the build. The Command
-          Center is first. Starter Kit, workshop notes, and templates come next.
+          Use this as the public shelf for the sprint: scoreboard, receipts, stream room, overlay,
+          product drop, member area, and the links chat should be able to find fast.
         </p>
+      </section>
+
+      <section className="public-section tool-command-section">
+        <div>
+          <span className="public-label">Command shelf</span>
+          <h2>Chat links, operator links, proof links.</h2>
+        </div>
+        <div className="tool-link-grid">
+          {commandLinks.map((item) => (
+            <a key={`${item.command}-${item.href}`} href={item.href}>
+              <span>{item.command}</span>
+              <strong>{item.title}</strong>
+              <p>{item.body}</p>
+            </a>
+          ))}
+        </div>
       </section>
 
       <section className="public-cards">

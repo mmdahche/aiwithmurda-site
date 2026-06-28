@@ -21,6 +21,12 @@ if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
   throw new Error(`Public dashboard route failed: ${dashboardResponse.status}`);
 }
 
+const toolsResponse = await fetch(`${siteUrl}/tools/`);
+const toolsHtml = await toolsResponse.text();
+if (!toolsResponse.ok || !toolsHtml.includes("root")) {
+  throw new Error(`Public tools route failed: ${toolsResponse.status}`);
+}
+
 const overlayResponse = await fetch(`${siteUrl}/overlay/`);
 const overlayHtml = await overlayResponse.text();
 if (!overlayResponse.ok || !overlayHtml.includes("root")) {
@@ -63,6 +69,7 @@ console.log(
       checks: {
         publicLogsReadable: true,
         publicDashboardRoute: true,
+        publicToolsRoute: true,
         overlayRoute: true,
         obsAliasRoute: true,
         dayReceiptRoute: true,
