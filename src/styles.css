@@ -832,13 +832,57 @@ button {
   gap: 14px;
 }
 
+.stream-config-panel {
+  display: grid;
+  gap: 14px;
+}
+
 .system-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .audience-panel .primary-action,
-.system-panel .primary-action {
+.system-panel .primary-action,
+.stream-config-panel .primary-action {
   width: 100%;
+}
+
+.stream-config-list {
+  display: grid;
+  gap: 8px;
+}
+
+.stream-config-list div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.stream-config-list div.ready {
+  border-color: rgba(97, 227, 109, 0.3);
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.stream-config-list span,
+.stream-config-list strong {
+  display: block;
+  font-size: 12px;
+}
+
+.stream-config-list span {
+  color: #f4fbf6;
+  font-weight: 800;
+}
+
+.stream-config-list strong {
+  color: var(--muted);
+  text-align: right;
 }
 
 .panel-note {
@@ -1987,7 +2031,8 @@ button {
   gap: 8px;
 }
 
-.signal-list a {
+.signal-list a,
+.signal-list div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -1997,6 +2042,11 @@ button {
   border: 1px solid var(--border);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.035);
+}
+
+.signal-list div.pending {
+  border-color: rgba(255, 159, 26, 0.26);
+  background: rgba(255, 159, 26, 0.055);
 }
 
 .signal-list span,
@@ -2012,6 +2062,39 @@ button {
 .signal-list strong {
   color: var(--muted);
   font-size: 12px;
+}
+
+.stream-command-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1fr);
+  align-items: start;
+  gap: 34px;
+}
+
+.stream-command-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stream-command-grid a {
+  display: grid;
+  gap: 5px;
+  min-height: 78px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.stream-command-grid strong {
+  color: var(--green);
+  font-size: 20px;
+}
+
+.stream-command-grid span {
+  color: #d7e5dc;
+  font-size: 13px;
 }
 
 .run-of-show {
@@ -2224,6 +2307,7 @@ button {
   .public-hero,
   .start-hero,
   .live-hero,
+  .stream-command-section,
   .public-section.two-col,
   .public-score-header,
   .public-dashboard-grid,
@@ -2243,6 +2327,7 @@ button {
   .public-cards,
   .start-proof-grid,
   .run-of-show,
+  .stream-command-grid,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2333,6 +2418,7 @@ button {
   .public-cards,
   .start-proof-grid,
   .run-of-show,
+  .stream-command-grid,
   .member-grid,
   .kit-module-list,
   .start-form {
@@ -2341,5 +2427,16 @@ button {
 
   .hero-command-card {
     display: none;
+  }
+
+  .stream-config-list div,
+  .signal-list a,
+  .signal-list div {
+    grid-template-columns: 1fr;
+  }
+
+  .stream-config-list strong,
+  .signal-list strong {
+    text-align: left;
   }
 }

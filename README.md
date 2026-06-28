@@ -53,6 +53,7 @@ Useful production checks:
 ```bash
 npm run smoke:tracker
 npm run smoke:subscribe
+npm run smoke:stream
 npm run smoke:funnel
 npm run baseline:launch
 ```

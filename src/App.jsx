@@ -6,6 +6,7 @@ import {
   getDailyLogs,
   getMemberProfile,
   getSubscriberSummary,
+  getStreamConfig,
   getSystemStatus,
   subscribeBuildLog,
   syncDailyLogs,
@@ -161,11 +162,31 @@ const liveRunOfShow = [
   },
 ];
 
-const streamDestinations = [
-  { name: "Main live room", status: "Link drops before Day 1", href: "/start" },
-  { name: "Public scoreboard", status: "Live now", href: "/60" },
-  { name: "First paid drop", status: "Founding product", href: "/kit" },
-];
+const fallbackStreamConfig = {
+  status: "prelaunch",
+  statusLabel: "Prelaunch room",
+  message: "Live links, pinned chat commands, and embeds get added here before July 28.",
+  primary: {
+    name: "Main live room",
+    href: null,
+    status: "Link drops before Day 1",
+    configured: false,
+  },
+  destinations: [
+    { key: "main", name: "Main live room", href: null, status: "Link drops before Day 1", configured: false },
+    { key: "twitch", name: "Twitch", href: null, status: "Waiting for link", configured: false },
+    { key: "kick", name: "Kick", href: null, status: "Waiting for link", configured: false },
+    { key: "youtube", name: "YouTube", href: null, status: "Waiting for link", configured: false },
+    { key: "scoreboard", name: "Public scoreboard", href: "/60", status: "Live now", configured: true },
+    { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true },
+  ],
+  commands: [
+    { command: "!dashboard", label: "Public scoreboard", href: "/60" },
+    { command: "!start", label: "Build log signup", href: "/start" },
+    { command: "!kit", label: "Founding product", href: "/kit" },
+    { command: "!members", label: "Member login", href: "/members" },
+  ],
+};
 
 const launchChecklistItems = [
   {
@@ -240,6 +261,8 @@ function App() {
   const [systemStatus, setSystemStatus] = useState(null);
   const [systemStatusState, setSystemStatusState] = useState("idle");
   const [systemStatusMessage, setSystemStatusMessage] = useState("");
+  const [streamConfig, setStreamConfig] = useState(fallbackStreamConfig);
+  const [streamConfigStatus, setStreamConfigStatus] = useState("idle");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -250,6 +273,29 @@ function App() {
   useEffect(() => {
     saveLogs(logs);
   }, [logs]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadStreamConfig() {
+      setStreamConfigStatus("loading");
+      try {
+        const data = await getStreamConfig();
+        if (!mounted) return;
+        setStreamConfig({ ...fallbackStreamConfig, ...data });
+        setStreamConfigStatus("success");
+      } catch {
+        if (!mounted) return;
+        setStreamConfig(fallbackStreamConfig);
+        setStreamConfigStatus("local");
+      }
+    }
+
+    loadStreamConfig();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -511,6 +557,8 @@ function App() {
         weeks={weeks}
         authSession={authSession}
         authReady={authReady}
+        streamConfig={streamConfig}
+        streamConfigStatus={streamConfigStatus}
       />
     );
   }
@@ -594,6 +642,8 @@ function App() {
             systemStatus={systemStatus}
             systemStatusState={systemStatusState}
             systemStatusMessage={systemStatusMessage}
+            streamConfig={streamConfig}
+            streamConfigStatus={streamConfigStatus}
             updateAdminToken={updateAdminToken}
             refreshSubscriberSummary={refreshSubscriberSummary}
             refreshSystemStatus={refreshSystemStatus}
@@ -606,7 +656,7 @@ function App() {
   );
 }
 
-function PublicSite({ route, config, logs, latest, weeks, authSession, authReady }) {
+function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus }) {
   const knownRoute = ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route) ? route : "/";
 
   return (
@@ -614,7 +664,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       <PublicNav activeRoute={knownRoute} />
       {knownRoute === "/" && <PublicHome config={config} latest={latest} />}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} />}
-      {knownRoute === "/live" && <LiveHub />}
+      {knownRoute === "/live" && <LiveHub streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
       {knownRoute === "/tools" && <ToolsPage />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
@@ -786,7 +836,12 @@ function PrelaunchBanner({ mode }) {
   );
 }
 
-function LiveHub() {
+function LiveHub({ streamConfig, streamConfigStatus }) {
+  const destinations = streamConfig?.destinations?.length ? streamConfig.destinations : fallbackStreamConfig.destinations;
+  const commands = streamConfig?.commands?.length ? streamConfig.commands : fallbackStreamConfig.commands;
+  const primaryHref = streamConfig?.primary?.href || "/start";
+  const primaryLabel = streamConfig?.primary?.configured ? "Open live room" : "Join build log";
+
   return (
     <main className="public-page">
       <section className="live-hero">
@@ -799,8 +854,8 @@ function LiveHub() {
             something breaks.
           </p>
           <div className="hero-actions">
-            <a className="primary-link" href="/start">
-              Join build log
+            <a className="primary-link" href={primaryHref} target={streamConfig?.primary?.external ? "_blank" : undefined} rel="noreferrer">
+              {primaryLabel}
             </a>
             <a className="secondary-link" href="/60">
               Open scoreboard
@@ -809,17 +864,30 @@ function LiveHub() {
         </div>
         <aside className="live-signal-panel">
           <span>Stream status</span>
-          <strong>Prelaunch room</strong>
-          <p>Live links, pinned chat commands, and embeds get added here before July 28.</p>
+          <strong>{streamConfig?.statusLabel || "Prelaunch room"}</strong>
+          <p>{streamConfig?.message || fallbackStreamConfig.message}</p>
+          {streamConfigStatus === "local" && <p className="panel-note">Local stream fallback is showing.</p>}
           <div className="signal-list">
-            {streamDestinations.map((item) => (
-              <a key={item.name} href={item.href}>
-                <span>{item.name}</span>
-                <strong>{item.status}</strong>
-              </a>
+            {destinations.map((item) => (
+              <StreamDestinationLink item={item} key={item.key || item.name} />
             ))}
           </div>
         </aside>
+      </section>
+
+      <section className="public-section stream-command-section">
+        <div>
+          <span className="public-label">Pinned commands</span>
+          <h2>Chat can always find the receipts.</h2>
+        </div>
+        <div className="stream-command-grid">
+          {commands.map((item) => (
+            <a key={item.command} href={item.href}>
+              <strong>{item.command}</strong>
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </div>
       </section>
 
       <section className="run-of-show">
@@ -845,6 +913,25 @@ function LiveHub() {
       </section>
     </main>
   );
+}
+
+function StreamDestinationLink({ item }) {
+  const content = (
+    <>
+      <span>{item.name}</span>
+      <strong>{item.status}</strong>
+    </>
+  );
+
+  if (item.href) {
+    return (
+      <a href={item.href} target={item.external ? "_blank" : undefined} rel="noreferrer">
+        {content}
+      </a>
+    );
+  }
+
+  return <div className="pending">{content}</div>;
 }
 
 function ToolsPage() {
@@ -1837,6 +1924,8 @@ function SettingsView({
   systemStatus,
   systemStatusState,
   systemStatusMessage,
+  streamConfig,
+  streamConfigStatus,
   updateAdminToken,
   refreshSubscriberSummary,
   refreshSystemStatus,
@@ -1847,6 +1936,9 @@ function SettingsView({
   const mode = getPublicDataMode(config);
   const launchReadyCount = launchChecklistItems.filter((item) => item.status === "done").length;
   const launchManualCount = launchChecklistItems.filter((item) => item.status === "manual").length;
+  const streamDestinations = streamConfig?.destinations || fallbackStreamConfig.destinations;
+  const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
+  const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -1987,6 +2079,23 @@ function SettingsView({
           </button>
           {systemStatus?.checkedAt && <p className="panel-note">Checked {new Date(systemStatus.checkedAt).toLocaleString()}</p>}
           {systemStatusMessage && <p className={`form-message ${systemStatusState}`}>{systemStatusMessage}</p>}
+        </article>
+        <article className="panel stream-config-panel">
+          <PanelTitle icon="monitor" title="Stream Links" right={streamConfigStatus === "success" ? "Live config" : "Fallback"} />
+          <div className="system-grid">
+            <KeyValue label="Room" value={streamConfig?.statusLabel || "Prelaunch room"} />
+            <KeyValue label="Configured" value={`${configuredStreamCount}/${streamPlatformDestinations.length}`} />
+            <KeyValue label="Commands" value={formatNumber(streamConfig?.commands?.length || fallbackStreamConfig.commands.length)} />
+            <KeyValue label="Checked" value={streamConfig?.checkedAt ? new Date(streamConfig.checkedAt).toLocaleString() : "Local fallback"} />
+          </div>
+          <div className="stream-config-list">
+            {streamPlatformDestinations.map((item) => (
+              <div className={item.configured ? "ready" : "waiting"} key={item.key}>
+                <span>{item.name}</span>
+                <strong>{item.status}</strong>
+              </div>
+            ))}
+          </div>
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />

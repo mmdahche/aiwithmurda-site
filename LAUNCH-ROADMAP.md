@@ -107,7 +107,28 @@ Cloudflare SSL/TLS:
 - Member area delivery live: done
 - Social share metadata and OG card: done
 - Livestream hub shell: done
+- Stream config endpoint and admin stream-link visibility: done
 - Final livestream embeds/URLs: pending channel decision
 - Day 1 tracker baseline command: done; run `npm run baseline:launch:push` on launch day only
 - OBS overlay tested in OBS: pending
 - Daily publish workflow selected: done; Supabase admin write flow
+
+## Stream Link Environment Contract
+
+Set these public URL values on Render after the final stream destinations are chosen:
+
+- `STREAM_PRIMARY_URL` - main room button on `/live`
+- `STREAM_PRIMARY_EMBED_URL` - future embed source if the selected platform supports it
+- `STREAM_CHAT_URL` - future chat/pinned command reference if needed
+- `STREAM_TWITCH_URL` - Twitch room URL
+- `STREAM_KICK_URL` - Kick room URL
+- `STREAM_YOUTUBE_URL` - YouTube live or channel URL
+- `STREAM_STATUS` - short machine status, default `prelaunch`
+- `STREAM_STATUS_LABEL` - visible room status, default `Prelaunch room`
+- `STREAM_MESSAGE` - visible live-room note on `/live`
+
+Verify with:
+
+```bash
+npm run smoke:stream
+```

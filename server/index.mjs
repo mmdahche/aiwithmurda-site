@@ -18,6 +18,11 @@ const productName = "The Future Proof Method";
 const productSubtitle = "New Wave Operator Kit";
 const productPriceCents = 4700;
 const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
+const streamLinkKeys = [
+  ["twitch", "Twitch", "STREAM_TWITCH_URL"],
+  ["kick", "Kick", "STREAM_KICK_URL"],
+  ["youtube", "YouTube", "STREAM_YOUTUBE_URL"],
+];
 const memberAssets = [
   {
     key: "quickstart",
@@ -71,6 +76,66 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+function readPublicUrlEnv(key) {
+  const value = String(process.env[key] || "").trim();
+  return value || null;
+}
+
+function buildStreamConfig() {
+  const primaryUrl = readPublicUrlEnv("STREAM_PRIMARY_URL");
+  const primaryEmbedUrl = readPublicUrlEnv("STREAM_PRIMARY_EMBED_URL");
+  const chatUrl = readPublicUrlEnv("STREAM_CHAT_URL");
+  const streamLinks = streamLinkKeys.map(([key, name, envKey]) => {
+    const href = readPublicUrlEnv(envKey);
+    return {
+      key,
+      name,
+      href,
+      status: href ? "Configured" : "Waiting for link",
+      configured: Boolean(href),
+      external: Boolean(href),
+    };
+  });
+
+  return {
+    ok: true,
+    status: process.env.STREAM_STATUS || "prelaunch",
+    statusLabel: process.env.STREAM_STATUS_LABEL || (primaryUrl ? "Live room ready" : "Prelaunch room"),
+    message:
+      process.env.STREAM_MESSAGE ||
+      "Live links, pinned chat commands, and embeds get added here before July 28.",
+    primary: {
+      name: "Main live room",
+      href: primaryUrl,
+      embedUrl: primaryEmbedUrl,
+      chatUrl,
+      status: primaryUrl ? "Configured" : "Link drops before Day 1",
+      configured: Boolean(primaryUrl),
+      external: Boolean(primaryUrl),
+    },
+    destinations: [
+      {
+        key: "main",
+        name: "Main live room",
+        href: primaryUrl,
+        status: primaryUrl ? "Configured" : "Link drops before Day 1",
+        configured: Boolean(primaryUrl),
+        external: Boolean(primaryUrl),
+      },
+      ...streamLinks,
+      { key: "scoreboard", name: "Public scoreboard", href: "/60", status: "Live now", configured: true, external: false },
+      { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true, external: false },
+    ],
+    commands: [
+      { command: "!dashboard", label: "Public scoreboard", href: "/60" },
+      { command: "!start", label: "Build log signup", href: "/start" },
+      { command: "!kit", label: "Founding product", href: "/kit" },
+      { command: "!members", label: "Member login", href: "/members" },
+    ],
+    checkedAt: new Date().toISOString(),
+  };
+}
 
 function requireConfigured(res, service, name) {
   if (service) return true;
@@ -482,6 +547,10 @@ app.get("/api/health", (req, res) => {
     stripe: Boolean(stripe),
     resend: Boolean(resend),
   });
+});
+
+app.get("/api/stream/config", (req, res) => {
+  res.json(buildStreamConfig());
 });
 
 app.get("/api/daily-logs", async (req, res) => {
