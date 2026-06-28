@@ -11,7 +11,7 @@ export const productModules = [
     lesson: {
       focus: "Set up the operating surface so every build, prompt, proof asset, and offer note has a home.",
       output: "Command folder screenshot and first baseline entry.",
-      useWith: ["Module Roadmap", "Daily Operator Checklist"],
+      useWith: ["Module Field Guide", "Module Roadmap", "Daily Operator Checklist"],
       starterPrompt:
         "Audit my AI workspace. List the folders, trackers, and proof habits I need before a public sprint.",
     },
@@ -30,7 +30,7 @@ export const productModules = [
     lesson: {
       focus: "Pick a workflow people understand quickly and define proof before touching code.",
       output: "One before-state receipt with pain, buyer, and proof metric.",
-      useWith: ["Prompt Workflow Pack", "Proof Receipts Template"],
+      useWith: ["Module Field Guide", "Prompt Workflow Pack", "Proof Receipts Template"],
       starterPrompt:
         "List painful workflows worth building in public. Score each by proof speed, value, and viewer clarity.",
     },
@@ -49,7 +49,7 @@ export const productModules = [
     lesson: {
       focus: "Use AI as the build partner, but keep scope narrow enough to test live.",
       output: "A working slice with before/after proof and a short explanation.",
-      useWith: ["Prompt Workflow Pack", "Daily Operator Checklist"],
+      useWith: ["Module Field Guide", "Prompt Workflow Pack", "Daily Operator Checklist"],
       starterPrompt:
         "Inspect this project first. Pick the smallest build slice that creates visible proof today, then give me the plan.",
     },
@@ -68,7 +68,7 @@ export const productModules = [
     lesson: {
       focus: "Package the work so viewers see what changed, what broke, and why it matters.",
       output: "One day receipt plus one public asset.",
-      useWith: ["Proof Receipts Template", "Daily Operator Checklist"],
+      useWith: ["Module Field Guide", "Proof Receipts Template", "Daily Operator Checklist"],
       starterPrompt:
         "Turn this build into a receipt: before, after, failure, lesson, clip hook, and tomorrow's promise.",
     },
@@ -87,7 +87,7 @@ export const productModules = [
     lesson: {
       focus: "Translate proof into a buyer promise, CTA, objection answer, and follow-up.",
       output: "One improved offer surface and one logged result.",
-      useWith: ["Proof To Offer Canvas", "Proof Receipts Template"],
+      useWith: ["Module Field Guide", "Proof To Offer Canvas", "Proof Receipts Template"],
       starterPrompt:
         "Use this proof receipt to shape an offer: buyer, promise, objection, CTA, and warm follow-up message.",
     },
@@ -122,6 +122,10 @@ export const productAssetHighlights = [
   {
     title: "Module Roadmap",
     body: "The five-module path with to-do lists, done criteria, and proof outputs.",
+  },
+  {
+    title: "Module Field Guide",
+    body: "The working surface for each module: questions, worksheets, prompts, proof receipts, and exit criteria.",
   },
   {
     title: "Daily Operator Checklist",

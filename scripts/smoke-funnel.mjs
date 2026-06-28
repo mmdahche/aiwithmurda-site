@@ -74,6 +74,9 @@ try {
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
     throw new Error(`Module roadmap asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
+  if (!productAssets.some((asset) => asset.key === "module-field-guide")) {
+    throw new Error(`Module field guide asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
@@ -121,6 +124,13 @@ try {
   if (!assetResponse.ok || !assetText.includes("The Future Proof Method - Quickstart Map")) {
     throw new Error(`Asset download failed: ${assetResponse.status} ${assetText.slice(0, 120)}`);
   }
+  const fieldGuideResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/module-field-guide`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const fieldGuideText = await fieldGuideResponse.text();
+  if (!fieldGuideResponse.ok || !fieldGuideText.includes("The Future Proof Method - Module Field Guide")) {
+    throw new Error(`Module field guide download failed: ${fieldGuideResponse.status} ${fieldGuideText.slice(0, 120)}`);
+  }
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -155,8 +165,10 @@ try {
           productAssetsExposed: true,
           productModulesExposed: true,
           moduleRoadmapExposed: true,
+          moduleFieldGuideExposed: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
+          entitledFieldGuideDownload: true,
           memberProgressLookup: true,
           memberProgressUpdate: true,
         },

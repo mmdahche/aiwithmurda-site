@@ -67,6 +67,15 @@ const memberAssets = [
     mimeType: "text/markdown; charset=utf-8",
   },
   {
+    key: "module-field-guide",
+    title: "Module Field Guide",
+    kind: "Lessons",
+    description: "Module-by-module worksheets with operating questions, prompts, proof receipts, and exit criteria.",
+    fileName: "module-field-guide.md",
+    downloadName: "future-proof-method-module-field-guide.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
     key: "proof-to-offer-canvas",
     title: "Proof To Offer Canvas",
     kind: "Offer",
@@ -477,7 +486,7 @@ function buildAccessEmail() {
       intro:
         "Your profile now has access to the first version of The Future Proof Method. Start with the Quickstart Map, then use the daily checklist and proof templates while the sprint evolves.",
       bullets: [
-        "Module Roadmap with a trackable five-module checklist.",
+        "Module Roadmap and Module Field Guide with a trackable five-module checklist.",
         "Quickstart Map, Daily Operator Checklist, and Prompt Workflow Pack.",
         "Proof Receipts Template plus the Proof To Offer Canvas for turning proof into a CTA.",
       ],
