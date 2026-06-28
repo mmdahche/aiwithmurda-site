@@ -61,6 +61,18 @@ if (!systemStatus.response.ok || systemStatus.data?.ok !== true || !systemStatus
   throw new Error(`Admin system status failed: ${systemStatus.response.status} ${JSON.stringify(systemStatus.data)}`);
 }
 
+const offerSummary = await fetchJson(`${siteUrl}/api/admin/offer/summary`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (
+  !offerSummary.response.ok ||
+  offerSummary.data?.ok !== true ||
+  offerSummary.data?.summary?.product?.tasks < 20 ||
+  offerSummary.data?.summary?.product?.assets < 5
+) {
+  throw new Error(`Admin offer summary failed: ${offerSummary.response.status} ${JSON.stringify(offerSummary.data)}`);
+}
+
 console.log(
   JSON.stringify(
     {
@@ -75,10 +87,16 @@ console.log(
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminSystemStatusReadable: true,
+        adminOfferSummaryReadable: true,
       },
       system: {
         stripeMode: systemStatus.data.status.stripeMode,
         renderCommit: systemStatus.data.status.renderCommit,
+      },
+      offer: {
+        activeMembers: offerSummary.data.summary.sales.activeMembers,
+        paidPurchases: offerSummary.data.summary.sales.paidPurchases,
+        completedTasks: offerSummary.data.summary.progress.completedTasks,
       },
       logs: {
         count: publicLogs.data.logs.length,

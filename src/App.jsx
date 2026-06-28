@@ -7,6 +7,7 @@ import {
   getDailyLogs,
   getMemberProfile,
   getMemberProgress,
+  getOfferOpsSummary,
   getSubscriberSummary,
   getStreamConfig,
   getSystemStatus,
@@ -260,6 +261,9 @@ function App() {
   const [subscriberSummary, setSubscriberSummary] = useState(null);
   const [subscriberStatus, setSubscriberStatus] = useState("idle");
   const [subscriberMessage, setSubscriberMessage] = useState("");
+  const [offerOpsSummary, setOfferOpsSummary] = useState(null);
+  const [offerOpsStatus, setOfferOpsStatus] = useState("idle");
+  const [offerOpsMessage, setOfferOpsMessage] = useState("");
   const [systemStatus, setSystemStatus] = useState(null);
   const [systemStatusState, setSystemStatusState] = useState("idle");
   const [systemStatusMessage, setSystemStatusMessage] = useState("");
@@ -396,6 +400,9 @@ function App() {
     setSubscriberSummary(null);
     setSubscriberStatus("idle");
     setSubscriberMessage("");
+    setOfferOpsSummary(null);
+    setOfferOpsStatus("idle");
+    setOfferOpsMessage("");
     setSystemStatus(null);
     setSystemStatusState("idle");
     setSystemStatusMessage("");
@@ -430,6 +437,31 @@ function App() {
       refreshSubscriberSummary();
     }
   }, [activeView, adminToken, refreshSubscriberSummary, subscriberStatus]);
+
+  const refreshOfferOpsSummary = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setOfferOpsStatus("error");
+      setOfferOpsMessage("Add the admin token before checking offer ops.");
+      return;
+    }
+
+    setOfferOpsStatus("loading");
+    setOfferOpsMessage("");
+    try {
+      const data = await getOfferOpsSummary(adminToken.trim());
+      setOfferOpsSummary(data.summary || null);
+      setOfferOpsStatus("success");
+    } catch (error) {
+      setOfferOpsStatus("error");
+      setOfferOpsMessage(error.message || "Could not load offer ops.");
+    }
+  }, [adminToken]);
+
+  useEffect(() => {
+    if (activeView === "settings" && adminToken.trim() && offerOpsStatus === "idle") {
+      refreshOfferOpsSummary();
+    }
+  }, [activeView, adminToken, refreshOfferOpsSummary, offerOpsStatus]);
 
   const refreshSystemStatus = useCallback(async () => {
     if (!adminToken.trim()) {
@@ -646,6 +678,9 @@ function App() {
             adminToken={adminToken}
             syncStatus={syncStatus}
             syncMessage={syncMessage}
+            offerOpsSummary={offerOpsSummary}
+            offerOpsStatus={offerOpsStatus}
+            offerOpsMessage={offerOpsMessage}
             subscriberSummary={subscriberSummary}
             subscriberStatus={subscriberStatus}
             subscriberMessage={subscriberMessage}
@@ -656,6 +691,7 @@ function App() {
             streamConfigStatus={streamConfigStatus}
             updateAdminToken={updateAdminToken}
             refreshSubscriberSummary={refreshSubscriberSummary}
+            refreshOfferOpsSummary={refreshOfferOpsSummary}
             refreshSystemStatus={refreshSystemStatus}
             syncLogsToPublic={syncLogsToPublic}
             restoreSeedData={restoreSeedData}
@@ -2210,6 +2246,9 @@ function SettingsView({
   adminToken,
   syncStatus,
   syncMessage,
+  offerOpsSummary,
+  offerOpsStatus,
+  offerOpsMessage,
   subscriberSummary,
   subscriberStatus,
   subscriberMessage,
@@ -2220,6 +2259,7 @@ function SettingsView({
   streamConfigStatus,
   updateAdminToken,
   refreshSubscriberSummary,
+  refreshOfferOpsSummary,
   refreshSystemStatus,
   syncLogsToPublic,
   restoreSeedData,
@@ -2232,6 +2272,15 @@ function SettingsView({
   const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
   const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
   const visibleStreamCommandCount = (streamConfig?.commands?.length || fallbackStreamConfig.commands.length) + 1;
+  const offerOpsModules =
+    offerOpsSummary?.progress?.moduleSummaries ||
+    productModules.map((module) => ({
+      key: module.key,
+      title: module.title,
+      tasks: module.todos.length,
+      completedTasks: 0,
+      activeUsers: 0,
+    }));
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -2270,6 +2319,35 @@ function SettingsView({
               </div>
             ))}
           </div>
+        </article>
+        <article className="panel offer-ops-panel">
+          <PanelTitle icon="chart" title="Offer Ops" right={offerOpsStatus === "success" ? "Live product" : "Admin"} />
+          <div className="offer-ops-grid">
+            <KeyValue label="Members" value={formatNumber(offerOpsSummary?.sales?.activeMembers || 0)} positive />
+            <KeyValue label="Orders" value={formatNumber(offerOpsSummary?.sales?.paidPurchases || 0)} />
+            <KeyValue label="Revenue" value={formatCurrency((offerOpsSummary?.sales?.revenueCents || 0) / 100)} positive />
+            <KeyValue label="Tasks" value={`${formatNumber(offerOpsSummary?.progress?.completedTasks || 0)}/${formatNumber(offerOpsSummary?.product?.tasks || productTaskCount)}`} />
+          </div>
+          <div className="offer-module-health">
+            {offerOpsModules.map((module) => (
+              <div key={module.key}>
+                <span>{module.title.replace(/^Module \d+: /, "")}</span>
+                <strong>
+                  {formatNumber(module.completedTasks)} done · {formatNumber(module.activeUsers)} users
+                </strong>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="primary-action"
+            onClick={refreshOfferOpsSummary}
+            disabled={offerOpsStatus === "loading"}
+          >
+            {offerOpsStatus === "loading" ? "Checking..." : "Refresh Offer Ops"}
+          </button>
+          {offerOpsSummary?.checkedAt && <p className="panel-note">Checked {new Date(offerOpsSummary.checkedAt).toLocaleString()}</p>}
+          {offerOpsMessage && <p className={`form-message ${offerOpsStatus}`}>{offerOpsMessage}</p>}
         </article>
         <article className="panel settings-sync-panel">
           <PanelTitle icon="monitor" title="Public Sync" />

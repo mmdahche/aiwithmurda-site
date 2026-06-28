@@ -753,6 +753,45 @@ button {
   width: 100%;
 }
 
+.offer-ops-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.offer-ops-panel .primary-action {
+  width: 100%;
+}
+
+.offer-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.offer-module-health {
+  display: grid;
+  gap: 8px;
+}
+
+.offer-module-health div {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.offer-module-health span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.offer-module-health strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
 .launch-readiness-panel {
   display: grid;
   grid-column: span 2;

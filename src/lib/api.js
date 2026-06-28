@@ -44,6 +44,12 @@ export function getSubscriberSummary(adminToken) {
   });
 }
 
+export function getOfferOpsSummary(adminToken) {
+  return apiRequest("/api/admin/offer/summary", {
+    token: adminToken,
+  });
+}
+
 export function getSystemStatus(adminToken) {
   return apiRequest("/api/admin/system/status", {
     token: adminToken,

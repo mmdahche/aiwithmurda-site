@@ -492,6 +492,72 @@ async function countSubscribersSince(isoDate = null) {
   return Number(count || 0);
 }
 
+async function getOfferOpsSummary() {
+  const [
+    { count: activeMembers, error: entitlementError },
+    { data: purchases, count: paidPurchases, error: purchasesError },
+    { data: progressRows, error: progressError },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("entitlements")
+      .select("id", { count: "exact", head: true })
+      .eq("product_key", productKey)
+      .eq("status", "active"),
+    supabaseAdmin
+      .from("purchases")
+      .select("amount_total,currency", { count: "exact" })
+      .eq("product_key", productKey)
+      .eq("status", "paid"),
+    supabaseAdmin
+      .from("member_task_progress")
+      .select("user_id,module_key,task_key,completed")
+      .eq("product_key", productKey)
+      .eq("completed", true),
+  ]);
+
+  if (entitlementError) throw entitlementError;
+  if (purchasesError) throw purchasesError;
+  if (progressError) throw progressError;
+
+  const progressUsers = new Set((progressRows || []).map((row) => row.user_id));
+  const completedKeys = new Set((progressRows || []).map((row) => `${row.module_key}:${row.task_key}:${row.user_id}`));
+  const revenueCents = (purchases || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0);
+  const moduleSummaries = productModules.map((module) => {
+    const moduleRows = (progressRows || []).filter((row) => row.module_key === module.key);
+    return {
+      key: module.key,
+      title: module.title,
+      tasks: module.todos.length,
+      completedTasks: moduleRows.length,
+      activeUsers: new Set(moduleRows.map((row) => row.user_id)).size,
+    };
+  });
+
+  return {
+    product: {
+      key: productKey,
+      name: productName,
+      priceCents: productPriceCents,
+      modules: productModules.length,
+      tasks: productTaskTotal,
+      assets: memberAssets.length,
+    },
+    sales: {
+      activeMembers: Number(activeMembers || 0),
+      paidPurchases: Number(paidPurchases || 0),
+      revenueCents,
+      currency: purchases?.[0]?.currency || "usd",
+    },
+    progress: {
+      usersStarted: progressUsers.size,
+      completedTasks: completedKeys.size,
+      totalPossibleTasks: Number(activeMembers || 0) * productTaskTotal,
+      moduleSummaries,
+    },
+    checkedAt: new Date().toISOString(),
+  };
+}
+
 async function grantEntitlement({ userId, email, session }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
 
@@ -706,6 +772,20 @@ app.get("/api/admin/subscribers/summary", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("[admin-subscribers-summary]", error);
     res.status(500).json({ error: "subscribers_summary_failed" });
+  }
+});
+
+app.get("/api/admin/offer/summary", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    res.json({
+      ok: true,
+      summary: await getOfferOpsSummary(),
+    });
+  } catch (error) {
+    console.error("[admin-offer-summary]", error);
+    res.status(500).json({ error: "offer_summary_failed" });
   }
 });
 
