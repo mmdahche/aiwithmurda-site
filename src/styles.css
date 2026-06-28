@@ -2028,6 +2028,64 @@ button {
   line-height: 1.55;
 }
 
+.member-next-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: stretch;
+  gap: 18px;
+  padding: 22px 24px;
+  border: 1px solid rgba(247, 201, 72, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 92% 20%, rgba(247, 201, 72, 0.16), transparent 28%),
+    rgba(18, 18, 12, 0.72);
+}
+
+.member-next-action h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.member-next-action p {
+  margin: 12px 0 0;
+  color: #f3ead0;
+  line-height: 1.45;
+}
+
+.member-next-action em {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.next-action-stat {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  min-height: 108px;
+  border: 1px solid rgba(247, 201, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.next-action-stat strong {
+  color: #f7c948;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.next-action-stat span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -2872,6 +2930,7 @@ button {
   .tool-link-grid,
   .kit-assets-section,
   .kit-asset-list article,
+  .member-next-action,
   .member-grid,
   .kit-module-list,
   .start-form {

@@ -1682,6 +1682,16 @@ function MemberModules({ accessToken, assets, profile }) {
     );
   }, [progressState.items]);
 
+  const nextMemberTask = useMemo(() => {
+    for (const module of productModules) {
+      const todo = module.todos.find((item) => !completedTasks.has(`${module.key}:${item.key}`));
+      if (todo) {
+        return { module, todo };
+      }
+    }
+    return null;
+  }, [completedTasks]);
+
   function mergeTaskProgress(items, nextItem) {
     const withoutItem = items.filter(
       (item) => !(item.moduleKey === nextItem.moduleKey && item.taskKey === nextItem.taskKey),
@@ -1769,6 +1779,29 @@ function MemberModules({ accessToken, assets, profile }) {
         <a className="secondary-link" href="/60">
           Open public scoreboard
         </a>
+      </article>
+
+      <article className="member-next-action">
+        <div>
+          <span className="public-label">Next action</span>
+          {nextMemberTask ? (
+            <>
+              <h2>{nextMemberTask.module.title.replace(/^Module \d+: /, "")}</h2>
+              <p>{nextMemberTask.todo.label}</p>
+              <em>{nextMemberTask.module.done}</em>
+            </>
+          ) : (
+            <>
+              <h2>Full path complete.</h2>
+              <p>Use the Proof To Offer Canvas to turn the strongest receipt into the next offer test.</p>
+              <em>Update the kit with what the sprint proves next.</em>
+            </>
+          )}
+        </div>
+        <div className="next-action-stat">
+          <strong>{progressState.summary.percent}%</strong>
+          <span>complete</span>
+        </div>
       </article>
 
       <div className="member-grid">
