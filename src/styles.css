@@ -894,6 +894,46 @@ button {
   font-weight: 900;
 }
 
+.kit-onboarding-section {
+  grid-template-columns: 0.7fr 1fr;
+  align-items: start;
+}
+
+.kit-onboarding-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kit-onboarding-list article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.kit-onboarding-list span {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.kit-onboarding-list strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.kit-onboarding-list p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .launch-readiness-panel {
   display: grid;
   grid-column: span 2;
@@ -3485,6 +3525,8 @@ button {
   .stream-command-grid,
   .tool-link-grid,
   .kit-assets-section,
+  .kit-onboarding-section,
+  .kit-onboarding-list,
   .kit-asset-list article,
   .kit-faq-list,
   .kit-final-cta,

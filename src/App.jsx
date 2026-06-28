@@ -1413,6 +1413,26 @@ function StarterKitPage({ authSession, authReady }) {
         </div>
       </section>
 
+      <section className="public-section kit-onboarding-section">
+        <div>
+          <span className="public-label">After you buy</span>
+          <h2>The first week has rails.</h2>
+          <p>
+            The member hub and onboarding emails point you through setup, proof, and offer improvement
+            instead of dropping you into a random file library.
+          </p>
+        </div>
+        <div className="kit-onboarding-list">
+          {buyerOnboardingEmails.map((email) => (
+            <article key={email.key}>
+              <span>{email.day}</span>
+              <strong>{email.subject}</strong>
+              <p>{email.goal}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="public-section kit-faq-section">
         <div>
           <span className="public-label">Before you buy</span>
