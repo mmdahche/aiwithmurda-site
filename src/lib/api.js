@@ -38,6 +38,12 @@ export function syncDailyLogs(logs, adminToken) {
   });
 }
 
+export function getSubscriberSummary(adminToken) {
+  return apiRequest("/api/admin/subscribers/summary", {
+    token: adminToken,
+  });
+}
+
 export function getMemberProfile(token) {
   return apiRequest("/api/me", { token });
 }

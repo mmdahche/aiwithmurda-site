@@ -733,6 +733,59 @@ button {
   width: 100%;
 }
 
+.audience-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.audience-panel .primary-action {
+  width: 100%;
+}
+
+.panel-note {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.audience-source-list {
+  display: grid;
+  gap: 8px;
+}
+
+.audience-source-list div,
+.audience-source-list p {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.audience-source-list span,
+.audience-source-list strong {
+  display: block;
+}
+
+.audience-source-list span {
+  color: var(--green);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.audience-source-list strong,
+.audience-source-list p {
+  color: #d7e5dc;
+  font-size: 12px;
+}
+
 .sync-state-card {
   display: grid;
   gap: 7px;
@@ -1866,6 +1919,7 @@ button {
   }
 
   .side-nav,
+  .audience-grid,
   .metric-grid,
   .weekly-stats,
   .settings-grid,

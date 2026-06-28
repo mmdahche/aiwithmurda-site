@@ -151,6 +151,7 @@ Subscriber capture:
 - `/api/subscribe` must persist every valid email to Supabase `subscribers` before attempting optional Resend email/contact work.
 - Resend is a delivery layer; Supabase is the durable list of record.
 - Reserved smoke-test domains such as `example.com` should not trigger outbound email sends.
+- Admin audience visibility lives at `GET /api/admin/subscribers/summary`, guarded by `ADMIN_API_TOKEN`; it returns aggregate counts and source timestamps, not private email addresses.
 
 Recovery rule:
 
@@ -166,7 +167,7 @@ Smoke test:
 
 - Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, grants a temporary entitlement, downloads a gated asset, then expires the session and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable and admin writes are blocked without the admin token.
-- Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, then deletes it.
+- Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
 
 Dashboard phase:

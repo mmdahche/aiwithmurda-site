@@ -5,6 +5,7 @@ import {
   downloadMemberAsset,
   getDailyLogs,
   getMemberProfile,
+  getSubscriberSummary,
   subscribeBuildLog,
   syncDailyLogs,
   verifyCheckoutSession,
@@ -122,6 +123,9 @@ function App() {
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
   const [syncStatus, setSyncStatus] = useState("idle");
   const [syncMessage, setSyncMessage] = useState("");
+  const [subscriberSummary, setSubscriberSummary] = useState(null);
+  const [subscriberStatus, setSubscriberStatus] = useState("idle");
+  const [subscriberMessage, setSubscriberMessage] = useState("");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -219,12 +223,40 @@ function App() {
 
   function updateAdminToken(value) {
     setAdminToken(value);
+    setSubscriberSummary(null);
+    setSubscriberStatus("idle");
+    setSubscriberMessage("");
     if (value) {
       window.localStorage.setItem(adminTokenStorageKey, value);
     } else {
       window.localStorage.removeItem(adminTokenStorageKey);
     }
   }
+
+  const refreshSubscriberSummary = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setSubscriberStatus("error");
+      setSubscriberMessage("Add the admin token before checking audience numbers.");
+      return;
+    }
+
+    setSubscriberStatus("loading");
+    setSubscriberMessage("");
+    try {
+      const data = await getSubscriberSummary(adminToken.trim());
+      setSubscriberSummary(data.summary || null);
+      setSubscriberStatus("success");
+    } catch (error) {
+      setSubscriberStatus("error");
+      setSubscriberMessage(error.message || "Could not load audience numbers.");
+    }
+  }, [adminToken]);
+
+  useEffect(() => {
+    if (activeView === "settings" && adminToken.trim() && subscriberStatus === "idle") {
+      refreshSubscriberSummary();
+    }
+  }, [activeView, adminToken, refreshSubscriberSummary, subscriberStatus]);
 
   async function syncLogsToPublic(targetLogs, label) {
     if (!adminToken.trim()) {
@@ -414,7 +446,11 @@ function App() {
             adminToken={adminToken}
             syncStatus={syncStatus}
             syncMessage={syncMessage}
+            subscriberSummary={subscriberSummary}
+            subscriberStatus={subscriberStatus}
+            subscriberMessage={subscriberMessage}
             updateAdminToken={updateAdminToken}
+            refreshSubscriberSummary={refreshSubscriberSummary}
             syncLogsToPublic={syncLogsToPublic}
             restoreSeedData={restoreSeedData}
           />
@@ -1576,7 +1612,11 @@ function SettingsView({
   adminToken,
   syncStatus,
   syncMessage,
+  subscriberSummary,
+  subscriberStatus,
+  subscriberMessage,
   updateAdminToken,
+  refreshSubscriberSummary,
   syncLogsToPublic,
   restoreSeedData,
 }) {
@@ -1649,6 +1689,38 @@ function SettingsView({
           <KeyValue label="Revenue" value={formatCurrency(config.goals.revenue)} />
           <KeyValue label="Followers" value={formatNumber(config.goals.followers)} />
           <KeyValue label="Email" value={formatNumber(config.goals.emailSubscribers)} />
+        </article>
+        <article className="panel audience-panel">
+          <PanelTitle icon="email" title="Audience" right={subscriberStatus === "success" ? "Supabase" : "Admin"} />
+          <div className="audience-grid">
+            <KeyValue label="Active Leads" value={formatNumber(subscriberSummary?.active || 0)} />
+            <KeyValue label="24 Hours" value={`+${formatNumber(subscriberSummary?.last24h || 0)}`} positive />
+            <KeyValue label="7 Days" value={`+${formatNumber(subscriberSummary?.last7d || 0)}`} positive />
+          </div>
+          <button
+            type="button"
+            className="primary-action"
+            onClick={refreshSubscriberSummary}
+            disabled={subscriberStatus === "loading"}
+          >
+            {subscriberStatus === "loading" ? "Checking..." : "Refresh Audience"}
+          </button>
+          {subscriberSummary?.checkedAt && (
+            <p className="panel-note">Checked {new Date(subscriberSummary.checkedAt).toLocaleString()}</p>
+          )}
+          {subscriberMessage && <p className={`form-message ${subscriberStatus}`}>{subscriberMessage}</p>}
+          <div className="audience-source-list">
+            {(subscriberSummary?.latest || []).length ? (
+              subscriberSummary.latest.map((row, index) => (
+                <div key={`${row.source}-${row.subscribedAt}-${index}`}>
+                  <span>{row.source || "unknown"}</span>
+                  <strong>{row.subscribedAt ? new Date(row.subscribedAt).toLocaleString() : "Unknown time"}</strong>
+                </div>
+              ))
+            ) : (
+              <p>No subscriber events loaded yet.</p>
+            )}
+          </div>
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />

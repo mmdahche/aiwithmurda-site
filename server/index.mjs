@@ -256,6 +256,21 @@ function shouldSendEmail(email) {
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
 }
 
+async function countSubscribersSince(isoDate = null) {
+  let query = supabaseAdmin
+    .from("subscribers")
+    .select("email", { count: "exact", head: true })
+    .is("unsubscribed_at", null);
+
+  if (isoDate) {
+    query = query.gte("subscribed_at", isoDate);
+  }
+
+  const { count, error } = await query;
+  if (error) throw error;
+  return Number(count || 0);
+}
+
 async function grantEntitlement({ userId, email, session }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
 
@@ -407,6 +422,47 @@ app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("[admin-daily-logs]", error);
     res.status(500).json({ error: "daily_logs_sync_failed" });
+  }
+});
+
+app.get("/api/admin/subscribers/summary", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    const now = Date.now();
+    const since24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+    const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const [active, last24h, last7d, latestResult] = await Promise.all([
+      countSubscribersSince(),
+      countSubscribersSince(since24h),
+      countSubscribersSince(since7d),
+      supabaseAdmin
+        .from("subscribers")
+        .select("source,subscribed_at,last_seen_at")
+        .is("unsubscribed_at", null)
+        .order("subscribed_at", { ascending: false })
+        .limit(5),
+    ]);
+
+    if (latestResult.error) throw latestResult.error;
+
+    res.json({
+      ok: true,
+      summary: {
+        active,
+        last24h,
+        last7d,
+        latest: (latestResult.data || []).map((row) => ({
+          source: row.source || "unknown",
+          subscribedAt: row.subscribed_at,
+          lastSeenAt: row.last_seen_at,
+        })),
+        checkedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("[admin-subscribers-summary]", error);
+    res.status(500).json({ error: "subscribers_summary_failed" });
   }
 });
 
