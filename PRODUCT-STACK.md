@@ -11,7 +11,7 @@ This keeps the show, the scoreboard, checkout, and member delivery in one brande
 ## Current Decisions
 
 - Email provider: Resend.
-- Checkout: Stripe on our own site.
+- Checkout: Stripe on our own site, under the Backbone Solutions Stripe account.
 - First paid floor price: $47.
 - Product name: `The Future Proof Method`.
 - Product subtitle: `New Wave Operator Kit`.
@@ -50,6 +50,12 @@ Reason:
 - Checkout Sessions are the cleanest fit for one-time digital products.
 - Webhooks can grant access after payment.
 - Buyers stay in the `aiwithmurda.com` flow.
+
+Account boundary:
+
+- AI with Murda payment objects must live under Backbone Solutions Stripe.
+- Do not use Haas Badges & Emblems Stripe keys, products, prices, or webhooks for this funnel.
+- If only Haas live keys are available, stop and get Backbone live credentials before production checkout.
 
 ### Member Hub
 

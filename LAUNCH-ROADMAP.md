@@ -27,7 +27,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 V1 stack:
 
 - Email: Resend for subscriber capture, transactional receipts, daily build-log sends, and automations.
-- Checkout: Stripe Checkout Sessions created from our own API, returning to `aiwithmurda.com`.
+- Checkout: Stripe Checkout Sessions created from our own API, returning to `aiwithmurda.com`, using Backbone Solutions Stripe only.
 - Delivery: `aiwithmurda.com/members` as the branded member hub.
 - Access: Supabase Auth login from day one, with Stripe-granted entitlements.
 - Community/course platform: defer Kajabi/Skool until the offer proves demand.
@@ -36,6 +36,7 @@ Why:
 
 - Resend is enough for the first email layer and keeps the stack developer-owned.
 - Stripe on-site preserves the brand and mirrors the Haas direction without sending buyers to a marketplace.
+- Stripe account ownership stays with Backbone Solutions; Haas Stripe is not used for AI with Murda products.
 - Kajabi is too heavy before the first product proves conversion.
 - Skool is stronger for community after the first cohort exists, not for the first $47 product.
 
