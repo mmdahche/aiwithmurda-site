@@ -118,6 +118,10 @@ function App() {
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
   const [remoteLogStatus, setRemoteLogStatus] = useState("local");
   const [remoteLogMeta, setRemoteLogMeta] = useState({ count: 0, latestDay: null, loadedAt: null });
+  const [dirtyDays, setDirtyDays] = useState([]);
+  const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
+  const [syncStatus, setSyncStatus] = useState("idle");
+  const [syncMessage, setSyncMessage] = useState("");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -191,7 +195,63 @@ function App() {
   const weeks = useMemo(() => weeklySummaries(logs), [logs]);
   const route = getRoute();
 
+  function updateRemoteMeta(dataLogs) {
+    setRemoteLogMeta({
+      count: dataLogs.length,
+      latestDay: dataLogs.at(-1)?.day || null,
+      loadedAt: new Date().toISOString(),
+    });
+  }
+
+  async function refreshRemoteLogMeta() {
+    const data = await getDailyLogs();
+    updateRemoteMeta(Array.isArray(data.logs) ? data.logs : []);
+  }
+
+  function markDayDirty(day) {
+    setDirtyDays((current) => (current.includes(day) ? current : [...current, day].sort((a, b) => a - b)));
+  }
+
+  function clearDirtyDays(days) {
+    const clearSet = new Set(days);
+    setDirtyDays((current) => current.filter((day) => !clearSet.has(day)));
+  }
+
+  function updateAdminToken(value) {
+    setAdminToken(value);
+    if (value) {
+      window.localStorage.setItem(adminTokenStorageKey, value);
+    } else {
+      window.localStorage.removeItem(adminTokenStorageKey);
+    }
+  }
+
+  async function syncLogsToPublic(targetLogs, label) {
+    if (!adminToken.trim()) {
+      setSyncStatus("error");
+      setSyncMessage("Add the admin token in Settings before syncing.");
+      return false;
+    }
+
+    setSyncStatus("loading");
+    setSyncMessage("");
+    try {
+      const data = await syncDailyLogs(targetLogs, adminToken.trim());
+      await refreshRemoteLogMeta();
+      setRemoteLogStatus("live");
+      clearDirtyDays(targetLogs.map((record) => record.day));
+      setSyncStatus("success");
+      setSyncMessage(`Synced ${label}: ${data.logs?.length || targetLogs.length} record${targetLogs.length === 1 ? "" : "s"}.`);
+      return true;
+    } catch (error) {
+      setSyncStatus("error");
+      setSyncMessage(error.message || "Public sync failed.");
+      return false;
+    }
+  }
+
   function updateRecord(day, field, value) {
+    markDayDirty(day);
     setLogs((current) =>
       current.map((record) => {
         if (record.day !== day) return record;
@@ -204,6 +264,7 @@ function App() {
   }
 
   function updateFollowers(day, platform, value) {
+    markDayDirty(day);
     setLogs((current) =>
       current.map((record) => {
         if (record.day !== day) return record;
@@ -246,6 +307,7 @@ function App() {
       proofAssets: [],
     };
     setLogs((current) => [...current, nextRecord]);
+    markDayDirty(nextDay);
     setSelectedDay(nextDay);
     setActiveView("daily-log");
   }
@@ -253,6 +315,7 @@ function App() {
   function restoreSeedData() {
     resetLogs();
     setLogs(seedLogs);
+    setDirtyDays(seedLogs.map((record) => record.day));
     setSelectedDay(seedLogs.at(-1).day);
   }
 
@@ -333,6 +396,10 @@ function App() {
             updateFollowers={updateFollowers}
             updateList={updateList}
             addNextDay={addNextDay}
+            dirtyDays={dirtyDays}
+            syncStatus={syncStatus}
+            syncMessage={syncMessage}
+            onSyncSelectedDay={() => syncLogsToPublic([selectedRecord], `Day ${selectedRecord.day}`)}
           />
         )}
         {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} />}
@@ -343,8 +410,12 @@ function App() {
             logs={logs}
             remoteLogStatus={remoteLogStatus}
             remoteLogMeta={remoteLogMeta}
-            setRemoteLogStatus={setRemoteLogStatus}
-            setRemoteLogMeta={setRemoteLogMeta}
+            dirtyDays={dirtyDays}
+            adminToken={adminToken}
+            syncStatus={syncStatus}
+            syncMessage={syncMessage}
+            updateAdminToken={updateAdminToken}
+            syncLogsToPublic={syncLogsToPublic}
             restoreSeedData={restoreSeedData}
           />
         )}
@@ -1214,8 +1285,13 @@ function DailyLog({
   updateFollowers,
   updateList,
   addNextDay,
+  dirtyDays,
+  syncStatus,
+  syncMessage,
+  onSyncSelectedDay,
 }) {
   const gains = getDayGains(logs, selectedRecord);
+  const selectedDirty = dirtyDays.includes(selectedRecord.day);
 
   return (
     <section className="workspace-view">
@@ -1223,6 +1299,9 @@ function DailyLog({
         <div>
           <h2>Daily Log</h2>
           <p>One record powers the dashboard, overlay, deck, and recap.</p>
+          <div className={`sync-pill ${selectedDirty ? "dirty" : "clean"}`}>
+            {selectedDirty ? `Day ${selectedRecord.day} has unsynced changes` : `Day ${selectedRecord.day} is synced locally`}
+          </div>
         </div>
         <div className="toolbar">
           <select value={selectedDay} onChange={(event) => setSelectedDay(Number(event.target.value))}>
@@ -1237,8 +1316,17 @@ function DailyLog({
           <button type="button" onClick={addNextDay} disabled={logs.length >= config.totalDays}>
             Add Next Day
           </button>
+          <button
+            type="button"
+            className="primary-action"
+            onClick={onSyncSelectedDay}
+            disabled={syncStatus === "loading" || !selectedRecord}
+          >
+            {syncStatus === "loading" ? "Syncing..." : `Sync Day ${selectedRecord.day}`}
+          </button>
         </div>
       </div>
+      {syncMessage && <p className={`form-message ${syncStatus}`}>{syncMessage}</p>}
 
       <div className="log-layout">
         <article className="panel log-form">
@@ -1484,48 +1572,20 @@ function SettingsView({
   logs,
   remoteLogStatus,
   remoteLogMeta,
-  setRemoteLogStatus,
-  setRemoteLogMeta,
+  dirtyDays,
+  adminToken,
+  syncStatus,
+  syncMessage,
+  updateAdminToken,
+  syncLogsToPublic,
   restoreSeedData,
 }) {
   const latest = getLatestRecord(logs);
-  const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
-  const [syncStatus, setSyncStatus] = useState("idle");
-  const [syncMessage, setSyncMessage] = useState("");
   const mode = getPublicDataMode(config);
 
-  function updateAdminToken(value) {
-    setAdminToken(value);
-    if (value) {
-      window.localStorage.setItem(adminTokenStorageKey, value);
-    } else {
-      window.localStorage.removeItem(adminTokenStorageKey);
-    }
-  }
-
   async function handleSyncPublicLogs() {
-    if (!adminToken.trim()) {
-      setSyncStatus("error");
-      setSyncMessage("Enter the admin token before syncing.");
-      return;
-    }
-
-    setSyncStatus("loading");
-    setSyncMessage("");
-    try {
-      const data = await syncDailyLogs(logs, adminToken.trim());
-      setRemoteLogStatus("live");
-      setRemoteLogMeta({
-        count: data.logs?.length || logs.length,
-        latestDay: data.logs?.at(-1)?.day || latest.day,
-        loadedAt: new Date().toISOString(),
-      });
-      setSyncStatus("success");
-      setSyncMessage(`Synced ${data.logs?.length || logs.length} daily records to the public dashboard.`);
-    } catch (error) {
-      setSyncStatus("error");
-      setSyncMessage(error.message || "Public sync failed.");
-    }
+    const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
+    await syncLogsToPublic(targetLogs, dirtyDays.length ? `${dirtyDays.length} unsynced day${dirtyDays.length === 1 ? "" : "s"}` : "all days");
   }
 
   return (
@@ -1557,6 +1617,10 @@ function SettingsView({
             value={`${remoteLogMeta.count || 0} records${remoteLogMeta.latestDay ? ` · latest day ${remoteLogMeta.latestDay}` : ""}`}
           />
           <KeyValue
+            label="Unsynced Edits"
+            value={dirtyDays.length ? dirtyDays.map((day) => `Day ${day}`).join(", ") : "None"}
+          />
+          <KeyValue
             label="Loaded"
             value={remoteLogMeta.loadedAt ? new Date(remoteLogMeta.loadedAt).toLocaleString() : "Not checked"}
           />
@@ -1570,7 +1634,7 @@ function SettingsView({
             />
           </label>
           <button type="button" className="primary-action" onClick={handleSyncPublicLogs} disabled={syncStatus === "loading"}>
-            {syncStatus === "loading" ? "Syncing..." : "Sync Public Dashboard"}
+            {syncStatus === "loading" ? "Syncing..." : dirtyDays.length ? `Sync ${dirtyDays.length} Unsynced Days` : "Sync Public Dashboard"}
           </button>
           {syncMessage && <p className={`form-message ${syncStatus}`}>{syncMessage}</p>}
         </article>

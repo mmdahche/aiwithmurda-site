@@ -831,6 +831,27 @@ button {
   color: var(--muted);
 }
 
+.sync-pill {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sync-pill.clean {
+  color: var(--green);
+  background: rgba(97, 227, 109, 0.1);
+}
+
+.sync-pill.dirty {
+  color: var(--amber);
+  background: rgba(255, 159, 26, 0.12);
+}
+
 .view-header code {
   padding: 12px;
   color: var(--green);
