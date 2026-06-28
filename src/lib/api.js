@@ -42,3 +42,19 @@ export function verifyCheckoutSession(sessionId, token) {
     token,
   });
 }
+
+export async function downloadMemberAsset(assetKey, token) {
+  const response = await fetch(`/api/member-assets/future-proof-method/${encodeURIComponent(assetKey)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const error = new Error(data.error || "asset_download_failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return response.blob();
+}

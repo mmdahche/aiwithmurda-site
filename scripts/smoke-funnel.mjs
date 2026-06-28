@@ -102,6 +102,43 @@ try {
   if (!profile.response.ok || profile.data?.profile?.email !== email) {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
+  if (!Array.isArray(profile.data?.product?.assets) || profile.data.product.assets.length < 4) {
+    throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
+  }
+
+  const blockedAsset = await fetchJson(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (blockedAsset.response.status !== 403 || blockedAsset.data?.error !== "entitlement_required") {
+    throw new Error(
+      `Expected asset entitlement guard, got ${blockedAsset.response.status}: ${JSON.stringify(blockedAsset.data)}`,
+    );
+  }
+
+  const entitlement = await admin
+    .from("entitlements")
+    .upsert(
+      {
+        user_id: userId,
+        product_key: "future_proof_method",
+        status: "active",
+        revoked_at: null,
+      },
+      { onConflict: "user_id,product_key" },
+    )
+    .select("id")
+    .single();
+  if (entitlement.error || !entitlement.data?.id) {
+    throw entitlement.error || new Error("Failed to grant smoke entitlement");
+  }
+
+  const assetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const assetText = await assetResponse.text();
+  if (!assetResponse.ok || !assetText.includes("The Future Proof Method - Quickstart Map")) {
+    throw new Error(`Asset download failed: ${assetResponse.status} ${assetText.slice(0, 120)}`);
+  }
 
   console.log(
     JSON.stringify(
@@ -113,6 +150,9 @@ try {
           checkoutSessionCreated: true,
           unpaidAccessGuard: true,
           profileLookup: true,
+          productAssetsExposed: true,
+          lockedAssetsBlocked: true,
+          entitledAssetDownload: true,
         },
       },
       null,

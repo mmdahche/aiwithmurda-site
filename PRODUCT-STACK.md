@@ -150,9 +150,15 @@ Recovery rule:
 
 - If Stripe redirects back before the entitlement is visible, `/members` must show a retryable access recovery state, not a dead-end error. The buyer can refresh the Stripe session check or reload the profile without leaving the member hub.
 
+Gated assets:
+
+- Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
+- The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
+- Current assets: Quickstart Map, Daily Operator Checklist, Prompt Workflow Pack, and Proof Receipts Template.
+
 Smoke test:
 
-- Run `npm run smoke:funnel` after deploying checkout changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, then expires the session and deletes the test user.
+- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, grants a temporary entitlement, downloads a gated asset, then expires the session and deletes the test user.
 
 ## July 28 Definition Of Done
 

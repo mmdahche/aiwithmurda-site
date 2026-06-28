@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
@@ -8,6 +9,7 @@ import Stripe from "stripe";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const distDir = path.join(rootDir, "dist");
+const assetDir = path.join(rootDir, "server", "member-assets");
 
 const app = express();
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:5173";
@@ -15,6 +17,44 @@ const productKey = "future_proof_method";
 const productName = "The Future Proof Method";
 const productSubtitle = "New Wave Operator Kit";
 const productPriceCents = 4700;
+const memberAssets = [
+  {
+    key: "quickstart",
+    title: "Quickstart Map",
+    kind: "Setup",
+    description: "The first 60 minutes: folders, accounts, tracker, prompt capture, and proof habits.",
+    fileName: "future-proof-method-quickstart.md",
+    downloadName: "future-proof-method-quickstart.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "daily-operator-checklist",
+    title: "Daily Operator Checklist",
+    kind: "Workflow",
+    description: "A repeatable morning, live-build, clip, recap, and shutdown checklist.",
+    fileName: "daily-operator-checklist.md",
+    downloadName: "daily-operator-checklist.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "prompt-workflows",
+    title: "Prompt Workflow Pack",
+    kind: "Prompts",
+    description: "Prompts for finding business problems, mapping workflows, building offers, and QA.",
+    fileName: "prompt-workflows.md",
+    downloadName: "prompt-workflows.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "proof-receipts-template",
+    title: "Proof Receipts Template",
+    kind: "Proof",
+    description: "Daily receipt format for before/after proof, failures, lessons, and Day 60 recap slides.",
+    fileName: "proof-receipts-template.md",
+    downloadName: "proof-receipts-template.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+];
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -82,6 +122,11 @@ async function ensureProfile(user, stripeCustomerId = null) {
   return data;
 }
 
+function publicAsset(asset) {
+  const { fileName, mimeType, ...safeAsset } = asset;
+  return safeAsset;
+}
+
 async function getMemberAccess(user) {
   const profile = await ensureProfile(user);
   const [{ data: entitlements, error: entitlementsError }, { data: purchases, error: purchasesError }] =
@@ -110,8 +155,22 @@ async function getMemberAccess(user) {
       name: productName,
       subtitle: productSubtitle,
       price_cents: productPriceCents,
+      assets: memberAssets.map(publicAsset),
     },
   };
+}
+
+async function hasActiveEntitlement(userId) {
+  const { data, error } = await supabaseAdmin
+    .from("entitlements")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("product_key", productKey)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) throw error;
+  return Boolean(data?.id);
 }
 
 async function grantEntitlement({ userId, email, session }) {
@@ -367,6 +426,30 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
   } catch (error) {
     console.error("[access-session]", error);
     res.status(500).json({ error: "access_verification_failed" });
+  }
+});
+
+app.get("/api/member-assets/future-proof-method/:assetKey", requireUser, async (req, res) => {
+  try {
+    const asset = memberAssets.find((item) => item.key === req.params.assetKey);
+    if (!asset) {
+      res.status(404).json({ error: "asset_not_found" });
+      return;
+    }
+
+    if (!(await hasActiveEntitlement(req.user.id))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    const filePath = path.join(assetDir, asset.fileName);
+    const file = await fs.readFile(filePath);
+    res.setHeader("Content-Type", asset.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${asset.downloadName}"`);
+    res.send(file);
+  } catch (error) {
+    console.error("[member-asset]", error);
+    res.status(500).json({ error: "asset_download_failed" });
   }
 });
 

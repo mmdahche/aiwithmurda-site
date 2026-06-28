@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   createFutureMethodCheckout,
+  downloadMemberAsset,
   getMemberProfile,
   subscribeBuildLog,
   verifyCheckoutSession,
@@ -756,7 +757,13 @@ function MembersPage({ authSession, authReady }) {
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </section>
       )}
-      {authSession && entitled && <MemberModules />}
+      {authSession && entitled && (
+        <MemberModules
+          accessToken={authSession.access_token}
+          assets={memberData?.product?.assets || []}
+          profile={memberData?.profile}
+        />
+      )}
     </main>
   );
 }
@@ -880,44 +887,118 @@ function MemberStateCard({ title, body }) {
   );
 }
 
-function MemberModules() {
-  const modules = [
+function MemberModules({ accessToken, assets, profile }) {
+  const [downloadState, setDownloadState] = useState({});
+  const setupPath = [
     {
-      label: "Module 01",
-      title: "Start Here",
-      status: "Ready",
-      body: "How to use the kit, what to set up first, and how to follow the stream without getting lost.",
+      title: "Set the command folder",
+      body: "Create the working folders, open the tracker, and choose the one offer you are proving first.",
     },
     {
-      label: "Module 02",
-      title: "New Wave Workspace",
-      status: "Ready",
-      body: "Folder structure, daily tracker, prompt capture, proof capture, and tool stack.",
+      title: "Run the first workflow map",
+      body: "Use the workflow prompts to find a painful process, define the proof metric, and scope the smallest build.",
     },
     {
-      label: "Module 03",
-      title: "Prompt Workflows",
-      status: "Loading",
-      body: "Business problem finder, workflow mapper, offer builder, content repurposer, and QA prompts.",
+      title: "Create the proof receipt",
+      body: "Capture the before state, the build attempt, the after state, and the clip angle before the day ends.",
     },
     {
-      label: "Module 04",
-      title: "Build Receipts",
-      status: "Loading",
-      body: "Daily log, before/after proof, what broke, lesson learned, and recap templates.",
+      title: "Turn proof into one asset",
+      body: "Post one clip, email, screenshot thread, or landing-page improvement from what actually happened.",
     },
   ];
 
+  async function handleDownload(asset) {
+    if (!asset?.key) return;
+
+    setDownloadState((current) => ({ ...current, [asset.key]: "loading" }));
+    try {
+      const blob = await downloadMemberAsset(asset.key, accessToken);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = asset.downloadName || `${asset.key}.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState((current) => ({ ...current, [asset.key]: "success" }));
+    } catch (error) {
+      setDownloadState((current) => ({ ...current, [asset.key]: "error" }));
+    }
+  }
+
   return (
-    <section className="member-grid">
-      {modules.map((module) => (
-        <article key={module.title} className={`tool-card ${module.status === "Ready" ? "live" : ""}`}>
-          <span>{module.label}</span>
-          <h2>{module.title}</h2>
-          <p>{module.body}</p>
-          <strong className="module-status">{module.status}</strong>
-        </article>
-      ))}
+    <section className="member-hub">
+      <article className="member-welcome">
+        <div>
+          <span className="public-label">Unlocked hub</span>
+          <h2>Your operator kit is active.</h2>
+          <p>
+            {profile?.email || "Your profile"} now has access to the first version of {productName}.
+            Start with the Quickstart Map, then use the daily checklist and proof templates while the live build evolves.
+          </p>
+        </div>
+        <a className="secondary-link" href="/60">
+          Open public scoreboard
+        </a>
+      </article>
+
+      <div className="member-grid">
+        {assets.map((asset) => (
+          <article key={asset.key} className="tool-card live">
+            <span>{asset.kind}</span>
+            <h2>{asset.title}</h2>
+            <p>{asset.description}</p>
+            <button
+              type="button"
+              className="asset-button"
+              onClick={() => handleDownload(asset)}
+              disabled={downloadState[asset.key] === "loading"}
+            >
+              {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
+            </button>
+            {downloadState[asset.key] === "success" && <strong className="module-status">Saved</strong>}
+            {downloadState[asset.key] === "error" && <strong className="module-status error">Retry</strong>}
+          </article>
+        ))}
+      </div>
+
+      <section className="member-roadmap">
+        <div>
+          <span className="public-label">First session path</span>
+          <h2>Do these in order.</h2>
+        </div>
+        <div className="roadmap-list">
+          {setupPath.map((step, index) => (
+            <article key={step.title}>
+              <strong>{String(index + 1).padStart(2, "0")}</strong>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="member-roadmap compact">
+        <div>
+          <span className="public-label">Live drop rhythm</span>
+          <h2>The kit grows with the sprint.</h2>
+        </div>
+        <div className="roadmap-list">
+          {["Day 0 setup", "First live build", "First buyer proof", "Week 1 recap"].map((item, index) => (
+            <article key={item}>
+              <strong>{`Drop ${index + 1}`}</strong>
+              <div>
+                <h3>{item}</h3>
+                <p>New assets get added when the stream creates real proof worth keeping.</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </section>
   );
 }

@@ -1348,6 +1348,40 @@ button {
   gap: 12px;
 }
 
+.member-hub {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.member-welcome,
+.member-roadmap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 34px;
+  border: 1px solid rgba(97, 227, 109, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(97, 227, 109, 0.12), transparent 28%),
+    rgba(13, 19, 17, 0.72);
+}
+
+.member-welcome h2,
+.member-roadmap h2 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.member-welcome p {
+  margin: 14px 0 0;
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .name-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1363,6 +1397,72 @@ button {
 .member-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 14px;
+}
+
+.asset-button {
+  min-height: 42px;
+  margin-top: 4px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  background: var(--green);
+  font-weight: 800;
+}
+
+.asset-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.module-status.error {
+  color: var(--text);
+  background: rgba(255, 105, 97, 0.24);
+}
+
+.member-roadmap {
+  grid-template-columns: 0.65fr 1fr;
+  align-items: start;
+  border-color: var(--border);
+  background: rgba(13, 19, 17, 0.64);
+}
+
+.member-roadmap.compact {
+  margin-top: 0;
+}
+
+.roadmap-list {
+  display: grid;
+  gap: 10px;
+}
+
+.roadmap-list article {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.roadmap-list strong {
+  color: var(--green);
+  font-size: 14px;
+}
+
+.roadmap-list h3,
+.roadmap-list p {
+  margin: 0;
+}
+
+.roadmap-list h3 {
+  font-size: 18px;
+}
+
+.roadmap-list p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .start-section {
@@ -1596,7 +1696,9 @@ button {
   .members-shell,
   .auth-section,
   .unlock-section,
-  .access-recovery {
+  .access-recovery,
+  .member-welcome,
+  .member-roadmap {
     grid-template-columns: 1fr;
   }
 
