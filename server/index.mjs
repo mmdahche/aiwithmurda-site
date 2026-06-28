@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import Stripe from "stripe";
+import { productKey, productModules, productName, productPriceCents, productSubtitle } from "../src/data/product.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -13,10 +14,6 @@ const assetDir = path.join(rootDir, "server", "member-assets");
 
 const app = express();
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:5173";
-const productKey = "future_proof_method";
-const productName = "The Future Proof Method";
-const productSubtitle = "New Wave Operator Kit";
-const productPriceCents = 4700;
 const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
 const streamLinkKeys = [
   ["twitch", "Twitch", "STREAM_TWITCH_URL"],
@@ -218,6 +215,60 @@ function publicAsset(asset) {
   return safeAsset;
 }
 
+function publicModule(module) {
+  return {
+    key: module.key,
+    title: module.title,
+    body: module.body,
+    todos: module.todos.map((todo) => ({ key: todo.key, label: todo.label })),
+    done: module.done,
+  };
+}
+
+const productModuleMap = new Map(productModules.map((module) => [module.key, module]));
+const productTaskTotal = productModules.reduce((total, module) => total + module.todos.length, 0);
+
+function findProductTask(moduleKey, taskKey) {
+  const module = productModuleMap.get(moduleKey);
+  if (!module) return null;
+  const task = module.todos.find((todo) => todo.key === taskKey);
+  return task ? { module, task } : null;
+}
+
+function toTaskProgress(row) {
+  return {
+    moduleKey: row.module_key,
+    taskKey: row.task_key,
+    completed: Boolean(row.completed),
+    completedAt: row.completed_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function summarizeTaskProgress(items) {
+  const completed = items.filter((item) => item.completed).length;
+  return {
+    completed,
+    total: productTaskTotal,
+    percent: productTaskTotal ? Math.round((completed / productTaskTotal) * 100) : 0,
+  };
+}
+
+async function getMemberTaskProgress(userId) {
+  const { data, error } = await supabaseAdmin
+    .from("member_task_progress")
+    .select("module_key,task_key,completed,completed_at,updated_at")
+    .eq("user_id", userId)
+    .eq("product_key", productKey)
+    .order("module_key", { ascending: true })
+    .order("task_key", { ascending: true });
+
+  if (error) throw error;
+
+  const items = (data || []).map(toTaskProgress);
+  return { items, summary: summarizeTaskProgress(items) };
+}
+
 async function getMemberAccess(user) {
   const profile = await ensureProfile(user);
   const [{ data: entitlements, error: entitlementsError }, { data: purchases, error: purchasesError }] =
@@ -246,6 +297,7 @@ async function getMemberAccess(user) {
       name: productName,
       subtitle: productSubtitle,
       price_cents: productPriceCents,
+      modules: productModules.map(publicModule),
       assets: memberAssets.map(publicAsset),
     },
   };
@@ -754,6 +806,69 @@ app.get("/api/me", requireUser, async (req, res) => {
   } catch (error) {
     console.error("[me]", error);
     res.status(500).json({ error: "profile_lookup_failed" });
+  }
+});
+
+app.get("/api/member-progress/future-proof-method", requireUser, async (req, res) => {
+  try {
+    if (!(await hasActiveEntitlement(req.user.id))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    res.json({
+      ok: true,
+      progress: await getMemberTaskProgress(req.user.id),
+    });
+  } catch (error) {
+    console.error("[member-progress]", error);
+    res.status(500).json({ error: "member_progress_lookup_failed" });
+  }
+});
+
+app.put("/api/member-progress/future-proof-method", requireUser, async (req, res) => {
+  try {
+    if (!(await hasActiveEntitlement(req.user.id))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    const moduleKey = String(req.body?.moduleKey || "").trim();
+    const taskKey = String(req.body?.taskKey || "").trim();
+    const completed = req.body?.completed === true;
+    const task = findProductTask(moduleKey, taskKey);
+
+    if (!task) {
+      res.status(400).json({ error: "valid_module_task_required" });
+      return;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("member_task_progress")
+      .upsert(
+        {
+          user_id: req.user.id,
+          product_key: productKey,
+          module_key: moduleKey,
+          task_key: taskKey,
+          completed,
+          completed_at: completed ? new Date().toISOString() : null,
+        },
+        { onConflict: "user_id,product_key,module_key,task_key" },
+      )
+      .select("module_key,task_key,completed,completed_at,updated_at")
+      .single();
+
+    if (error) throw error;
+
+    res.json({
+      ok: true,
+      item: toTaskProgress(data),
+      progress: await getMemberTaskProgress(req.user.id),
+    });
+  } catch (error) {
+    console.error("[member-progress-update]", error);
+    res.status(500).json({ error: "member_progress_update_failed" });
   }
 });
 

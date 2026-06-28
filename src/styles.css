@@ -2006,6 +2006,47 @@ button {
   margin-top: 10px;
 }
 
+.module-todo-list.trackable li {
+  min-height: 42px;
+  padding: 0;
+}
+
+.module-todo-list.trackable li::before {
+  display: none;
+}
+
+.module-todo-list.trackable label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-height: 40px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.module-todo-list.trackable input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--green);
+}
+
+.module-todo-list.trackable li.complete {
+  color: #f4fbf6;
+  border-color: rgba(97, 227, 109, 0.28);
+  background: rgba(97, 227, 109, 0.08);
+}
+
+.module-todo-list.trackable li em {
+  display: block;
+  margin: -4px 12px 10px 40px;
+  color: var(--green);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .module-done {
   display: block;
   margin-top: 2px;
@@ -2051,6 +2092,31 @@ button {
 
 .member-roadmap.compact {
   margin-top: 0;
+}
+
+.member-progress-copy {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.member-progress-meter {
+  position: relative;
+  height: 8px;
+  max-width: 360px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.member-progress-meter i {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), #f7c948);
+  transition: width 180ms ease;
 }
 
 .roadmap-list {

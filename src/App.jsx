@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { productKey, productModules, productName, productSubtitle, productTaskCount } from "./data/product.js";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   createFutureMethodCheckout,
   downloadMemberAsset,
   getDailyLogs,
   getMemberProfile,
+  getMemberProgress,
   getSubscriberSummary,
   getStreamConfig,
   getSystemStatus,
   subscribeBuildLog,
   syncDailyLogs,
+  updateMemberTaskProgress,
   verifyCheckoutSession,
 } from "./lib/api.js";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
@@ -55,9 +58,6 @@ const numericFields = new Set([
   "dailyLessons",
 ]);
 
-const productKey = "future_proof_method";
-const productName = "The Future Proof Method";
-const productSubtitle = "New Wave Operator Kit";
 const adminTokenStorageKey = "aiwithmurda:admin-api-token";
 
 function isPrelaunch(config) {
@@ -100,64 +100,6 @@ const offerStack = [
     price: "$2.5K+",
     status: "Case-study gated",
     description: "A scoped business workflow built, tested, trained, and handed off after a real audit.",
-  },
-];
-
-const productModules = [
-  {
-    title: "Module 1: Command Setup",
-    body: "Create the operating folder, tracker habit, account checklist, and proof capture lane before building.",
-    todos: [
-      "Create the command folder structure.",
-      "Open the tracker and set today's baseline.",
-      "Pick one offer to prove first.",
-      "Create folders for prompts, proof, content, and offers.",
-    ],
-    done: "You can start a build day without searching for files, links, or the next action.",
-  },
-  {
-    title: "Module 2: Problem To Proof",
-    body: "Choose a painful workflow, define the smallest useful fix, and name the proof metric before coding.",
-    todos: [
-      "List 10 painful workflows or bottlenecks.",
-      "Score each by speed to proof and money path.",
-      "Pick the smallest workflow worth showing.",
-      "Write the before state in one sentence.",
-    ],
-    done: "You know exactly what problem the build solves and what proof would make a viewer care.",
-  },
-  {
-    title: "Module 3: AI Build Loop",
-    body: "Use Claude Code, Codex, or your chosen stack to ship one narrow improvement without hiding the messy middle.",
-    todos: [
-      "Ask AI to inspect before changing anything.",
-      "Scope one build slice that can be shown today.",
-      "Run the user path after every meaningful change.",
-      "Commit or save the working version when the slice works.",
-    ],
-    done: "A real thing works better than it did before, and the change can be explained in under 30 seconds.",
-  },
-  {
-    title: "Module 4: Proof And Content",
-    body: "Turn the build into receipts: daily proof page, clip caption, recap, and one public asset.",
-    todos: [
-      "Capture before and after proof.",
-      "Log best moment, biggest failure, lesson, and tomorrow's promise.",
-      "Write one clip hook from the proof.",
-      "Post or schedule one public asset.",
-    ],
-    done: "The day produced a receipt page and at least one asset that points back to the sprint.",
-  },
-  {
-    title: "Module 5: Offer And Follow-Up",
-    body: "Connect proof to a simple offer so the sprint has a money path, not just attention.",
-    todos: [
-      "Improve one CTA or checkout promise.",
-      "Answer one buyer objection on the page.",
-      "Follow up with one warm lead.",
-      "Log revenue, pipeline, products sold, or calls booked.",
-    ],
-    done: "The day's proof moved someone closer to buying, joining, booking, or replying.",
   },
 ];
 
@@ -1361,7 +1303,7 @@ function StarterKitPage({ authSession, authReady }) {
               <p>{module.body}</p>
               <ul className="module-todo-list">
                 {module.todos.map((todo) => (
-                  <li key={todo}>{todo}</li>
+                  <li key={todo.key}>{todo.label}</li>
                 ))}
               </ul>
               <em className="module-done">Done: {module.done}</em>
@@ -1633,6 +1575,57 @@ function MemberStateCard({ title, body }) {
 
 function MemberModules({ accessToken, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
+  const [progressState, setProgressState] = useState({
+    status: "loading",
+    items: [],
+    summary: { completed: 0, total: productTaskCount, percent: 0 },
+    error: null,
+  });
+  const [taskSaving, setTaskSaving] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!accessToken) return undefined;
+
+    setProgressState((current) => ({ ...current, status: "loading", error: null }));
+    getMemberProgress(accessToken)
+      .then((data) => {
+        if (cancelled) return;
+        setProgressState({
+          status: "ready",
+          items: data.progress?.items || [],
+          summary: data.progress?.summary || { completed: 0, total: productTaskCount, percent: 0 },
+          error: null,
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setProgressState((current) => ({
+          ...current,
+          status: "error",
+          error: "Progress could not load. Downloads still work.",
+        }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken]);
+
+  const completedTasks = useMemo(() => {
+    return new Set(
+      progressState.items
+        .filter((item) => item.completed)
+        .map((item) => `${item.moduleKey}:${item.taskKey}`),
+    );
+  }, [progressState.items]);
+
+  function mergeTaskProgress(items, nextItem) {
+    const withoutItem = items.filter(
+      (item) => !(item.moduleKey === nextItem.moduleKey && item.taskKey === nextItem.taskKey),
+    );
+    return [...withoutItem, nextItem];
+  }
 
   async function handleDownload(asset) {
     if (!asset?.key) return;
@@ -1651,6 +1644,52 @@ function MemberModules({ accessToken, assets, profile }) {
       setDownloadState((current) => ({ ...current, [asset.key]: "success" }));
     } catch (error) {
       setDownloadState((current) => ({ ...current, [asset.key]: "error" }));
+    }
+  }
+
+  async function handleTaskToggle(module, todo, completed) {
+    const progressKey = `${module.key}:${todo.key}`;
+    const optimisticItem = {
+      moduleKey: module.key,
+      taskKey: todo.key,
+      completed,
+      completedAt: completed ? new Date().toISOString() : null,
+      updatedAt: new Date().toISOString(),
+    };
+    const previousProgress = progressState;
+
+    setTaskSaving((current) => ({ ...current, [progressKey]: "saving" }));
+    setProgressState((current) => {
+      const nextItems = mergeTaskProgress(current.items, optimisticItem);
+      const completedCount = nextItems.filter((item) => item.completed).length;
+      return {
+        ...current,
+        status: "ready",
+        items: nextItems,
+        summary: {
+          completed: completedCount,
+          total: productTaskCount,
+          percent: productTaskCount ? Math.round((completedCount / productTaskCount) * 100) : 0,
+        },
+        error: null,
+      };
+    });
+
+    try {
+      const data = await updateMemberTaskProgress(
+        { moduleKey: module.key, taskKey: todo.key, completed },
+        accessToken,
+      );
+      setProgressState({
+        status: "ready",
+        items: data.progress?.items || [],
+        summary: data.progress?.summary || { completed: 0, total: productTaskCount, percent: 0 },
+        error: null,
+      });
+      setTaskSaving((current) => ({ ...current, [progressKey]: "saved" }));
+    } catch (error) {
+      setProgressState(previousProgress);
+      setTaskSaving((current) => ({ ...current, [progressKey]: "error" }));
     }
   }
 
@@ -1694,17 +1733,37 @@ function MemberModules({ accessToken, assets, profile }) {
         <div>
           <span className="public-label">Module path</span>
           <h2>Build the proof loop in order.</h2>
+          <p className="member-progress-copy">
+            {progressState.summary.completed} of {progressState.summary.total} tasks complete.
+          </p>
+          <div className="member-progress-meter" aria-label={`${progressState.summary.percent}% complete`}>
+            <i style={{ width: `${progressState.summary.percent}%` }} />
+          </div>
+          {progressState.status === "loading" && <em className="module-status">Loading progress</em>}
+          {progressState.error && <em className="module-status error">{progressState.error}</em>}
         </div>
         <div className="roadmap-list">
           {productModules.map((module, index) => (
-            <article key={module.title}>
+            <article key={module.key}>
               <strong>{String(index + 1).padStart(2, "0")}</strong>
               <div>
                 <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
                 <p>{module.body}</p>
-                <ul className="module-todo-list compact">
+                <ul className="module-todo-list compact trackable">
                   {module.todos.map((todo) => (
-                    <li key={todo}>{todo}</li>
+                    <li key={todo.key} className={completedTasks.has(`${module.key}:${todo.key}`) ? "complete" : ""}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={completedTasks.has(`${module.key}:${todo.key}`)}
+                          disabled={taskSaving[`${module.key}:${todo.key}`] === "saving"}
+                          onChange={(event) => handleTaskToggle(module, todo, event.target.checked)}
+                        />
+                        <span>{todo.label}</span>
+                      </label>
+                      {taskSaving[`${module.key}:${todo.key}`] === "saved" && <em>Saved</em>}
+                      {taskSaving[`${module.key}:${todo.key}`] === "error" && <em>Retry</em>}
+                    </li>
                   ))}
                 </ul>
                 <em className="module-done">Done: {module.done}</em>

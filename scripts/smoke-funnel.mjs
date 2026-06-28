@@ -109,6 +109,26 @@ try {
     throw new Error(`Asset download failed: ${assetResponse.status} ${assetText.slice(0, 120)}`);
   }
 
+  const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!progress.response.ok || progress.data?.progress?.summary?.total < 20) {
+    throw new Error(`Progress lookup failed: ${JSON.stringify(progress.data)}`);
+  }
+
+  const taskUpdate = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      moduleKey: "command-setup",
+      taskKey: "command-folders",
+      completed: true,
+    }),
+  });
+  if (!taskUpdate.response.ok || taskUpdate.data?.item?.completed !== true) {
+    throw new Error(`Progress update failed: ${JSON.stringify(taskUpdate.data)}`);
+  }
+
   console.log(
     JSON.stringify(
       {
@@ -120,8 +140,11 @@ try {
           unpaidAccessGuard: true,
           profileLookup: true,
           productAssetsExposed: true,
+          moduleRoadmapExposed: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
+          memberProgressLookup: true,
+          memberProgressUpdate: true,
         },
       },
       null,

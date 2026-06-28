@@ -58,6 +58,18 @@ export function getMemberProfile(token) {
   return apiRequest("/api/me", { token });
 }
 
+export function getMemberProgress(token) {
+  return apiRequest("/api/member-progress/future-proof-method", { token });
+}
+
+export function updateMemberTaskProgress({ moduleKey, taskKey, completed }, token) {
+  return apiRequest("/api/member-progress/future-proof-method", {
+    method: "PUT",
+    body: { moduleKey, taskKey, completed },
+    token,
+  });
+}
+
 export function createFutureMethodCheckout(token) {
   return apiRequest("/api/checkout/future-proof-method", {
     method: "POST",
