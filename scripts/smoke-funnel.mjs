@@ -77,6 +77,16 @@ try {
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
+  const productModules = profile.data?.product?.modules;
+  if (!Array.isArray(productModules) || productModules.length < 5) {
+    throw new Error(`Product modules were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
+  }
+  const moduleWithoutLesson = productModules.find(
+    (module) => !module.key || !module.lesson?.starterPrompt || !module.lesson?.output || !Array.isArray(module.todos),
+  );
+  if (moduleWithoutLesson) {
+    throw new Error(`Product module lesson data is incomplete: ${JSON.stringify(moduleWithoutLesson)}`);
+  }
 
   const blockedAsset = await fetchJson(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -143,6 +153,7 @@ try {
           unpaidAccessGuard: true,
           profileLookup: true,
           productAssetsExposed: true,
+          productModulesExposed: true,
           moduleRoadmapExposed: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,

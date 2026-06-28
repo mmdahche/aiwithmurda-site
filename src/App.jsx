@@ -257,6 +257,11 @@ function getDayRouteDay(route) {
   return match ? Number(match[1]) : null;
 }
 
+function getMemberModuleRouteKey(route) {
+  const match = route.match(/^\/members\/module\/([^/]+)$/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 function App() {
   const [logs, setLogs] = useState(() => loadLogs(seedLogs));
   const [authSession, setAuthSession] = useState(null);
@@ -713,7 +718,14 @@ function App() {
 
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus }) {
   const dayRouteDay = getDayRouteDay(route);
-  const knownRoute = dayRouteDay ? "/day" : ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route) ? route : "/";
+  const memberModuleKey = getMemberModuleRouteKey(route);
+  const knownRoute = dayRouteDay
+    ? "/day"
+    : memberModuleKey
+      ? "/members"
+      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route)
+        ? route
+        : "/";
 
   return (
     <div className="public-site">
@@ -725,7 +737,9 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/members" && <MembersPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/members" && (
+        <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
+      )}
     </div>
   );
 }
@@ -1402,7 +1416,7 @@ function StarterKitPage({ authSession, authReady }) {
   );
 }
 
-function MembersPage({ authSession, authReady }) {
+function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [memberData, setMemberData] = useState(null);
   const [status, setStatus] = useState("idle");
   const [notice, setNotice] = useState(null);
@@ -1533,6 +1547,7 @@ function MembersPage({ authSession, authReady }) {
       {authSession && entitled && (
         <MemberModules
           accessToken={authSession.access_token}
+          activeModuleKey={activeModuleKey}
           assets={memberData?.product?.assets || []}
           profile={memberData?.profile}
         />
@@ -1660,7 +1675,7 @@ function MemberStateCard({ title, body }) {
   );
 }
 
-function MemberModules({ accessToken, assets, profile }) {
+function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
   const [copiedPromptKey, setCopiedPromptKey] = useState("");
   const [progressState, setProgressState] = useState({
@@ -1717,6 +1732,9 @@ function MemberModules({ accessToken, assets, profile }) {
     }
     return null;
   }, [completedTasks]);
+  const activeModule = useMemo(() => {
+    return productModules.find((module) => module.key === activeModuleKey) || null;
+  }, [activeModuleKey]);
 
   function mergeTaskProgress(items, nextItem) {
     const withoutItem = items.filter(
@@ -1854,6 +1872,80 @@ function MemberModules({ accessToken, assets, profile }) {
         ))}
       </section>
 
+      {activeModuleKey && (
+        <section className="member-lesson-detail">
+          {activeModule ? (
+            <>
+              <div className="lesson-detail-copy">
+                <a className="text-link" href="/members">
+                  Back to member hub
+                </a>
+                <span className="public-label">Module lesson</span>
+                <h2>{activeModule.title}</h2>
+                <p>{activeModule.body}</p>
+                <div className="lesson-output-grid">
+                  <article>
+                    <span>Focus</span>
+                    <strong>{activeModule.lesson.focus}</strong>
+                  </article>
+                  <article>
+                    <span>Output</span>
+                    <strong>{activeModule.lesson.output}</strong>
+                  </article>
+                </div>
+                <em className="module-done">Done: {activeModule.done}</em>
+              </div>
+              <div className="lesson-action-stack">
+                <article className="lesson-prompt-card">
+                  <span>Starter prompt</span>
+                  <p>{activeModule.lesson.starterPrompt}</p>
+                  <button type="button" onClick={() => handleCopyPrompt(activeModule)}>
+                    {copiedPromptKey === activeModule.key ? "Copied" : "Copy prompt"}
+                  </button>
+                </article>
+                <article className="lesson-task-card">
+                  <span>Lesson checklist</span>
+                  <ul className="module-todo-list compact trackable">
+                    {activeModule.todos.map((todo) => (
+                      <li key={todo.key} className={completedTasks.has(`${activeModule.key}:${todo.key}`) ? "complete" : ""}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={completedTasks.has(`${activeModule.key}:${todo.key}`)}
+                            disabled={taskSaving[`${activeModule.key}:${todo.key}`] === "saving"}
+                            onChange={(event) => handleTaskToggle(activeModule, todo, event.target.checked)}
+                          />
+                          <span>{todo.label}</span>
+                        </label>
+                        {taskSaving[`${activeModule.key}:${todo.key}`] === "saved" && <em>Saved</em>}
+                        {taskSaving[`${activeModule.key}:${todo.key}`] === "error" && <em>Retry</em>}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+                <article className="lesson-assets-card">
+                  <span>Open with</span>
+                  <div className="workbench-assets">
+                    {activeModule.lesson.useWith.map((asset) => (
+                      <em key={asset}>{asset}</em>
+                    ))}
+                  </div>
+                </article>
+              </div>
+            </>
+          ) : (
+            <div className="lesson-detail-copy">
+              <a className="text-link" href="/members">
+                Back to member hub
+              </a>
+              <span className="public-label">Module lesson</span>
+              <h2>Module not found.</h2>
+              <p>Use the member hub to open one of the active Future Proof Method modules.</p>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="member-workbench">
         <div>
           <span className="public-label">Module workbench</span>
@@ -1881,6 +1973,9 @@ function MemberModules({ accessToken, assets, profile }) {
                   {copiedPromptKey === module.key ? "Copied" : "Copy prompt"}
                 </button>
               </div>
+              <a className="text-link" href={`/members/module/${module.key}`}>
+                Open module
+              </a>
             </article>
           ))}
         </div>
