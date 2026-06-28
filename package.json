@@ -13,7 +13,9 @@
     "smoke:funnel": "node scripts/smoke-funnel.mjs",
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
-    "sync:seed-logs": "node scripts/sync-seed-logs.mjs"
+    "sync:seed-logs": "node scripts/sync-seed-logs.mjs",
+    "baseline:launch": "node scripts/sync-launch-baseline.mjs",
+    "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",

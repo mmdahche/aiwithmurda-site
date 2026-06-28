@@ -501,21 +501,37 @@ app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 
   const logs = Array.isArray(req.body?.logs) ? req.body.logs : null;
-  if (!logs || logs.some((log) => !validateDailyLog(log))) {
+  const replace = req.body?.replace === true;
+  if (!logs?.length || logs.some((log) => !validateDailyLog(log))) {
     res.status(400).json({ error: "valid_logs_required" });
     return;
   }
 
   try {
     const rows = logs.map(toDailyLogRow);
-    const { data, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("daily_logs")
       .upsert(rows, { onConflict: "day" })
+      .select("day");
+
+    if (error) throw error;
+
+    if (replace) {
+      const keepDays = rows.map((row) => row.day).sort((a, b) => a - b);
+      const { error: deleteError } = await supabaseAdmin
+        .from("daily_logs")
+        .delete()
+        .not("day", "in", `(${keepDays.join(",")})`);
+      if (deleteError) throw deleteError;
+    }
+
+    const { data: syncedLogs, error: lookupError } = await supabaseAdmin
+      .from("daily_logs")
       .select("*")
       .order("day", { ascending: true });
 
-    if (error) throw error;
-    res.json({ ok: true, logs: (data || []).map(toDailyLog) });
+    if (lookupError) throw lookupError;
+    res.json({ ok: true, replace, logs: (syncedLogs || []).map(toDailyLog) });
   } catch (error) {
     console.error("[admin-daily-logs]", error);
     res.status(500).json({ error: "daily_logs_sync_failed" });

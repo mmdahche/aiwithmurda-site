@@ -175,6 +175,8 @@ Dashboard phase:
 
 - Until launch, the public scoreboard must be visibly labeled as `Prelaunch preview`.
 - Preview records can be useful for stress-testing the system, but public UI must not imply those numbers are live Day 1 results.
+- Run `npm run baseline:launch` any time to inspect the clean Day 1 launch payload without changing production.
+- Run `npm run baseline:launch:push` on launch day only. It uses admin replace mode to remove preview rows and leave the production dashboard at one clean Day 1 baseline row.
 
 ## July 28 Definition Of Done
 

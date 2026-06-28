@@ -30,10 +30,10 @@ export function getDailyLogs() {
   return apiRequest("/api/daily-logs");
 }
 
-export function syncDailyLogs(logs, adminToken) {
+export function syncDailyLogs(logs, adminToken, { replace = false } = {}) {
   return apiRequest("/api/admin/daily-logs", {
     method: "PUT",
-    body: { logs },
+    body: { logs, replace },
     token: adminToken,
   });
 }
