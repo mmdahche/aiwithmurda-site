@@ -1821,6 +1821,115 @@ button {
   line-height: 1.5;
 }
 
+.live-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  align-items: center;
+  gap: 42px;
+  min-height: calc(100vh - 214px);
+}
+
+.live-hero h1 {
+  max-width: 780px;
+  margin: 0;
+  font-size: clamp(46px, 5.8vw, 82px);
+  line-height: 0.96;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.live-hero p {
+  max-width: 720px;
+  margin: 24px 0 0;
+  color: #bfd0c7;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.live-signal-panel {
+  display: grid;
+  gap: 16px;
+  padding: 26px;
+  border: 1px solid rgba(97, 227, 109, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(160deg, rgba(79, 141, 255, 0.12), transparent 44%),
+    rgba(17, 24, 21, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.live-signal-panel > span,
+.run-of-show span {
+  color: var(--green);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.live-signal-panel > strong {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.live-signal-panel p {
+  margin: 0;
+  color: #bfd0c7;
+  line-height: 1.5;
+}
+
+.signal-list {
+  display: grid;
+  gap: 8px;
+}
+
+.signal-list a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.signal-list span,
+.signal-list strong {
+  display: block;
+}
+
+.signal-list span {
+  color: #f4fbf6;
+  font-weight: 800;
+}
+
+.signal-list strong {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.run-of-show {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.run-of-show article {
+  min-height: 190px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(17, 24, 21, 0.72);
+}
+
+.run-of-show p {
+  margin: 18px 0 0;
+  color: #d4e2d9;
+  line-height: 1.5;
+}
+
 .form-message {
   max-width: 620px;
   margin: 14px 0 0;
@@ -2009,6 +2118,7 @@ button {
 
   .public-hero,
   .start-hero,
+  .live-hero,
   .public-section.two-col,
   .public-score-header,
   .public-dashboard-grid,
@@ -2027,6 +2137,7 @@ button {
   .public-band,
   .public-cards,
   .start-proof-grid,
+  .run-of-show,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2079,6 +2190,7 @@ button {
 
   .hero-copy h1,
   .start-copy h1,
+  .live-hero h1,
   .public-section h1,
   .public-score-header h1 {
     font-size: 42px;
@@ -2099,6 +2211,7 @@ button {
   .public-band,
   .public-cards,
   .start-proof-grid,
+  .run-of-show,
   .member-grid,
   .name-grid,
   .start-form {

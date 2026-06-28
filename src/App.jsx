@@ -131,6 +131,31 @@ const startPageProof = [
   },
 ];
 
+const liveRunOfShow = [
+  {
+    title: "Scoreboard check",
+    body: "Open the day with public numbers: revenue, followers, email list, output, and the one metric that needs pressure.",
+  },
+  {
+    title: "Build block",
+    body: "Ship one visible thing with Claude Code, Codex, Backbone, or the tool stack that fits the day.",
+  },
+  {
+    title: "Clip pull",
+    body: "Turn the strongest moment into a short-form angle before the lesson gets cold.",
+  },
+  {
+    title: "Receipt close",
+    body: "Log what shipped, what broke, what changed, and tomorrow's promise.",
+  },
+];
+
+const streamDestinations = [
+  { name: "Main live room", status: "Link drops before Day 1", href: "/start" },
+  { name: "Public scoreboard", status: "Live now", href: "/60" },
+  { name: "First paid drop", status: "Founding product", href: "/kit" },
+];
+
 function getRoute() {
   const normalized = window.location.pathname.replace(/\/+$/, "");
   return normalized || "/";
@@ -666,20 +691,46 @@ function PrelaunchBanner({ mode }) {
 function LiveHub() {
   return (
     <main className="public-page">
-      <section className="public-section">
-        <span className="public-label">Live hub</span>
-        <h1>This is the stream, not a webinar.</h1>
-        <p>
-          The main stream link goes here before Day 1. The stream is built like a long-running show:
-          live builds, scoreboard checks, product drops, clip-worthy breakdowns, and honest resets when
-          something breaks.
-        </p>
+      <section className="live-hero">
+        <div>
+          <span className="public-label">Live hub</span>
+          <h1>This is the stream, not a webinar.</h1>
+          <p>
+            The main live link drops here before Day 1. Until then, this page defines the show:
+            scoreboard pressure, AI-assisted builds, product drops, clip pulls, and honest resets when
+            something breaks.
+          </p>
+          <div className="hero-actions">
+            <a className="primary-link" href="/start">
+              Join build log
+            </a>
+            <a className="secondary-link" href="/60">
+              Open scoreboard
+            </a>
+          </div>
+        </div>
+        <aside className="live-signal-panel">
+          <span>Stream status</span>
+          <strong>Prelaunch room</strong>
+          <p>Live links, pinned chat commands, and embeds get added here before July 28.</p>
+          <div className="signal-list">
+            {streamDestinations.map((item) => (
+              <a key={item.name} href={item.href}>
+                <span>{item.name}</span>
+                <strong>{item.status}</strong>
+              </a>
+            ))}
+          </div>
+        </aside>
       </section>
 
-      <section className="public-cards three">
-        <PublicProofCard title="Main stream" value="YouTube Live first" />
-        <PublicProofCard title="Stream energy" value="More Kai-style marathon than lecture hall" />
-        <PublicProofCard title="Clips engine" value="Shorts, TikTok, Reels daily" />
+      <section className="run-of-show">
+        {liveRunOfShow.map((item) => (
+          <article key={item.title}>
+            <span>{item.title}</span>
+            <p>{item.body}</p>
+          </article>
+        ))}
       </section>
 
       <section className="public-section two-col">
