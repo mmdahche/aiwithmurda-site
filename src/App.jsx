@@ -2621,6 +2621,7 @@ function SettingsView({
       completedTasks: 0,
       activeUsers: 0,
     }));
+  const offerOpsMembers = offerOpsSummary?.members || [];
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -2677,6 +2678,24 @@ function SettingsView({
                 </strong>
               </div>
             ))}
+          </div>
+          <div className="offer-member-roster">
+            <span className="panel-kicker">Recent members</span>
+            {offerOpsMembers.length ? (
+              offerOpsMembers.map((member) => (
+                <div key={member.userId}>
+                  <div>
+                    <strong>{member.email}</strong>
+                    <span>
+                      {member.currentModule?.title ? member.currentModule.title.replace(/^Module \d+: /, "") : "Complete path"} · {member.progressPercent}% complete
+                    </span>
+                  </div>
+                  <em>{member.amountTotal ? formatCurrency(member.amountTotal / 100) : "Access"}</em>
+                </div>
+              ))
+            ) : (
+              <p>No active members loaded yet.</p>
+            )}
           </div>
           <button
             type="button"

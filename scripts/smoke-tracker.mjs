@@ -68,7 +68,8 @@ if (
   !offerSummary.response.ok ||
   offerSummary.data?.ok !== true ||
   offerSummary.data?.summary?.product?.tasks < 20 ||
-  offerSummary.data?.summary?.product?.assets < 5
+  offerSummary.data?.summary?.product?.assets < 5 ||
+  !Array.isArray(offerSummary.data?.summary?.members)
 ) {
   throw new Error(`Admin offer summary failed: ${offerSummary.response.status} ${JSON.stringify(offerSummary.data)}`);
 }
@@ -88,6 +89,7 @@ console.log(
         adminWritesBlockedWithoutToken: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,
+        adminOfferMembersReadable: true,
       },
       system: {
         stripeMode: systemStatus.data.status.stripeMode,

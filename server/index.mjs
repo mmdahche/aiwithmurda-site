@@ -514,23 +514,25 @@ async function countSubscribersSince(isoDate = null) {
 
 async function getOfferOpsSummary() {
   const [
-    { count: activeMembers, error: entitlementError },
+    { data: entitlements, count: activeMembers, error: entitlementError },
     { data: purchases, count: paidPurchases, error: purchasesError },
     { data: progressRows, error: progressError },
   ] = await Promise.all([
     supabaseAdmin
       .from("entitlements")
-      .select("id", { count: "exact", head: true })
+      .select("user_id,status,granted_at", { count: "exact" })
       .eq("product_key", productKey)
-      .eq("status", "active"),
+      .eq("status", "active")
+      .order("granted_at", { ascending: false })
+      .limit(8),
     supabaseAdmin
       .from("purchases")
-      .select("amount_total,currency", { count: "exact" })
+      .select("user_id,amount_total,currency,status,purchased_at", { count: "exact" })
       .eq("product_key", productKey)
       .eq("status", "paid"),
     supabaseAdmin
       .from("member_task_progress")
-      .select("user_id,module_key,task_key,completed")
+      .select("user_id,module_key,task_key,completed,updated_at,completed_at")
       .eq("product_key", productKey)
       .eq("completed", true),
   ]);
@@ -542,6 +544,31 @@ async function getOfferOpsSummary() {
   const progressUsers = new Set((progressRows || []).map((row) => row.user_id));
   const completedKeys = new Set((progressRows || []).map((row) => `${row.module_key}:${row.task_key}:${row.user_id}`));
   const revenueCents = (purchases || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0);
+  const memberUserIds = [...new Set((entitlements || []).map((row) => row.user_id).filter(Boolean))];
+  const profilesById = new Map();
+  if (memberUserIds.length) {
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from("profiles")
+      .select("id,email,full_name,created_at")
+      .in("id", memberUserIds);
+    if (profilesError) throw profilesError;
+    for (const profile of profiles || []) {
+      profilesById.set(profile.id, profile);
+    }
+  }
+  const purchasesByUserId = new Map();
+  for (const purchase of purchases || []) {
+    const existing = purchasesByUserId.get(purchase.user_id);
+    if (!existing || new Date(purchase.purchased_at).getTime() > new Date(existing.purchased_at).getTime()) {
+      purchasesByUserId.set(purchase.user_id, purchase);
+    }
+  }
+  const progressByUserId = new Map();
+  for (const row of progressRows || []) {
+    const current = progressByUserId.get(row.user_id) || [];
+    current.push(row);
+    progressByUserId.set(row.user_id, current);
+  }
   const moduleSummaries = productModules.map((module) => {
     const moduleRows = (progressRows || []).filter((row) => row.module_key === module.key);
     return {
@@ -550,6 +577,42 @@ async function getOfferOpsSummary() {
       tasks: module.todos.length,
       completedTasks: moduleRows.length,
       activeUsers: new Set(moduleRows.map((row) => row.user_id)).size,
+    };
+  });
+  const members = (entitlements || []).map((entitlement) => {
+    const profile = profilesById.get(entitlement.user_id);
+    const purchase = purchasesByUserId.get(entitlement.user_id);
+    const userProgressRows = progressByUserId.get(entitlement.user_id) || [];
+    const completedTaskKeys = new Set(userProgressRows.map((row) => `${row.module_key}:${row.task_key}`));
+    const currentModule =
+      completedTaskKeys.size >= productTaskTotal
+        ? null
+        : productModules.find((module) => module.todos.some((todo) => !completedTaskKeys.has(`${module.key}:${todo.key}`)));
+    const lastProgressAt = userProgressRows
+      .map((row) => row.completed_at || row.updated_at)
+      .filter(Boolean)
+      .sort()
+      .at(-1);
+
+    return {
+      userId: entitlement.user_id,
+      email: profile?.email || "unknown",
+      fullName: profile?.full_name || null,
+      status: entitlement.status,
+      grantedAt: entitlement.granted_at,
+      purchasedAt: purchase?.purchased_at || null,
+      amountTotal: Number(purchase?.amount_total || 0),
+      currency: purchase?.currency || "usd",
+      completedTasks: completedTaskKeys.size,
+      totalTasks: productTaskTotal,
+      progressPercent: productTaskTotal ? Math.round((completedTaskKeys.size / productTaskTotal) * 100) : 0,
+      currentModule: currentModule
+        ? {
+            key: currentModule.key,
+            title: currentModule.title,
+          }
+        : null,
+      lastProgressAt: lastProgressAt || null,
     };
   });
 
@@ -574,6 +637,7 @@ async function getOfferOpsSummary() {
       totalPossibleTasks: Number(activeMembers || 0) * productTaskTotal,
       moduleSummaries,
     },
+    members,
     checkedAt: new Date().toISOString(),
   };
 }
