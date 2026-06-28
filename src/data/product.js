@@ -8,6 +8,13 @@ export const productModules = [
     key: "command-setup",
     title: "Module 1: Command Setup",
     body: "Create the operating folder, tracker habit, account checklist, and proof capture lane before building.",
+    lesson: {
+      focus: "Set up the operating surface so every build, prompt, proof asset, and offer note has a home.",
+      output: "Command folder screenshot and first baseline entry.",
+      useWith: ["Module Roadmap", "Daily Operator Checklist"],
+      starterPrompt:
+        "Audit my AI workspace. List the folders, trackers, and proof habits I need before a public sprint.",
+    },
     todos: [
       { key: "command-folders", label: "Create the command folder structure." },
       { key: "baseline-tracker", label: "Open the tracker and set today's baseline." },
@@ -20,6 +27,13 @@ export const productModules = [
     key: "problem-to-proof",
     title: "Module 2: Problem To Proof",
     body: "Choose a painful workflow, define the smallest useful fix, and name the proof metric before coding.",
+    lesson: {
+      focus: "Pick a workflow people understand quickly and define proof before touching code.",
+      output: "One before-state receipt with pain, buyer, and proof metric.",
+      useWith: ["Prompt Workflow Pack", "Proof Receipts Template"],
+      starterPrompt:
+        "List painful workflows worth building in public. Score each by proof speed, value, and viewer clarity.",
+    },
     todos: [
       { key: "workflow-list", label: "List 10 painful workflows or bottlenecks." },
       { key: "score-workflows", label: "Score each by speed to proof and money path." },
@@ -32,6 +46,13 @@ export const productModules = [
     key: "ai-build-loop",
     title: "Module 3: AI Build Loop",
     body: "Use Claude Code, Codex, or your chosen stack to ship one narrow improvement without hiding the messy middle.",
+    lesson: {
+      focus: "Use AI as the build partner, but keep scope narrow enough to test live.",
+      output: "A working slice with before/after proof and a short explanation.",
+      useWith: ["Prompt Workflow Pack", "Daily Operator Checklist"],
+      starterPrompt:
+        "Inspect this project first. Pick the smallest build slice that creates visible proof today, then give me the plan.",
+    },
     todos: [
       { key: "inspect-first", label: "Ask AI to inspect before changing anything." },
       { key: "scope-slice", label: "Scope one build slice that can be shown today." },
@@ -44,6 +65,13 @@ export const productModules = [
     key: "proof-and-content",
     title: "Module 4: Proof And Content",
     body: "Turn the build into receipts: daily proof page, clip caption, recap, and one public asset.",
+    lesson: {
+      focus: "Package the work so viewers see what changed, what broke, and why it matters.",
+      output: "One day receipt plus one public asset.",
+      useWith: ["Proof Receipts Template", "Daily Operator Checklist"],
+      starterPrompt:
+        "Turn this build into a receipt: before, after, failure, lesson, clip hook, and tomorrow's promise.",
+    },
     todos: [
       { key: "capture-proof", label: "Capture before and after proof." },
       { key: "log-receipt", label: "Log best moment, biggest failure, lesson, and tomorrow's promise." },
@@ -56,6 +84,13 @@ export const productModules = [
     key: "offer-follow-up",
     title: "Module 5: Offer And Follow-Up",
     body: "Connect proof to a simple offer so the sprint has a money path, not just attention.",
+    lesson: {
+      focus: "Translate proof into a buyer promise, CTA, objection answer, and follow-up.",
+      output: "One improved offer surface and one logged result.",
+      useWith: ["Proof To Offer Canvas", "Proof Receipts Template"],
+      starterPrompt:
+        "Use this proof receipt to shape an offer: buyer, promise, objection, CTA, and warm follow-up message.",
+    },
     todos: [
       { key: "improve-cta", label: "Improve one CTA or checkout promise." },
       { key: "buyer-objection", label: "Answer one buyer objection on the page." },
@@ -67,6 +102,21 @@ export const productModules = [
 ];
 
 export const productTaskCount = productModules.reduce((total, module) => total + module.todos.length, 0);
+
+export const memberStartPath = [
+  {
+    title: "1. Open the roadmap",
+    body: "Download the Module Roadmap and use the checklist below as the live version.",
+  },
+  {
+    title: "2. Do the next action",
+    body: "Mark one task complete only after the work exists outside your head.",
+  },
+  {
+    title: "3. Package proof",
+    body: "Use the Proof To Offer Canvas when a receipt is strong enough to become a CTA.",
+  },
+];
 
 export const productAssetHighlights = [
   {

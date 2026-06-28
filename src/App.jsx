@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  memberStartPath,
   productAssetHighlights,
   productFaqItems,
   productKey,
@@ -1661,6 +1662,7 @@ function MemberStateCard({ title, body }) {
 
 function MemberModules({ accessToken, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
+  const [copiedPromptKey, setCopiedPromptKey] = useState("");
   const [progressState, setProgressState] = useState({
     status: "loading",
     items: [],
@@ -1789,6 +1791,21 @@ function MemberModules({ accessToken, assets, profile }) {
     }
   }
 
+  async function handleCopyPrompt(module) {
+    const prompt = module.lesson?.starterPrompt;
+    if (!prompt || !navigator.clipboard) return;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopiedPromptKey(module.key);
+      window.setTimeout(() => {
+        setCopiedPromptKey((current) => (current === module.key ? "" : current));
+      }, 1600);
+    } catch {
+      setCopiedPromptKey("");
+    }
+  }
+
   return (
     <section className="member-hub">
       <article className="member-welcome">
@@ -1829,25 +1846,44 @@ function MemberModules({ accessToken, assets, profile }) {
       </article>
 
       <section className="member-start-path">
-        {[
-          {
-            title: "1. Open the roadmap",
-            body: "Download the Module Roadmap and use the checklist below as the live version.",
-          },
-          {
-            title: "2. Do the next action",
-            body: "Mark one task complete only after the work exists outside your head.",
-          },
-          {
-            title: "3. Package proof",
-            body: "Use the Proof To Offer Canvas when a receipt is strong enough to become a CTA.",
-          },
-        ].map((item) => (
+        {memberStartPath.map((item) => (
           <article key={item.title}>
             <strong>{item.title}</strong>
             <p>{item.body}</p>
           </article>
         ))}
+      </section>
+
+      <section className="member-workbench">
+        <div>
+          <span className="public-label">Module workbench</span>
+          <h2>Use each module like a live operating station.</h2>
+          <p>
+            Every module has a focus, an output, the assets to open, and a starter prompt for Claude Code, Codex, or your AI tool of choice.
+          </p>
+        </div>
+        <div className="workbench-list">
+          {productModules.map((module) => (
+            <article key={module.key}>
+              <div className="workbench-header">
+                <span>{module.title}</span>
+                <strong>{module.lesson.output}</strong>
+              </div>
+              <p>{module.lesson.focus}</p>
+              <div className="workbench-assets">
+                {module.lesson.useWith.map((asset) => (
+                  <em key={asset}>{asset}</em>
+                ))}
+              </div>
+              <div className="workbench-prompt">
+                <span>{module.lesson.starterPrompt}</span>
+                <button type="button" onClick={() => handleCopyPrompt(module)}>
+                  {copiedPromptKey === module.key ? "Copied" : "Copy prompt"}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <div className="member-grid">

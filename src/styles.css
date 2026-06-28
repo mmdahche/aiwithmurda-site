@@ -2169,6 +2169,102 @@ button {
   line-height: 1.45;
 }
 
+.member-workbench {
+  display: grid;
+  grid-template-columns: 0.62fr 1fr;
+  align-items: start;
+  gap: 24px;
+  padding: 26px 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(13, 19, 17, 0.64);
+}
+
+.member-workbench h2 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.member-workbench p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.workbench-list {
+  display: grid;
+  gap: 12px;
+}
+
+.workbench-list article {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.workbench-header {
+  display: grid;
+  gap: 6px;
+}
+
+.workbench-header span {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.workbench-header strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.workbench-assets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workbench-assets em {
+  padding: 6px 9px;
+  color: #dff5e5;
+  border: 1px solid rgba(97, 227, 109, 0.22);
+  border-radius: 999px;
+  background: rgba(97, 227, 109, 0.07);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.workbench-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 116px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.workbench-prompt span {
+  padding: 12px;
+  color: #d8e6de;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.workbench-prompt button {
+  min-height: 42px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  background: var(--green);
+  font-weight: 900;
+}
+
 .kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3017,6 +3113,8 @@ button {
   .kit-final-cta,
   .member-next-action,
   .member-start-path,
+  .member-workbench,
+  .workbench-prompt,
   .member-grid,
   .kit-module-list,
   .start-form {
