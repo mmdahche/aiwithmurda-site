@@ -167,6 +167,58 @@ const streamDestinations = [
   { name: "First paid drop", status: "Founding product", href: "/kit" },
 ];
 
+const launchChecklistItems = [
+  {
+    title: "Domain, DNS, and Render",
+    status: "done",
+    owner: "System",
+    signal: "aiwithmurda.com is live",
+    body: "Cloudflare points to the Render web service and the production app responds on HTTPS.",
+  },
+  {
+    title: "Audience capture",
+    status: "done",
+    owner: "System",
+    signal: "Supabase subscribers",
+    body: "The start page stores subscribers, sends the welcome email, and exposes admin audience counts.",
+  },
+  {
+    title: "Paid kit path",
+    status: "done",
+    owner: "System",
+    signal: "Backbone Stripe only",
+    body: "Checkout, webhooks, gated member access, and asset downloads are wired under Backbone Stripe.",
+  },
+  {
+    title: "Day 1 baseline",
+    status: "queued",
+    owner: "RubyX",
+    signal: "Launch-day command",
+    body: "Run the baseline push only when the sprint starts so preview data becomes clean Day 1 data.",
+  },
+  {
+    title: "Live room links",
+    status: "manual",
+    owner: "Murad",
+    signal: "Channel decision",
+    body: "Add the final Twitch, Kick, YouTube, or multistream links to the live hub before promotion.",
+  },
+  {
+    title: "OBS overlay rehearsal",
+    status: "manual",
+    owner: "Murad",
+    signal: "Needs stream scene",
+    body: "Load the overlay in OBS, confirm safe cropping, and test screen-share readability.",
+  },
+  {
+    title: "Real purchase test",
+    status: "manual",
+    owner: "Murad + RubyX",
+    signal: "Requires real charge",
+    body: "Run one live Backbone Stripe purchase, verify entitlement, and refund only if needed.",
+  },
+];
+
 function getRoute() {
   const normalized = window.location.pathname.replace(/\/+$/, "");
   return normalized || "/";
@@ -1793,6 +1845,8 @@ function SettingsView({
 }) {
   const latest = getLatestRecord(logs);
   const mode = getPublicDataMode(config);
+  const launchReadyCount = launchChecklistItems.filter((item) => item.status === "done").length;
+  const launchManualCount = launchChecklistItems.filter((item) => item.status === "manual").length;
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -1812,6 +1866,26 @@ function SettingsView({
       </div>
 
       <div className="settings-grid">
+        <article className="panel launch-readiness-panel">
+          <PanelTitle icon="calendar" title="Launch Readiness" right={`${launchReadyCount}/${launchChecklistItems.length} ready`} />
+          <div className="launch-readiness-summary">
+            <KeyValue label="Ready" value={formatNumber(launchReadyCount)} positive />
+            <KeyValue label="Queued" value={formatNumber(launchChecklistItems.length - launchReadyCount - launchManualCount)} />
+            <KeyValue label="Needs Murad" value={formatNumber(launchManualCount)} />
+          </div>
+          <div className="launch-checklist">
+            {launchChecklistItems.map((item) => (
+              <div className={`launch-check-item ${item.status}`} key={item.title}>
+                <div>
+                  <span>{item.owner}</span>
+                  <strong>{item.title}</strong>
+                  <p>{item.body}</p>
+                </div>
+                <em>{item.signal}</em>
+              </div>
+            ))}
+          </div>
+        </article>
         <article className="panel settings-sync-panel">
           <PanelTitle icon="monitor" title="Public Sync" />
           <div className="sync-state-card">

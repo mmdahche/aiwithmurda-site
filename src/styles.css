@@ -170,9 +170,9 @@ button {
 
 .top-header {
   display: grid;
-  grid-template-columns: minmax(420px, 0.95fr) minmax(360px, 1.2fr) 210px;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(300px, 1.2fr) 190px;
   align-items: start;
-  gap: 28px;
+  gap: 22px;
   margin-bottom: 22px;
 }
 
@@ -731,6 +731,88 @@ button {
 
 .settings-sync-panel .primary-action {
   width: 100%;
+}
+
+.launch-readiness-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
+.launch-readiness-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.launch-checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.launch-check-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.launch-check-item.done {
+  border-color: rgba(97, 227, 109, 0.34);
+  background: rgba(97, 227, 109, 0.06);
+}
+
+.launch-check-item.queued {
+  border-color: rgba(255, 159, 26, 0.34);
+  background: rgba(255, 159, 26, 0.06);
+}
+
+.launch-check-item.manual {
+  border-color: rgba(79, 141, 255, 0.3);
+  background: rgba(79, 141, 255, 0.055);
+}
+
+.launch-check-item span,
+.launch-check-item strong,
+.launch-check-item p,
+.launch-check-item em {
+  display: block;
+}
+
+.launch-check-item span {
+  margin-bottom: 4px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.launch-check-item strong {
+  font-size: 14px;
+}
+
+.launch-check-item p {
+  max-width: 68ch;
+  margin: 5px 0 0;
+  color: #d7e5dc;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.launch-check-item em {
+  min-width: 148px;
+  padding: 7px 9px;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  font-style: normal;
+  font-size: 12px;
+  text-align: center;
 }
 
 .audience-panel {
@@ -2185,6 +2267,7 @@ button {
   .side-nav,
   .audience-grid,
   .system-grid,
+  .launch-readiness-summary,
   .metric-grid,
   .weekly-stats,
   .settings-grid,
@@ -2197,6 +2280,20 @@ button {
   .top-header,
   .view-header {
     display: grid;
+  }
+
+  .launch-readiness-panel {
+    grid-column: auto;
+  }
+
+  .launch-check-item {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-check-item em {
+    width: max-content;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .command-overlay {
