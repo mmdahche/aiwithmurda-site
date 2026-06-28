@@ -108,6 +108,29 @@ const starterKitNames = [
   "Wave One Operator",
 ];
 
+const buildLogReceipts = [
+  "Scoreboard movement",
+  "Best clip of the day",
+  "What shipped",
+  "What broke",
+  "Tomorrow's promise",
+];
+
+const startPageProof = [
+  {
+    title: "The numbers",
+    body: "Revenue, followers, email list, clips, calls, shipped builds, and daily lessons.",
+  },
+  {
+    title: "The build notes",
+    body: "The prompts, decisions, failures, and fixes behind each AI-assisted build.",
+  },
+  {
+    title: "The drops",
+    body: "First look at product releases, live-build sessions, and member asset updates.",
+  },
+];
+
 function getRoute() {
   const normalized = window.location.pathname.replace(/\/+$/, "");
   return normalized || "/";
@@ -722,47 +745,91 @@ function StartPage() {
     setStatus("loading");
     setMessage("");
     try {
-      await subscribeBuildLog({ email, name });
+      await subscribeBuildLog({ email, name, source: "start_page" });
       setStatus("success");
-      setMessage("You are on the build log. Check your inbox.");
+      setMessage("You are on the build log. The receipts start with the Day 0 setup.");
       setEmail("");
       setName("");
     } catch (error) {
       setStatus("error");
-      setMessage(error.message === "valid_email_required" ? "Enter a real email first." : "Signup is not wired yet.");
+      setMessage(error.message === "valid_email_required" ? "Enter a real email first." : "Signup needs a retry.");
     }
   }
 
   return (
     <main className="public-page">
-      <section className="public-section start-section">
-        <span className="public-label">Start here</span>
-        <h1>Get the daily receipts before the stream gets loud.</h1>
-        <p>
-          Join the list for the daily recap, best clip, scoreboard movement, product drops, and the
-          honest lesson from whatever broke that day.
-        </p>
-        <form className="start-form" aria-label="Email signup" onSubmit={handleSubscribe}>
-          <input
-            type="text"
-            placeholder="First name"
-            aria-label="First name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-          <input
-            type="email"
-            placeholder="you@example.com"
-            aria-label="Email address"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-          <button type="submit" disabled={status === "loading"}>
-            {status === "loading" ? "Joining..." : "Join"}
-          </button>
-        </form>
-        {message && <p className={`form-message ${status}`}>{message}</p>}
+      <section className="start-hero">
+        <div className="start-copy">
+          <span className="public-label">Build log</span>
+          <h1>Get the receipts before the 60-day AI sprint goes loud.</h1>
+          <p>
+            One email when the work produces proof: scoreboard movement, shipped builds, product drops,
+            and the honest lesson from whatever broke that day.
+          </p>
+          <div className="receipt-strip" aria-label="Build log receipts">
+            {buildLogReceipts.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+
+        <aside className="start-capture-panel">
+          {status === "success" ? (
+            <div className="start-confirmation">
+              <span>
+                <Icon name="check" />
+              </span>
+              <h2>You are on the build log.</h2>
+              <p>{message}</p>
+              <div className="hero-actions">
+                <a className="primary-link" href="/60">
+                  Watch the scoreboard
+                </a>
+                <a className="secondary-link" href="/kit">
+                  Preview the kit
+                </a>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <span>Prelaunch list</span>
+                <strong>Daily receipts, no classroom fluff.</strong>
+                <p>Join before July 28 and follow the setup from Day 0.</p>
+              </div>
+              <form className="start-form" aria-label="Email signup" onSubmit={handleSubscribe}>
+                <input
+                  type="text"
+                  placeholder="First name"
+                  aria-label="First name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  aria-label="Email address"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+                <button type="submit" disabled={status === "loading"}>
+                  {status === "loading" ? "Joining..." : "Join the build log"}
+                </button>
+              </form>
+              {message && <p className={`form-message ${status}`}>{message}</p>}
+            </>
+          )}
+        </aside>
+      </section>
+
+      <section className="start-proof-grid">
+        {startPageProof.map((item) => (
+          <article key={item.title}>
+            <span>{item.title}</span>
+            <p>{item.body}</p>
+          </article>
+        ))}
       </section>
     </main>
   );
