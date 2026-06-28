@@ -21,6 +21,18 @@ if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
   throw new Error(`Public dashboard route failed: ${dashboardResponse.status}`);
 }
 
+const overlayResponse = await fetch(`${siteUrl}/overlay/`);
+const overlayHtml = await overlayResponse.text();
+if (!overlayResponse.ok || !overlayHtml.includes("root")) {
+  throw new Error(`Overlay route failed: ${overlayResponse.status}`);
+}
+
+const obsResponse = await fetch(`${siteUrl}/obs/`);
+const obsHtml = await obsResponse.text();
+if (!obsResponse.ok || !obsHtml.includes("root")) {
+  throw new Error(`OBS alias route failed: ${obsResponse.status}`);
+}
+
 const blockedWrite = await fetchJson(`${siteUrl}/api/admin/daily-logs`, {
   method: "PUT",
   headers: { "Content-Type": "application/json" },
@@ -45,6 +57,8 @@ console.log(
       checks: {
         publicLogsReadable: true,
         publicDashboardRoute: true,
+        overlayRoute: true,
+        obsAliasRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminSystemStatusReadable: true,
       },

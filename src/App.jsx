@@ -40,6 +40,8 @@ const navItems = [
   { key: "settings", label: "Settings", icon: "settings" },
 ];
 
+const directOverlayRoutes = new Set(["/overlay", "/obs"]);
+
 const numericFields = new Set([
   "emailSubscribers",
   "revenueCollected",
@@ -358,6 +360,14 @@ function App() {
   const selectedRecord = logs.find((record) => record.day === selectedDay) || latest;
   const weeks = useMemo(() => weeklySummaries(logs), [logs]);
   const route = getRoute();
+  const overlayOnly = activeView === "overlay-only" || directOverlayRoutes.has(route);
+
+  useEffect(() => {
+    document.body.classList.toggle("overlay-body", overlayOnly);
+    return () => {
+      document.body.classList.remove("overlay-body");
+    };
+  }, [overlayOnly]);
 
   function updateRemoteMeta(dataLogs) {
     setRemoteLogMeta({
@@ -539,10 +549,10 @@ function App() {
     setSelectedDay(seedLogs.at(-1).day);
   }
 
-  if (activeView === "overlay-only") {
+  if (overlayOnly) {
     return (
       <main className="overlay-route">
-        <CommandOverlay config={sprintConfig} latest={latest} logs={logs} compact />
+        <CommandOverlay config={sprintConfig} latest={latest} logs={logs} compact preview={isPrelaunch(sprintConfig)} />
       </main>
     );
   }
@@ -1820,7 +1830,10 @@ function OverlayView({ config, latest, logs }) {
           <h2>OBS Overlay</h2>
           <p>Use the transparent browser source route for the stream overlay.</p>
         </div>
-        <code>{window.location.origin}/?view=overlay</code>
+        <div className="overlay-route-list">
+          <code>{window.location.origin}/overlay</code>
+          <span>Alias: {window.location.origin}/obs</span>
+        </div>
       </div>
       <div className="overlay-showcase">
         <CommandOverlay config={config} latest={latest} logs={logs} compact preview={isPrelaunch(config)} />

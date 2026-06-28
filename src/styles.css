@@ -32,6 +32,11 @@ body {
   color: var(--text);
 }
 
+body.overlay-body {
+  min-width: 0;
+  background: transparent;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -606,6 +611,21 @@ button {
   width: 920px;
   max-width: 100%;
   min-height: 260px;
+}
+
+.overlay-route-list {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.overlay-route-list code {
+  color: var(--green);
+}
+
+.overlay-route-list span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .command-overlay h2,
@@ -2365,6 +2385,10 @@ button {
   .top-header,
   .view-header {
     display: grid;
+  }
+
+  .overlay-route-list {
+    justify-items: start;
   }
 
   .launch-readiness-panel {

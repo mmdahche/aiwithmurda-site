@@ -20,7 +20,8 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 - `/kit` - first paid drop sales page
 - `/members` - Supabase-gated member hub and asset delivery
 - `/admin` - private local control room for daily logging and exports
-- `/?view=overlay` - OBS overlay route
+- `/overlay` - OBS browser-source overlay route
+- `/obs` - short alias for the OBS overlay
 
 ## Funnel Stack Decision
 
