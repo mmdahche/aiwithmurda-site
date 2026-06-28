@@ -5,15 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:api": "PORT=8787 node --watch server/index.mjs",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.mjs",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "node server/index.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
     "@vitejs/plugin-react": "^5.1.1",
+    "express": "^5.2.1",
     "vite": "^7.2.7",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "resend": "^6.6.0",
+    "stripe": "^22.2.0"
   },
   "devDependencies": {}
 }

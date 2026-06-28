@@ -1284,6 +1284,87 @@ button {
   border-color: rgba(97, 227, 109, 0.4);
 }
 
+.product-hero,
+.members-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: center;
+  gap: 34px;
+}
+
+.price-card,
+.member-login-card {
+  min-height: 260px;
+  padding: 24px;
+  border: 1px solid rgba(97, 227, 109, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 75% 15%, rgba(97, 227, 109, 0.16), transparent 34%),
+    rgba(6, 10, 9, 0.68);
+}
+
+.price-card span,
+.member-login-card span,
+.card-price {
+  display: block;
+  color: var(--green);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.price-card strong {
+  display: block;
+  margin: 16px 0 10px;
+  color: var(--text);
+  font-size: 76px;
+  line-height: 0.9;
+}
+
+.price-card p,
+.member-login-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.member-login-card strong {
+  display: block;
+  margin: 16px 0 10px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.card-price {
+  margin-top: auto;
+  color: var(--text);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.name-grid,
+.member-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.name-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.name-grid span {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 800;
+}
+
+.member-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
 .start-section {
   max-width: 760px;
   margin-inline: auto;
@@ -1291,13 +1372,16 @@ button {
 
 .start-form {
   display: grid;
-  grid-template-columns: 1fr 140px;
+  grid-template-columns: minmax(0, 0.65fr) minmax(0, 1fr) 120px;
   gap: 10px;
   margin-top: 28px;
 }
 
 .start-form input,
-.start-form button {
+.start-form button,
+.auth-form input,
+.auth-form button,
+.checkout-box button {
   min-height: 48px;
   color: var(--text);
   border: 1px solid var(--border);
@@ -1305,14 +1389,69 @@ button {
   background: rgba(0, 0, 0, 0.24);
 }
 
-.start-form input {
+.start-form input,
+.auth-form input {
   padding: 0 14px;
 }
 
-.start-form button {
+.start-form button,
+.auth-form button,
+.checkout-box button {
   color: #061008;
   background: var(--green);
   font-weight: 800;
+}
+
+.form-message {
+  max-width: 620px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.form-message.success {
+  color: var(--green);
+}
+
+.form-message.error {
+  color: var(--danger);
+}
+
+.auth-section,
+.unlock-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: center;
+  gap: 28px;
+}
+
+.auth-section h2,
+.unlock-section h2 {
+  margin: 0;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+}
+
+.checkout-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.checkout-box button {
+  width: 100%;
+}
+
+.checkout-box button:disabled,
+.auth-form button:disabled,
+.start-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 @media (max-width: 1260px) {
@@ -1379,13 +1518,18 @@ button {
   .public-hero,
   .public-section.two-col,
   .public-score-header,
-  .public-dashboard-grid {
+  .public-dashboard-grid,
+  .product-hero,
+  .members-shell,
+  .auth-section,
+  .unlock-section {
     grid-template-columns: 1fr;
   }
 
   .public-metrics,
   .public-band,
-  .public-cards {
+  .public-cards,
+  .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1454,6 +1598,8 @@ button {
   .public-metrics,
   .public-band,
   .public-cards,
+  .member-grid,
+  .name-grid,
   .start-form {
     grid-template-columns: 1fr;
   }

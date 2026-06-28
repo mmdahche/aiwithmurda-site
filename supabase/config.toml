@@ -1,0 +1,18 @@
+project_id = "aiwithmurda"
+
+[auth]
+enabled = true
+site_url = "https://aiwithmurda.com"
+additional_redirect_urls = [
+  "https://aiwithmurda.com/members",
+  "https://www.aiwithmurda.com/members",
+  "http://127.0.0.1:5173/members",
+  "http://localhost:5173/members"
+]
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+secure_password_change = false

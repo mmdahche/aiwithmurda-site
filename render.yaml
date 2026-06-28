@@ -1,12 +1,35 @@
 services:
   - type: web
     name: aiwithmurda-site
-    runtime: static
+    runtime: node
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    startCommand: npm start
     domains:
       - aiwithmurda.com
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: SITE_URL
+        value: https://aiwithmurda.com
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_FUTURE_METHOD_PRICE_ID
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: AI with Murda <murad@aiwithmurda.com>
+      - key: RESEND_SEGMENT_ID
+        sync: false
+      - key: RESEND_AUDIENCE_ID
+        sync: false

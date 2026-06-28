@@ -21,21 +21,22 @@ Then open the local Vite URL.
 
 ## Deploy
 
-The production target is Render Static Sites with Cloudflare DNS. The clean path is to create a Render Blueprint from this repo so Render reads `render.yaml`.
+The production target is a Render Node Web Service with Cloudflare DNS. The clean path is to create a Render Blueprint from this repo so Render reads `render.yaml`.
 
-If creating the Static Site manually instead, use:
+If creating the Web Service manually instead, use:
 
-```bash
-npm install && npm run build
-```
+- Runtime: Node
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+- Custom domain: `aiwithmurda.com`
 
-Publish directory:
+The Express server serves the Vite build from:
 
 ```text
 dist
 ```
 
-The `render.yaml` blueprint defines the static site, custom domain, and SPA rewrite rule for direct visits to `/60`, `/live`, `/tools`, `/start`, and `/admin`.
+The `render.yaml` blueprint defines the web service, custom domain, required environment variables, and backend support for `/api/*`, Stripe webhooks, Supabase-gated member access, and direct visits to `/60`, `/live`, `/tools`, `/start`, `/kit`, `/members`, and `/admin`.
 
 ## Workflow
 
@@ -45,4 +46,4 @@ The `render.yaml` blueprint defines the static site, custom domain, and SPA rewr
 4. Use `Overlay` as the reference for the OBS browser source.
 5. Use `Deck` to review the growing Day 1-60 proof deck.
 
-The current version uses browser localStorage, seeded demo data, and no cloud services.
+The dashboard data still uses browser localStorage for the operator tracker. The product funnel now expects Supabase, Stripe, and Resend environment variables in production.

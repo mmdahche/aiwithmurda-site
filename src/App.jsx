@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
+  createFutureMethodCheckout,
+  getMemberProfile,
+  subscribeBuildLog,
+  verifyCheckoutSession,
+} from "./lib/api.js";
+import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
+import {
   buildDeckHtml,
   buildProgressItems,
   daysRemaining,
@@ -40,6 +47,40 @@ const numericFields = new Set([
   "dailyLessons",
 ]);
 
+const productKey = "future_proof_method";
+const productName = "The Future Proof Method";
+const productSubtitle = "New Wave Operator Kit";
+
+const offerStack = [
+  {
+    title: productName,
+    price: "$47",
+    status: "Build first",
+    description: "The paid setup: new-wave workspace, prompts, daily checklist, proof templates, and stream-tested workflows.",
+  },
+  {
+    title: "New Wave Live Builds",
+    price: "$97+",
+    status: "After kit",
+    description: "Entertainment-first live builds that teach by showing the work, not by pretending the stream is a classroom.",
+  },
+  {
+    title: "Implementation Sprint",
+    price: "$2.5K+",
+    status: "Case-study gated",
+    description: "A scoped business workflow built, tested, trained, and handed off after a real audit.",
+  },
+];
+
+const starterKitNames = [
+  "The Future Proof Method",
+  "New Wave Operator",
+  "Internet Boom OS",
+  "The Next Internet Kit",
+  "Future Internet Method",
+  "Wave One Operator",
+];
+
 function getRoute() {
   const normalized = window.location.pathname.replace(/\/+$/, "");
   return normalized || "/";
@@ -47,6 +88,8 @@ function getRoute() {
 
 function App() {
   const [logs, setLogs] = useState(() => loadLogs(seedLogs));
+  const [authSession, setAuthSession] = useState(null);
+  const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -57,6 +100,28 @@ function App() {
   useEffect(() => {
     saveLogs(logs);
   }, [logs]);
+
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return undefined;
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setAuthSession(data.session || null);
+      setAuthReady(true);
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthSession(session || null);
+      setAuthReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!logs.some((record) => record.day === selectedDay) && latest) {
@@ -142,7 +207,17 @@ function App() {
   }
 
   if (route !== "/admin") {
-    return <PublicSite route={route} config={sprintConfig} logs={logs} latest={latest} weeks={weeks} />;
+    return (
+      <PublicSite
+        route={route}
+        config={sprintConfig}
+        logs={logs}
+        latest={latest}
+        weeks={weeks}
+        authSession={authSession}
+        authReady={authReady}
+      />
+    );
   }
 
   return (
@@ -212,8 +287,8 @@ function App() {
   );
 }
 
-function PublicSite({ route, config, logs, latest, weeks }) {
-  const knownRoute = ["/", "/60", "/live", "/tools", "/start"].includes(route) ? route : "/";
+function PublicSite({ route, config, logs, latest, weeks, authSession, authReady }) {
+  const knownRoute = ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route) ? route : "/";
 
   return (
     <div className="public-site">
@@ -223,6 +298,8 @@ function PublicSite({ route, config, logs, latest, weeks }) {
       {knownRoute === "/live" && <LiveHub />}
       {knownRoute === "/tools" && <ToolsPage />}
       {knownRoute === "/start" && <StartPage />}
+      {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/members" && <MembersPage authSession={authSession} authReady={authReady} />}
     </div>
   );
 }
@@ -232,6 +309,7 @@ function PublicNav({ activeRoute }) {
     { href: "/", label: "Home" },
     { href: "/60", label: "Dashboard" },
     { href: "/live", label: "Live" },
+    { href: "/kit", label: "Kit" },
     { href: "/tools", label: "Tools" },
     { href: "/start", label: "Start" },
   ];
@@ -264,18 +342,18 @@ function PublicHome({ config, latest }) {
       <section className="public-hero">
         <div className="hero-copy">
           <span className="public-label">Launches July 28, 2026</span>
-          <h1>60 days to build online income with AI in public.</h1>
+          <h1>Watch me turn 60 quiet days into an AI money show.</h1>
           <p>
-            My family is overseas for two months. I am using that window to build, stream, sell,
-            measure, and prove what one operator can do with Claude Code, Codex, and a public
-            scoreboard.
+            My family is overseas for two months. I am using that window to stream the grind:
+            builds, numbers, wins, crashes, product drops, and the scoreboard that keeps the whole
+            thing honest.
           </p>
           <div className="hero-actions">
             <a className="primary-link" href="/60">
               Open dashboard
             </a>
-            <a className="secondary-link" href="/live">
-              Watch live
+            <a className="secondary-link" href="/kit">
+              See the first drop
             </a>
           </div>
         </div>
@@ -290,14 +368,14 @@ function PublicHome({ config, latest }) {
 
       <section className="public-band">
         <PublicProofCard title="The public bet" value="$100K or 100K followers" />
-        <PublicProofCard title="The method" value="Build live with AI agents" />
-        <PublicProofCard title="The proof" value="Daily dashboard and recap deck" />
+        <PublicProofCard title="The show" value="Builds, clips, drops, chaos, receipts" />
+        <PublicProofCard title="The proof" value="Dashboard, daily log, Day 60 recap deck" />
       </section>
 
       <section className="public-section two-col">
         <div>
           <span className="public-label">Why this is different</span>
-          <h2>The scoreboard is part of the show.</h2>
+          <h2>The scoreboard is the main character.</h2>
         </div>
         <p>
           Every day gets logged: revenue, followers, email list growth, hours streamed, clips posted,
@@ -370,25 +448,27 @@ function LiveHub() {
     <main className="public-page">
       <section className="public-section">
         <span className="public-label">Live hub</span>
-        <h1>Watch the sprint where the work actually happens.</h1>
+        <h1>This is the stream, not a webinar.</h1>
         <p>
-          The main stream link will go here before Day 1. The live page keeps the stream, daily goal,
-          dashboard link, and current offer in one place so nobody has to hunt around while the build is moving.
+          The main stream link goes here before Day 1. The stream is built like a long-running show:
+          live builds, scoreboard checks, product drops, clip-worthy breakdowns, and honest resets when
+          something breaks.
         </p>
       </section>
 
       <section className="public-cards three">
         <PublicProofCard title="Main stream" value="YouTube Live first" />
-        <PublicProofCard title="Secondary stream" value="Twitch or Kick after setup" />
+        <PublicProofCard title="Stream energy" value="More Kai-style marathon than lecture hall" />
         <PublicProofCard title="Clips engine" value="Shorts, TikTok, Reels daily" />
       </section>
 
       <section className="public-section two-col">
         <div>
           <span className="public-label">Stream modes</span>
-          <h2>Live does not mean reckless.</h2>
+          <h2>Entertainment, with guardrails.</h2>
         </div>
         <div className="plain-list">
+          <p>Show mode: build races, scoreboard checks, challenge segments, product drops.</p>
           <p>Work mode: code, dashboard, product builds, clips, planning.</p>
           <p>Privacy mode: calls, payments, customer data, family time, anything sensitive.</p>
           <p>Recap mode: daily numbers, shipped work, failure, lesson, tomorrow's promise.</p>
@@ -419,15 +499,15 @@ function ToolsPage() {
         </article>
         <article className="tool-card">
           <Icon name="deck" />
-          <h2>AI Operator Starter Kit</h2>
-          <p>Prompt stack, daily workflow, clip checklist, and build-in-public operating system.</p>
-          <span>Coming before launch</span>
+          <h2>{productName}</h2>
+          <p>The first paid drop: {productSubtitle.toLowerCase()}, daily workflow, proof templates, and operating system.</p>
+          <a href="/kit">Preview drop</a>
         </article>
         <article className="tool-card">
           <Icon name="calendar" />
-          <h2>Workshop</h2>
-          <p>Live session showing business owners how to turn AI into a working income system.</p>
-          <span>Planned for sprint</span>
+          <h2>Live Build Events</h2>
+          <p>Stream-native builds first. Workshop assets come from the best live segments.</p>
+          <span>Built before July 28</span>
         </article>
       </section>
     </main>
@@ -435,23 +515,313 @@ function ToolsPage() {
 }
 
 function StartPage() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubscribe(event) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+    try {
+      await subscribeBuildLog({ email, name });
+      setStatus("success");
+      setMessage("You are on the build log. Check your inbox.");
+      setEmail("");
+      setName("");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message === "valid_email_required" ? "Enter a real email first." : "Signup is not wired yet.");
+    }
+  }
+
   return (
     <main className="public-page">
       <section className="public-section start-section">
         <span className="public-label">Start here</span>
-        <h1>Follow the 60-day sprint from Day 1.</h1>
+        <h1>Get the daily receipts before the stream gets loud.</h1>
         <p>
-          The email capture will connect here before launch. For now, this page defines the promise:
-          one daily recap, one useful build lesson, and no fake guru nonsense.
+          Join the list for the daily recap, best clip, scoreboard movement, product drops, and the
+          honest lesson from whatever broke that day.
         </p>
-        <div className="start-form" aria-label="Email signup preview">
-          <input type="email" placeholder="you@example.com" aria-label="Email address" disabled />
-          <button type="button" disabled>
-            Opens soon
+        <form className="start-form" aria-label="Email signup" onSubmit={handleSubscribe}>
+          <input
+            type="text"
+            placeholder="First name"
+            aria-label="First name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="you@example.com"
+            aria-label="Email address"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+          <button type="submit" disabled={status === "loading"}>
+            {status === "loading" ? "Joining..." : "Join"}
           </button>
+        </form>
+        {message && <p className={`form-message ${status}`}>{message}</p>}
+      </section>
+    </main>
+  );
+}
+
+function StarterKitPage({ authSession, authReady }) {
+  return (
+    <main className="public-page">
+      <section className="public-section product-hero">
+        <div>
+          <span className="public-label">First paid drop · $47 minimum</span>
+          <h1>{productName}</h1>
+          <p>
+            {productSubtitle} for the next internet boom: the workspace, prompts, checklists, daily
+            log, proof templates, and operating rhythm Murad is using live.
+          </p>
+          <div className="hero-actions">
+            <a className="primary-link" href="/members">Preview member area</a>
+            <a className="secondary-link" href="/start">Join the build log</a>
+          </div>
+        </div>
+        <aside className="price-card">
+          <span>Founding price</span>
+          <strong>$47</strong>
+          <p>Stripe checkout on aiwithmurda.com. Real Supabase profile access from day one.</p>
+          <CheckoutButton authSession={authSession} authReady={authReady} />
+        </aside>
+      </section>
+
+      <section className="public-cards">
+        {offerStack.map((offer) => (
+          <article key={offer.title} className="tool-card">
+            <span>{offer.status}</span>
+            <h2>{offer.title}</h2>
+            <p>{offer.description}</p>
+            <strong className="card-price">{offer.price}</strong>
+          </article>
+        ))}
+      </section>
+
+      <section className="public-section two-col">
+        <div>
+          <span className="public-label">Name board</span>
+          <h2>We should name it like a drop, not homework.</h2>
+        </div>
+        <div className="name-grid">
+          {starterKitNames.map((name) => (
+            <span key={name}>{name}</span>
+          ))}
         </div>
       </section>
     </main>
+  );
+}
+
+function MembersPage({ authSession, authReady }) {
+  const [memberData, setMemberData] = useState(null);
+  const [status, setStatus] = useState("idle");
+  const [notice, setNotice] = useState("");
+  const accessToken = authSession?.access_token;
+  const entitled = Boolean(
+    memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
+  );
+
+  useEffect(() => {
+    if (!accessToken) return undefined;
+
+    let mounted = true;
+    async function loadMember() {
+      setStatus("loading");
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get("session_id");
+        if (sessionId) {
+          await verifyCheckoutSession(sessionId, accessToken);
+          window.history.replaceState({}, "", "/members?checkout=success");
+          setNotice("Payment verified. Your profile is unlocked.");
+        }
+
+        const data = await getMemberProfile(accessToken);
+        if (!mounted) return;
+        setMemberData(data);
+        setStatus("ready");
+      } catch (error) {
+        if (!mounted) return;
+        setStatus("error");
+        setNotice(error.message || "Could not load member profile.");
+      }
+    }
+
+    loadMember();
+    return () => {
+      mounted = false;
+    };
+  }, [accessToken]);
+
+  return (
+    <main className="public-page">
+      <section className="public-section members-shell">
+        <div>
+          <span className="public-label">Member area preview</span>
+          <h1>Profile-gated from day one.</h1>
+          <p>
+            Sign in with your profile, buy {productName}, and unlock the member hub for the kit,
+            updates, replays, and future live-build assets.
+          </p>
+          {notice && <p className={`form-message ${status === "error" ? "error" : "success"}`}>{notice}</p>}
+        </div>
+        <div className="member-login-card">
+          <span>Access state</span>
+          <strong>{entitled ? "Unlocked" : authSession ? "Profile active" : "Login required"}</strong>
+          <p>{authSession?.user?.email || "Use magic link auth before checkout."}</p>
+        </div>
+      </section>
+
+      {!authReady && <MemberStateCard title="Checking profile" body="Loading Supabase session..." />}
+      {authReady && !isSupabaseConfigured() && (
+        <MemberStateCard
+          title="Supabase env needed"
+          body="Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable member login."
+        />
+      )}
+      {authReady && isSupabaseConfigured() && !authSession && <AuthPanel />}
+      {authSession && !entitled && (
+        <section className="public-section unlock-section">
+          <div>
+            <span className="public-label">Unlock required</span>
+            <h2>{productName}</h2>
+            <p>Your profile is active. Buy the $47 founding drop to unlock the member hub.</p>
+          </div>
+          <CheckoutButton authSession={authSession} authReady={authReady} />
+        </section>
+      )}
+      {authSession && entitled && <MemberModules />}
+    </main>
+  );
+}
+
+function AuthPanel() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    setStatus("loading");
+    setMessage("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/members`,
+      },
+    });
+
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+      return;
+    }
+
+    setStatus("success");
+    setMessage("Magic link sent. Open it to access your profile.");
+  }
+
+  return (
+    <section className="public-section auth-section">
+      <div>
+        <span className="public-label">Member login</span>
+        <h2>Create your profile</h2>
+        <p>Use the same email you will use at checkout so the product unlocks cleanly.</p>
+      </div>
+      <form className="auth-form" onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+        <button type="submit" disabled={status === "loading"}>
+          {status === "loading" ? "Sending..." : "Send magic link"}
+        </button>
+        {message && <p className={`form-message ${status}`}>{message}</p>}
+      </form>
+    </section>
+  );
+}
+
+function CheckoutButton({ authSession, authReady }) {
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleCheckout() {
+    if (!authSession?.access_token) {
+      window.location.href = "/members";
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await createFutureMethodCheckout(authSession.access_token);
+      window.location.href = data.url;
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Checkout is not wired yet.");
+    }
+  }
+
+  return (
+    <div className="checkout-box">
+      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
+        {authSession ? (status === "loading" ? "Opening Stripe..." : "Buy for $47") : "Create profile to buy"}
+      </button>
+      {message && <p className="form-message error">{message}</p>}
+    </div>
+  );
+}
+
+function MemberStateCard({ title, body }) {
+  return (
+    <section className="public-section">
+      <span className="public-label">Setup state</span>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </section>
+  );
+}
+
+function MemberModules() {
+  return (
+    <section className="member-grid">
+      <article className="tool-card live">
+        <span>Module 01</span>
+        <h2>Start Here</h2>
+        <p>How to use the kit, what to set up first, and how to follow the stream without getting lost.</p>
+      </article>
+      <article className="tool-card">
+        <span>Module 02</span>
+        <h2>New Wave Workspace</h2>
+        <p>Folder structure, daily tracker, prompt capture, proof capture, and tool stack.</p>
+      </article>
+      <article className="tool-card">
+        <span>Module 03</span>
+        <h2>Prompt Workflows</h2>
+        <p>Business problem finder, workflow mapper, offer builder, content repurposer, and QA prompts.</p>
+      </article>
+      <article className="tool-card">
+        <span>Module 04</span>
+        <h2>Build Receipts</h2>
+        <p>Daily log, before/after proof, what broke, lesson learned, and recap templates.</p>
+      </article>
+    </section>
   );
 }
 
