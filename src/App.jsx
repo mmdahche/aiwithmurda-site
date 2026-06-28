@@ -105,20 +105,59 @@ const offerStack = [
 
 const productModules = [
   {
-    title: "Quickstart Map",
-    body: "Set up the working folders, accounts, tracker, and proof habits for the first operating session.",
+    title: "Module 1: Command Setup",
+    body: "Create the operating folder, tracker habit, account checklist, and proof capture lane before building.",
+    todos: [
+      "Create the command folder structure.",
+      "Open the tracker and set today's baseline.",
+      "Pick one offer to prove first.",
+      "Create folders for prompts, proof, content, and offers.",
+    ],
+    done: "You can start a build day without searching for files, links, or the next action.",
   },
   {
-    title: "Daily Operator Checklist",
-    body: "Run the day: baseline, build block, clip pull, recap, and next promise.",
+    title: "Module 2: Problem To Proof",
+    body: "Choose a painful workflow, define the smallest useful fix, and name the proof metric before coding.",
+    todos: [
+      "List 10 painful workflows or bottlenecks.",
+      "Score each by speed to proof and money path.",
+      "Pick the smallest workflow worth showing.",
+      "Write the before state in one sentence.",
+    ],
+    done: "You know exactly what problem the build solves and what proof would make a viewer care.",
   },
   {
-    title: "Prompt Workflow Pack",
-    body: "Prompts for finding problems, scoping builds, judging outputs, and turning work into assets.",
+    title: "Module 3: AI Build Loop",
+    body: "Use Claude Code, Codex, or your chosen stack to ship one narrow improvement without hiding the messy middle.",
+    todos: [
+      "Ask AI to inspect before changing anything.",
+      "Scope one build slice that can be shown today.",
+      "Run the user path after every meaningful change.",
+      "Commit or save the working version when the slice works.",
+    ],
+    done: "A real thing works better than it did before, and the change can be explained in under 30 seconds.",
   },
   {
-    title: "Proof Receipts Template",
-    body: "A repeatable format for before/after proof, failures, lessons, and Day 60 recap material.",
+    title: "Module 4: Proof And Content",
+    body: "Turn the build into receipts: daily proof page, clip caption, recap, and one public asset.",
+    todos: [
+      "Capture before and after proof.",
+      "Log best moment, biggest failure, lesson, and tomorrow's promise.",
+      "Write one clip hook from the proof.",
+      "Post or schedule one public asset.",
+    ],
+    done: "The day produced a receipt page and at least one asset that points back to the sprint.",
+  },
+  {
+    title: "Module 5: Offer And Follow-Up",
+    body: "Connect proof to a simple offer so the sprint has a money path, not just attention.",
+    todos: [
+      "Improve one CTA or checkout promise.",
+      "Answer one buyer objection on the page.",
+      "Follow up with one warm lead.",
+      "Log revenue, pipeline, products sold, or calls booked.",
+    ],
+    done: "The day's proof moved someone closer to buying, joining, booking, or replying.",
   },
 ];
 
@@ -1320,6 +1359,12 @@ function StarterKitPage({ authSession, authReady }) {
             <article key={module.title}>
               <strong>{module.title}</strong>
               <p>{module.body}</p>
+              <ul className="module-todo-list">
+                {module.todos.map((todo) => (
+                  <li key={todo}>{todo}</li>
+                ))}
+              </ul>
+              <em className="module-done">Done: {module.done}</em>
             </article>
           ))}
         </div>
@@ -1588,24 +1633,6 @@ function MemberStateCard({ title, body }) {
 
 function MemberModules({ accessToken, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
-  const setupPath = [
-    {
-      title: "Set the command folder",
-      body: "Create the working folders, open the tracker, and choose the one offer you are proving first.",
-    },
-    {
-      title: "Run the first workflow map",
-      body: "Use the workflow prompts to find a painful process, define the proof metric, and scope the smallest build.",
-    },
-    {
-      title: "Create the proof receipt",
-      body: "Capture the before state, the build attempt, the after state, and the clip angle before the day ends.",
-    },
-    {
-      title: "Turn proof into one asset",
-      body: "Post one clip, email, screenshot thread, or landing-page improvement from what actually happened.",
-    },
-  ];
 
   async function handleDownload(asset) {
     if (!asset?.key) return;
@@ -1665,16 +1692,22 @@ function MemberModules({ accessToken, assets, profile }) {
 
       <section className="member-roadmap">
         <div>
-          <span className="public-label">First session path</span>
-          <h2>Do these in order.</h2>
+          <span className="public-label">Module path</span>
+          <h2>Build the proof loop in order.</h2>
         </div>
         <div className="roadmap-list">
-          {setupPath.map((step, index) => (
-            <article key={step.title}>
+          {productModules.map((module, index) => (
+            <article key={module.title}>
               <strong>{String(index + 1).padStart(2, "0")}</strong>
               <div>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
+                <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
+                <p>{module.body}</p>
+                <ul className="module-todo-list compact">
+                  {module.todos.map((todo) => (
+                    <li key={todo}>{todo}</li>
+                  ))}
+                </ul>
+                <em className="module-done">Done: {module.done}</em>
               </div>
             </article>
           ))}

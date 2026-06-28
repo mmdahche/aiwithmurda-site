@@ -1949,6 +1949,9 @@ button {
 }
 
 .kit-module-list article {
+  display: grid;
+  align-content: start;
+  gap: 10px;
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1961,10 +1964,57 @@ button {
 }
 
 .kit-module-list p {
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.45;
+}
+
+.module-todo-list {
+  display: grid;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.module-todo-list li {
+  position: relative;
+  min-height: 34px;
+  padding: 8px 10px 8px 26px;
+  color: #dce8e1;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.module-todo-list li::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 12px rgba(97, 227, 109, 0.42);
+}
+
+.module-todo-list.compact {
+  margin-top: 10px;
+}
+
+.module-done {
+  display: block;
+  margin-top: 2px;
+  padding-top: 8px;
+  color: #f1f7ef;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.35;
 }
 
 .member-grid {

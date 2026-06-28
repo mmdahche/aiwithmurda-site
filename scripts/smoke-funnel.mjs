@@ -67,8 +67,12 @@ try {
   if (!profile.response.ok || profile.data?.profile?.email !== email) {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
-  if (!Array.isArray(profile.data?.product?.assets) || profile.data.product.assets.length < 4) {
+  const productAssets = profile.data?.product?.assets;
+  if (!Array.isArray(productAssets) || productAssets.length < 5) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
+    throw new Error(`Module roadmap asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
 
   const blockedAsset = await fetchJson(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {

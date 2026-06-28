@@ -60,6 +60,15 @@ const memberAssets = [
     downloadName: "proof-receipts-template.md",
     mimeType: "text/markdown; charset=utf-8",
   },
+  {
+    key: "module-roadmap",
+    title: "Module Roadmap",
+    kind: "Modules",
+    description: "Five-module path with to-do lists, done criteria, and proof outputs for the $47 kit.",
+    fileName: "module-roadmap.md",
+    downloadName: "future-proof-method-module-roadmap.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
 ];
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
