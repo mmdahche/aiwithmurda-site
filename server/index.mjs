@@ -82,6 +82,38 @@ async function ensureProfile(user, stripeCustomerId = null) {
   return data;
 }
 
+async function getMemberAccess(user) {
+  const profile = await ensureProfile(user);
+  const [{ data: entitlements, error: entitlementsError }, { data: purchases, error: purchasesError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("entitlements")
+        .select("product_key,status,granted_at")
+        .eq("user_id", user.id)
+        .eq("status", "active"),
+      supabaseAdmin
+        .from("purchases")
+        .select("product_key,status,amount_total,currency,purchased_at")
+        .eq("user_id", user.id)
+        .order("purchased_at", { ascending: false }),
+    ]);
+
+  if (entitlementsError) throw entitlementsError;
+  if (purchasesError) throw purchasesError;
+
+  return {
+    profile,
+    entitlements: entitlements || [],
+    purchases: purchases || [],
+    product: {
+      key: productKey,
+      name: productName,
+      subtitle: productSubtitle,
+      price_cents: productPriceCents,
+    },
+  };
+}
+
 async function grantEntitlement({ userId, email, session }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
 
@@ -243,31 +275,7 @@ app.post("/api/subscribe", async (req, res) => {
 
 app.get("/api/me", requireUser, async (req, res) => {
   try {
-    const profile = await ensureProfile(req.user);
-    const [{ data: entitlements }, { data: purchases }] = await Promise.all([
-      supabaseAdmin
-        .from("entitlements")
-        .select("product_key,status,granted_at")
-        .eq("user_id", req.user.id)
-        .eq("status", "active"),
-      supabaseAdmin
-        .from("purchases")
-        .select("product_key,status,amount_total,currency,purchased_at")
-        .eq("user_id", req.user.id)
-        .order("purchased_at", { ascending: false }),
-    ]);
-
-    res.json({
-      profile,
-      entitlements: entitlements || [],
-      purchases: purchases || [],
-      product: {
-        key: productKey,
-        name: productName,
-        subtitle: productSubtitle,
-        price_cents: productPriceCents,
-      },
-    });
+    res.json(await getMemberAccess(req.user));
   } catch (error) {
     console.error("[me]", error);
     res.status(500).json({ error: "profile_lookup_failed" });
@@ -279,6 +287,9 @@ app.post("/api/checkout/future-proof-method", requireUser, async (req, res) => {
 
   try {
     const profile = await ensureProfile(req.user);
+    const customerTarget = profile.stripe_customer_id
+      ? { customer: profile.stripe_customer_id }
+      : { customer_email: profile.email };
     const lineItem = process.env.STRIPE_FUTURE_METHOD_PRICE_ID
       ? { price: process.env.STRIPE_FUTURE_METHOD_PRICE_ID, quantity: 1 }
       : {
@@ -295,8 +306,9 @@ app.post("/api/checkout/future-proof-method", requireUser, async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_email: profile.email,
+      ...customerTarget,
       allow_promotion_codes: true,
+      client_reference_id: req.user.id,
       line_items: [lineItem],
       success_url: `${siteUrl}/members?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/kit?checkout=cancel`,
@@ -320,13 +332,22 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
     const sessionUserId = session.metadata?.supabase_user_id;
 
-    if (session.metadata?.product_key !== productKey || session.payment_status !== "paid") {
-      res.status(403).json({ error: "checkout_not_paid" });
+    if (session.metadata?.product_key !== productKey) {
+      res.status(403).json({ error: "checkout_product_mismatch" });
       return;
     }
 
     if (sessionUserId !== req.user.id) {
       res.status(403).json({ error: "checkout_user_mismatch" });
+      return;
+    }
+
+    if (session.payment_status !== "paid") {
+      res.status(409).json({
+        error: "checkout_not_paid",
+        checkout_status: session.status,
+        payment_status: session.payment_status,
+      });
       return;
     }
 
@@ -336,7 +357,13 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
       session,
     });
 
-    res.json({ ok: true, entitlement });
+    res.json({
+      ok: true,
+      checkout_status: session.status,
+      payment_status: session.payment_status,
+      entitlement,
+      access: await getMemberAccess(req.user),
+    });
   } catch (error) {
     console.error("[access-session]", error);
     res.status(500).json({ error: "access_verification_failed" });

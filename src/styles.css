@@ -1413,12 +1413,17 @@ button {
   color: var(--green);
 }
 
+.form-message.pending {
+  color: var(--amber);
+}
+
 .form-message.error {
   color: var(--danger);
 }
 
 .auth-section,
-.unlock-section {
+.unlock-section,
+.access-recovery {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   align-items: center;
@@ -1426,10 +1431,44 @@ button {
 }
 
 .auth-section h2,
-.unlock-section h2 {
+.unlock-section h2,
+.access-recovery h2 {
   margin: 0;
   font-size: 42px;
   line-height: 1;
+}
+
+.access-recovery {
+  margin-top: 18px;
+  padding: 28px 34px;
+  border: 1px solid rgba(255, 159, 26, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 90% 18%, rgba(255, 159, 26, 0.12), transparent 26%),
+    rgba(16, 14, 10, 0.68);
+}
+
+.access-recovery.success {
+  border-color: rgba(97, 227, 109, 0.34);
+  background:
+    radial-gradient(circle at 90% 18%, rgba(97, 227, 109, 0.14), transparent 28%),
+    rgba(6, 16, 11, 0.68);
+}
+
+.access-recovery.error {
+  border-color: rgba(255, 105, 97, 0.34);
+  background:
+    radial-gradient(circle at 90% 18%, rgba(255, 105, 97, 0.12), transparent 28%),
+    rgba(18, 10, 9, 0.68);
+}
+
+.access-recovery p {
+  margin-top: 12px;
+}
+
+.recovery-actions {
+  display: grid;
+  gap: 10px;
 }
 
 .auth-form {
@@ -1443,11 +1482,45 @@ button {
   margin-top: 18px;
 }
 
+.recovery-actions button,
 .checkout-box button {
   width: 100%;
 }
 
+.recovery-actions button,
+.secondary-button {
+  min-height: 46px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  background: var(--green);
+  font-weight: 800;
+}
+
+.recovery-actions .secondary-button {
+  color: var(--text);
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.module-status {
+  display: inline-flex;
+  width: max-content;
+  margin-top: 4px;
+  padding: 7px 10px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--green);
+  font-size: 12px;
+}
+
+.tool-card:not(.live) .module-status {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .checkout-box button:disabled,
+.recovery-actions button:disabled,
 .auth-form button:disabled,
 .start-form button:disabled {
   cursor: not-allowed;
@@ -1522,7 +1595,8 @@ button {
   .product-hero,
   .members-shell,
   .auth-section,
-  .unlock-section {
+  .unlock-section,
+  .access-recovery {
     grid-template-columns: 1fr;
   }
 

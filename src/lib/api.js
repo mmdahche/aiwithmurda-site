@@ -13,6 +13,7 @@ async function apiRequest(path, { method = "GET", body, token } = {}) {
   if (!response.ok) {
     const error = new Error(data.error || "request_failed");
     error.status = response.status;
+    error.data = data;
     throw error;
   }
   return data;

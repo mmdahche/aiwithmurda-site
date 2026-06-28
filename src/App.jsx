@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   createFutureMethodCheckout,
@@ -572,6 +572,8 @@ function StartPage() {
 }
 
 function StarterKitPage({ authSession, authReady }) {
+  const checkoutState = new URLSearchParams(window.location.search).get("checkout");
+
   return (
     <main className="public-page">
       <section className="public-section product-hero">
@@ -582,6 +584,11 @@ function StarterKitPage({ authSession, authReady }) {
             {productSubtitle} for the next internet boom: the workspace, prompts, checklists, daily
             log, proof templates, and operating rhythm Murad is using live.
           </p>
+          {checkoutState === "cancel" && (
+            <p className="form-message">
+              Checkout was canceled. Your profile is still safe; you can restart whenever you are ready.
+            </p>
+          )}
           <div className="hero-actions">
             <a className="primary-link" href="/members">Preview member area</a>
             <a className="secondary-link" href="/start">Join the build log</a>
@@ -624,43 +631,84 @@ function StarterKitPage({ authSession, authReady }) {
 function MembersPage({ authSession, authReady }) {
   const [memberData, setMemberData] = useState(null);
   const [status, setStatus] = useState("idle");
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(null);
+  const [accessCheck, setAccessCheck] = useState({ status: "idle" });
   const accessToken = authSession?.access_token;
   const entitled = Boolean(
     memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
   );
 
-  useEffect(() => {
-    if (!accessToken) return undefined;
+  const refreshMemberAccess = useCallback(
+    async ({ verifyCheckout = true } = {}) => {
+      if (!accessToken) return;
 
-    let mounted = true;
-    async function loadMember() {
       setStatus("loading");
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = verifyCheckout ? params.get("session_id") : null;
+      let verifiedAccess = null;
+
       try {
-        const params = new URLSearchParams(window.location.search);
-        const sessionId = params.get("session_id");
         if (sessionId) {
-          await verifyCheckoutSession(sessionId, accessToken);
+          setAccessCheck({
+            status: "checking",
+            title: "Checking your Stripe payment",
+            body: "Confirming the session and unlocking your member profile.",
+          });
+          const result = await verifyCheckoutSession(sessionId, accessToken);
+          verifiedAccess = result.access || null;
           window.history.replaceState({}, "", "/members?checkout=success");
-          setNotice("Payment verified. Your profile is unlocked.");
+          setNotice({ tone: "success", text: "Payment verified. Your profile is unlocked." });
+          setAccessCheck({
+            status: "success",
+            title: "Access unlocked",
+            body: "Stripe confirmed the payment and the entitlement is active on your profile.",
+          });
         }
 
-        const data = await getMemberProfile(accessToken);
-        if (!mounted) return;
+        const data = verifiedAccess || (await getMemberProfile(accessToken));
         setMemberData(data);
         setStatus("ready");
       } catch (error) {
-        if (!mounted) return;
-        setStatus("error");
-        setNotice(error.message || "Could not load member profile.");
+        const isPendingPayment = error.data?.error === "checkout_not_paid";
+        setAccessCheck({
+          status: isPendingPayment ? "pending" : "error",
+          title: isPendingPayment ? "Payment not finished yet" : "Access check needs attention",
+          body: isPendingPayment
+            ? "Stripe has the session, but it is not marked paid yet. If you completed payment, refresh access in a moment."
+            : "The profile loaded path is still available. Refresh access after Stripe or login catches up.",
+        });
+
+        try {
+          const data = await getMemberProfile(accessToken);
+          setMemberData(data);
+          setStatus("ready");
+          setNotice({
+            tone: isPendingPayment ? "success" : "error",
+            text: isPendingPayment
+              ? "Your profile is active. Finish checkout or refresh after payment clears."
+              : error.message || "Could not verify checkout yet.",
+          });
+        } catch (profileError) {
+          setStatus("error");
+          setNotice({ tone: "error", text: profileError.message || "Could not load member profile." });
+        }
       }
+    },
+    [accessToken],
+  );
+
+  useEffect(() => {
+    if (!accessToken) {
+      setMemberData(null);
+      setStatus("idle");
+      return undefined;
     }
 
-    loadMember();
+    refreshMemberAccess();
     return () => {
-      mounted = false;
+      // The current calls are short-lived fetches; state changes after route changes are harmless in this SPA.
     };
-  }, [accessToken]);
+  }, [accessToken, refreshMemberAccess]);
 
   return (
     <main className="public-page">
@@ -672,11 +720,13 @@ function MembersPage({ authSession, authReady }) {
             Sign in with your profile, buy {productName}, and unlock the member hub for the kit,
             updates, replays, and future live-build assets.
           </p>
-          {notice && <p className={`form-message ${status === "error" ? "error" : "success"}`}>{notice}</p>}
+          {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
         </div>
         <div className="member-login-card">
           <span>Access state</span>
-          <strong>{entitled ? "Unlocked" : authSession ? "Profile active" : "Login required"}</strong>
+          <strong>
+            {entitled ? "Unlocked" : status === "loading" ? "Checking" : authSession ? "Profile active" : "Login required"}
+          </strong>
           <p>{authSession?.user?.email || "Use magic link auth before checkout."}</p>
         </div>
       </section>
@@ -689,6 +739,13 @@ function MembersPage({ authSession, authReady }) {
         />
       )}
       {authReady && isSupabaseConfigured() && !authSession && <AuthPanel />}
+      {authSession && (
+        <PurchaseRecoveryCard
+          state={accessCheck}
+          onRefresh={() => refreshMemberAccess({ verifyCheckout: true })}
+          onProfileRefresh={() => refreshMemberAccess({ verifyCheckout: false })}
+        />
+      )}
       {authSession && !entitled && (
         <section className="public-section unlock-section">
           <div>
@@ -701,6 +758,31 @@ function MembersPage({ authSession, authReady }) {
       )}
       {authSession && entitled && <MemberModules />}
     </main>
+  );
+}
+
+function PurchaseRecoveryCard({ state, onRefresh, onProfileRefresh }) {
+  if (!state?.status || state.status === "idle") return null;
+
+  const checking = state.status === "checking";
+  const tone = state.status === "success" ? "success" : state.status === "pending" ? "pending" : "error";
+
+  return (
+    <section className={`access-recovery ${tone}`}>
+      <div>
+        <span className="public-label">Checkout recovery</span>
+        <h2>{state.title}</h2>
+        <p>{state.body}</p>
+      </div>
+      <div className="recovery-actions">
+        <button type="button" onClick={onRefresh} disabled={checking}>
+          {checking ? "Checking..." : "Refresh access"}
+        </button>
+        <button type="button" className="secondary-button" onClick={onProfileRefresh} disabled={checking}>
+          Reload profile
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -799,28 +881,43 @@ function MemberStateCard({ title, body }) {
 }
 
 function MemberModules() {
+  const modules = [
+    {
+      label: "Module 01",
+      title: "Start Here",
+      status: "Ready",
+      body: "How to use the kit, what to set up first, and how to follow the stream without getting lost.",
+    },
+    {
+      label: "Module 02",
+      title: "New Wave Workspace",
+      status: "Ready",
+      body: "Folder structure, daily tracker, prompt capture, proof capture, and tool stack.",
+    },
+    {
+      label: "Module 03",
+      title: "Prompt Workflows",
+      status: "Loading",
+      body: "Business problem finder, workflow mapper, offer builder, content repurposer, and QA prompts.",
+    },
+    {
+      label: "Module 04",
+      title: "Build Receipts",
+      status: "Loading",
+      body: "Daily log, before/after proof, what broke, lesson learned, and recap templates.",
+    },
+  ];
+
   return (
     <section className="member-grid">
-      <article className="tool-card live">
-        <span>Module 01</span>
-        <h2>Start Here</h2>
-        <p>How to use the kit, what to set up first, and how to follow the stream without getting lost.</p>
-      </article>
-      <article className="tool-card">
-        <span>Module 02</span>
-        <h2>New Wave Workspace</h2>
-        <p>Folder structure, daily tracker, prompt capture, proof capture, and tool stack.</p>
-      </article>
-      <article className="tool-card">
-        <span>Module 03</span>
-        <h2>Prompt Workflows</h2>
-        <p>Business problem finder, workflow mapper, offer builder, content repurposer, and QA prompts.</p>
-      </article>
-      <article className="tool-card">
-        <span>Module 04</span>
-        <h2>Build Receipts</h2>
-        <p>Daily log, before/after proof, what broke, lesson learned, and recap templates.</p>
-      </article>
+      {modules.map((module) => (
+        <article key={module.title} className={`tool-card ${module.status === "Ready" ? "live" : ""}`}>
+          <span>{module.label}</span>
+          <h2>{module.title}</h2>
+          <p>{module.body}</p>
+          <strong className="module-status">{module.status}</strong>
+        </article>
+      ))}
     </section>
   );
 }

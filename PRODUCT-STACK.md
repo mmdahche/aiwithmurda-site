@@ -146,6 +146,10 @@ Access flow:
 7. Webhook sends access email through Resend.
 8. Member hub unlocks product assets for that profile.
 
+Recovery rule:
+
+- If Stripe redirects back before the entitlement is visible, `/members` must show a retryable access recovery state, not a dead-end error. The buyer can refresh the Stripe session check or reload the profile without leaving the member hub.
+
 ## July 28 Definition Of Done
 
 - `/start` captures emails into Resend.
