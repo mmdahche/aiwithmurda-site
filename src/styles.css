@@ -2144,6 +2144,31 @@ button {
   text-transform: uppercase;
 }
 
+.member-start-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.member-start-path article {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.member-start-path strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.member-start-path p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -2991,6 +3016,7 @@ button {
   .kit-faq-list,
   .kit-final-cta,
   .member-next-action,
+  .member-start-path,
   .member-grid,
   .kit-module-list,
   .start-form {

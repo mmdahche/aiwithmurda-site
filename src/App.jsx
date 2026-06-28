@@ -1828,6 +1828,28 @@ function MemberModules({ accessToken, assets, profile }) {
         </div>
       </article>
 
+      <section className="member-start-path">
+        {[
+          {
+            title: "1. Open the roadmap",
+            body: "Download the Module Roadmap and use the checklist below as the live version.",
+          },
+          {
+            title: "2. Do the next action",
+            body: "Mark one task complete only after the work exists outside your head.",
+          },
+          {
+            title: "3. Package proof",
+            body: "Use the Proof To Offer Canvas when a receipt is strong enough to become a CTA.",
+          },
+        ].map((item) => (
+          <article key={item.title}>
+            <strong>{item.title}</strong>
+            <p>{item.body}</p>
+          </article>
+        ))}
+      </section>
+
       <div className="member-grid">
         {assets.map((asset) => (
           <article key={asset.key} className="tool-card live">
