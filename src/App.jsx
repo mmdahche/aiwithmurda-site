@@ -213,6 +213,20 @@ const launchChecklistItems = [
     body: "Checkout, webhooks, gated member access, and asset downloads are wired under Backbone Stripe.",
   },
   {
+    title: "Command shelf and receipts",
+    status: "done",
+    owner: "System",
+    signal: "/tools + /day/:day",
+    body: "Viewers can reach the scoreboard, live hub, daily receipts, overlay, kit, and member hub from public command links.",
+  },
+  {
+    title: "OBS browser routes",
+    status: "done",
+    owner: "System",
+    signal: "/overlay + /obs",
+    body: "The stream overlay has direct browser-source URLs with production route smoke coverage.",
+  },
+  {
     title: "Day 1 baseline",
     status: "queued",
     owner: "RubyX",
