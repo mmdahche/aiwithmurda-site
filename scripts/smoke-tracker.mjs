@@ -33,6 +33,12 @@ if (!obsResponse.ok || !obsHtml.includes("root")) {
   throw new Error(`OBS alias route failed: ${obsResponse.status}`);
 }
 
+const dayReceiptResponse = await fetch(`${siteUrl}/day/1/`);
+const dayReceiptHtml = await dayReceiptResponse.text();
+if (!dayReceiptResponse.ok || !dayReceiptHtml.includes("root")) {
+  throw new Error(`Day receipt route failed: ${dayReceiptResponse.status}`);
+}
+
 const blockedWrite = await fetchJson(`${siteUrl}/api/admin/daily-logs`, {
   method: "PUT",
   headers: { "Content-Type": "application/json" },
@@ -59,6 +65,7 @@ console.log(
         publicDashboardRoute: true,
         overlayRoute: true,
         obsAliasRoute: true,
+        dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminSystemStatusReadable: true,
       },

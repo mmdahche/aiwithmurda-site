@@ -19,6 +19,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 - `/start` - production email capture
 - `/kit` - first paid drop sales page
 - `/members` - Supabase-gated member hub and asset delivery
+- `/day/:day` - public daily receipt pages for clips and recaps
 - `/admin` - private local control room for daily logging and exports
 - `/overlay` - OBS browser-source overlay route
 - `/obs` - short alias for the OBS overlay

@@ -247,6 +247,11 @@ function getRoute() {
   return normalized || "/";
 }
 
+function getDayRouteDay(route) {
+  const match = route.match(/^\/day\/(\d+)$/);
+  return match ? Number(match[1]) : null;
+}
+
 function App() {
   const [logs, setLogs] = useState(() => loadLogs(seedLogs));
   const [authSession, setAuthSession] = useState(null);
@@ -667,13 +672,15 @@ function App() {
 }
 
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus }) {
-  const knownRoute = ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route) ? route : "/";
+  const dayRouteDay = getDayRouteDay(route);
+  const knownRoute = dayRouteDay ? "/day" : ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route) ? route : "/";
 
   return (
     <div className="public-site">
       <PublicNav activeRoute={knownRoute} />
       {knownRoute === "/" && <PublicHome config={config} latest={latest} />}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} />}
+      {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
       {knownRoute === "/live" && <LiveHub streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
       {knownRoute === "/tools" && <ToolsPage />}
       {knownRoute === "/start" && <StartPage />}
@@ -812,6 +819,9 @@ function PublicDashboard({ config, logs, latest, weeks }) {
           <h2>{latest.mainGoal}</h2>
           <p>{latest.lessonLearned}</p>
           <KeyValue label="Tomorrow" value={latest.tomorrowPromise} />
+          <a className="text-link" href={`/day/${latest.day}`}>
+            Open day receipt
+          </a>
         </article>
         <article className={`panel spike-panel ${spike.isSpike ? "hot" : ""}`}>
           <PanelTitle icon="alert" title="Spike Detector" right="Latest" />
@@ -828,6 +838,124 @@ function PublicDashboard({ config, logs, latest, weeks }) {
             <WeeklyRecap week={currentWeek} />
           </article>
         )}
+      </section>
+    </main>
+  );
+}
+
+function DayReceiptPage({ config, logs, day }) {
+  const sortedLogs = [...logs].sort((a, b) => a.day - b.day);
+  const record = sortedLogs.find((item) => item.day === day);
+
+  if (!record) {
+    return (
+      <main className="public-page">
+        <section className="public-section day-empty-state">
+          <div>
+            <span className="public-label">Daily receipt</span>
+            <h1>Day {day} is not logged yet.</h1>
+            <p>The receipt page is ready, but this day does not have public data yet.</p>
+          </div>
+          <div className="hero-actions">
+            <a className="primary-link" href="/60">
+              Open dashboard
+            </a>
+            <a className="secondary-link" href="/start">
+              Join build log
+            </a>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const gains = getDayGains(logs, record);
+  const dayLabel = isPrelaunch(config) ? "Preview Day" : "Day";
+  const receiptMetrics = [
+    { label: "Revenue", value: formatCurrency(record.revenueCollected), delta: signedCurrency(gains.revenue) },
+    { label: "Followers", value: formatNumber(totalFollowers(record)), delta: signedNumber(gains.followers) },
+    { label: "Email", value: formatNumber(record.emailSubscribers), delta: signedNumber(gains.emailSubscribers) },
+    { label: "Hours live", value: formatNumber(record.hoursStreamed), delta: signedNumber(gains.hoursStreamed) },
+    { label: "Clips", value: formatNumber(record.clipsPosted), delta: signedNumber(gains.clipsPosted) },
+    { label: "Builds", value: formatNumber(record.buildsShipped), delta: signedNumber(gains.buildsShipped) },
+  ];
+
+  return (
+    <main className="public-page day-receipt-page">
+      <section className="day-receipt-hero">
+        <div>
+          <span className="public-label">Daily receipt</span>
+          <h1>
+            {dayLabel} {record.day}: {record.mainGoal}
+          </h1>
+          <p>
+            {record.date} receipt for the 60-day AI operator sprint: what shipped, what moved,
+            what failed, and the next promise.
+          </p>
+          <div className="hero-actions">
+            <a className="primary-link" href="/60">
+              Scoreboard
+            </a>
+            <a className="secondary-link" href={`/day/${Math.min(config.totalDays, record.day + 1)}`}>
+              Next day
+            </a>
+          </div>
+        </div>
+        <aside className="day-receipt-score">
+          <span>{dayLabel}</span>
+          <strong>{record.day}</strong>
+          <em>{record.status}</em>
+        </aside>
+      </section>
+
+      <section className="day-receipt-metrics">
+        {receiptMetrics.map((item) => (
+          <article key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <em>{item.delta}</em>
+          </article>
+        ))}
+      </section>
+
+      <section className="public-section day-receipt-grid">
+        <article>
+          <span className="public-label">What shipped</span>
+          <h2>{record.shippedItems?.length ? `${record.shippedItems.length} receipt item${record.shippedItems.length === 1 ? "" : "s"}` : "No shipped items logged"}</h2>
+          <ul>
+            {(record.shippedItems?.length ? record.shippedItems : ["Receipt pending"]).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article>
+          <span className="public-label">Proof assets</span>
+          <h2>{record.proofAssets?.length ? "Evidence trail" : "Proof pending"}</h2>
+          <ul>
+            {(record.proofAssets?.length ? record.proofAssets : ["No public proof asset logged yet"]).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </section>
+
+      <section className="public-section day-receipt-notes">
+        <article>
+          <span>Best moment</span>
+          <p>{record.bestMoment || "Not logged yet."}</p>
+        </article>
+        <article>
+          <span>Biggest failure</span>
+          <p>{record.biggestFailure || "Not logged yet."}</p>
+        </article>
+        <article>
+          <span>Lesson</span>
+          <p>{record.lessonLearned || "Not logged yet."}</p>
+        </article>
+        <article>
+          <span>Tomorrow</span>
+          <p>{record.tomorrowPromise || "Not logged yet."}</p>
+        </article>
       </section>
     </main>
   );

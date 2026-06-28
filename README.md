@@ -44,7 +44,8 @@ The `render.yaml` blueprint defines the web service, custom domain, required env
 2. Update metrics at night.
 3. Use `Dashboard` on stream for the public command-center segment.
 4. Use `/overlay` or `/obs` as the OBS browser source.
-5. Use `Deck` to review the growing Day 1-60 proof deck.
+5. Share `/day/1`, `/day/2`, and so on for public daily receipts.
+6. Use `Deck` to review the growing Day 1-60 proof deck.
 
 The operator tracker saves locally while editing, then syncs public daily logs to Supabase through the guarded admin API. The product funnel expects Supabase, Stripe, Resend, and `ADMIN_API_TOKEN` environment variables in production.
 
