@@ -100,13 +100,23 @@ const offerStack = [
   },
 ];
 
-const starterKitNames = [
-  "The Future Proof Method",
-  "New Wave Operator",
-  "Internet Boom OS",
-  "The Next Internet Kit",
-  "Future Internet Method",
-  "Wave One Operator",
+const productModules = [
+  {
+    title: "Quickstart Map",
+    body: "Set up the working folders, accounts, tracker, and proof habits for the first operating session.",
+  },
+  {
+    title: "Daily Operator Checklist",
+    body: "Run the day: baseline, build block, clip pull, recap, and next promise.",
+  },
+  {
+    title: "Prompt Workflow Pack",
+    body: "Prompts for finding problems, scoping builds, judging outputs, and turning work into assets.",
+  },
+  {
+    title: "Proof Receipts Template",
+    body: "A repeatable format for before/after proof, failures, lessons, and Day 60 recap material.",
+  },
 ];
 
 const buildLogReceipts = [
@@ -964,14 +974,17 @@ function StarterKitPage({ authSession, authReady }) {
         ))}
       </section>
 
-      <section className="public-section two-col">
+      <section className="public-section two-col kit-proof-section">
         <div>
-          <span className="public-label">Name board</span>
-          <h2>We should name it like a drop, not homework.</h2>
+          <span className="public-label">What you get</span>
+          <h2>A working kit, not a folder of random prompts.</h2>
         </div>
-        <div className="name-grid">
-          {starterKitNames.map((name) => (
-            <span key={name}>{name}</span>
+        <div className="kit-module-list">
+          {productModules.map((module) => (
+            <article key={module.title}>
+              <strong>{module.title}</strong>
+              <p>{module.body}</p>
+            </article>
           ))}
         </div>
       </section>

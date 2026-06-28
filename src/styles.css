@@ -1545,7 +1545,7 @@ button {
   letter-spacing: 0;
 }
 
-.name-grid,
+.kit-module-list,
 .member-grid {
   display: grid;
   gap: 12px;
@@ -1585,16 +1585,27 @@ button {
   line-height: 1.55;
 }
 
-.name-grid {
+.kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.name-grid span {
-  padding: 14px 16px;
+.kit-module-list article {
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.kit-module-list strong {
+  color: var(--text);
   font-weight: 800;
+}
+
+.kit-module-list p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .member-grid {
@@ -2226,7 +2237,7 @@ button {
   .start-proof-grid,
   .run-of-show,
   .member-grid,
-  .name-grid,
+  .kit-module-list,
   .start-form {
     grid-template-columns: 1fr;
   }
