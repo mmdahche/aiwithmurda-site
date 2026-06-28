@@ -27,6 +27,24 @@ if (!toolsResponse.ok || !toolsHtml.includes("root")) {
   throw new Error(`Public tools route failed: ${toolsResponse.status}`);
 }
 
+const kitResponse = await fetch(`${siteUrl}/kit/`);
+const kitHtml = await kitResponse.text();
+if (!kitResponse.ok || !kitHtml.includes("root")) {
+  throw new Error(`Kit route failed: ${kitResponse.status}`);
+}
+
+const membersResponse = await fetch(`${siteUrl}/members/`);
+const membersHtml = await membersResponse.text();
+if (!membersResponse.ok || !membersHtml.includes("root")) {
+  throw new Error(`Members route failed: ${membersResponse.status}`);
+}
+
+const memberModuleResponse = await fetch(`${siteUrl}/members/module/command-setup/`);
+const memberModuleHtml = await memberModuleResponse.text();
+if (!memberModuleResponse.ok || !memberModuleHtml.includes("root")) {
+  throw new Error(`Member module route failed: ${memberModuleResponse.status}`);
+}
+
 const overlayResponse = await fetch(`${siteUrl}/overlay/`);
 const overlayHtml = await overlayResponse.text();
 if (!overlayResponse.ok || !overlayHtml.includes("root")) {
@@ -83,6 +101,9 @@ console.log(
         publicLogsReadable: true,
         publicDashboardRoute: true,
         publicToolsRoute: true,
+        kitRoute: true,
+        membersRoute: true,
+        memberModuleRoute: true,
         overlayRoute: true,
         obsAliasRoute: true,
         dayReceiptRoute: true,
