@@ -26,6 +26,18 @@ export function subscribeBuildLog({ email, name }) {
   });
 }
 
+export function getDailyLogs() {
+  return apiRequest("/api/daily-logs");
+}
+
+export function syncDailyLogs(logs, adminToken) {
+  return apiRequest("/api/admin/daily-logs", {
+    method: "PUT",
+    body: { logs },
+    token: adminToken,
+  });
+}
+
 export function getMemberProfile(token) {
   return apiRequest("/api/me", { token });
 }

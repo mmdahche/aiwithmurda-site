@@ -83,6 +83,22 @@ function getBearerToken(req) {
   return scheme?.toLowerCase() === "bearer" ? token : null;
 }
 
+function requireAdmin(req, res, next) {
+  const configuredToken = process.env.ADMIN_API_TOKEN;
+  if (!configuredToken) {
+    res.status(503).json({ error: "admin_api_not_configured" });
+    return;
+  }
+
+  const token = req.get("x-admin-token") || getBearerToken(req);
+  if (!token || token !== configuredToken) {
+    res.status(401).json({ error: "invalid_admin_token" });
+    return;
+  }
+
+  next();
+}
+
 async function requireUser(req, res, next) {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 
@@ -171,6 +187,68 @@ async function hasActiveEntitlement(userId) {
 
   if (error) throw error;
   return Boolean(data?.id);
+}
+
+function toDailyLog(row) {
+  return {
+    day: Number(row.day),
+    date: row.date,
+    mainGoal: row.main_goal,
+    status: row.status,
+    followers: row.followers || {},
+    emailSubscribers: Number(row.email_subscribers || 0),
+    revenueCollected: Number(row.revenue_collected || 0),
+    revenuePipeline: Number(row.revenue_pipeline || 0),
+    hoursStreamed: Number(row.hours_streamed || 0),
+    clipsPosted: Number(row.clips_posted || 0),
+    outreachSent: Number(row.outreach_sent || 0),
+    callsBooked: Number(row.calls_booked || 0),
+    productsSold: Number(row.products_sold || 0),
+    buildsShipped: Number(row.builds_shipped || 0),
+    dailyLessons: Number(row.daily_lessons || 0),
+    shippedItems: row.shipped_items || [],
+    bestMoment: row.best_moment || "",
+    biggestFailure: row.biggest_failure || "",
+    lessonLearned: row.lesson_learned || "",
+    tomorrowPromise: row.tomorrow_promise || "",
+    spikeCause: row.spike_cause || "",
+    proofAssets: row.proof_assets || [],
+  };
+}
+
+function toDailyLogRow(log) {
+  return {
+    day: Number(log.day),
+    date: String(log.date || ""),
+    main_goal: String(log.mainGoal || ""),
+    status: String(log.status || "planned"),
+    followers: log.followers && typeof log.followers === "object" ? log.followers : {},
+    email_subscribers: Number(log.emailSubscribers || 0),
+    revenue_collected: Number(log.revenueCollected || 0),
+    revenue_pipeline: Number(log.revenuePipeline || 0),
+    hours_streamed: Number(log.hoursStreamed || 0),
+    clips_posted: Number(log.clipsPosted || 0),
+    outreach_sent: Number(log.outreachSent || 0),
+    calls_booked: Number(log.callsBooked || 0),
+    products_sold: Number(log.productsSold || 0),
+    builds_shipped: Number(log.buildsShipped || 0),
+    daily_lessons: Number(log.dailyLessons || 0),
+    shipped_items: Array.isArray(log.shippedItems) ? log.shippedItems.map(String) : [],
+    best_moment: String(log.bestMoment || ""),
+    biggest_failure: String(log.biggestFailure || ""),
+    lesson_learned: String(log.lessonLearned || ""),
+    tomorrow_promise: String(log.tomorrowPromise || ""),
+    spike_cause: String(log.spikeCause || ""),
+    proof_assets: Array.isArray(log.proofAssets) ? log.proofAssets.map(String) : [],
+  };
+}
+
+function validateDailyLog(log) {
+  const day = Number(log?.day);
+  if (!Number.isInteger(day) || day < 1 || day > 60) return false;
+  if (!String(log?.date || "").match(/^\d{4}-\d{2}-\d{2}$/)) return false;
+  if (!String(log?.mainGoal || "").trim()) return false;
+  return true;
 }
 
 async function grantEntitlement({ userId, email, session }) {
@@ -287,6 +365,44 @@ app.get("/api/health", (req, res) => {
     stripe: Boolean(stripe),
     resend: Boolean(resend),
   });
+});
+
+app.get("/api/daily-logs", async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    const { data, error } = await supabaseAdmin.from("daily_logs").select("*").order("day", { ascending: true });
+    if (error) throw error;
+    res.json({ logs: (data || []).map(toDailyLog) });
+  } catch (error) {
+    console.error("[daily-logs]", error);
+    res.status(500).json({ error: "daily_logs_lookup_failed" });
+  }
+});
+
+app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  const logs = Array.isArray(req.body?.logs) ? req.body.logs : null;
+  if (!logs || logs.some((log) => !validateDailyLog(log))) {
+    res.status(400).json({ error: "valid_logs_required" });
+    return;
+  }
+
+  try {
+    const rows = logs.map(toDailyLogRow);
+    const { data, error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert(rows, { onConflict: "day" })
+      .select("*")
+      .order("day", { ascending: true });
+
+    if (error) throw error;
+    res.json({ ok: true, logs: (data || []).map(toDailyLog) });
+  } catch (error) {
+    console.error("[admin-daily-logs]", error);
+    res.status(500).json({ error: "daily_logs_sync_failed" });
+  }
 });
 
 app.post("/api/subscribe", async (req, res) => {

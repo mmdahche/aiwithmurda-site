@@ -711,6 +711,15 @@ button {
   gap: 14px;
 }
 
+.settings-sync-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-sync-panel .primary-action {
+  width: 100%;
+}
+
 .key-value {
   display: grid;
   gap: 6px;

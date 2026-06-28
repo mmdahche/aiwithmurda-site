@@ -3,8 +3,10 @@ import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   createFutureMethodCheckout,
   downloadMemberAsset,
+  getDailyLogs,
   getMemberProfile,
   subscribeBuildLog,
+  syncDailyLogs,
   verifyCheckoutSession,
 } from "./lib/api.js";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
@@ -51,6 +53,7 @@ const numericFields = new Set([
 const productKey = "future_proof_method";
 const productName = "The Future Proof Method";
 const productSubtitle = "New Wave Operator Kit";
+const adminTokenStorageKey = "aiwithmurda:admin-api-token";
 
 const offerStack = [
   {
@@ -91,6 +94,7 @@ function App() {
   const [logs, setLogs] = useState(() => loadLogs(seedLogs));
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
+  const [remoteLogStatus, setRemoteLogStatus] = useState("local");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
@@ -101,6 +105,30 @@ function App() {
   useEffect(() => {
     saveLogs(logs);
   }, [logs]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadRemoteLogs() {
+      try {
+        const data = await getDailyLogs();
+        if (!mounted) return;
+        if (Array.isArray(data.logs) && data.logs.length > 0) {
+          setLogs(data.logs);
+          setRemoteLogStatus("live");
+        } else {
+          setRemoteLogStatus("empty");
+        }
+      } catch {
+        if (mounted) setRemoteLogStatus("local");
+      }
+    }
+
+    loadRemoteLogs();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -281,7 +309,13 @@ function App() {
         {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} />}
         {activeView === "deck" && <DeckView config={sprintConfig} logs={logs} weeks={weeks} />}
         {activeView === "settings" && (
-          <SettingsView config={sprintConfig} logs={logs} restoreSeedData={restoreSeedData} />
+          <SettingsView
+            config={sprintConfig}
+            logs={logs}
+            remoteLogStatus={remoteLogStatus}
+            setRemoteLogStatus={setRemoteLogStatus}
+            restoreSeedData={restoreSeedData}
+          />
         )}
       </main>
     </div>
@@ -1390,8 +1424,40 @@ function DeckView({ config, logs, weeks }) {
   );
 }
 
-function SettingsView({ config, logs, restoreSeedData }) {
+function SettingsView({ config, logs, remoteLogStatus, setRemoteLogStatus, restoreSeedData }) {
   const latest = getLatestRecord(logs);
+  const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
+  const [syncStatus, setSyncStatus] = useState("idle");
+  const [syncMessage, setSyncMessage] = useState("");
+
+  function updateAdminToken(value) {
+    setAdminToken(value);
+    if (value) {
+      window.localStorage.setItem(adminTokenStorageKey, value);
+    } else {
+      window.localStorage.removeItem(adminTokenStorageKey);
+    }
+  }
+
+  async function handleSyncPublicLogs() {
+    if (!adminToken.trim()) {
+      setSyncStatus("error");
+      setSyncMessage("Enter the admin token before syncing.");
+      return;
+    }
+
+    setSyncStatus("loading");
+    setSyncMessage("");
+    try {
+      const data = await syncDailyLogs(logs, adminToken.trim());
+      setRemoteLogStatus("live");
+      setSyncStatus("success");
+      setSyncMessage(`Synced ${data.logs?.length || logs.length} daily records to the public dashboard.`);
+    } catch (error) {
+      setSyncStatus("error");
+      setSyncMessage(error.message || "Public sync failed.");
+    }
+  }
 
   return (
     <section className="workspace-view">
@@ -1406,6 +1472,26 @@ function SettingsView({ config, logs, restoreSeedData }) {
       </div>
 
       <div className="settings-grid">
+        <article className="panel settings-sync-panel">
+          <PanelTitle icon="monitor" title="Public Sync" />
+          <KeyValue
+            label="Source"
+            value={remoteLogStatus === "live" ? "Supabase live" : remoteLogStatus === "empty" ? "Local fallback" : "Local only"}
+          />
+          <label className="field">
+            <span>Admin Token</span>
+            <input
+              type="password"
+              value={adminToken}
+              onChange={(event) => updateAdminToken(event.target.value)}
+              placeholder="Paste admin token"
+            />
+          </label>
+          <button type="button" className="primary-action" onClick={handleSyncPublicLogs} disabled={syncStatus === "loading"}>
+            {syncStatus === "loading" ? "Syncing..." : "Sync Public Dashboard"}
+          </button>
+          {syncMessage && <p className={`form-message ${syncStatus}`}>{syncMessage}</p>}
+        </article>
         <article className="panel">
           <PanelTitle icon="calendar" title="Sprint Dates" />
           <KeyValue label="Start" value={config.startDate} />
