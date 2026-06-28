@@ -206,6 +206,27 @@ const launchChecklistItems = [
     body: "Checkout, webhooks, gated member access, and asset downloads are wired under Backbone Stripe.",
   },
   {
+    title: "Member activation path",
+    status: "done",
+    owner: "System",
+    signal: "Start here flow",
+    body: "The member hub now points buyers through Quickstart, Module Field Guide, Module 1, and the first tracked task.",
+  },
+  {
+    title: "Buyer onboarding sequence",
+    status: "done",
+    owner: "System",
+    signal: "Day 0 / 1 / 3 / 7",
+    body: "The product has a buyer email sequence and the access email sends buyers into the activation path.",
+  },
+  {
+    title: "Offer Ops roster",
+    status: "done",
+    owner: "System",
+    signal: "Members + module progress",
+    body: "Admin settings show active members, current module, completion percentage, and offer progress health.",
+  },
+  {
     title: "Command shelf and receipts",
     status: "done",
     owner: "System",
