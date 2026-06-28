@@ -1827,6 +1827,18 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     }
   }
 
+  function getModuleProgress(module) {
+    const completed = module.todos.filter((todo) => completedTasks.has(`${module.key}:${todo.key}`)).length;
+    const total = module.todos.length;
+    return {
+      completed,
+      total,
+      percent: total ? Math.round((completed / total) * 100) : 0,
+    };
+  }
+
+  const activeModuleProgress = activeModule ? getModuleProgress(activeModule) : null;
+
   return (
     <section className="member-hub">
       <article className="member-welcome">
@@ -1885,6 +1897,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                 </a>
                 <span className="public-label">Module lesson</span>
                 <h2>{activeModule.title}</h2>
+                <p className="lesson-progress-copy">
+                  {activeModuleProgress.completed} of {activeModuleProgress.total} module tasks complete.
+                </p>
                 <p>{activeModule.body}</p>
                 <div className="lesson-output-grid">
                   <article>
@@ -1972,29 +1987,33 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
           </p>
         </div>
         <div className="workbench-list">
-          {productModules.map((module) => (
-            <article key={module.key}>
-              <div className="workbench-header">
-                <span>{module.title}</span>
-                <strong>{module.lesson.output}</strong>
-              </div>
-              <p>{module.lesson.focus}</p>
-              <div className="workbench-assets">
-                {module.lesson.useWith.map((asset) => (
-                  <em key={asset}>{asset}</em>
-                ))}
-              </div>
-              <div className="workbench-prompt">
-                <span>{module.lesson.starterPrompt}</span>
-                <button type="button" onClick={() => handleCopyPrompt(module)}>
-                  {copiedPromptKey === module.key ? "Copied" : "Copy prompt"}
-                </button>
-              </div>
-              <a className="text-link" href={`/members/module/${module.key}`}>
-                Open module
-              </a>
-            </article>
-          ))}
+          {productModules.map((module) => {
+            const moduleProgress = getModuleProgress(module);
+            return (
+              <article key={module.key}>
+                <div className="workbench-header">
+                  <span>{module.title}</span>
+                  <strong>{module.lesson.output}</strong>
+                  <small>{moduleProgress.completed}/{moduleProgress.total} tasks complete</small>
+                </div>
+                <p>{module.lesson.focus}</p>
+                <div className="workbench-assets">
+                  {module.lesson.useWith.map((asset) => (
+                    <em key={asset}>{asset}</em>
+                  ))}
+                </div>
+                <div className="workbench-prompt">
+                  <span>{module.lesson.starterPrompt}</span>
+                  <button type="button" onClick={() => handleCopyPrompt(module)}>
+                    {copiedPromptKey === module.key ? "Copied" : "Copy prompt"}
+                  </button>
+                </div>
+                <a className="text-link" href={`/members/module/${module.key}`}>
+                  Open module
+                </a>
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -2032,33 +2051,39 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
           {progressState.error && <em className="module-status error">{progressState.error}</em>}
         </div>
         <div className="roadmap-list">
-          {productModules.map((module, index) => (
-            <article key={module.key}>
-              <strong>{String(index + 1).padStart(2, "0")}</strong>
-              <div>
-                <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
-                <p>{module.body}</p>
-                <ul className="module-todo-list compact trackable">
-                  {module.todos.map((todo) => (
-                    <li key={todo.key} className={completedTasks.has(`${module.key}:${todo.key}`) ? "complete" : ""}>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={completedTasks.has(`${module.key}:${todo.key}`)}
-                          disabled={taskSaving[`${module.key}:${todo.key}`] === "saving"}
-                          onChange={(event) => handleTaskToggle(module, todo, event.target.checked)}
-                        />
-                        <span>{todo.label}</span>
-                      </label>
-                      {taskSaving[`${module.key}:${todo.key}`] === "saved" && <em>Saved</em>}
-                      {taskSaving[`${module.key}:${todo.key}`] === "error" && <em>Retry</em>}
-                    </li>
-                  ))}
-                </ul>
-                <em className="module-done">Done: {module.done}</em>
-              </div>
-            </article>
-          ))}
+          {productModules.map((module, index) => {
+            const moduleProgress = getModuleProgress(module);
+            return (
+              <article key={module.key}>
+                <strong>{String(index + 1).padStart(2, "0")}</strong>
+                <div>
+                  <div className="roadmap-module-title">
+                    <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
+                    <span>{moduleProgress.percent}%</span>
+                  </div>
+                  <p>{module.body}</p>
+                  <ul className="module-todo-list compact trackable">
+                    {module.todos.map((todo) => (
+                      <li key={todo.key} className={completedTasks.has(`${module.key}:${todo.key}`) ? "complete" : ""}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={completedTasks.has(`${module.key}:${todo.key}`)}
+                            disabled={taskSaving[`${module.key}:${todo.key}`] === "saving"}
+                            onChange={(event) => handleTaskToggle(module, todo, event.target.checked)}
+                          />
+                          <span>{todo.label}</span>
+                        </label>
+                        {taskSaving[`${module.key}:${todo.key}`] === "saved" && <em>Saved</em>}
+                        {taskSaving[`${module.key}:${todo.key}`] === "error" && <em>Retry</em>}
+                      </li>
+                    ))}
+                  </ul>
+                  <em className="module-done">Done: {module.done}</em>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
