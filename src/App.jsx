@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   productAssetHighlights,
+  productFaqItems,
   productKey,
   productModules,
   productName,
@@ -1371,6 +1372,29 @@ function StarterKitPage({ authSession, authReady }) {
               <p>{asset.body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="public-section kit-faq-section">
+        <div>
+          <span className="public-label">Before you buy</span>
+          <h2>Clear answers, no fantasy math.</h2>
+          <p>
+            The kit is built around visible work: choose a problem, build a useful slice, capture proof,
+            turn it into content, and connect it to an offer.
+          </p>
+        </div>
+        <div className="kit-faq-list">
+          {productFaqItems.map((item) => (
+            <article key={item.question}>
+              <strong>{item.question}</strong>
+              <p>{item.answer}</p>
+            </article>
+          ))}
+        </div>
+        <div className="kit-final-cta">
+          <strong>Ready to build with receipts?</strong>
+          <CheckoutButton authSession={authSession} authReady={authReady} />
         </div>
       </section>
     </main>

@@ -90,3 +90,31 @@ export const productAssetHighlights = [
     body: "Worksheet for turning one build receipt into a buyer, promise, CTA, and follow-up list.",
   },
 ];
+
+export const productFaqItems = [
+  {
+    question: "Is this a course or a live workshop?",
+    answer:
+      "It is a working kit first: module roadmap, checklists, prompts, proof templates, and member progress tracking. The livestream shows the messy middle, but the kit gives you the operating path.",
+  },
+  {
+    question: "Why buy this if I can ask AI for prompts myself?",
+    answer:
+      "The value is the sequence: choosing the right workflow, proving the change, turning the proof into content, and connecting it to an offer. Random prompts do not give you that loop.",
+  },
+  {
+    question: "Who is this for?",
+    answer:
+      "Builders, creators, operators, and small business owners who want to use AI to ship visible proof and create a simple money path. It is not for someone looking for a passive-income shortcut.",
+  },
+  {
+    question: "What happens after I buy?",
+    answer:
+      "You create or use your Supabase profile, unlock the member hub, download the assets, and work through the trackable module checklist. New assets can be added as the 60-day sprint creates stronger proof.",
+  },
+  {
+    question: "Will this make me money in 60 days?",
+    answer:
+      "No guarantee. The promise is an operating system for doing the work in public: build, measure, package proof, improve the offer, and follow up. The result depends on execution, market, and consistency.",
+  },
+];

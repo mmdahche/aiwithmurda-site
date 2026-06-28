@@ -1994,6 +1994,64 @@ button {
   line-height: 1.45;
 }
 
+.kit-faq-section {
+  display: grid;
+  gap: 22px;
+}
+
+.kit-faq-section > div:first-child {
+  max-width: 820px;
+}
+
+.kit-faq-section h2 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.kit-faq-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kit-faq-list article {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.kit-faq-list strong {
+  display: block;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.kit-faq-list p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.kit-final-cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid rgba(97, 227, 109, 0.28);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.06);
+}
+
+.kit-final-cta > strong {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
 .member-hub {
   display: grid;
   gap: 18px;
@@ -2930,6 +2988,8 @@ button {
   .tool-link-grid,
   .kit-assets-section,
   .kit-asset-list article,
+  .kit-faq-list,
+  .kit-final-cta,
   .member-next-action,
   .member-grid,
   .kit-module-list,
