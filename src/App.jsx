@@ -681,7 +681,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/" && <PublicHome config={config} latest={latest} />}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} />}
       {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
-      {knownRoute === "/live" && <LiveHub streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
+      {knownRoute === "/live" && <LiveHub latest={latest} streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
       {knownRoute === "/tools" && <ToolsPage />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
@@ -974,9 +974,10 @@ function PrelaunchBanner({ mode }) {
   );
 }
 
-function LiveHub({ streamConfig, streamConfigStatus }) {
+function LiveHub({ latest, streamConfig, streamConfigStatus }) {
   const destinations = streamConfig?.destinations?.length ? streamConfig.destinations : fallbackStreamConfig.destinations;
-  const commands = streamConfig?.commands?.length ? streamConfig.commands : fallbackStreamConfig.commands;
+  const baseCommands = streamConfig?.commands?.length ? streamConfig.commands : fallbackStreamConfig.commands;
+  const commands = [{ command: "!today", label: `Day ${latest.day} receipt`, href: `/day/${latest.day}` }, ...baseCommands];
   const primaryHref = streamConfig?.primary?.href || "/start";
   const primaryLabel = streamConfig?.primary?.configured ? "Open live room" : "Join build log";
 
@@ -2080,6 +2081,7 @@ function SettingsView({
   const streamDestinations = streamConfig?.destinations || fallbackStreamConfig.destinations;
   const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
   const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
+  const visibleStreamCommandCount = (streamConfig?.commands?.length || fallbackStreamConfig.commands.length) + 1;
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -2226,7 +2228,7 @@ function SettingsView({
           <div className="system-grid">
             <KeyValue label="Room" value={streamConfig?.statusLabel || "Prelaunch room"} />
             <KeyValue label="Configured" value={`${configuredStreamCount}/${streamPlatformDestinations.length}`} />
-            <KeyValue label="Commands" value={formatNumber(streamConfig?.commands?.length || fallbackStreamConfig.commands.length)} />
+            <KeyValue label="Commands" value={formatNumber(visibleStreamCommandCount)} />
             <KeyValue label="Checked" value={streamConfig?.checkedAt ? new Date(streamConfig.checkedAt).toLocaleString() : "Local fallback"} />
           </div>
           <div className="stream-config-list">
