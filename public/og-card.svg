@@ -1,0 +1,36 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">AI with Murda - 60-Day AI Operator Sprint</title>
+  <desc id="desc">Dark green launch card with AI with Murda branding, scoreboard receipts, live builds, and product drops.</desc>
+  <rect width="1200" height="630" fill="#060A09"/>
+  <rect x="1" y="1" width="1198" height="628" stroke="#26352F" stroke-width="2"/>
+  <circle cx="942" cy="126" r="260" fill="#14361E" opacity="0.62"/>
+  <circle cx="268" cy="620" r="300" fill="#102038" opacity="0.46"/>
+  <path d="M0 494H1200" stroke="#1C2A24"/>
+  <path d="M0 126H1200" stroke="#1C2A24"/>
+  <path d="M190 0V630" stroke="#101815"/>
+  <path d="M1010 0V630" stroke="#101815"/>
+  <rect x="72" y="70" width="58" height="58" rx="12" fill="#0D1311" stroke="#61E36D" stroke-opacity="0.45"/>
+  <path d="M94 99L83 107L94 115M108 99L119 107L108 115M105 89L97 124" stroke="#61E36D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="150" y="110" fill="#F4FBF6" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">AI with Murda</text>
+  <text x="72" y="204" fill="#61E36D" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="4">60-DAY AI OPERATOR SPRINT</text>
+  <text x="72" y="306" fill="#F4FBF6" font-family="Inter, Arial, sans-serif" font-size="74" font-weight="900">Build in public.</text>
+  <text x="72" y="388" fill="#F4FBF6" font-family="Inter, Arial, sans-serif" font-size="74" font-weight="900">Show the receipts.</text>
+  <text x="74" y="450" fill="#BFD0C7" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600">Live builds, scoreboard movement, product drops, and daily proof.</text>
+  <g transform="translate(72 524)">
+    <rect width="214" height="50" rx="25" fill="#102016" stroke="#61E36D" stroke-opacity="0.55"/>
+    <text x="24" y="33" fill="#DFF8E5" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800">Scoreboard receipts</text>
+  </g>
+  <g transform="translate(306 524)">
+    <rect width="132" height="50" rx="25" fill="#102016" stroke="#61E36D" stroke-opacity="0.55"/>
+    <text x="24" y="33" fill="#DFF8E5" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800">Live builds</text>
+  </g>
+  <g transform="translate(458 524)">
+    <rect width="150" height="50" rx="25" fill="#102016" stroke="#61E36D" stroke-opacity="0.55"/>
+    <text x="24" y="33" fill="#DFF8E5" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800">Product drops</text>
+  </g>
+  <rect x="824" y="182" width="304" height="270" rx="14" fill="#0D1311" stroke="#31533A"/>
+  <text x="856" y="242" fill="#61E36D" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="3">PUBLIC GOAL</text>
+  <text x="856" y="318" fill="#F4FBF6" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="900">$100K</text>
+  <text x="856" y="370" fill="#F4FBF6" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="900">or 100K followers</text>
+  <text x="856" y="418" fill="#BFD0C7" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="600">Tracked daily at aiwithmurda.com</text>
+</svg>
