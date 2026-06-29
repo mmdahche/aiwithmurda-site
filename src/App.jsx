@@ -30,6 +30,7 @@ import {
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
 import {
   buildDeckHtml,
+  buildDeckSummary,
   buildProgressItems,
   daysRemaining,
   detectSpike,
@@ -3004,6 +3005,29 @@ function OverlayView({ config, latest, logs }) {
 
 function DeckView({ config, logs, weeks }) {
   const sorted = [...logs].sort((a, b) => a.day - b.day);
+  const deckSummary = buildDeckSummary(config, sorted, weeks);
+  const summaryCards = [
+    {
+      label: "Logged days",
+      value: `${formatNumber(deckSummary.loggedDays)} / ${formatNumber(deckSummary.totalDays)}`,
+      detail: `Latest Day ${deckSummary.latestDay || 0}`,
+    },
+    {
+      label: "Best follower week",
+      value: deckSummary.bestFollowerWeek?.label || "Pending",
+      detail: `+${formatNumber(deckSummary.bestFollowerWeek?.followerGain || 0)} followers`,
+    },
+    {
+      label: "Best revenue week",
+      value: deckSummary.bestRevenueWeek?.label || "Pending",
+      detail: `+${formatCurrency(deckSummary.bestRevenueWeek?.revenueGain || 0)}`,
+    },
+    {
+      label: "Best clip week",
+      value: deckSummary.bestClipWeek?.label || "Pending",
+      detail: `+${formatNumber(deckSummary.bestClipWeek?.clipsGain || 0)} clips`,
+    },
+  ];
 
   function exportJson() {
     downloadFile("60-day-command-center-log.json", JSON.stringify({ config, logs: sorted }, null, 2), "application/json");
@@ -3035,6 +3059,16 @@ function DeckView({ config, logs, weeks }) {
             Export Deck HTML
           </button>
         </div>
+      </div>
+
+      <div className="deck-summary-strip">
+        {summaryCards.map((item) => (
+          <article key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <p>{item.detail}</p>
+          </article>
+        ))}
       </div>
 
       <div className="deck-layout">

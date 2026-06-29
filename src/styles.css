@@ -1534,6 +1534,49 @@ button {
   gap: 16px;
 }
 
+.deck-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.deck-summary-strip article {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(97, 227, 109, 0.18);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.deck-summary-strip span,
+.deck-summary-strip strong,
+.deck-summary-strip p {
+  display: block;
+  margin: 0;
+}
+
+.deck-summary-strip span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.deck-summary-strip strong {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.deck-summary-strip p {
+  margin-top: 6px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .deck-slide {
   min-height: 260px;
   padding: 24px;
@@ -3794,6 +3837,10 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .deck-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .form-row.three,
   .form-row.five {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3883,6 +3930,7 @@ button {
   .launch-blocker-strip,
   .metric-grid,
   .weekly-stats,
+  .deck-summary-strip,
   .settings-grid,
   .form-row.two,
   .form-row.three,
