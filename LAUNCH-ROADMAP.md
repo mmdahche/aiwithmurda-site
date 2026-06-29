@@ -107,6 +107,7 @@ Cloudflare SSL/TLS:
 - Admin audience summary: done
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
 - Member area delivery live: done
+- Member module lessons, generated roadmap/field guide assets, and proof receipt builder: done
 - Social share metadata and OG card: done
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
