@@ -1316,6 +1316,7 @@ button {
 }
 
 .field input,
+.field select,
 .field textarea {
   width: 100%;
   color: var(--text);
@@ -1325,9 +1326,14 @@ button {
   outline: none;
 }
 
-.field input {
+.field input,
+.field select {
   height: 42px;
   padding: 0 12px;
+}
+
+.field select {
+  color-scheme: dark;
 }
 
 .field textarea {
@@ -1337,6 +1343,7 @@ button {
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   border-color: rgba(97, 227, 109, 0.72);
   box-shadow: 0 0 0 3px rgba(97, 227, 109, 0.11);
@@ -2665,6 +2672,74 @@ button {
   font-style: normal;
 }
 
+.member-proof-builder {
+  display: grid;
+  grid-template-columns: 0.46fr 1fr;
+  gap: 20px;
+  align-items: start;
+  padding: 26px 28px;
+  border: 1px solid rgba(247, 201, 72, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(247, 201, 72, 0.08), rgba(97, 227, 109, 0.04)),
+    rgba(13, 19, 17, 0.72);
+}
+
+.proof-builder-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.proof-builder-copy h2 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.proof-builder-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.proof-builder-copy .primary-action {
+  width: max-content;
+  min-width: 164px;
+  max-width: 100%;
+}
+
+.proof-builder-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.76fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.proof-builder-form {
+  display: grid;
+  gap: 12px;
+}
+
+.proof-module-select select {
+  font-weight: 800;
+}
+
+.proof-preview {
+  min-height: 100%;
+  max-height: 640px;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  color: #d8e6de;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .kit-module-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3409,6 +3484,8 @@ button {
   .member-welcome,
   .member-roadmap,
   .member-onboarding,
+  .member-proof-builder,
+  .proof-builder-panel,
   .prelaunch-banner {
     grid-template-columns: 1fr;
   }
@@ -3536,6 +3613,8 @@ button {
   .member-start-path,
   .member-lesson-detail,
   .lesson-output-grid,
+  .member-proof-builder,
+  .proof-builder-panel,
   .member-workbench,
   .workbench-prompt,
   .lesson-download-list button,
@@ -3543,6 +3622,14 @@ button {
   .kit-module-list,
   .start-form {
     grid-template-columns: 1fr;
+  }
+
+  .proof-builder-copy h2 {
+    font-size: 30px;
+  }
+
+  .proof-preview {
+    max-height: 360px;
   }
 
   .hero-command-card {

@@ -1721,6 +1721,16 @@ function MemberStateCard({ title, body }) {
 function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
   const [copiedPromptKey, setCopiedPromptKey] = useState("");
+  const [proofDraft, setProofDraft] = useState(() => ({
+    moduleKey: productModules[0]?.key || "",
+    before: "",
+    after: "",
+    proofLink: "",
+    obstacle: "",
+    lesson: "",
+    cta: "",
+    tomorrow: "",
+  }));
   const [progressState, setProgressState] = useState({
     status: "loading",
     items: [],
@@ -1781,6 +1791,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const assetsByTitle = useMemo(() => {
     return new Map(assets.map((asset) => [asset.title.toLowerCase(), asset]));
   }, [assets]);
+  const selectedProofModule = useMemo(() => {
+    return productModules.find((module) => module.key === proofDraft.moduleKey) || productModules[0] || null;
+  }, [proofDraft.moduleKey]);
 
   function mergeTaskProgress(items, nextItem) {
     const withoutItem = items.filter(
@@ -1887,7 +1900,66 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   }
 
   const activeModuleProgress = activeModule ? getModuleProgress(activeModule) : null;
+  const selectedProofProgress = selectedProofModule
+    ? getModuleProgress(selectedProofModule)
+    : { completed: 0, total: 0, percent: 0 };
+  const proofReceiptMarkdown = useMemo(() => {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    const fallback = (text) => text.trim() || "-";
+
+    return [
+      "# Future Proof Method Receipt",
+      "",
+      `Date: ${receiptDate}`,
+      `Operator: ${profile?.email || "member"}`,
+      `Module: ${selectedProofModule?.title || "Not selected"}`,
+      `Module progress: ${selectedProofProgress.completed}/${selectedProofProgress.total} tasks (${selectedProofProgress.percent}%)`,
+      "",
+      "## Before",
+      fallback(proofDraft.before),
+      "",
+      "## After",
+      fallback(proofDraft.after),
+      "",
+      "## Proof link or file",
+      fallback(proofDraft.proofLink),
+      "",
+      "## Friction",
+      fallback(proofDraft.obstacle),
+      "",
+      "## Lesson",
+      fallback(proofDraft.lesson),
+      "",
+      "## Share copy",
+      fallback(proofDraft.cta),
+      "",
+      "## Tomorrow",
+      fallback(proofDraft.tomorrow),
+      "",
+    ].join("\n");
+  }, [
+    profile?.email,
+    proofDraft,
+    selectedProofModule,
+    selectedProofProgress.completed,
+    selectedProofProgress.percent,
+    selectedProofProgress.total,
+  ]);
   const firstRun = progressState.summary.completed === 0;
+
+  function updateProofDraft(field, value) {
+    setProofDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleDownloadProofReceipt() {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    const moduleSlug = selectedProofModule?.key || "receipt";
+    downloadFile(
+      `future-proof-receipt-${receiptDate}-${moduleSlug}.md`,
+      proofReceiptMarkdown,
+      "text/markdown;charset=utf-8",
+    );
+  }
 
   return (
     <section className="member-hub">
@@ -2081,6 +2153,98 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
           )}
         </section>
       )}
+
+      <section className="member-proof-builder">
+        <div className="proof-builder-copy">
+          <span className="public-label">Proof receipt</span>
+          <h2>Turn one finished task into a receipt.</h2>
+          <p>
+            Capture the before, after, friction, lesson, and next move while the work is still fresh enough to become content,
+            testimonial fuel, or tomorrow's stream beat.
+          </p>
+          <button type="button" className="primary-action" onClick={handleDownloadProofReceipt}>
+            Download receipt
+          </button>
+        </div>
+        <div className="proof-builder-panel">
+          <div className="proof-builder-form">
+            <label className="field proof-module-select">
+              <span>Module</span>
+              <select value={proofDraft.moduleKey} onChange={(event) => updateProofDraft("moduleKey", event.target.value)}>
+                {productModules.map((module) => (
+                  <option key={module.key} value={module.key}>
+                    {module.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="form-row two">
+              <label className="field">
+                <span>Before</span>
+                <textarea
+                  value={proofDraft.before}
+                  onChange={(event) => updateProofDraft("before", event.target.value)}
+                  placeholder="What was messy before the task?"
+                />
+              </label>
+              <label className="field">
+                <span>After</span>
+                <textarea
+                  value={proofDraft.after}
+                  onChange={(event) => updateProofDraft("after", event.target.value)}
+                  placeholder="What changed after the task?"
+                />
+              </label>
+            </div>
+            <label className="field">
+              <span>Proof link or file</span>
+              <input
+                type="text"
+                value={proofDraft.proofLink}
+                onChange={(event) => updateProofDraft("proofLink", event.target.value)}
+                placeholder="Screenshot, commit, page, post, recording, or folder"
+              />
+            </label>
+            <div className="form-row two">
+              <label className="field">
+                <span>Friction</span>
+                <textarea
+                  value={proofDraft.obstacle}
+                  onChange={(event) => updateProofDraft("obstacle", event.target.value)}
+                  placeholder="What slowed the work down?"
+                />
+              </label>
+              <label className="field">
+                <span>Lesson</span>
+                <textarea
+                  value={proofDraft.lesson}
+                  onChange={(event) => updateProofDraft("lesson", event.target.value)}
+                  placeholder="What did the task teach?"
+                />
+              </label>
+            </div>
+            <div className="form-row two">
+              <label className="field">
+                <span>Share copy</span>
+                <textarea
+                  value={proofDraft.cta}
+                  onChange={(event) => updateProofDraft("cta", event.target.value)}
+                  placeholder="One post or clip caption this proves"
+                />
+              </label>
+              <label className="field">
+                <span>Tomorrow</span>
+                <textarea
+                  value={proofDraft.tomorrow}
+                  onChange={(event) => updateProofDraft("tomorrow", event.target.value)}
+                  placeholder="The next proof task"
+                />
+              </label>
+            </div>
+          </div>
+          <pre className="proof-preview">{proofReceiptMarkdown}</pre>
+        </div>
+      </section>
 
       <section className="member-workbench">
         <div>
