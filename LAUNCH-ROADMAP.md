@@ -111,6 +111,7 @@ Cloudflare SSL/TLS:
 - Social share metadata and OG card: done
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
+- One-command launch smoke runner: done; run `npm run smoke:launch` before public kickoff
 - Final livestream embeds/URLs: pending channel decision
 - Day 1 tracker baseline command: done; run `npm run baseline:launch:push` on launch day only
 - OBS overlay tested in OBS: pending
