@@ -1383,6 +1383,12 @@ function StarterKitPage({ authSession, authReady }) {
             <article key={module.title}>
               <strong>{module.title}</strong>
               <p>{module.body}</p>
+              <span className="kit-module-output">Output: {module.lesson.output}</span>
+              <ul className="kit-deliverable-list">
+                {module.lesson.deliverables.slice(0, 2).map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
               <ul className="module-todo-list">
                 {module.todos.map((todo) => (
                   <li key={todo.key}>{todo.label}</li>

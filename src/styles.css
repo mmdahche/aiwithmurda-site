@@ -2797,6 +2797,28 @@ button {
   line-height: 1.45;
 }
 
+.kit-module-output {
+  display: block;
+  padding: 9px 10px;
+  color: #dff5e5;
+  border: 1px solid rgba(97, 227, 109, 0.2);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.07);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.kit-deliverable-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+  color: #d8e6de;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .module-todo-list {
   display: grid;
   gap: 7px;
