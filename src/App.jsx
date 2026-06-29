@@ -2945,7 +2945,10 @@ function DailyLog({
   const selectedDirty = dirtyDays.includes(selectedRecord.day);
   const dailyRunSheet = getDailyRunSheet(selectedRecord, config);
   const dailyRunSheetText = formatDailyRunSheet(selectedRecord, dailyRunSheet);
+  const dailyClipPacket = getDailyClipPacket(selectedRecord, dailyRunSheet);
+  const dailyClipPacketText = formatDailyClipPacket(selectedRecord, dailyRunSheet, dailyClipPacket);
   const [runSheetCopyStatus, setRunSheetCopyStatus] = useState("idle");
+  const [clipPacketCopyStatus, setClipPacketCopyStatus] = useState("idle");
 
   async function copyRunSheet() {
     if (await copyPlainText(dailyRunSheetText)) {
@@ -2953,6 +2956,15 @@ function DailyLog({
       window.setTimeout(() => setRunSheetCopyStatus("idle"), 1800);
     } else {
       setRunSheetCopyStatus("manual");
+    }
+  }
+
+  async function copyClipPacket() {
+    if (await copyPlainText(dailyClipPacketText)) {
+      setClipPacketCopyStatus("copied");
+      window.setTimeout(() => setClipPacketCopyStatus("idle"), 1800);
+    } else {
+      setClipPacketCopyStatus("manual");
     }
   }
 
@@ -3147,6 +3159,41 @@ function DailyLog({
                 className="run-sheet-copy-box"
                 readOnly
                 value={dailyRunSheetText}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            ) : null}
+          </section>
+          <section className="clip-packet">
+            <PanelTitle icon="video" title="Daily Clip Packet" right={`${dailyClipPacket.hooks.length} hooks`} />
+            <div className="clip-hook-list">
+              {dailyClipPacket.hooks.map((hook) => (
+                <article className="clip-hook-card" key={hook.label}>
+                  <span>{hook.label}</span>
+                  <p>{hook.text}</p>
+                </article>
+              ))}
+            </div>
+            <div className="clip-caption-card">
+              <span>Recap caption</span>
+              <p>{dailyClipPacket.caption}</p>
+            </div>
+            <div className="clip-caption-card">
+              <span>Follow-up line</span>
+              <p>{dailyClipPacket.followUp}</p>
+            </div>
+            <button type="button" className="primary-action" onClick={copyClipPacket}>
+              {clipPacketCopyStatus === "copied"
+                ? "Copied clip packet"
+                : clipPacketCopyStatus === "manual"
+                  ? "Manual copy ready"
+                  : "Copy clip packet"}
+            </button>
+            {clipPacketCopyStatus === "manual" ? (
+              <textarea
+                aria-label="Clip packet text"
+                className="run-sheet-copy-box"
+                readOnly
+                value={dailyClipPacketText}
                 onFocus={(event) => event.currentTarget.select()}
               />
             ) : null}
@@ -3961,6 +4008,58 @@ function formatDailyRunSheet(record, guide) {
     `Current log goal: ${record.mainGoal || "Not set"}`,
     `Tomorrow promise: ${record.tomorrowPromise || "Not set"}`,
   ].join("\n");
+}
+
+function getDailyClipPacket(record, guide) {
+  const dayLabel = `Day ${guide.day}/${guide.totalDays}`;
+  const shippedItem = trimSentence(record.shippedItems?.[0] || guide.proofTarget);
+  const proofAsset = record.proofAssets?.[0] || "daily receipt";
+  const mainGoal = trimSentence(record.mainGoal || guide.goal);
+  const bestMoment = trimSentence(record.bestMoment || guide.streamBeat);
+  const lesson = trimSentence(record.lessonLearned || "the system only matters when it creates a public receipt");
+  const nextPromise = trimSentence(record.tomorrowPromise || "ship the next receipt");
+
+  return {
+    hooks: [
+      {
+        label: "Proof hook",
+        text: `${dayLabel}: ${bestMoment}`,
+      },
+      {
+        label: "Build hook",
+        text: `I used AI live to push ${shippedItem}. Here is the receipt, not the theory.`,
+      },
+      {
+        label: "Lesson hook",
+        text: `The lesson from ${dayLabel}: ${lesson}.`,
+      },
+    ],
+    caption: `${dayLabel} receipt: ${mainGoal}. Proof: ${proofAsset}. Next: ${nextPromise}. ${guide.cta}`,
+    followUp: `If this part of the build would save you time, start with ${productName} and follow the receipts from Day ${guide.day}.`,
+  };
+}
+
+function formatDailyClipPacket(record, guide, packet) {
+  return [
+    `Day ${guide.day} / ${guide.totalDays} Clip Packet`,
+    `Date: ${record.date}`,
+    `Phase: ${guide.label}`,
+    "",
+    "Hooks:",
+    ...packet.hooks.map((hook) => `- ${hook.label}: ${hook.text}`),
+    "",
+    `Caption: ${packet.caption}`,
+    `Follow-up: ${packet.followUp}`,
+    "",
+    `Proof assets: ${(record.proofAssets || []).join(", ") || "Not logged yet"}`,
+    `Shipped items: ${(record.shippedItems || []).join(", ") || "Not logged yet"}`,
+  ].join("\n");
+}
+
+function trimSentence(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[.!?]+$/g, "");
 }
 
 async function copyPlainText(text) {

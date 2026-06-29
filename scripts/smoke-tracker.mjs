@@ -77,6 +77,9 @@ if (!liveBundle.includes("Week 1 stream arc")) {
 if (!liveBundle.includes("Daily Run Sheet")) {
   throw new Error("Client bundle missing Daily Run Sheet");
 }
+if (!liveBundle.includes("Daily Clip Packet")) {
+  throw new Error("Client bundle missing Daily Clip Packet");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -158,6 +161,7 @@ console.log(
         publicLiveRoute: true,
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
+        adminDailyClipPacketBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,

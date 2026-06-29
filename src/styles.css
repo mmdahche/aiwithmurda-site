@@ -1506,6 +1506,53 @@ button {
   padding: 10px;
 }
 
+.clip-packet {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(79, 141, 255, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(79, 141, 255, 0.08), rgba(97, 227, 109, 0.03)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.clip-packet .panel-title {
+  margin-bottom: 0;
+}
+
+.clip-hook-list {
+  display: grid;
+  gap: 8px;
+}
+
+.clip-hook-card,
+.clip-caption-card {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.clip-hook-card span,
+.clip-caption-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clip-hook-card p,
+.clip-caption-card p {
+  margin: 6px 0 0;
+  color: #dbeafe;
+  font-size: 13px;
+  line-height: 1.42;
+}
+
 .log-form h3 {
   margin: 10px 0 0;
   color: var(--muted);
