@@ -3437,6 +3437,9 @@ function SettingsView({
   const launchReadyCount = launchChecklistItems.filter((item) => item.status === "done").length;
   const launchManualCount = launchChecklistItems.filter((item) => item.status === "manual").length;
   const launchQueuedCount = launchChecklistItems.filter((item) => item.status === "queued").length;
+  const manualGateItems = launchChecklistItems.filter((item) => item.status === "manual");
+  const manualGateRunbookText = formatManualGateRunbook(manualGateItems);
+  const [manualGateCopyStatus, setManualGateCopyStatus] = useState("idle");
   const streamDestinations = streamConfig?.destinations || fallbackStreamConfig.destinations;
   const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
   const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
@@ -3455,6 +3458,15 @@ function SettingsView({
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
     await syncLogsToPublic(targetLogs, dirtyDays.length ? `${dirtyDays.length} unsynced day${dirtyDays.length === 1 ? "" : "s"}` : "all days");
+  }
+
+  async function copyManualGateRunbook() {
+    if (await copyPlainText(manualGateRunbookText)) {
+      setManualGateCopyStatus("copied");
+      window.setTimeout(() => setManualGateCopyStatus("idle"), 1800);
+    } else {
+      setManualGateCopyStatus("manual");
+    }
   }
 
   return (
@@ -3512,6 +3524,40 @@ function SettingsView({
               </div>
             ))}
           </div>
+          <section className="manual-gate-runbook">
+            <div className="manual-gate-header">
+              <div>
+                <span>Manual Gate Runbook</span>
+                <strong>{manualGateItems.length} human gates before launch</strong>
+              </div>
+              <button type="button" onClick={copyManualGateRunbook}>
+                {manualGateCopyStatus === "copied"
+                  ? "Copied runbook"
+                  : manualGateCopyStatus === "manual"
+                    ? "Manual copy ready"
+                    : "Copy runbook"}
+              </button>
+            </div>
+            <div className="manual-gate-list">
+              {manualGateItems.map((item) => (
+                <article key={item.title}>
+                  <span>{item.signal}</span>
+                  <strong>{item.title}</strong>
+                  <p>{item.nextAction}</p>
+                  <em>{item.proof}</em>
+                </article>
+              ))}
+            </div>
+            {manualGateCopyStatus === "manual" ? (
+              <textarea
+                aria-label="Manual gate runbook text"
+                className="run-sheet-copy-box"
+                readOnly
+                value={manualGateRunbookText}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            ) : null}
+          </section>
           <div className="launch-checklist">
             {launchChecklistItems.map((item) => (
               <div className={`launch-check-item ${item.status}`} key={item.title}>
@@ -4125,6 +4171,21 @@ function formatModuleActionKit(module) {
     `Shutdown: ${kit.shutdown}`,
     "",
     `Starter prompt: ${module.lesson.starterPrompt}`,
+  ].join("\n");
+}
+
+function formatManualGateRunbook(items) {
+  return [
+    "AI with Murda Manual Gate Runbook",
+    "",
+    ...items.flatMap((item, index) => [
+      `${index + 1}. ${item.title}`,
+      `Owner: ${item.owner}`,
+      `Signal: ${item.signal}`,
+      `Next action: ${item.nextAction}`,
+      `Proof needed: ${item.proof}`,
+      "",
+    ]),
   ].join("\n");
 }
 

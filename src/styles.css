@@ -1070,6 +1070,85 @@ button {
   line-height: 1.35;
 }
 
+.manual-gate-runbook {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(79, 141, 255, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(79, 141, 255, 0.08), rgba(255, 159, 26, 0.04)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.manual-gate-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.manual-gate-header span,
+.manual-gate-list span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.manual-gate-header strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.manual-gate-header button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  background: var(--green);
+  font-weight: 900;
+}
+
+.manual-gate-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.manual-gate-list article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.manual-gate-list strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.manual-gate-list p,
+.manual-gate-list em {
+  display: block;
+  margin: 7px 0 0;
+  color: #dbeafe;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.manual-gate-list em {
+  color: #d8e6de;
+}
+
 .launch-checklist {
   display: grid;
   gap: 8px;
@@ -4078,6 +4157,7 @@ button {
   .tool-link-grid,
   .launch-category-grid,
   .launch-blocker-strip,
+  .manual-gate-list,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4130,6 +4210,15 @@ button {
 
   .launch-readiness-panel {
     grid-column: auto;
+  }
+
+  .manual-gate-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .manual-gate-list {
+    grid-template-columns: 1fr;
   }
 
   .launch-check-item {

@@ -80,6 +80,9 @@ if (!liveBundle.includes("Daily Run Sheet")) {
 if (!liveBundle.includes("Daily Clip Packet")) {
   throw new Error("Client bundle missing Daily Clip Packet");
 }
+if (!liveBundle.includes("Manual Gate Runbook")) {
+  throw new Error("Client bundle missing Manual Gate Runbook");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -162,6 +165,7 @@ console.log(
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,
+        adminManualGateRunbookBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
