@@ -7,7 +7,9 @@ The app keeps one daily tracker dataset and turns it into:
 - a public-safe dashboard
 - an OBS overlay preview
 - daily log editor
+- daily run sheet and clip packet generator
 - daily slide and weekly recap deck preview
+- member module action kits and proof receipt builder
 - JSON/CSV exports for future automation
 
 ## Run
@@ -41,11 +43,14 @@ The `render.yaml` blueprint defines the web service, custom domain, required env
 ## Workflow
 
 1. Open `Daily Log` every morning and set the day's goal.
-2. Update metrics at night.
-3. Use `Dashboard` on stream for the public command-center segment.
-4. Use `/overlay` or `/obs` as the OBS browser source.
-5. Share `/day/1`, `/day/2`, and so on for public daily receipts.
-6. Use `Deck` to review the growing Day 1-60 proof deck.
+2. Use the Daily Run Sheet to frame the stream beat, proof target, CTA, and shutdown checklist.
+3. Use the Daily Clip Packet to turn the selected day into hooks, recap copy, and follow-up copy.
+4. Update metrics at night.
+5. Use `Dashboard` on stream for the public command-center segment.
+6. Use `/overlay` or `/obs` as the OBS browser source.
+7. Share `/day/1`, `/day/2`, and so on for public daily receipts.
+8. Use `Deck` to review the growing Day 1-60 proof deck.
+9. Use `Settings` for the Manual Gate Runbook before launch.
 
 The operator tracker saves locally while editing, then syncs public daily logs to Supabase through the guarded admin API. The product funnel expects Supabase, Stripe, Resend, and `ADMIN_API_TOKEN` environment variables in production.
 
@@ -56,6 +61,7 @@ npm run smoke:tracker
 npm run smoke:subscribe
 npm run smoke:stream
 npm run smoke:funnel
+npm run smoke:launch
 npm run baseline:launch
 ```
 

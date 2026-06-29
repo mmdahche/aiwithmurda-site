@@ -65,8 +65,9 @@ Why:
 4. Member hub shell with Start Here, Operator Workspace, Prompt Workflows, and Build Receipts.
 5. Starter Kit content assets served through gated member downloads.
 6. Live hub shell and stream command links.
-7. Workshop/live-build event page after the starter kit checkout proves conversion.
-8. Cohort and sprint pages after the first paid/drop path is testable end to end.
+7. Admin operator workflows for daily run sheets, clip packets, proof deck review, and manual launch gates.
+8. Workshop/live-build event page after the starter kit checkout proves conversion.
+9. Cohort and sprint pages after the first paid/drop path is testable end to end.
 
 ## Render Web Service Settings
 
@@ -107,12 +108,15 @@ Cloudflare SSL/TLS:
 - Admin audience summary: done
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
 - Member area delivery live: done
-- Member module lessons, generated roadmap/field guide assets, and proof receipt builder: done
+- Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
 - Social share metadata and OG card: done
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
 - One-command launch smoke runner: done; run `npm run smoke:launch` before public kickoff
 - First-week content run sheet: done; Day 0-7 proof beats, clip hooks, and CTAs are in the member assets
+- Admin daily run sheets: done; each selected day has stream beat, proof target, CTA, shutdown checklist, and copy/manual-copy output
+- Admin daily clip packets: done; each selected day generates three hooks, recap caption, follow-up line, and copy/manual-copy output
+- Manual gate runbook: done; Settings distills live links, OBS rehearsal, and real purchase test into copyable launch steps
 - Final livestream embeds/URLs: pending channel decision
 - Day 1 tracker baseline command: done; run `npm run baseline:launch:push` on launch day only
 - OBS overlay tested in OBS: pending

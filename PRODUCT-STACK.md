@@ -1,6 +1,6 @@
 # AI with Murda Product Stack
 
-Last updated: 2026-06-28
+Last updated: 2026-06-29
 
 ## Locked Direction
 
@@ -66,6 +66,8 @@ V1:
 - Stripe checkout requires an active Supabase profile.
 - Successful checkout grants a product entitlement to the authenticated profile.
 - Modules and downloadable assets served from the site.
+- Module action kits give each module a timebox, today's move, stream move, proof checkpoint, and shutdown instruction.
+- The proof receipt builder turns finished module work into downloadable markdown receipts without adding another database dependency.
 
 V2:
 
@@ -163,15 +165,22 @@ Gated assets:
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
 - The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
 - Current assets: Quickstart Map, Daily Operator Checklist, Launch Day Runbook, Launch Copy Pack, Day 0-7 Stream Run Sheet, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, Module Field Guide, and Proof To Offer Canvas.
-- `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, and task lists do not drift.
+- `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, action kits, and task lists do not drift.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
 - The member hub includes a local proof receipt builder. It follows the active module route, includes module progress and completed task names, previews the markdown, and downloads the receipt without adding a new database dependency.
+
+Admin operator workflows:
+
+- Daily Log includes a Daily Run Sheet for the selected day: stream beat, proof target, chat CTA, and shutdown checklist.
+- Daily Log includes a Daily Clip Packet for the selected day: three clip hooks, recap caption, follow-up line, and copy/manual-copy output.
+- Settings includes a Manual Gate Runbook for the human-dependent launch gates: final stream links, OBS rehearsal, and real Backbone purchase test.
+- Copy actions use clipboard when available and reveal manual-copy textareas when embedded browser permissions block clipboard writes.
 
 Smoke test:
 
 - Run `npm run smoke:launch` for the full prelaunch verification pass. It runs tracker, stream config, signup, and paid funnel checks in order.
-- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, grants a temporary entitlement, downloads a gated asset, then expires the session and deletes the test user.
-- Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, and admin system status is readable with the token.
+- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, verifies module action kits, grants a temporary entitlement, downloads gated assets, then expires the session and deletes the test user.
+- Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.
 - Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
 
@@ -188,8 +197,8 @@ Dashboard phase:
 - Welcome email sends.
 - `/kit` sells The Future Proof Method through Stripe test and live mode.
 - `/members` requires Supabase login and unlocks after payment.
-- Member modules include checklists, outputs, deliverables, proof questions, traps, gated downloads, and proof receipt export.
+- Member modules include checklists, outputs, deliverables, proof questions, traps, action kits, gated downloads, and proof receipt export.
 - Purchase email sends with access link.
 - Live hub has stream embeds or direct watch links.
-- Dashboard, overlay, and Day 0 baseline are ready.
+- Dashboard, overlay, admin daily run sheets, admin clip packets, manual gate runbook, and Day 0 baseline are ready.
 - Every public CTA works on mobile.
