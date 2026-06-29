@@ -27,6 +27,12 @@ if (!sitemapResponse.ok || !sitemapText.includes("https://aiwithmurda.com/kit"))
   throw new Error(`Sitemap route failed: ${sitemapResponse.status}`);
 }
 
+const manifestResponse = await fetch(`${siteUrl}/site.webmanifest`);
+const manifestText = await manifestResponse.text();
+if (!manifestResponse.ok || !manifestText.includes("\"short_name\": \"AIWM\"")) {
+  throw new Error(`Manifest route failed: ${manifestResponse.status}`);
+}
+
 const dashboardResponse = await fetch(`${siteUrl}/60/`);
 const dashboardHtml = await dashboardResponse.text();
 if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
@@ -119,6 +125,7 @@ console.log(
         publicLogsReadable: true,
         robotsReadable: true,
         sitemapReadable: true,
+        manifestReadable: true,
         publicDashboardRoute: true,
         publicToolsRoute: true,
         publicLiveRoute: true,

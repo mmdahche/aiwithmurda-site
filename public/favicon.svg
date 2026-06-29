@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AI with Murda">
+  <rect width="64" height="64" rx="14" fill="#060a09"/>
+  <path d="M16 43V21h6l10 12 10-12h6v22h-7V32l-8 9h-2l-8-9v11h-7Z" fill="#61e36d"/>
+  <path d="M13 13h38v6H13z" fill="#f7c948"/>
+</svg>

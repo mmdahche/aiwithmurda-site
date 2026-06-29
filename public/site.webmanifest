@@ -1,0 +1,17 @@
+{
+  "name": "AI with Murda",
+  "short_name": "AIWM",
+  "description": "60-day AI operator sprint with live builds, proof receipts, and public scoreboard.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060a09",
+  "theme_color": "#060a09",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
