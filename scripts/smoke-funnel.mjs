@@ -68,7 +68,7 @@ try {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
-  if (!Array.isArray(productAssets) || productAssets.length < 6) {
+  if (!Array.isArray(productAssets) || productAssets.length < 7) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
@@ -76,6 +76,9 @@ try {
   }
   if (!productAssets.some((asset) => asset.key === "module-field-guide")) {
     throw new Error(`Module field guide asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "launch-day-runbook")) {
+    throw new Error(`Launch day runbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
@@ -152,6 +155,13 @@ try {
   ) {
     throw new Error("Module field guide is missing generated lesson depth sections");
   }
+  const runbookResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-day-runbook`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const runbookText = await runbookResponse.text();
+  if (!runbookResponse.ok || !runbookText.includes("The Future Proof Method - Launch Day Runbook")) {
+    throw new Error(`Launch day runbook download failed: ${runbookResponse.status} ${runbookText.slice(0, 120)}`);
+  }
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -188,10 +198,12 @@ try {
           buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
+          launchDayRunbookExposed: true,
           generatedFieldGuideDepth: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledFieldGuideDownload: true,
+          entitledRunbookDownload: true,
           memberProgressLookup: true,
           memberProgressUpdate: true,
         },

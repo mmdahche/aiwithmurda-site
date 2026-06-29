@@ -294,6 +294,10 @@ export const productAssetHighlights = [
     body: "Morning, live-build, clip, recap, and shutdown checklist for each sprint day.",
   },
   {
+    title: "Launch Day Runbook",
+    body: "Day 0 and Day 1 checklist for baseline cutover, OBS, stream commands, receipts, and shutdown.",
+  },
+  {
     title: "Prompt Workflow Pack",
     body: "Prompts for finding problems, scoping builds, judging outputs, and packaging proof.",
   },

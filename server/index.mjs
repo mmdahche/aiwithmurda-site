@@ -47,6 +47,15 @@ const memberAssets = [
     mimeType: "text/markdown; charset=utf-8",
   },
   {
+    key: "launch-day-runbook",
+    title: "Launch Day Runbook",
+    kind: "Launch",
+    description: "Day 0 and Day 1 checklist for baseline cutover, OBS, commands, receipts, and shutdown.",
+    fileName: "launch-day-runbook.md",
+    downloadName: "future-proof-method-launch-day-runbook.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
     key: "prompt-workflows",
     title: "Prompt Workflow Pack",
     kind: "Prompts",
