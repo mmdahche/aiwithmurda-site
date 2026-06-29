@@ -1128,6 +1128,35 @@ button {
   line-height: 1.45;
 }
 
+.launch-gate-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.launch-gate-details article {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.launch-gate-details small {
+  display: block;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.launch-gate-details p {
+  margin-top: 5px;
+  color: #d8e6de;
+}
+
 .launch-check-item em {
   min-width: 148px;
   padding: 7px 9px;
@@ -3875,6 +3904,10 @@ button {
   }
 
   .launch-check-item {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-gate-details {
     grid-template-columns: 1fr;
   }
 

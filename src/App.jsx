@@ -346,6 +346,8 @@ const launchChecklistItems = [
     owner: "RubyX",
     signal: "Launch-day command",
     body: "Run the baseline push only when the sprint starts so preview data becomes clean Day 1 data.",
+    nextAction: "On launch day, run the dry run, inspect the Day 1 payload, then run the push command once.",
+    proof: "The public scoreboard shows one clean Day 1 baseline row and no preview-history confusion.",
   },
   {
     title: "Live room links",
@@ -353,6 +355,8 @@ const launchChecklistItems = [
     owner: "Murad",
     signal: "Channel decision",
     body: "Add the final Twitch, Kick, YouTube, or multistream links to the live hub before promotion.",
+    nextAction: "Choose the primary room, add the stream URL environment variables in Render, then rerun the stream smoke.",
+    proof: "/live opens the real room, command links point to the right platforms, and the admin Stream Links card shows configured destinations.",
   },
   {
     title: "OBS overlay rehearsal",
@@ -360,6 +364,8 @@ const launchChecklistItems = [
     owner: "Murad",
     signal: "Needs stream scene",
     body: "Load the overlay in OBS, confirm safe cropping, and test screen-share readability.",
+    nextAction: "Add https://aiwithmurda.com/obs as a browser source, rehearse over the real desktop scene, and record a short test.",
+    proof: "A rehearsal clip or screenshot shows the overlay readable without covering code, dashboards, chat, or private data.",
   },
   {
     title: "Real purchase test",
@@ -367,6 +373,8 @@ const launchChecklistItems = [
     owner: "Murad + RubyX",
     signal: "Requires real charge",
     body: "Run one live Backbone Stripe purchase, verify entitlement, and refund only if needed.",
+    nextAction: "Create or use a buyer profile, complete one live $47 Backbone Stripe checkout, and open the returned member hub.",
+    proof: "Stripe shows the payment under Backbone, Supabase has the entitlement, and the buyer can download a gated asset.",
   },
 ];
 
@@ -3189,6 +3197,22 @@ function SettingsView({
                   <span>{item.owner}</span>
                   <strong>{item.title}</strong>
                   <p>{item.body}</p>
+                  {(item.nextAction || item.proof) && (
+                    <div className="launch-gate-details">
+                      {item.nextAction && (
+                        <article>
+                          <small>Next action</small>
+                          <p>{item.nextAction}</p>
+                        </article>
+                      )}
+                      {item.proof && (
+                        <article>
+                          <small>Proof needed</small>
+                          <p>{item.proof}</p>
+                        </article>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <em>{item.signal}</em>
               </div>
