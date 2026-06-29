@@ -2087,6 +2087,32 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                     <strong>{activeModule.lesson.output}</strong>
                   </article>
                 </div>
+                <div className="lesson-depth-grid">
+                  <article>
+                    <span>Deliverables</span>
+                    <ul>
+                      {activeModule.lesson.deliverables.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                  <article>
+                    <span>Proof questions</span>
+                    <ul>
+                      {activeModule.lesson.proofQuestions.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                  <article>
+                    <span>Traps to avoid</span>
+                    <ul>
+                      {activeModule.lesson.failureTraps.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                </div>
                 <em className="module-done">Done: {activeModule.done}</em>
               </div>
               <div className="lesson-action-stack">

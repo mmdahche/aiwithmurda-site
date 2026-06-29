@@ -89,7 +89,17 @@ try {
     throw new Error(`Buyer onboarding emails were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   const moduleWithoutLesson = productModules.find(
-    (module) => !module.key || !module.lesson?.starterPrompt || !module.lesson?.output || !Array.isArray(module.todos),
+    (module) =>
+      !module.key ||
+      !module.lesson?.starterPrompt ||
+      !module.lesson?.output ||
+      !Array.isArray(module.lesson?.deliverables) ||
+      module.lesson.deliverables.length < 3 ||
+      !Array.isArray(module.lesson?.proofQuestions) ||
+      module.lesson.proofQuestions.length < 3 ||
+      !Array.isArray(module.lesson?.failureTraps) ||
+      module.lesson.failureTraps.length < 3 ||
+      !Array.isArray(module.todos),
   );
   if (moduleWithoutLesson) {
     throw new Error(`Product module lesson data is incomplete: ${JSON.stringify(moduleWithoutLesson)}`);

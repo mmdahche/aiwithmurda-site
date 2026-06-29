@@ -14,6 +14,21 @@ export const productModules = [
       useWith: ["Module Field Guide", "Module Roadmap", "Daily Operator Checklist"],
       starterPrompt:
         "Audit my AI workspace. List the folders, trackers, and proof habits I need before a public sprint.",
+      deliverables: [
+        "A command folder with prompts, proof, content, offers, and assets separated.",
+        "A baseline tracker row with follower, revenue, pipeline, and shipped-build starting numbers.",
+        "One named offer lane that the first week will try to prove.",
+      ],
+      proofQuestions: [
+        "Can you find the next action, offer note, and proof folder in under 10 seconds?",
+        "Does the baseline show the numbers you will report publicly?",
+        "Would another operator understand where to drop a screenshot or build link?",
+      ],
+      failureTraps: [
+        "Starting a build before the command folders exist.",
+        "Keeping proof in chat history where it disappears.",
+        "Tracking vanity activity without the money path beside it.",
+      ],
     },
     todos: [
       { key: "command-folders", label: "Create the command folder structure." },
@@ -33,6 +48,21 @@ export const productModules = [
       useWith: ["Module Field Guide", "Prompt Workflow Pack", "Proof Receipts Template"],
       starterPrompt:
         "List painful workflows worth building in public. Score each by proof speed, value, and viewer clarity.",
+      deliverables: [
+        "A scored list of 10 workflows or bottlenecks.",
+        "One chosen workflow with buyer, pain, before state, and proof metric.",
+        "A one-sentence public explanation of why this workflow matters.",
+      ],
+      proofQuestions: [
+        "Can a viewer understand the pain without knowing your whole business?",
+        "Is the proof metric visible within one build session or one day?",
+        "Does the workflow connect to revenue, time saved, leads, or trust?",
+      ],
+      failureTraps: [
+        "Picking a giant app idea instead of a painful workflow.",
+        "Choosing a problem because it sounds impressive, not because it is provable.",
+        "Coding before naming what proof will count.",
+      ],
     },
     todos: [
       { key: "workflow-list", label: "List 10 painful workflows or bottlenecks." },
@@ -52,6 +82,21 @@ export const productModules = [
       useWith: ["Module Field Guide", "Prompt Workflow Pack", "Daily Operator Checklist"],
       starterPrompt:
         "Inspect this project first. Pick the smallest build slice that creates visible proof today, then give me the plan.",
+      deliverables: [
+        "A scoped build brief with files, user path, and stop condition.",
+        "One working slice that improves the before state.",
+        "A saved version, commit, or handoff that another AI can resume.",
+      ],
+      proofQuestions: [
+        "Can the improvement be demonstrated in one screen or one short clip?",
+        "Did you test the same path a real user or buyer would touch?",
+        "Can you explain the change without reading implementation details?",
+      ],
+      failureTraps: [
+        "Letting AI expand the scope because the first fix worked.",
+        "Accepting generated code before running the user path.",
+        "Skipping a save point and losing the teachable version.",
+      ],
     },
     todos: [
       { key: "inspect-first", label: "Ask AI to inspect before changing anything." },
@@ -71,6 +116,21 @@ export const productModules = [
       useWith: ["Module Field Guide", "Proof Receipts Template", "Daily Operator Checklist"],
       starterPrompt:
         "Turn this build into a receipt: before, after, failure, lesson, clip hook, and tomorrow's promise.",
+      deliverables: [
+        "One before/after proof receipt.",
+        "One clip hook or short post built from the strongest moment.",
+        "A day recap with best moment, failure, lesson, and tomorrow promise.",
+      ],
+      proofQuestions: [
+        "Would the receipt make sense to someone who missed the stream?",
+        "Does the content show a real change instead of only saying work happened?",
+        "Does the post point back to the sprint, kit, or next live build?",
+      ],
+      failureTraps: [
+        "Posting only effort instead of outcome.",
+        "Hiding the failure that would make the lesson believable.",
+        "Waiting until the next day when the moment is stale.",
+      ],
     },
     todos: [
       { key: "capture-proof", label: "Capture before and after proof." },
@@ -90,6 +150,21 @@ export const productModules = [
       useWith: ["Module Field Guide", "Proof To Offer Canvas", "Proof Receipts Template"],
       starterPrompt:
         "Use this proof receipt to shape an offer: buyer, promise, objection, CTA, and warm follow-up message.",
+      deliverables: [
+        "One proof-backed offer promise or CTA improvement.",
+        "One objection answer added to the page, post, email, or DM.",
+        "One follow-up sent and one commercial result logged.",
+      ],
+      proofQuestions: [
+        "Does the proof make the promise easier to believe?",
+        "Is there a clear next step for someone with the pain?",
+        "Did the follow-up create revenue, pipeline, a reply, or a sharper objection?",
+      ],
+      failureTraps: [
+        "Letting proof die as content instead of using it to improve the offer.",
+        "Making the CTA clever but unclear.",
+        "Avoiding follow-up because the public post felt like enough.",
+      ],
     },
     todos: [
       { key: "improve-cta", label: "Improve one CTA or checkout promise." },
