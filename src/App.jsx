@@ -1599,7 +1599,9 @@ function StarterKitPage({ authSession, authReady }) {
               </ul>
               <ul className="module-todo-list">
                 {module.todos.map((todo) => (
-                  <li key={todo.key}>{todo.label}</li>
+                  <li key={todo.key}>
+                    <ModuleTodoCopy todo={todo} />
+                  </li>
                 ))}
               </ul>
               <em className="module-done">Done: {module.done}</em>
@@ -2366,7 +2368,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                             disabled={taskSaving[`${activeModule.key}:${todo.key}`] === "saving"}
                             onChange={(event) => handleTaskToggle(activeModule, todo, event.target.checked)}
                           />
-                          <span>{todo.label}</span>
+                          <ModuleTodoCopy todo={todo} />
                         </label>
                         {taskSaving[`${activeModule.key}:${todo.key}`] === "saved" && <em>Saved</em>}
                         {taskSaving[`${activeModule.key}:${todo.key}`] === "error" && <em>Retry</em>}
@@ -2598,7 +2600,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                             disabled={taskSaving[`${module.key}:${todo.key}`] === "saving"}
                             onChange={(event) => handleTaskToggle(module, todo, event.target.checked)}
                           />
-                          <span>{todo.label}</span>
+                          <ModuleTodoCopy todo={todo} />
                         </label>
                         {taskSaving[`${module.key}:${todo.key}`] === "saved" && <em>Saved</em>}
                         {taskSaving[`${module.key}:${todo.key}`] === "error" && <em>Retry</em>}
@@ -2631,6 +2633,15 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
         </div>
       </section>
     </section>
+  );
+}
+
+function ModuleTodoCopy({ todo }) {
+  return (
+    <span className="module-todo-copy">
+      <strong>{todo.label}</strong>
+      {todo.proof && <small>{todo.proof}</small>}
+    </span>
   );
 }
 

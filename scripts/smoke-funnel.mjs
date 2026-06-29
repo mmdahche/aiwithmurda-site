@@ -112,7 +112,9 @@ try {
       !module.operatorBrief?.mode ||
       !module.operatorBrief?.proof ||
       !module.operatorBrief?.streamBeat ||
-      !Array.isArray(module.todos),
+      !Array.isArray(module.todos) ||
+      module.todos.length < 4 ||
+      module.todos.some((todo) => !todo.key || !todo.label || !todo.proof),
   );
   if (moduleWithoutLesson) {
     throw new Error(`Product module lesson data is incomplete: ${JSON.stringify(moduleWithoutLesson)}`);

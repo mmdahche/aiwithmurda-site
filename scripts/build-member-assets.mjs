@@ -143,7 +143,7 @@ function bulletList(items) {
 }
 
 function checkboxList(items) {
-  return items.map((item) => `- [ ] ${item.label}`).join("\n");
+  return items.map((item) => `- [ ] ${item.label}${item.proof ? `\n  - Proof: ${item.proof}` : ""}`).join("\n");
 }
 
 function renderRoadmap() {

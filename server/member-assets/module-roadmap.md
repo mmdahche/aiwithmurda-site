@@ -18,9 +18,13 @@ Operator brief:
 
 To-do:
 - [ ] Create the command folder structure.
+  - Proof: Screenshot or file tree showing prompts, proof, content, offers, assets, and handoffs separated.
 - [ ] Open the tracker and set today's baseline.
+  - Proof: Baseline row filled with follower, email, revenue, pipeline, shipped-build, and stream status numbers.
 - [ ] Pick one offer to prove first.
+  - Proof: One sentence naming the buyer, promise, price path, and why this offer is the first test.
 - [ ] Create folders for prompts, proof, content, and offers.
+  - Proof: Four folders exist and each has a starter note explaining what belongs inside.
 
 Deliverables:
 - A command folder with prompts, proof, content, offers, and assets separated.
@@ -56,9 +60,13 @@ Operator brief:
 
 To-do:
 - [ ] List 10 painful workflows or bottlenecks.
+  - Proof: A ranked list of 10 workflows with the person, business, or audience who feels each pain.
 - [ ] Score each by speed to proof and money path.
+  - Proof: Top three scored from 1 to 5 for proof speed, buyer pain, viewer clarity, and money path.
 - [ ] Pick the smallest workflow worth showing.
+  - Proof: One selected workflow with a scope small enough to demo in one screen, clip, or receipt.
 - [ ] Write the before state in one sentence.
+  - Proof: Before sentence includes the current pain, current tool/process, and the measurable drag.
 
 Deliverables:
 - A scored list of 10 workflows or bottlenecks.
@@ -94,9 +102,13 @@ Operator brief:
 
 To-do:
 - [ ] Ask AI to inspect before changing anything.
+  - Proof: The first AI response names the relevant files, user path, and risk before proposing edits.
 - [ ] Scope one build slice that can be shown today.
+  - Proof: A short build brief lists the exact screen, endpoint, or workflow that must work by shutdown.
 - [ ] Run the user path after every meaningful change.
+  - Proof: A terminal, browser, or screenshot receipt shows the real path was tested after the change.
 - [ ] Commit or save the working version when the slice works.
+  - Proof: Commit hash, handoff, export, or saved artifact exists before moving to the next build.
 
 Deliverables:
 - A scoped build brief with files, user path, and stop condition.
@@ -132,9 +144,13 @@ Operator brief:
 
 To-do:
 - [ ] Capture before and after proof.
+  - Proof: Before and after screenshots, clips, logs, or numbers are saved in the proof folder.
 - [ ] Log best moment, biggest failure, lesson, and tomorrow's promise.
+  - Proof: Daily receipt includes one win, one failure, one lesson, and one clear next-day promise.
 - [ ] Write one clip hook from the proof.
+  - Proof: Hook names the transformation, tension, or mistake without needing extra context.
 - [ ] Post or schedule one public asset.
+  - Proof: A live or scheduled post, short, email, or community update points back to the sprint or kit.
 
 Deliverables:
 - One before/after proof receipt.
@@ -170,9 +186,13 @@ Operator brief:
 
 To-do:
 - [ ] Improve one CTA or checkout promise.
+  - Proof: The page, post, checkout, or pinned message has one clearer buyer promise than yesterday.
 - [ ] Answer one buyer objection on the page.
+  - Proof: One visible FAQ, reply, caption, or email answers a reason someone would hesitate.
 - [ ] Follow up with one warm lead.
+  - Proof: Message sent to a specific person with context, proof, and a clear next step.
 - [ ] Log revenue, pipeline, products sold, or calls booked.
+  - Proof: Tracker row updated with purchase, lead, booked call, reply, objection, or no-response lesson.
 
 Deliverables:
 - One proof-backed offer promise or CTA improvement.

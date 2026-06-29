@@ -2975,6 +2975,26 @@ button {
   box-shadow: 0 0 12px rgba(97, 227, 109, 0.42);
 }
 
+.module-todo-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.module-todo-copy strong {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.28;
+}
+
+.module-todo-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+}
+
 .module-todo-list.compact {
   margin-top: 10px;
 }
