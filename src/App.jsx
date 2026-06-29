@@ -3447,6 +3447,8 @@ function SettingsView({
   const visibleStreamCommandCount = streamCommands.length + 1;
   const streamCommandDeckText = formatStreamCommandDeck(streamConfig, streamPlatformDestinations, streamCommands);
   const [streamCommandCopyStatus, setStreamCommandCopyStatus] = useState("idle");
+  const buyerEmailDeckText = formatBuyerOnboardingEmailDeck(buyerOnboardingEmails);
+  const [buyerEmailCopyStatus, setBuyerEmailCopyStatus] = useState("idle");
   const offerOpsModules =
     offerOpsSummary?.progress?.moduleSummaries ||
     productModules.map((module) => ({
@@ -3478,6 +3480,15 @@ function SettingsView({
       window.setTimeout(() => setStreamCommandCopyStatus("idle"), 1800);
     } else {
       setStreamCommandCopyStatus("manual");
+    }
+  }
+
+  async function copyBuyerEmailDeck() {
+    if (await copyPlainText(buyerEmailDeckText)) {
+      setBuyerEmailCopyStatus("copied");
+      window.setTimeout(() => setBuyerEmailCopyStatus("idle"), 1800);
+    } else {
+      setBuyerEmailCopyStatus("manual");
     }
   }
 
@@ -3648,6 +3659,19 @@ function SettingsView({
         </article>
         <article className="panel onboarding-email-panel">
           <PanelTitle icon="email" title="Buyer Onboarding" right="Sequence" />
+          <div className="buyer-email-deck-header">
+            <div>
+              <span>Buyer Email Copy Deck</span>
+              <strong>{buyerOnboardingEmails.length} launch emails</strong>
+            </div>
+            <button type="button" onClick={copyBuyerEmailDeck}>
+              {buyerEmailCopyStatus === "copied"
+                ? "Copied emails"
+                : buyerEmailCopyStatus === "manual"
+                  ? "Manual copy ready"
+                  : "Copy email sequence"}
+            </button>
+          </div>
           <div className="onboarding-email-list">
             {buyerOnboardingEmails.map((email) => (
               <div key={email.key}>
@@ -3658,6 +3682,15 @@ function SettingsView({
               </div>
             ))}
           </div>
+          {buyerEmailCopyStatus === "manual" ? (
+            <textarea
+              aria-label="Buyer email deck text"
+              className="run-sheet-copy-box"
+              readOnly
+              value={buyerEmailDeckText}
+              onFocus={(event) => event.currentTarget.select()}
+            />
+          ) : null}
         </article>
         <article className="panel settings-sync-panel">
           <PanelTitle icon="monitor" title="Public Sync" />
@@ -4254,6 +4287,21 @@ function formatStreamCommandDeck(streamConfig, destinations, commands) {
     "",
     "Destinations:",
     ...destinationLines,
+  ].join("\n");
+}
+
+function formatBuyerOnboardingEmailDeck(emails) {
+  return [
+    "AI with Murda Buyer Email Copy Deck",
+    "",
+    ...emails.flatMap((email) => [
+      `${email.day}: ${email.subject}`,
+      `Goal: ${email.goal}`,
+      `CTA: ${email.ctaLabel} -> ${email.ctaHref}`,
+      "Bullets:",
+      ...email.bullets.map((item) => `- ${item}`),
+      "",
+    ]),
   ].join("\n");
 }
 

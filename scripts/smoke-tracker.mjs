@@ -86,6 +86,9 @@ if (!liveBundle.includes("Manual Gate Runbook")) {
 if (!liveBundle.includes("Stream Command Deck")) {
   throw new Error("Client bundle missing Stream Command Deck");
 }
+if (!liveBundle.includes("Buyer Email Copy Deck")) {
+  throw new Error("Client bundle missing Buyer Email Copy Deck");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -170,6 +173,7 @@ console.log(
         adminDailyClipPacketBundle: true,
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
+        adminBuyerEmailCopyDeckBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,

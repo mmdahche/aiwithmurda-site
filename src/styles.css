@@ -854,6 +854,42 @@ button {
   gap: 8px;
 }
 
+.buyer-email-deck-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid rgba(97, 227, 109, 0.18);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.045);
+}
+
+.buyer-email-deck-header span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.buyer-email-deck-header strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.buyer-email-deck-header button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  background: var(--green);
+  font-weight: 900;
+}
+
 .onboarding-email-list div {
   display: grid;
   gap: 5px;
@@ -4287,6 +4323,11 @@ button {
   }
 
   .manual-gate-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .buyer-email-deck-header {
     align-items: stretch;
     flex-direction: column;
   }
