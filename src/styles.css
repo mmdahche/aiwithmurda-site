@@ -3494,6 +3494,89 @@ button {
   line-height: 1.5;
 }
 
+.stream-arc-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.stream-arc-section h2,
+.stream-arc-section p {
+  margin: 0;
+}
+
+.stream-arc-section h2 {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.stream-arc-section p {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.stream-arc-section .secondary-link {
+  width: max-content;
+  max-width: 100%;
+}
+
+.stream-arc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stream-arc-grid article {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(97, 227, 109, 0.16);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.stream-arc-grid span,
+.stream-arc-grid strong,
+.stream-arc-grid em {
+  display: block;
+}
+
+.stream-arc-grid span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stream-arc-grid strong {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.stream-arc-grid p {
+  margin: 8px 0 0;
+  color: #d7e5dc;
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.stream-arc-grid em {
+  width: max-content;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 5px 8px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--green);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .form-message {
   max-width: 620px;
   margin: 14px 0 0;
@@ -3687,6 +3770,7 @@ button {
   .start-hero,
   .live-hero,
   .stream-command-section,
+  .stream-arc-section,
   .tool-command-section,
   .public-section.two-col,
   .public-score-header,
@@ -3713,6 +3797,7 @@ button {
   .start-proof-grid,
   .run-of-show,
   .stream-command-grid,
+  .stream-arc-grid,
   .tool-link-grid,
   .launch-category-grid,
   .launch-blocker-strip,
@@ -3823,6 +3908,7 @@ button {
   .start-proof-grid,
   .run-of-show,
   .stream-command-grid,
+  .stream-arc-grid,
   .tool-link-grid,
   .kit-assets-section,
   .kit-onboarding-section,

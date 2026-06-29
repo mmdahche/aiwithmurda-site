@@ -157,6 +157,51 @@ const liveRunOfShow = [
   },
 ];
 
+const firstWeekStreamArc = [
+  {
+    day: "Day 0",
+    title: "System proof",
+    proof: "Routes, commands, OBS overlay, and launch smoke pass before the sprint starts.",
+    cta: "!start",
+  },
+  {
+    day: "Day 1",
+    title: "Baseline receipt",
+    proof: "Clean scoreboard baseline, first daily receipt, and first visible setup proof.",
+    cta: "!today",
+  },
+  {
+    day: "Day 2",
+    title: "Problem pick",
+    proof: "One workflow scored by pain, proof speed, viewer clarity, and money path.",
+    cta: "!kit",
+  },
+  {
+    day: "Day 3",
+    title: "Narrow build",
+    proof: "One AI-assisted working slice tested on the real user path.",
+    cta: "!scoreboard",
+  },
+  {
+    day: "Day 4",
+    title: "Proof package",
+    proof: "Before/after receipt, clip hook, and one public asset.",
+    cta: "!start",
+  },
+  {
+    day: "Day 5",
+    title: "Offer tighten",
+    proof: "One stronger CTA, one objection answer, and one follow-up message.",
+    cta: "!kit",
+  },
+  {
+    day: "Day 7",
+    title: "Weekly verdict",
+    proof: "Best proof, biggest jump, biggest miss, offer change, and next weekly bet.",
+    cta: "!scoreboard",
+  },
+];
+
 const fallbackStreamConfig = {
   status: "prelaunch",
   statusLabel: "Prelaunch room",
@@ -1266,6 +1311,30 @@ function LiveHub({ latest, streamConfig, streamConfigStatus }) {
             <p>{item.body}</p>
           </article>
         ))}
+      </section>
+
+      <section className="public-section stream-arc-section">
+        <div>
+          <span className="public-label">Week 1 stream arc</span>
+          <h2>The first week is already mapped.</h2>
+          <p>
+            The public show moves from setup proof to a weekly verdict. Members get the full Day 0-7
+            run sheet with beat-by-beat hooks, CTAs, and shutdown checks.
+          </p>
+          <a className="secondary-link" href="/kit">
+            Open the kit
+          </a>
+        </div>
+        <div className="stream-arc-grid">
+          {firstWeekStreamArc.map((item) => (
+            <article key={item.day}>
+              <span>{item.day}</span>
+              <strong>{item.title}</strong>
+              <p>{item.proof}</p>
+              <em>{item.cta}</em>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="public-section two-col">

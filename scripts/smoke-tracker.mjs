@@ -47,7 +47,7 @@ if (!toolsResponse.ok || !toolsHtml.includes("root")) {
 
 const liveResponse = await fetch(`${siteUrl}/live/`);
 const liveHtml = await liveResponse.text();
-if (!liveResponse.ok || !liveHtml.includes("root")) {
+if (!liveResponse.ok || !liveHtml.includes("root") || !liveHtml.includes("Week 1 stream arc")) {
   throw new Error(`Live route failed: ${liveResponse.status}`);
 }
 
