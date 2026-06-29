@@ -2085,6 +2085,7 @@ function MemberStateCard({ title, body }) {
 function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
   const [copiedPromptKey, setCopiedPromptKey] = useState("");
+  const [copiedActionKitKey, setCopiedActionKitKey] = useState("");
   const [proofDraft, setProofDraft] = useState(() => ({
     moduleKey: activeModuleKey || productModules[0]?.key || "",
     before: "",
@@ -2250,6 +2251,19 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       }, 1600);
     } else {
       setCopiedPromptKey("");
+    }
+  }
+
+  async function handleCopyActionKit(module) {
+    if (!module?.actionKit) return;
+
+    if (await copyPlainText(formatModuleActionKit(module))) {
+      setCopiedActionKitKey(module.key);
+      window.setTimeout(() => {
+        setCopiedActionKitKey((current) => (current === module.key ? "" : current));
+      }, 1600);
+    } else {
+      setCopiedActionKitKey("");
     }
   }
 
@@ -2467,6 +2481,11 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                   </article>
                 </div>
                 <ModuleOperatorBrief brief={activeModule.operatorBrief} />
+                <ModuleActionKit
+                  kit={activeModule.actionKit}
+                  copied={copiedActionKitKey === activeModule.key}
+                  onCopy={() => handleCopyActionKit(activeModule)}
+                />
                 <div className="lesson-depth-grid">
                   <article>
                     <span>Deliverables</span>
@@ -2810,6 +2829,37 @@ function ModuleOperatorBrief({ brief, compact = false }) {
           <strong>{value}</strong>
         </article>
       ))}
+    </div>
+  );
+}
+
+function ModuleActionKit({ kit, copied, onCopy }) {
+  if (!kit) return null;
+
+  const items = [
+    ["Timebox", kit.timebox],
+    ["Today's move", kit.todayMove],
+    ["Stream move", kit.streamMove],
+    ["Proof checkpoint", kit.proofCheckpoint],
+    ["Shutdown", kit.shutdown],
+  ];
+
+  return (
+    <div className="module-action-kit">
+      <div className="module-action-kit-header">
+        <span>Today kit</span>
+        <button type="button" onClick={onCopy}>
+          {copied ? "Copied action kit" : "Copy action kit"}
+        </button>
+      </div>
+      <div className="module-action-kit-grid">
+        {items.map(([label, value]) => (
+          <article key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -4060,6 +4110,22 @@ function trimSentence(value) {
   return String(value || "")
     .trim()
     .replace(/[.!?]+$/g, "");
+}
+
+function formatModuleActionKit(module) {
+  const kit = module.actionKit;
+
+  return [
+    `${module.title} - Today Kit`,
+    "",
+    `Timebox: ${kit.timebox}`,
+    `Today's move: ${kit.todayMove}`,
+    `Stream move: ${kit.streamMove}`,
+    `Proof checkpoint: ${kit.proofCheckpoint}`,
+    `Shutdown: ${kit.shutdown}`,
+    "",
+    `Starter prompt: ${module.lesson.starterPrompt}`,
+  ].join("\n");
 }
 
 async function copyPlainText(text) {

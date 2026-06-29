@@ -16,6 +16,13 @@ Operator brief:
 - Proof: Folder tree screenshot, baseline tracker row, and named first offer lane.
 - Stream beat: Show the command center setup without exposing private accounts, keys, customer data, or family details.
 
+Action kit:
+- Timebox: 45 minutes
+- Today's move: Create the folder tree, open the tracker, and name the first offer lane before building anything.
+- Stream move: Show the operating surface and explain what viewers will never see: secrets, customer data, and family details.
+- Proof checkpoint: Folder tree screenshot plus one baseline tracker row.
+- Shutdown: Save links to the tracker, folders, and first offer note where tomorrow's AI session can find them.
+
 Operating question:
 
 > If I had to start live tomorrow with no warmup, where would every file, number, prompt, and proof receipt go?
@@ -80,6 +87,13 @@ Operator brief:
 - Mode: Problem selection
 - Proof: One painful workflow scored by buyer pain, proof speed, viewer clarity, and money path.
 - Stream beat: Let viewers see the scoring logic so the build feels chosen, not random.
+
+Action kit:
+- Timebox: 60 minutes
+- Today's move: List 10 workflows, score the top three, and select the one that can create visible proof fastest.
+- Stream move: Make the tradeoffs visible so the audience understands why the chosen problem matters.
+- Proof checkpoint: A scored top-three table and one before-state sentence.
+- Shutdown: Turn the selected workflow into tomorrow's smallest build brief.
 
 Operating question:
 
@@ -166,6 +180,13 @@ Operator brief:
 - Proof: Working slice, tested user path, and one commit or handoff another AI can resume.
 - Stream beat: Narrate the before state, the stuck point, the AI handoff, and the visible after state.
 
+Action kit:
+- Timebox: 90 minutes
+- Today's move: Ask AI to inspect first, scope one slice, ship the smallest useful improvement, and test the real path.
+- Stream move: Narrate the before state, stuck point, AI assist, and after state without pretending the build was magic.
+- Proof checkpoint: Working slice plus test receipt, commit hash, or handoff.
+- Shutdown: Stop after the tested slice works and package the proof before expanding scope.
+
 Operating question:
 
 > What is the smallest visible improvement I can ship today without pretending the entire system is finished?
@@ -233,6 +254,13 @@ Operator brief:
 - Proof: Daily receipt, clip hook, recap note, and one public asset.
 - Stream beat: Turn the best moment, the failure, and the lesson into a receipt before shutdown.
 
+Action kit:
+- Timebox: 45 minutes
+- Today's move: Capture before/after proof, write the receipt, create one hook, and publish or schedule one asset.
+- Stream move: Make the packaging visible so viewers learn that proof is a product surface, not a private note.
+- Proof checkpoint: Receipt page plus one clip, post, email, or community update.
+- Shutdown: Save the best hook and tomorrow's promise before the stream energy fades.
+
 Operating question:
 
 > How do I turn today's build into a receipt that makes the work obvious to someone who missed the stream?
@@ -298,6 +326,13 @@ Operator brief:
 - Mode: Offer conversion
 - Proof: Improved CTA, answered objection, sent follow-up, and logged commercial result.
 - Stream beat: Explain how one receipt changes the offer instead of letting proof stay as content only.
+
+Action kit:
+- Timebox: 60 minutes
+- Today's move: Pick the strongest proof, rewrite one CTA, answer one objection, and send one warm follow-up.
+- Stream move: Show how proof changes the pitch, the buyer promise, and the next ask.
+- Proof checkpoint: Updated CTA or objection answer plus one logged commercial result.
+- Shutdown: Record the reply, purchase, pipeline, objection, or no-response lesson in the tracker.
 
 Operating question:
 

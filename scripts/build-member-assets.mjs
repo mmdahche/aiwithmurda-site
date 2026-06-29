@@ -163,6 +163,13 @@ Operator brief:
 - Proof: ${module.operatorBrief.proof}
 - Stream beat: ${module.operatorBrief.streamBeat}
 
+Action kit:
+- Timebox: ${module.actionKit.timebox}
+- Today's move: ${module.actionKit.todayMove}
+- Stream move: ${module.actionKit.streamMove}
+- Proof checkpoint: ${module.actionKit.proofCheckpoint}
+- Shutdown: ${module.actionKit.shutdown}
+
 To-do:
 ${checkboxList(module.todos)}
 
@@ -213,6 +220,13 @@ Operator brief:
 - Mode: ${module.operatorBrief.mode}
 - Proof: ${module.operatorBrief.proof}
 - Stream beat: ${module.operatorBrief.streamBeat}
+
+Action kit:
+- Timebox: ${module.actionKit.timebox}
+- Today's move: ${module.actionKit.todayMove}
+- Stream move: ${module.actionKit.streamMove}
+- Proof checkpoint: ${module.actionKit.proofCheckpoint}
+- Shutdown: ${module.actionKit.shutdown}
 
 Operating question:
 

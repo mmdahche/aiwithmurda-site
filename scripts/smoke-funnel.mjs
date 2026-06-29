@@ -112,6 +112,11 @@ try {
       !module.operatorBrief?.mode ||
       !module.operatorBrief?.proof ||
       !module.operatorBrief?.streamBeat ||
+      !module.actionKit?.timebox ||
+      !module.actionKit?.todayMove ||
+      !module.actionKit?.streamMove ||
+      !module.actionKit?.proofCheckpoint ||
+      !module.actionKit?.shutdown ||
       !Array.isArray(module.todos) ||
       module.todos.length < 4 ||
       module.todos.some((todo) => !todo.key || !todo.label || !todo.proof),
@@ -225,6 +230,7 @@ try {
           productAssetsExposed: true,
           productModulesExposed: true,
           moduleOperatorBriefsExposed: true,
+          moduleActionKitsExposed: true,
           buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,

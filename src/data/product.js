@@ -36,6 +36,13 @@ export const productModules = [
       proof: "Folder tree screenshot, baseline tracker row, and named first offer lane.",
       streamBeat: "Show the command center setup without exposing private accounts, keys, customer data, or family details.",
     },
+    actionKit: {
+      timebox: "45 minutes",
+      todayMove: "Create the folder tree, open the tracker, and name the first offer lane before building anything.",
+      streamMove: "Show the operating surface and explain what viewers will never see: secrets, customer data, and family details.",
+      proofCheckpoint: "Folder tree screenshot plus one baseline tracker row.",
+      shutdown: "Save links to the tracker, folders, and first offer note where tomorrow's AI session can find them.",
+    },
     todos: [
       {
         key: "command-folders",
@@ -91,6 +98,13 @@ export const productModules = [
       mode: "Problem selection",
       proof: "One painful workflow scored by buyer pain, proof speed, viewer clarity, and money path.",
       streamBeat: "Let viewers see the scoring logic so the build feels chosen, not random.",
+    },
+    actionKit: {
+      timebox: "60 minutes",
+      todayMove: "List 10 workflows, score the top three, and select the one that can create visible proof fastest.",
+      streamMove: "Make the tradeoffs visible so the audience understands why the chosen problem matters.",
+      proofCheckpoint: "A scored top-three table and one before-state sentence.",
+      shutdown: "Turn the selected workflow into tomorrow's smallest build brief.",
     },
     todos: [
       {
@@ -148,6 +162,13 @@ export const productModules = [
       proof: "Working slice, tested user path, and one commit or handoff another AI can resume.",
       streamBeat: "Narrate the before state, the stuck point, the AI handoff, and the visible after state.",
     },
+    actionKit: {
+      timebox: "90 minutes",
+      todayMove: "Ask AI to inspect first, scope one slice, ship the smallest useful improvement, and test the real path.",
+      streamMove: "Narrate the before state, stuck point, AI assist, and after state without pretending the build was magic.",
+      proofCheckpoint: "Working slice plus test receipt, commit hash, or handoff.",
+      shutdown: "Stop after the tested slice works and package the proof before expanding scope.",
+    },
     todos: [
       {
         key: "inspect-first",
@@ -204,6 +225,13 @@ export const productModules = [
       proof: "Daily receipt, clip hook, recap note, and one public asset.",
       streamBeat: "Turn the best moment, the failure, and the lesson into a receipt before shutdown.",
     },
+    actionKit: {
+      timebox: "45 minutes",
+      todayMove: "Capture before/after proof, write the receipt, create one hook, and publish or schedule one asset.",
+      streamMove: "Make the packaging visible so viewers learn that proof is a product surface, not a private note.",
+      proofCheckpoint: "Receipt page plus one clip, post, email, or community update.",
+      shutdown: "Save the best hook and tomorrow's promise before the stream energy fades.",
+    },
     todos: [
       {
         key: "capture-proof",
@@ -259,6 +287,13 @@ export const productModules = [
       mode: "Offer conversion",
       proof: "Improved CTA, answered objection, sent follow-up, and logged commercial result.",
       streamBeat: "Explain how one receipt changes the offer instead of letting proof stay as content only.",
+    },
+    actionKit: {
+      timebox: "60 minutes",
+      todayMove: "Pick the strongest proof, rewrite one CTA, answer one objection, and send one warm follow-up.",
+      streamMove: "Show how proof changes the pitch, the buyer promise, and the next ask.",
+      proofCheckpoint: "Updated CTA or objection answer plus one logged commercial result.",
+      shutdown: "Record the reply, purchase, pipeline, objection, or no-response lesson in the tracker.",
     },
     todos: [
       {

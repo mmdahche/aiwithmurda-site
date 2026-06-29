@@ -280,6 +280,7 @@ function publicModule(module) {
     body: module.body,
     lesson: module.lesson,
     operatorBrief: module.operatorBrief,
+    actionKit: module.actionKit,
     todos: module.todos.map((todo) => ({ key: todo.key, label: todo.label, proof: todo.proof })),
     done: module.done,
   };
