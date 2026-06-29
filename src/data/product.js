@@ -328,6 +328,10 @@ export const productAssetHighlights = [
     body: "Day 0 and Day 1 checklist for baseline cutover, OBS, stream commands, receipts, and shutdown.",
   },
   {
+    title: "Launch Copy Pack",
+    body: "Pinned chat commands, stream scripts, kit CTAs, recap captions, email copy, and follow-up language.",
+  },
+  {
     title: "Prompt Workflow Pack",
     body: "Prompts for finding problems, scoping builds, judging outputs, and packaging proof.",
   },

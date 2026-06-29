@@ -56,6 +56,15 @@ const memberAssets = [
     mimeType: "text/markdown; charset=utf-8",
   },
   {
+    key: "launch-copy-pack",
+    title: "Launch Copy Pack",
+    kind: "Copy",
+    description: "Pinned chat commands, stream scripts, kit CTAs, recap captions, email copy, and buyer follow-up language.",
+    fileName: "launch-copy-pack.md",
+    downloadName: "future-proof-method-launch-copy-pack.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
     key: "prompt-workflows",
     title: "Prompt Workflow Pack",
     kind: "Prompts",

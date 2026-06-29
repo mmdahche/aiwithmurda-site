@@ -68,7 +68,7 @@ try {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
-  if (!Array.isArray(productAssets) || productAssets.length < 7) {
+  if (!Array.isArray(productAssets) || productAssets.length < 8) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
@@ -79,6 +79,9 @@ try {
   }
   if (!productAssets.some((asset) => asset.key === "launch-day-runbook")) {
     throw new Error(`Launch day runbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "launch-copy-pack")) {
+    throw new Error(`Launch copy pack asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
@@ -167,6 +170,13 @@ try {
   if (!runbookResponse.ok || !runbookText.includes("The Future Proof Method - Launch Day Runbook")) {
     throw new Error(`Launch day runbook download failed: ${runbookResponse.status} ${runbookText.slice(0, 120)}`);
   }
+  const copyPackResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-copy-pack`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const copyPackText = await copyPackResponse.text();
+  if (!copyPackResponse.ok || !copyPackText.includes("The Future Proof Method - Launch Copy Pack")) {
+    throw new Error(`Launch copy pack download failed: ${copyPackResponse.status} ${copyPackText.slice(0, 120)}`);
+  }
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -205,12 +215,14 @@ try {
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           launchDayRunbookExposed: true,
+          launchCopyPackExposed: true,
           generatedFieldGuideDepth: true,
           generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledFieldGuideDownload: true,
           entitledRunbookDownload: true,
+          entitledCopyPackDownload: true,
           memberProgressLookup: true,
           memberProgressUpdate: true,
         },
