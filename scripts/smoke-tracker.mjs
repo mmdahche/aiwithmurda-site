@@ -27,6 +27,12 @@ if (!toolsResponse.ok || !toolsHtml.includes("root")) {
   throw new Error(`Public tools route failed: ${toolsResponse.status}`);
 }
 
+const liveResponse = await fetch(`${siteUrl}/live/`);
+const liveHtml = await liveResponse.text();
+if (!liveResponse.ok || !liveHtml.includes("root")) {
+  throw new Error(`Live route failed: ${liveResponse.status}`);
+}
+
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
 if (!kitResponse.ok || !kitHtml.includes("root")) {
@@ -101,6 +107,7 @@ console.log(
         publicLogsReadable: true,
         publicDashboardRoute: true,
         publicToolsRoute: true,
+        publicLiveRoute: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,

@@ -15,13 +15,20 @@ async function getJson(path) {
 const config = await getJson("/api/stream/config");
 const destinations = Array.isArray(config.destinations) ? config.destinations : [];
 const commands = Array.isArray(config.commands) ? config.commands : [];
+const commandMap = new Map(commands.map((item) => [item.command, item.href]));
 
 const checks = {
   streamConfigReadable: config.ok === true,
   primaryRoomPresent: Boolean(config.primary?.name),
   destinationsPresent: destinations.length >= 3,
   scoreboardLinked: destinations.some((item) => item.key === "scoreboard" && item.href === "/60"),
-  commandsPresent: commands.some((item) => item.command === "!dashboard" && item.href === "/60"),
+  scoreboardCommand: commandMap.get("!scoreboard") === "/60",
+  dashboardAliasCommand: commandMap.get("!dashboard") === "/60",
+  todayCommand: commandMap.get("!today") === "/day/1",
+  dayOneCommand: commandMap.get("!day1") === "/day/1",
+  liveCommand: commandMap.get("!live") === "/live",
+  overlayCommand: commandMap.get("!overlay") === "/overlay",
+  runbookCommand: commandMap.get("!runbook") === "/members",
 };
 
 const failed = Object.entries(checks)

@@ -176,10 +176,16 @@ const fallbackStreamConfig = {
     { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true },
   ],
   commands: [
+    { command: "!scoreboard", label: "Public scoreboard", href: "/60" },
     { command: "!dashboard", label: "Public scoreboard", href: "/60" },
+    { command: "!today", label: "Current daily receipt", href: "/day/1" },
+    { command: "!day1", label: "First daily receipt", href: "/day/1" },
+    { command: "!live", label: "Live hub", href: "/live" },
+    { command: "!overlay", label: "OBS overlay", href: "/overlay" },
     { command: "!start", label: "Build log signup", href: "/start" },
     { command: "!kit", label: "Founding product", href: "/kit" },
     { command: "!members", label: "Member login", href: "/members" },
+    { command: "!runbook", label: "Launch runbook", href: "/members" },
   ],
 };
 
@@ -1190,13 +1196,16 @@ function StreamDestinationLink({ item }) {
 
 function ToolsPage({ latest }) {
   const commandLinks = [
-    { command: "!dashboard", title: "Public scoreboard", href: "/60", body: "The live numbers, goals, weekly recap, and latest status." },
+    { command: "!scoreboard", title: "Public scoreboard", href: "/60", body: "The live numbers, goals, weekly recap, and latest status." },
+    { command: "!dashboard", title: "Dashboard alias", href: "/60", body: "Same scoreboard link for anyone who remembers the older command." },
     { command: "!today", title: `Day ${latest.day} receipt`, href: `/day/${latest.day}`, body: "The current daily proof page for clips and recaps." },
+    { command: "!day1", title: "Day 1 receipt", href: "/day/1", body: "The first public receipt page after the launch baseline is pushed." },
     { command: "!live", title: "Live hub", href: "/live", body: "Stream room, pinned commands, run of show, and mode guardrails." },
-    { command: "OBS", title: "Overlay route", href: "/overlay", body: "Clean browser-source URL for the scoreboard overlay." },
+    { command: "!overlay", title: "Overlay route", href: "/overlay", body: "Clean browser-source URL for the scoreboard overlay." },
     { command: "!kit", title: productName, href: "/kit", body: "The first paid drop and member-product path." },
     { command: "!start", title: "Build log", href: "/start", body: "Email capture for launch updates and daily receipts." },
     { command: "!members", title: "Member hub", href: "/members", body: "Supabase login, checkout recovery, and gated assets." },
+    { command: "!runbook", title: "Launch runbook", href: "/members", body: "Members can download the Day 0 and Day 1 operating checklist from the hub." },
     { command: "/obs", title: "Short OBS alias", href: "/obs", body: "Same overlay, shorter URL for browser source setup." },
   ];
 

@@ -168,10 +168,16 @@ function buildStreamConfig() {
       { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true, external: false },
     ],
     commands: [
+      { command: "!scoreboard", label: "Public scoreboard", href: "/60" },
       { command: "!dashboard", label: "Public scoreboard", href: "/60" },
+      { command: "!today", label: "Current daily receipt", href: "/day/1" },
+      { command: "!day1", label: "First daily receipt", href: "/day/1" },
+      { command: "!live", label: "Live hub", href: "/live" },
+      { command: "!overlay", label: "OBS overlay", href: "/overlay" },
       { command: "!start", label: "Build log signup", href: "/start" },
       { command: "!kit", label: "Founding product", href: "/kit" },
       { command: "!members", label: "Member login", href: "/members" },
+      { command: "!runbook", label: "Launch runbook", href: "/members" },
     ],
     checkedAt: new Date().toISOString(),
   };
