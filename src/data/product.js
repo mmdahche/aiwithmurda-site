@@ -332,6 +332,10 @@ export const productAssetHighlights = [
     body: "Pinned chat commands, stream scripts, kit CTAs, recap captions, email copy, and follow-up language.",
   },
   {
+    title: "Day 0-7 Stream Run Sheet",
+    body: "First-week show loop, daily proof targets, clip hooks, CTAs, and shutdown checklist.",
+  },
+  {
     title: "Prompt Workflow Pack",
     body: "Prompts for finding problems, scoping builds, judging outputs, and packaging proof.",
   },

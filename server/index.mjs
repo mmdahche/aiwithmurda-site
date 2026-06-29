@@ -65,6 +65,15 @@ const memberAssets = [
     mimeType: "text/markdown; charset=utf-8",
   },
   {
+    key: "day-0-7-stream-run-sheet",
+    title: "Day 0-7 Stream Run Sheet",
+    kind: "Content",
+    description: "First-week show loop, daily proof targets, clip hooks, CTAs, and shutdown checklist.",
+    fileName: "day-0-7-stream-run-sheet.md",
+    downloadName: "future-proof-method-day-0-7-stream-run-sheet.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
     key: "prompt-workflows",
     title: "Prompt Workflow Pack",
     kind: "Prompts",

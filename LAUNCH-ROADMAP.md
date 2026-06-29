@@ -112,6 +112,7 @@ Cloudflare SSL/TLS:
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
 - One-command launch smoke runner: done; run `npm run smoke:launch` before public kickoff
+- First-week content run sheet: done; Day 0-7 proof beats, clip hooks, and CTAs are in the member assets
 - Final livestream embeds/URLs: pending channel decision
 - Day 1 tracker baseline command: done; run `npm run baseline:launch:push` on launch day only
 - OBS overlay tested in OBS: pending

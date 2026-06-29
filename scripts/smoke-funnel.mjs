@@ -68,7 +68,7 @@ try {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
-  if (!Array.isArray(productAssets) || productAssets.length < 8) {
+  if (!Array.isArray(productAssets) || productAssets.length < 9) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
@@ -82,6 +82,9 @@ try {
   }
   if (!productAssets.some((asset) => asset.key === "launch-copy-pack")) {
     throw new Error(`Launch copy pack asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "day-0-7-stream-run-sheet")) {
+    throw new Error(`Day 0-7 stream run sheet asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
@@ -177,6 +180,15 @@ try {
   if (!copyPackResponse.ok || !copyPackText.includes("The Future Proof Method - Launch Copy Pack")) {
     throw new Error(`Launch copy pack download failed: ${copyPackResponse.status} ${copyPackText.slice(0, 120)}`);
   }
+  const streamRunSheetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/day-0-7-stream-run-sheet`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const streamRunSheetText = await streamRunSheetResponse.text();
+  if (!streamRunSheetResponse.ok || !streamRunSheetText.includes("The Future Proof Method - Day 0-7 Stream Run Sheet")) {
+    throw new Error(
+      `Day 0-7 stream run sheet download failed: ${streamRunSheetResponse.status} ${streamRunSheetText.slice(0, 120)}`,
+    );
+  }
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -216,6 +228,7 @@ try {
           moduleFieldGuideExposed: true,
           launchDayRunbookExposed: true,
           launchCopyPackExposed: true,
+          streamRunSheetExposed: true,
           generatedFieldGuideDepth: true,
           generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
@@ -223,6 +236,7 @@ try {
           entitledFieldGuideDownload: true,
           entitledRunbookDownload: true,
           entitledCopyPackDownload: true,
+          entitledStreamRunSheetDownload: true,
           memberProgressLookup: true,
           memberProgressUpdate: true,
         },

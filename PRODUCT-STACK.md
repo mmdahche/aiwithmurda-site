@@ -162,7 +162,7 @@ Gated assets:
 
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
 - The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
-- Current assets: Quickstart Map, Daily Operator Checklist, Launch Day Runbook, Launch Copy Pack, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, Module Field Guide, and Proof To Offer Canvas.
+- Current assets: Quickstart Map, Daily Operator Checklist, Launch Day Runbook, Launch Copy Pack, Day 0-7 Stream Run Sheet, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, Module Field Guide, and Proof To Offer Canvas.
 - `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, and task lists do not drift.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
 - The member hub includes a local proof receipt builder. It follows the active module route, includes module progress and completed task names, previews the markdown, and downloads the receipt without adding a new database dependency.

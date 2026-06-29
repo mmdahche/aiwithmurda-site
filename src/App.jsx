@@ -268,6 +268,13 @@ const launchChecklistItems = [
     body: "Members get stream scripts, pinned commands, daily receipt captions, email copy, objections, and follow-up language.",
   },
   {
+    title: "Day 0-7 stream run sheet",
+    status: "done",
+    owner: "System",
+    signal: "First-week content loop",
+    body: "The member kit includes daily live beats, proof targets, clip hooks, CTAs, and shutdown rhythm for the first week.",
+  },
+  {
     title: "OBS browser routes",
     status: "done",
     owner: "System",
@@ -330,6 +337,7 @@ const readinessMeta = {
   "Offer Ops roster": { category: "dashboard", weight: 1 },
   "Command shelf and receipts": { category: "stream", weight: 1 },
   "Launch copy pack": { category: "offer", weight: 1 },
+  "Day 0-7 stream run sheet": { category: "stream", weight: 1.2 },
   "OBS browser routes": { category: "stream", weight: 1 },
   "Public discovery and identity": { category: "website", weight: 1 },
   "Launch verification loop": { category: "qa", weight: 1.4 },
