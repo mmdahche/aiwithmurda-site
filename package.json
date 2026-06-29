@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:api": "PORT=8787 node --watch server/index.mjs",
+    "prebuild": "npm run assets:member",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview --host 127.0.0.1",
