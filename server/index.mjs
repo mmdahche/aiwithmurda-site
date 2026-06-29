@@ -261,6 +261,7 @@ function publicModule(module) {
     title: module.title,
     body: module.body,
     lesson: module.lesson,
+    operatorBrief: module.operatorBrief,
     todos: module.todos.map((todo) => ({ key: todo.key, label: todo.label })),
     done: module.done,
   };

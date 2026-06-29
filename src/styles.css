@@ -2968,6 +2968,44 @@ button {
   transition: width 180ms ease;
 }
 
+.module-operator-brief {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.module-operator-brief.compact {
+  grid-template-columns: 1fr;
+  margin-top: 12px;
+}
+
+.module-operator-brief article {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(97, 227, 109, 0.16);
+  border-radius: 7px;
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.module-operator-brief span {
+  display: block;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.module-operator-brief strong {
+  display: block;
+  margin-top: 5px;
+  color: #f3fbf5;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .roadmap-list {
   display: grid;
   gap: 10px;
@@ -3666,6 +3704,7 @@ button {
   .member-start-path,
   .member-lesson-detail,
   .lesson-output-grid,
+  .module-operator-brief,
   .member-proof-builder,
   .proof-builder-panel,
   .member-workbench,

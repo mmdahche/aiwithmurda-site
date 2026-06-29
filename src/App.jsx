@@ -2036,6 +2036,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
               <h2>{nextMemberTask.module.title.replace(/^Module \d+: /, "")}</h2>
               <p>{nextMemberTask.todo.label}</p>
               <em>{nextMemberTask.module.done}</em>
+              <ModuleOperatorBrief brief={nextMemberTask.module.operatorBrief} compact />
             </>
           ) : (
             <>
@@ -2138,6 +2139,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                     <strong>{activeModule.lesson.output}</strong>
                   </article>
                 </div>
+                <ModuleOperatorBrief brief={activeModule.operatorBrief} />
                 <div className="lesson-depth-grid">
                   <article>
                     <span>Deliverables</span>
@@ -2342,6 +2344,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                   <small>{moduleProgress.completed}/{moduleProgress.total} tasks complete</small>
                 </div>
                 <p>{module.lesson.focus}</p>
+                <ModuleOperatorBrief brief={module.operatorBrief} compact />
                 <div className="workbench-assets">
                   {module.lesson.useWith.map((asset) => (
                     <em key={asset}>{asset}</em>
@@ -2450,6 +2453,28 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
         </div>
       </section>
     </section>
+  );
+}
+
+function ModuleOperatorBrief({ brief, compact = false }) {
+  if (!brief) return null;
+
+  const items = [
+    ["Window", brief.window],
+    ["Mode", brief.mode],
+    ["Proof", brief.proof],
+    ["Stream beat", brief.streamBeat],
+  ];
+
+  return (
+    <div className={`module-operator-brief ${compact ? "compact" : ""}`}>
+      {items.map(([label, value]) => (
+        <article key={label}>
+          <span>{label}</span>
+          <strong>{value}</strong>
+        </article>
+      ))}
+    </div>
   );
 }
 

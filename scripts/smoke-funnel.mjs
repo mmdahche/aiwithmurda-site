@@ -102,6 +102,10 @@ try {
       module.lesson.proofQuestions.length < 3 ||
       !Array.isArray(module.lesson?.failureTraps) ||
       module.lesson.failureTraps.length < 3 ||
+      !module.operatorBrief?.window ||
+      !module.operatorBrief?.mode ||
+      !module.operatorBrief?.proof ||
+      !module.operatorBrief?.streamBeat ||
       !Array.isArray(module.todos),
   );
   if (moduleWithoutLesson) {
@@ -151,6 +155,7 @@ try {
   if (
     !fieldGuideText.includes("Module deliverables:") ||
     !fieldGuideText.includes("Proof questions:") ||
+    !fieldGuideText.includes("Operator brief:") ||
     !fieldGuideText.includes("Traps to avoid:")
   ) {
     throw new Error("Module field guide is missing generated lesson depth sections");
@@ -195,11 +200,13 @@ try {
           profileLookup: true,
           productAssetsExposed: true,
           productModulesExposed: true,
+          moduleOperatorBriefsExposed: true,
           buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           launchDayRunbookExposed: true,
           generatedFieldGuideDepth: true,
+          generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledFieldGuideDownload: true,

@@ -10,6 +10,12 @@ Focus: Set up the operating surface so every build, prompt, proof asset, and off
 
 Proof output: Command folder screenshot and first baseline entry.
 
+Operator brief:
+- Window: Day 0 to Day 1
+- Mode: Setup sprint
+- Proof: Folder tree screenshot, baseline tracker row, and named first offer lane.
+- Stream beat: Show the command center setup without exposing private accounts, keys, customer data, or family details.
+
 To-do:
 - [ ] Create the command folder structure.
 - [ ] Open the tracker and set today's baseline.
@@ -41,6 +47,12 @@ Objective: Choose a painful workflow, define the smallest useful fix, and name t
 Focus: Pick a workflow people understand quickly and define proof before touching code.
 
 Proof output: One before-state receipt with pain, buyer, and proof metric.
+
+Operator brief:
+- Window: Days 1 to 3
+- Mode: Problem selection
+- Proof: One painful workflow scored by buyer pain, proof speed, viewer clarity, and money path.
+- Stream beat: Let viewers see the scoring logic so the build feels chosen, not random.
 
 To-do:
 - [ ] List 10 painful workflows or bottlenecks.
@@ -74,6 +86,12 @@ Focus: Use AI as the build partner, but keep scope narrow enough to test live.
 
 Proof output: A working slice with before/after proof and a short explanation.
 
+Operator brief:
+- Window: Days 3 to 5
+- Mode: Live build loop
+- Proof: Working slice, tested user path, and one commit or handoff another AI can resume.
+- Stream beat: Narrate the before state, the stuck point, the AI handoff, and the visible after state.
+
 To-do:
 - [ ] Ask AI to inspect before changing anything.
 - [ ] Scope one build slice that can be shown today.
@@ -106,6 +124,12 @@ Focus: Package the work so viewers see what changed, what broke, and why it matt
 
 Proof output: One day receipt plus one public asset.
 
+Operator brief:
+- Window: Same day as each build
+- Mode: Proof packaging
+- Proof: Daily receipt, clip hook, recap note, and one public asset.
+- Stream beat: Turn the best moment, the failure, and the lesson into a receipt before shutdown.
+
 To-do:
 - [ ] Capture before and after proof.
 - [ ] Log best moment, biggest failure, lesson, and tomorrow's promise.
@@ -137,6 +161,12 @@ Objective: Connect proof to a simple offer so the sprint has a money path, not j
 Focus: Translate proof into a buyer promise, CTA, objection answer, and follow-up.
 
 Proof output: One improved offer surface and one logged result.
+
+Operator brief:
+- Window: Weekly review and proof spikes
+- Mode: Offer conversion
+- Proof: Improved CTA, answered objection, sent follow-up, and logged commercial result.
+- Stream beat: Explain how one receipt changes the offer instead of letting proof stay as content only.
 
 To-do:
 - [ ] Improve one CTA or checkout promise.

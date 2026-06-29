@@ -10,6 +10,12 @@ Focus: Set up the operating surface so every build, prompt, proof asset, and off
 
 Output: Command folder screenshot and first baseline entry.
 
+Operator brief:
+- Window: Day 0 to Day 1
+- Mode: Setup sprint
+- Proof: Folder tree screenshot, baseline tracker row, and named first offer lane.
+- Stream beat: Show the command center setup without exposing private accounts, keys, customer data, or family details.
+
 Operating question:
 
 > If I had to start live tomorrow with no warmup, where would every file, number, prompt, and proof receipt go?
@@ -64,6 +70,12 @@ You can start a build day without searching for files, links, or the next action
 Focus: Pick a workflow people understand quickly and define proof before touching code.
 
 Output: One before-state receipt with pain, buyer, and proof metric.
+
+Operator brief:
+- Window: Days 1 to 3
+- Mode: Problem selection
+- Proof: One painful workflow scored by buyer pain, proof speed, viewer clarity, and money path.
+- Stream beat: Let viewers see the scoring logic so the build feels chosen, not random.
 
 Operating question:
 
@@ -140,6 +152,12 @@ Focus: Use AI as the build partner, but keep scope narrow enough to test live.
 
 Output: A working slice with before/after proof and a short explanation.
 
+Operator brief:
+- Window: Days 3 to 5
+- Mode: Live build loop
+- Proof: Working slice, tested user path, and one commit or handoff another AI can resume.
+- Stream beat: Narrate the before state, the stuck point, the AI handoff, and the visible after state.
+
 Operating question:
 
 > What is the smallest visible improvement I can ship today without pretending the entire system is finished?
@@ -197,6 +215,12 @@ Focus: Package the work so viewers see what changed, what broke, and why it matt
 
 Output: One day receipt plus one public asset.
 
+Operator brief:
+- Window: Same day as each build
+- Mode: Proof packaging
+- Proof: Daily receipt, clip hook, recap note, and one public asset.
+- Stream beat: Turn the best moment, the failure, and the lesson into a receipt before shutdown.
+
 Operating question:
 
 > How do I turn today's build into a receipt that makes the work obvious to someone who missed the stream?
@@ -252,6 +276,12 @@ The day produced a receipt page and at least one asset that points back to the s
 Focus: Translate proof into a buyer promise, CTA, objection answer, and follow-up.
 
 Output: One improved offer surface and one logged result.
+
+Operator brief:
+- Window: Weekly review and proof spikes
+- Mode: Offer conversion
+- Proof: Improved CTA, answered objection, sent follow-up, and logged commercial result.
+- Stream beat: Explain how one receipt changes the offer instead of letting proof stay as content only.
 
 Operating question:
 

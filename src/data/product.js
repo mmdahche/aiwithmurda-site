@@ -30,6 +30,12 @@ export const productModules = [
         "Tracking vanity activity without the money path beside it.",
       ],
     },
+    operatorBrief: {
+      window: "Day 0 to Day 1",
+      mode: "Setup sprint",
+      proof: "Folder tree screenshot, baseline tracker row, and named first offer lane.",
+      streamBeat: "Show the command center setup without exposing private accounts, keys, customer data, or family details.",
+    },
     todos: [
       { key: "command-folders", label: "Create the command folder structure." },
       { key: "baseline-tracker", label: "Open the tracker and set today's baseline." },
@@ -63,6 +69,12 @@ export const productModules = [
         "Choosing a problem because it sounds impressive, not because it is provable.",
         "Coding before naming what proof will count.",
       ],
+    },
+    operatorBrief: {
+      window: "Days 1 to 3",
+      mode: "Problem selection",
+      proof: "One painful workflow scored by buyer pain, proof speed, viewer clarity, and money path.",
+      streamBeat: "Let viewers see the scoring logic so the build feels chosen, not random.",
     },
     todos: [
       { key: "workflow-list", label: "List 10 painful workflows or bottlenecks." },
@@ -98,6 +110,12 @@ export const productModules = [
         "Skipping a save point and losing the teachable version.",
       ],
     },
+    operatorBrief: {
+      window: "Days 3 to 5",
+      mode: "Live build loop",
+      proof: "Working slice, tested user path, and one commit or handoff another AI can resume.",
+      streamBeat: "Narrate the before state, the stuck point, the AI handoff, and the visible after state.",
+    },
     todos: [
       { key: "inspect-first", label: "Ask AI to inspect before changing anything." },
       { key: "scope-slice", label: "Scope one build slice that can be shown today." },
@@ -132,6 +150,12 @@ export const productModules = [
         "Waiting until the next day when the moment is stale.",
       ],
     },
+    operatorBrief: {
+      window: "Same day as each build",
+      mode: "Proof packaging",
+      proof: "Daily receipt, clip hook, recap note, and one public asset.",
+      streamBeat: "Turn the best moment, the failure, and the lesson into a receipt before shutdown.",
+    },
     todos: [
       { key: "capture-proof", label: "Capture before and after proof." },
       { key: "log-receipt", label: "Log best moment, biggest failure, lesson, and tomorrow's promise." },
@@ -165,6 +189,12 @@ export const productModules = [
         "Making the CTA clever but unclear.",
         "Avoiding follow-up because the public post felt like enough.",
       ],
+    },
+    operatorBrief: {
+      window: "Weekly review and proof spikes",
+      mode: "Offer conversion",
+      proof: "Improved CTA, answered objection, sent follow-up, and logged commercial result.",
+      streamBeat: "Explain how one receipt changes the offer instead of letting proof stay as content only.",
     },
     todos: [
       { key: "improve-cta", label: "Improve one CTA or checkout promise." },

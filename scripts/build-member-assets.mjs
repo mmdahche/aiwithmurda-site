@@ -157,6 +157,12 @@ Focus: ${module.lesson.focus}
 
 Proof output: ${module.lesson.output}
 
+Operator brief:
+- Window: ${module.operatorBrief.window}
+- Mode: ${module.operatorBrief.mode}
+- Proof: ${module.operatorBrief.proof}
+- Stream beat: ${module.operatorBrief.streamBeat}
+
 To-do:
 ${checkboxList(module.todos)}
 
@@ -201,6 +207,12 @@ function renderFieldGuide() {
 Focus: ${module.lesson.focus}
 
 Output: ${module.lesson.output}
+
+Operator brief:
+- Window: ${module.operatorBrief.window}
+- Mode: ${module.operatorBrief.mode}
+- Proof: ${module.operatorBrief.proof}
+- Stream beat: ${module.operatorBrief.streamBeat}
 
 Operating question:
 
