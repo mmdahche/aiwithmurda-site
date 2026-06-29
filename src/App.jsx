@@ -203,6 +203,145 @@ const firstWeekStreamArc = [
   },
 ];
 
+const firstWeekDailyRunSheets = {
+  1: {
+    theme: "Baseline receipt",
+    goal: "Launch the sprint and publish the first clean baseline receipt.",
+    streamBeat: "Open with the family-overseas premise, the 60-day rules, and the scoreboard baseline.",
+    proofTarget: "One clean Day 1 dashboard row, first daily receipt page, and first visible setup proof.",
+    cta: "!start for daily receipts, then !scoreboard when numbers are on screen.",
+    shutdown: [
+      "Sync Day 1 to the public dashboard.",
+      "Open /day/1 and confirm the receipt reads correctly.",
+      "Export the proof deck after the first slide updates.",
+    ],
+  },
+  2: {
+    theme: "Problem pick",
+    goal: "Pick the first painful workflow that can become proof quickly.",
+    streamBeat: "Score candidate workflows live so viewers see why the first build is chosen.",
+    proofTarget: "One workflow scored by proof speed, buyer pain, viewer clarity, and money path.",
+    cta: "!kit when the workflow connects to the Future Proof Method.",
+    shutdown: [
+      "Save the scored workflow list.",
+      "Write the before-state receipt.",
+      "Name tomorrow's smallest build slice.",
+    ],
+  },
+  3: {
+    theme: "Narrow build",
+    goal: "Ship one visible AI-assisted improvement without expanding scope.",
+    streamBeat: "Show the before state, let AI inspect, build one slice, and test the real path.",
+    proofTarget: "Working slice, tested user path, and one save point another AI can resume.",
+    cta: "!scoreboard after the tested path works.",
+    shutdown: [
+      "Commit or save the working version.",
+      "Capture the before/after proof.",
+      "Log the bug or mistake that made the lesson believable.",
+    ],
+  },
+  4: {
+    theme: "Proof package",
+    goal: "Turn the build into a receipt, clip hook, and one public asset.",
+    streamBeat: "Make the stream about packaging the best moment, not pretending the build is the whole job.",
+    proofTarget: "Daily receipt, clip hook, recap note, and one public asset.",
+    cta: "!today after the receipt is live, then !start for daily receipts.",
+    shutdown: [
+      "Publish or schedule one asset.",
+      "Update shipped items and proof assets.",
+      "Export the deck so the daily slide is captured.",
+    ],
+  },
+  5: {
+    theme: "Offer tighten",
+    goal: "Use the strongest receipt to improve one offer promise or CTA.",
+    streamBeat: "Explain how proof changes the pitch, objection, and next ask.",
+    proofTarget: "Improved CTA, answered objection, sent follow-up, and logged commercial result.",
+    cta: "!kit during offer review and after any buyer objection gets answered.",
+    shutdown: [
+      "Log revenue, pipeline, replies, or objections.",
+      "Save the before/after offer copy.",
+      "Pick one warm follow-up for tomorrow.",
+    ],
+  },
+  6: {
+    theme: "Distribution day",
+    goal: "Push the best proof into clips, posts, email, and follow-up.",
+    streamBeat: "Show the receipt becoming distribution assets instead of another hidden note.",
+    proofTarget: "One clip, one recap, one email or post, and one follow-up sent.",
+    cta: "!start for daily receipts and !kit after the proof-to-offer explanation.",
+    shutdown: [
+      "Add links to proof assets.",
+      "Record what distribution channel moved.",
+      "Name the strongest asset for weekly review.",
+    ],
+  },
+  7: {
+    theme: "Weekly verdict",
+    goal: "Review the first week and choose what gets doubled down.",
+    streamBeat: "Run the scoreboard, best proof, biggest miss, best jump, and next weekly bet.",
+    proofTarget: "Best proof, biggest jump, biggest miss, offer change, and next-week bet.",
+    cta: "!scoreboard for the review, then !kit for the operating system behind it.",
+    shutdown: [
+      "Export the proof deck.",
+      "Log the weekly verdict in tomorrow's promise.",
+      "Choose the next week's first build lane.",
+    ],
+  },
+};
+
+const weeklyDailyRunSheetPattern = [
+  {
+    theme: "Weekly setup",
+    goal: "Set the week's bet and clean the operating surface.",
+    streamBeat: "Open the week with what changed, what still matters, and the first proof target.",
+    proofTarget: "One weekly bet, one baseline row, and one specific proof target.",
+    cta: "!scoreboard for the baseline, then !start for receipts.",
+  },
+  {
+    theme: "Problem selection",
+    goal: "Choose the next painful workflow or bottleneck.",
+    streamBeat: "Score options live and let the audience understand the tradeoff.",
+    proofTarget: "One selected workflow with buyer pain, proof speed, and money path.",
+    cta: "!kit when the method explains the decision.",
+  },
+  {
+    theme: "Build slice",
+    goal: "Ship one narrow working improvement.",
+    streamBeat: "Move from before state to tested after state without hiding the stuck point.",
+    proofTarget: "Working slice, tested path, and saved handoff or commit.",
+    cta: "!today when the receipt exists.",
+  },
+  {
+    theme: "Proof packaging",
+    goal: "Turn the work into a daily receipt and public asset.",
+    streamBeat: "Package the best moment, failure, and lesson before shutdown.",
+    proofTarget: "Daily receipt, clip hook, recap note, and one public asset.",
+    cta: "!start for daily receipts.",
+  },
+  {
+    theme: "Offer move",
+    goal: "Connect the strongest proof to a clearer offer or follow-up.",
+    streamBeat: "Show how the receipt changes the pitch or objection answer.",
+    proofTarget: "Improved CTA, answered objection, and one commercial result logged.",
+    cta: "!kit after the offer loop is clear.",
+  },
+  {
+    theme: "Distribution push",
+    goal: "Send the best proof into clips, posts, email, and outreach.",
+    streamBeat: "Turn proof into distribution while tracking what actually moves.",
+    proofTarget: "At least one asset published or scheduled and one follow-up sent.",
+    cta: "!today for the receipt and !scoreboard for movement.",
+  },
+  {
+    theme: "Weekly verdict",
+    goal: "Review the scoreboard and decide what gets doubled down.",
+    streamBeat: "Run best proof, biggest jump, biggest miss, offer change, and next bet.",
+    proofTarget: "Weekly verdict captured in the proof deck and next-day promise.",
+    cta: "!scoreboard during the review.",
+  },
+];
+
 const fallbackStreamConfig = {
   status: "prelaunch",
   statusLabel: "Prelaunch room",
@@ -2102,15 +2241,14 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
 
   async function handleCopyPrompt(module) {
     const prompt = module.lesson?.starterPrompt;
-    if (!prompt || !navigator.clipboard) return;
+    if (!prompt) return;
 
-    try {
-      await navigator.clipboard.writeText(prompt);
+    if (await copyPlainText(prompt)) {
       setCopiedPromptKey(module.key);
       window.setTimeout(() => {
         setCopiedPromptKey((current) => (current === module.key ? "" : current));
       }, 1600);
-    } catch {
+    } else {
       setCopiedPromptKey("");
     }
   }
@@ -2805,6 +2943,18 @@ function DailyLog({
 }) {
   const gains = getDayGains(logs, selectedRecord);
   const selectedDirty = dirtyDays.includes(selectedRecord.day);
+  const dailyRunSheet = getDailyRunSheet(selectedRecord, config);
+  const dailyRunSheetText = formatDailyRunSheet(selectedRecord, dailyRunSheet);
+  const [runSheetCopyStatus, setRunSheetCopyStatus] = useState("idle");
+
+  async function copyRunSheet() {
+    if (await copyPlainText(dailyRunSheetText)) {
+      setRunSheetCopyStatus("copied");
+      window.setTimeout(() => setRunSheetCopyStatus("idle"), 1800);
+    } else {
+      setRunSheetCopyStatus("manual");
+    }
+  }
 
   return (
     <section className="workspace-view">
@@ -2960,6 +3110,47 @@ function DailyLog({
         </article>
 
         <aside className="panel log-side">
+          <section className="daily-run-sheet">
+            <PanelTitle icon="calendar" title="Daily Run Sheet" right={`Day ${selectedRecord.day}`} />
+            <span className="run-sheet-phase">{dailyRunSheet.label}</span>
+            <h3>{dailyRunSheet.goal}</h3>
+            <div className="run-sheet-block">
+              <span>Stream beat</span>
+              <p>{dailyRunSheet.streamBeat}</p>
+            </div>
+            <div className="run-sheet-block">
+              <span>Proof target</span>
+              <p>{dailyRunSheet.proofTarget}</p>
+            </div>
+            <div className="run-sheet-block">
+              <span>Chat CTA</span>
+              <p>{dailyRunSheet.cta}</p>
+            </div>
+            <div className="run-sheet-block">
+              <span>Shutdown</span>
+              <ul>
+                {dailyRunSheet.shutdown.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <button type="button" className="primary-action" onClick={copyRunSheet}>
+              {runSheetCopyStatus === "copied"
+                ? "Copied run sheet"
+                : runSheetCopyStatus === "manual"
+                  ? "Manual copy ready"
+                  : "Copy run sheet"}
+            </button>
+            {runSheetCopyStatus === "manual" ? (
+              <textarea
+                aria-label="Run sheet text"
+                className="run-sheet-copy-box"
+                readOnly
+                value={dailyRunSheetText}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            ) : null}
+          </section>
           <PanelTitle icon="chart" title={`Day ${selectedRecord.day} Delta`} />
           <DeltaList gains={gains} />
           <Field
@@ -3730,6 +3921,80 @@ function buildSprintChecklist(record) {
     { label: "Log lesson", done: Boolean(record.lessonLearned) },
     { label: "Generate slide", done: Boolean(record.bestMoment && record.tomorrowPromise) },
   ];
+}
+
+function getDailyRunSheet(record, config) {
+  const day = Number(record?.day || 1);
+  const firstWeekGuide = firstWeekDailyRunSheets[day];
+  const patternGuide = weeklyDailyRunSheetPattern[(day - 1) % weeklyDailyRunSheetPattern.length];
+  const guide = firstWeekGuide || patternGuide;
+  const week = Math.max(1, Math.ceil(day / 7));
+
+  return {
+    ...guide,
+    label: firstWeekGuide ? `First week / ${guide.theme}` : `Week ${week} / ${guide.theme}`,
+    shutdown: guide.shutdown || [
+      `Sync Day ${day} to the public dashboard.`,
+      `Open /day/${day} and confirm the receipt reads correctly.`,
+      "Export the proof deck and check the weekly summary.",
+    ],
+    day,
+    totalDays: config.totalDays,
+  };
+}
+
+function formatDailyRunSheet(record, guide) {
+  return [
+    `Day ${guide.day} / ${guide.totalDays} Run Sheet`,
+    `Date: ${record.date}`,
+    `Phase: ${guide.label}`,
+    "",
+    `Goal: ${guide.goal}`,
+    "",
+    `Stream beat: ${guide.streamBeat}`,
+    `Proof target: ${guide.proofTarget}`,
+    `Chat CTA: ${guide.cta}`,
+    "",
+    "Shutdown:",
+    ...guide.shutdown.map((item) => `- ${item}`),
+    "",
+    `Current log goal: ${record.mainGoal || "Not set"}`,
+    `Tomorrow promise: ${record.tomorrowPromise || "Not set"}`,
+  ].join("\n");
+}
+
+async function copyPlainText(text) {
+  if (!text) return false;
+
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to the manual copy path for embedded browsers.
+    }
+  }
+
+  if (typeof document === "undefined") return false;
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  textarea.style.left = "-1000px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+  }
 }
 
 function platformLabel(platform) {

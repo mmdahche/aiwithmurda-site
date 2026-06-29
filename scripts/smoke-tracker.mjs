@@ -74,6 +74,9 @@ const liveBundle = await fetchClientBundle(liveHtml, "Live route", siteUrl);
 if (!liveBundle.includes("Week 1 stream arc")) {
   throw new Error("Live route client bundle missing Week 1 stream arc");
 }
+if (!liveBundle.includes("Daily Run Sheet")) {
+  throw new Error("Client bundle missing Daily Run Sheet");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -154,6 +157,7 @@ console.log(
         publicToolsRoute: true,
         publicLiveRoute: true,
         publicLiveWeekOneArc: true,
+        adminDailyRunSheetBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
