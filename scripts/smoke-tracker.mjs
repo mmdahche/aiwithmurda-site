@@ -6,6 +6,26 @@ async function fetchJson(url, options = {}) {
   return { response, data };
 }
 
+async function fetchClientBundle(appHtml, routeName, siteUrl) {
+  const scriptMatch =
+    appHtml.match(/<script[^>]+type=["']module["'][^>]+src=["']([^"']+)["']/) ||
+    appHtml.match(/<script[^>]+src=["']([^"']+)["'][^>]+type=["']module["']/);
+
+  if (!scriptMatch) {
+    throw new Error(`${routeName} client bundle missing`);
+  }
+
+  const bundleUrl = new URL(scriptMatch[1], siteUrl).toString();
+  const response = await fetch(bundleUrl);
+  const bundle = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`${routeName} client bundle failed: ${response.status}`);
+  }
+
+  return bundle;
+}
+
 const env = loadEnv();
 const siteUrl = getSiteUrl(env);
 const adminToken = requireEnv(env, "ADMIN_API_TOKEN");
@@ -47,8 +67,12 @@ if (!toolsResponse.ok || !toolsHtml.includes("root")) {
 
 const liveResponse = await fetch(`${siteUrl}/live/`);
 const liveHtml = await liveResponse.text();
-if (!liveResponse.ok || !liveHtml.includes("root") || !liveHtml.includes("Week 1 stream arc")) {
+if (!liveResponse.ok || !liveHtml.includes("root")) {
   throw new Error(`Live route failed: ${liveResponse.status}`);
+}
+const liveBundle = await fetchClientBundle(liveHtml, "Live route", siteUrl);
+if (!liveBundle.includes("Week 1 stream arc")) {
+  throw new Error("Live route client bundle missing Week 1 stream arc");
 }
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
@@ -129,6 +153,7 @@ console.log(
         publicDashboardRoute: true,
         publicToolsRoute: true,
         publicLiveRoute: true,
+        publicLiveWeekOneArc: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
