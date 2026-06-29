@@ -15,6 +15,18 @@ if (!publicLogs.response.ok || !Array.isArray(publicLogs.data?.logs)) {
   throw new Error(`Public daily logs failed: ${publicLogs.response.status} ${JSON.stringify(publicLogs.data)}`);
 }
 
+const robotsResponse = await fetch(`${siteUrl}/robots.txt`);
+const robotsText = await robotsResponse.text();
+if (!robotsResponse.ok || !robotsText.includes("Sitemap: https://aiwithmurda.com/sitemap.xml")) {
+  throw new Error(`Robots route failed: ${robotsResponse.status}`);
+}
+
+const sitemapResponse = await fetch(`${siteUrl}/sitemap.xml`);
+const sitemapText = await sitemapResponse.text();
+if (!sitemapResponse.ok || !sitemapText.includes("https://aiwithmurda.com/kit")) {
+  throw new Error(`Sitemap route failed: ${sitemapResponse.status}`);
+}
+
 const dashboardResponse = await fetch(`${siteUrl}/60/`);
 const dashboardHtml = await dashboardResponse.text();
 if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
@@ -105,6 +117,8 @@ console.log(
       siteUrl,
       checks: {
         publicLogsReadable: true,
+        robotsReadable: true,
+        sitemapReadable: true,
         publicDashboardRoute: true,
         publicToolsRoute: true,
         publicLiveRoute: true,
