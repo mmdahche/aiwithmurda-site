@@ -213,6 +213,27 @@ const launchChecklistItems = [
     body: "The member hub now points buyers through Quickstart, Module Field Guide, Module 1, and the first tracked task.",
   },
   {
+    title: "Module lesson depth",
+    status: "done",
+    owner: "System",
+    signal: "Deliverables + proof questions",
+    body: "Each paid module now has outputs, to-do lists, deliverables, proof questions, and traps to avoid.",
+  },
+  {
+    title: "Generated member assets",
+    status: "done",
+    owner: "System",
+    signal: "Roadmap + field guide",
+    body: "The Module Roadmap and Module Field Guide are generated from the product module source so downloads stay aligned.",
+  },
+  {
+    title: "Proof receipt builder",
+    status: "done",
+    owner: "System",
+    signal: "Module-linked export",
+    body: "Members can turn module work into a markdown receipt with progress, completed tasks, proof, lesson, and next move.",
+  },
+  {
     title: "Buyer onboarding sequence",
     status: "done",
     owner: "System",
