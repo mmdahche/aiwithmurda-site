@@ -261,11 +261,32 @@ const launchChecklistItems = [
     body: "Viewers can reach the scoreboard, live hub, daily receipts, overlay, kit, and member hub from public command links.",
   },
   {
+    title: "Launch copy pack",
+    status: "done",
+    owner: "System",
+    signal: "Pinned chat + CTAs",
+    body: "Members get stream scripts, pinned commands, daily receipt captions, email copy, objections, and follow-up language.",
+  },
+  {
     title: "OBS browser routes",
     status: "done",
     owner: "System",
     signal: "/overlay + /obs",
     body: "The stream overlay has direct browser-source URLs with production route smoke coverage.",
+  },
+  {
+    title: "Public discovery and identity",
+    status: "done",
+    owner: "System",
+    signal: "SEO + browser assets",
+    body: "The site has robots, sitemap, favicon, web manifest, and social metadata for the public launch domain.",
+  },
+  {
+    title: "Launch verification loop",
+    status: "done",
+    owner: "System",
+    signal: "smoke:launch",
+    body: "One command now checks public routes, stream commands, signup, and the paid member funnel before launch.",
   },
   {
     title: "Day 1 baseline",
@@ -296,6 +317,86 @@ const launchChecklistItems = [
     body: "Run one live Backbone Stripe purchase, verify entitlement, and refund only if needed.",
   },
 ];
+
+const readinessMeta = {
+  "Domain, DNS, and Render": { category: "website", weight: 2 },
+  "Audience capture": { category: "audience", weight: 1.2 },
+  "Paid kit path": { category: "offer", weight: 1.6 },
+  "Member activation path": { category: "product", weight: 1.4 },
+  "Module lesson depth": { category: "product", weight: 1.2 },
+  "Generated member assets": { category: "product", weight: 1 },
+  "Proof receipt builder": { category: "product", weight: 1 },
+  "Buyer onboarding sequence": { category: "audience", weight: 1 },
+  "Offer Ops roster": { category: "dashboard", weight: 1 },
+  "Command shelf and receipts": { category: "stream", weight: 1 },
+  "Launch copy pack": { category: "offer", weight: 1 },
+  "OBS browser routes": { category: "stream", weight: 1 },
+  "Public discovery and identity": { category: "website", weight: 1 },
+  "Launch verification loop": { category: "qa", weight: 1.4 },
+  "Day 1 baseline": { category: "dashboard", weight: 1.3 },
+  "Live room links": { category: "stream", weight: 1.6 },
+  "OBS overlay rehearsal": { category: "stream", weight: 1.6 },
+  "Real purchase test": { category: "offer", weight: 2 },
+};
+
+const readinessCategoryLabels = {
+  website: "Website",
+  dashboard: "Dashboard",
+  stream: "Stream",
+  product: "Modules",
+  offer: "Offer",
+  audience: "Audience",
+  qa: "QA",
+};
+
+const readinessStatusScores = {
+  done: 1,
+  queued: 0.55,
+  manual: 0,
+};
+
+function buildLaunchReadiness(items) {
+  const categories = new Map();
+  let totalWeight = 0;
+  let earnedWeight = 0;
+
+  for (const item of items) {
+    const meta = readinessMeta[item.title] || { category: "qa", weight: 1 };
+    const score = readinessStatusScores[item.status] ?? 0;
+    const category = categories.get(meta.category) || {
+      key: meta.category,
+      label: readinessCategoryLabels[meta.category] || meta.category,
+      total: 0,
+      earned: 0,
+      items: 0,
+    };
+
+    category.total += meta.weight;
+    category.earned += meta.weight * score;
+    category.items += 1;
+    categories.set(meta.category, category);
+
+    totalWeight += meta.weight;
+    earnedWeight += meta.weight * score;
+  }
+
+  const blockers = items
+    .filter((item) => item.status !== "done")
+    .map((item) => ({ ...item, ...(readinessMeta[item.title] || { category: "qa", weight: 1 }) }))
+    .sort((a, b) => {
+      const statusPriority = { manual: 0, queued: 1 };
+      return (statusPriority[a.status] ?? 2) - (statusPriority[b.status] ?? 2) || b.weight - a.weight;
+    });
+
+  return {
+    percent: totalWeight ? Math.round((earnedWeight / totalWeight) * 100) : 0,
+    categories: [...categories.values()].map((category) => ({
+      ...category,
+      percent: category.total ? Math.round((category.earned / category.total) * 100) : 0,
+    })),
+    blockers,
+  };
+}
 
 function getRoute() {
   const normalized = window.location.pathname.replace(/\/+$/, "");
@@ -2914,8 +3015,10 @@ function SettingsView({
 }) {
   const latest = getLatestRecord(logs);
   const mode = getPublicDataMode(config);
+  const launchReadiness = buildLaunchReadiness(launchChecklistItems);
   const launchReadyCount = launchChecklistItems.filter((item) => item.status === "done").length;
   const launchManualCount = launchChecklistItems.filter((item) => item.status === "manual").length;
+  const launchQueuedCount = launchChecklistItems.filter((item) => item.status === "queued").length;
   const streamDestinations = streamConfig?.destinations || fallbackStreamConfig.destinations;
   const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
   const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
@@ -2950,11 +3053,46 @@ function SettingsView({
 
       <div className="settings-grid">
         <article className="panel launch-readiness-panel">
-          <PanelTitle icon="calendar" title="Launch Readiness" right={`${launchReadyCount}/${launchChecklistItems.length} ready`} />
+          <PanelTitle icon="calendar" title="Launch Readiness" right={`${launchReadiness.percent}% ready`} />
+          <div className="launch-score-card">
+            <div>
+              <span className="panel-kicker">Overall launch system</span>
+              <strong>{launchReadiness.percent}%</strong>
+              <p>
+                Weighted by launch risk. Manual gates like OBS rehearsal and a real Backbone purchase
+                count more than normal checklist items.
+              </p>
+            </div>
+            <div className="launch-score-meter" aria-label={`${launchReadiness.percent}% launch ready`}>
+              <i style={{ width: `${launchReadiness.percent}%` }} />
+            </div>
+          </div>
           <div className="launch-readiness-summary">
             <KeyValue label="Ready" value={formatNumber(launchReadyCount)} positive />
-            <KeyValue label="Queued" value={formatNumber(launchChecklistItems.length - launchReadyCount - launchManualCount)} />
+            <KeyValue label="Queued" value={formatNumber(launchQueuedCount)} />
             <KeyValue label="Needs Murad" value={formatNumber(launchManualCount)} />
+          </div>
+          <div className="launch-category-grid">
+            {launchReadiness.categories.map((category) => (
+              <div key={category.key}>
+                <div>
+                  <span>{category.label}</span>
+                  <strong>{category.percent}%</strong>
+                </div>
+                <i>
+                  <b style={{ width: `${category.percent}%` }} />
+                </i>
+              </div>
+            ))}
+          </div>
+          <div className="launch-blocker-strip">
+            {launchReadiness.blockers.map((item) => (
+              <div key={item.title} className={item.status}>
+                <span>{readinessCategoryLabels[item.category] || item.category}</span>
+                <strong>{item.title}</strong>
+                <p>{item.signal}</p>
+              </div>
+            ))}
           </div>
           <div className="launch-checklist">
             {launchChecklistItems.map((item) => (
