@@ -1728,7 +1728,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const [downloadState, setDownloadState] = useState({});
   const [copiedPromptKey, setCopiedPromptKey] = useState("");
   const [proofDraft, setProofDraft] = useState(() => ({
-    moduleKey: productModules[0]?.key || "",
+    moduleKey: activeModuleKey || productModules[0]?.key || "",
     before: "",
     after: "",
     proofLink: "",
@@ -1773,6 +1773,13 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       cancelled = true;
     };
   }, [accessToken]);
+
+  useEffect(() => {
+    if (!activeModuleKey || !productModules.some((module) => module.key === activeModuleKey)) return;
+    setProofDraft((current) =>
+      current.moduleKey === activeModuleKey ? current : { ...current, moduleKey: activeModuleKey },
+    );
+  }, [activeModuleKey]);
 
   const completedTasks = useMemo(() => {
     return new Set(
@@ -1912,6 +1919,10 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const proofReceiptMarkdown = useMemo(() => {
     const receiptDate = new Date().toISOString().slice(0, 10);
     const fallback = (text) => text.trim() || "-";
+    const completedModuleTasks =
+      selectedProofModule?.todos
+        .filter((todo) => completedTasks.has(`${selectedProofModule.key}:${todo.key}`))
+        .map((todo) => `- ${todo.label}`) || [];
 
     return [
       "# Future Proof Method Receipt",
@@ -1920,6 +1931,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       `Operator: ${profile?.email || "member"}`,
       `Module: ${selectedProofModule?.title || "Not selected"}`,
       `Module progress: ${selectedProofProgress.completed}/${selectedProofProgress.total} tasks (${selectedProofProgress.percent}%)`,
+      "",
+      "## Completed tasks",
+      completedModuleTasks.length ? completedModuleTasks.join("\n") : "-",
       "",
       "## Before",
       fallback(proofDraft.before),
@@ -1947,6 +1961,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     profile?.email,
     proofDraft,
     selectedProofModule,
+    completedTasks,
     selectedProofProgress.completed,
     selectedProofProgress.percent,
     selectedProofProgress.total,
