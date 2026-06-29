@@ -14,6 +14,7 @@
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
     "smoke:stream": "node scripts/smoke-stream-config.mjs",
+    "assets:member": "node scripts/build-member-assets.mjs",
     "sync:seed-logs": "node scripts/sync-seed-logs.mjs",
     "baseline:launch": "node scripts/sync-launch-baseline.mjs",
     "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push"

@@ -145,6 +145,13 @@ try {
   if (!fieldGuideResponse.ok || !fieldGuideText.includes("The Future Proof Method - Module Field Guide")) {
     throw new Error(`Module field guide download failed: ${fieldGuideResponse.status} ${fieldGuideText.slice(0, 120)}`);
   }
+  if (
+    !fieldGuideText.includes("Module deliverables:") ||
+    !fieldGuideText.includes("Proof questions:") ||
+    !fieldGuideText.includes("Traps to avoid:")
+  ) {
+    throw new Error("Module field guide is missing generated lesson depth sections");
+  }
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -181,6 +188,7 @@ try {
           buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
+          generatedFieldGuideDepth: true,
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledFieldGuideDownload: true,
