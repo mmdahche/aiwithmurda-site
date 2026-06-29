@@ -3442,8 +3442,11 @@ function SettingsView({
   const [manualGateCopyStatus, setManualGateCopyStatus] = useState("idle");
   const streamDestinations = streamConfig?.destinations || fallbackStreamConfig.destinations;
   const streamPlatformDestinations = streamDestinations.filter((item) => ["main", "twitch", "kick", "youtube"].includes(item.key));
+  const streamCommands = streamConfig?.commands?.length ? streamConfig.commands : fallbackStreamConfig.commands;
   const configuredStreamCount = streamPlatformDestinations.filter((item) => item.configured).length;
-  const visibleStreamCommandCount = (streamConfig?.commands?.length || fallbackStreamConfig.commands.length) + 1;
+  const visibleStreamCommandCount = streamCommands.length + 1;
+  const streamCommandDeckText = formatStreamCommandDeck(streamConfig, streamPlatformDestinations, streamCommands);
+  const [streamCommandCopyStatus, setStreamCommandCopyStatus] = useState("idle");
   const offerOpsModules =
     offerOpsSummary?.progress?.moduleSummaries ||
     productModules.map((module) => ({
@@ -3466,6 +3469,15 @@ function SettingsView({
       window.setTimeout(() => setManualGateCopyStatus("idle"), 1800);
     } else {
       setManualGateCopyStatus("manual");
+    }
+  }
+
+  async function copyStreamCommandDeck() {
+    if (await copyPlainText(streamCommandDeckText)) {
+      setStreamCommandCopyStatus("copied");
+      window.setTimeout(() => setStreamCommandCopyStatus("idle"), 1800);
+    } else {
+      setStreamCommandCopyStatus("manual");
     }
   }
 
@@ -3765,6 +3777,39 @@ function SettingsView({
               </div>
             ))}
           </div>
+          <section className="stream-command-deck">
+            <div className="stream-command-deck-header">
+              <div>
+                <span>Stream Command Deck</span>
+                <strong>{visibleStreamCommandCount} public commands</strong>
+              </div>
+              <button type="button" onClick={copyStreamCommandDeck}>
+                {streamCommandCopyStatus === "copied"
+                  ? "Copied commands"
+                  : streamCommandCopyStatus === "manual"
+                    ? "Manual copy ready"
+                    : "Copy commands"}
+              </button>
+            </div>
+            <div className="stream-command-mini-list">
+              {streamCommands.map((item) => (
+                <article key={item.command}>
+                  <span>{item.command}</span>
+                  <strong>{item.label}</strong>
+                  <em>{item.href}</em>
+                </article>
+              ))}
+            </div>
+            {streamCommandCopyStatus === "manual" ? (
+              <textarea
+                aria-label="Stream command deck text"
+                className="run-sheet-copy-box"
+                readOnly
+                value={streamCommandDeckText}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            ) : null}
+          </section>
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />
@@ -4186,6 +4231,29 @@ function formatManualGateRunbook(items) {
       `Proof needed: ${item.proof}`,
       "",
     ]),
+  ].join("\n");
+}
+
+function formatStreamCommandDeck(streamConfig, destinations, commands) {
+  const primary = streamConfig?.primary;
+  const primaryTarget = primary?.href || "/live";
+  const destinationLines = destinations.map((item) => {
+    const target = item.href || item.status || "Waiting for link";
+    return `- ${item.name}: ${target}`;
+  });
+
+  return [
+    "AI with Murda Stream Command Deck",
+    "",
+    `Room status: ${streamConfig?.statusLabel || "Prelaunch room"}`,
+    `Primary room: ${primaryTarget}`,
+    "",
+    "Pinned commands:",
+    `- !live -> ${primaryTarget}`,
+    ...commands.map((item) => `- ${item.command} -> ${item.href} (${item.label})`),
+    "",
+    "Destinations:",
+    ...destinationLines,
   ].join("\n");
 }
 

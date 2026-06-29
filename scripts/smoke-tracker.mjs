@@ -83,6 +83,9 @@ if (!liveBundle.includes("Daily Clip Packet")) {
 if (!liveBundle.includes("Manual Gate Runbook")) {
   throw new Error("Client bundle missing Manual Gate Runbook");
 }
+if (!liveBundle.includes("Stream Command Deck")) {
+  throw new Error("Client bundle missing Stream Command Deck");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -166,6 +169,7 @@ console.log(
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,
         adminManualGateRunbookBundle: true,
+        adminStreamCommandDeckBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
