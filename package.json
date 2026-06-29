@@ -13,6 +13,7 @@
     "start": "node server/index.mjs",
     "smoke:funnel": "node scripts/smoke-funnel.mjs",
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
+    "smoke:deck": "node scripts/smoke-deck.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
     "smoke:stream": "node scripts/smoke-stream-config.mjs",
     "smoke:launch": "node scripts/smoke-launch.mjs",

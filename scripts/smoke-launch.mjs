@@ -5,6 +5,7 @@ const envFile = process.argv[2] ? path.resolve(process.argv[2]) : null;
 
 const checks = [
   { name: "tracker", script: "scripts/smoke-tracker.mjs" },
+  { name: "deck", script: "scripts/smoke-deck.mjs" },
   { name: "stream", script: "scripts/smoke-stream-config.mjs" },
   { name: "subscribe", script: "scripts/smoke-subscribe.mjs" },
   { name: "funnel", script: "scripts/smoke-funnel.mjs" },
