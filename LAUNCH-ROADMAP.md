@@ -78,6 +78,7 @@ Current second product state:
 - Checkout is wired through `POST /api/checkout/live-builds`.
 - Entitlement grants use product key `new_wave_live_builds`, separate from the Future Proof Method.
 - Active buyers see a live-build ticket hub in `/members` with first-room plan, buyer prep, candidate builds, and gated prep-pack downloads.
+- Room 001 queue is visible on `/live-builds` with follower ticker, clip-to-proof pipeline, and mini-offer checkout candidates.
 - `STRIPE_LIVE_BUILDS_PRICE_ID` is optional; fallback Checkout `price_data` is `$97`.
 
 ## Render Web Service Settings
@@ -120,6 +121,7 @@ Cloudflare SSL/TLS:
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
 - New Wave Live Builds waitlist + paid checkout: done; live event date/topic pending
 - New Wave Live Builds member delivery: done; prep pack, first-room plan, ticket hub, and gated downloads are wired
+- New Wave Live Builds Room 001 queue: done; first build candidates are visible on the offer page
 - Member area delivery live: done
 - Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
 - Admin Offer Ops multi-product breakdown: done; Future Proof and New Wave sales/member counts are separated

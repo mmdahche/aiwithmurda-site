@@ -225,6 +225,9 @@ if (
 ) {
   throw new Error("Client bundle missing live-build member delivery copy");
 }
+if (!liveBuildsBundle.includes("Room 001 queue") || !liveBuildsBundle.includes("Mini offer checkout")) {
+  throw new Error("Client bundle missing live-build room queue copy");
+}
 
 const membersResponse = await fetch(`${siteUrl}/members/`);
 const membersHtml = await membersResponse.text();
@@ -376,6 +379,7 @@ console.log(
         publicLiveRoute: true,
         publicLiveBuildsRoute: true,
         liveBuildMemberDeliveryBundle: true,
+        liveBuildRoomQueueBundle: true,
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,

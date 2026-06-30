@@ -3790,9 +3790,64 @@ button {
 }
 
 .live-build-candidates,
+.live-build-room-queue-section,
 .live-build-asset-section {
   display: grid;
   gap: 18px;
+}
+
+.live-build-room-queue {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.live-build-room-queue article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(247, 201, 72, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(247, 201, 72, 0.07), rgba(97, 227, 109, 0.035)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.live-build-room-queue span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.live-build-room-queue h3 {
+  margin: 12px 0 8px;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.08;
+}
+
+.live-build-room-queue strong {
+  display: block;
+  color: #f7c948;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.live-build-room-queue p {
+  margin: 12px 0 0;
+  color: #d8e6de;
+  line-height: 1.45;
+}
+
+.live-build-room-queue em,
+.live-build-candidate-list em {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.4;
 }
 
 .live-build-candidate-list,
@@ -5922,6 +5977,7 @@ button {
   .launch-blocker-strip,
   .manual-gate-list,
   .stream-command-mini-list,
+  .live-build-room-queue,
   .live-build-candidate-list,
   .live-build-asset-list,
   .member-grid {
@@ -5979,6 +6035,7 @@ button {
   .launch-blocker-strip,
   .offer-product-breakdown,
   .live-build-buyer-path,
+  .live-build-room-queue,
   .live-build-candidate-list,
   .live-build-asset-list,
   .metric-grid,

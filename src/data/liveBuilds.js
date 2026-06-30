@@ -105,6 +105,42 @@ export const liveBuildAccessPlan = {
   ],
 };
 
+export const liveBuildRoomQueue = [
+  {
+    key: "live-follower-ticker",
+    room: "Room 001 candidate",
+    title: "Live follower ticker",
+    status: "Strongest stream proof",
+    buildWindow: "75-105 min",
+    buyerOutcome:
+      "Understand how live audience metrics can move from platform APIs into the public dashboard and OBS overlay.",
+    proofTarget: "Follower count changes on the dashboard/overlay from a real or simulated source event.",
+    reuseMove: "Use the same pattern for Twitch, TikTok, Instagram, YouTube, email subscribers, or sales counters.",
+  },
+  {
+    key: "clip-to-proof-pipeline",
+    room: "Room 001 candidate",
+    title: "Clip-to-proof pipeline",
+    status: "Best content asset",
+    buildWindow: "60-90 min",
+    buyerOutcome:
+      "See how one live moment becomes a clip hook, recap caption, daily receipt, and follow-up CTA.",
+    proofTarget: "A clip URL or manual test payload updates the daily log and produces a ready-to-post proof packet.",
+    reuseMove: "Run the same pipeline for any build stream, coaching call, product demo, or customer result.",
+  },
+  {
+    key: "mini-offer-checkout",
+    room: "Room 001 candidate",
+    title: "Mini offer checkout",
+    status: "Cleanest money path",
+    buildWindow: "90-120 min",
+    buyerOutcome:
+      "Watch a small offer move from promise to Stripe checkout, Supabase access, and buyer delivery.",
+    proofTarget: "A $2 or low-ticket test checkout creates access and routes the buyer to the right member asset.",
+    reuseMove: "Adapt the same offer skeleton for templates, workshops, paid rooms, audits, or micro-products.",
+  },
+];
+
 export const liveBuildMemberAssets = [
   {
     key: "session-build-brief",

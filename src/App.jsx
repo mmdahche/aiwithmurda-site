@@ -17,6 +17,7 @@ import {
   liveBuildDeliverables,
   liveBuildFaq,
   liveBuildOutcomes,
+  liveBuildRoomQueue,
   liveBuildsProduct,
   liveBuildSessionFlow,
 } from "./data/liveBuilds.js";
@@ -2416,6 +2417,28 @@ function LiveBuildsPage({ authSession, authReady }) {
         </div>
       </section>
 
+      <section className="public-section live-build-room-queue-section">
+        <div>
+          <span className="public-label">Room 001 queue</span>
+          <h2>The first paid room already has candidates.</h2>
+          <p>
+            The topic should lock around the strongest proof signal, not around a generic webinar calendar.
+            These are the first builds worth testing in public.
+          </p>
+        </div>
+        <div className="live-build-room-queue">
+          {liveBuildRoomQueue.map((room) => (
+            <article key={room.key}>
+              <span>{room.room}</span>
+              <h3>{room.title}</h3>
+              <strong>{room.status} · {room.buildWindow}</strong>
+              <p>{room.buyerOutcome}</p>
+              <em>{room.proofTarget}</em>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="public-section live-builds-deliverables">
         <div>
           <span className="public-label">What buyers leave with</span>
@@ -2712,10 +2735,11 @@ function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
           <h2>The first room can lock around the strongest signal.</h2>
         </div>
         <div className="live-build-candidate-list">
-          {accessPlan.candidateBuilds.map((candidate) => (
-            <article key={candidate.title}>
+          {liveBuildRoomQueue.map((candidate) => (
+            <article key={candidate.key}>
               <strong>{candidate.title}</strong>
-              <p>{candidate.body}</p>
+              <p>{candidate.buyerOutcome}</p>
+              <em>{candidate.reuseMove}</em>
             </article>
           ))}
         </div>
