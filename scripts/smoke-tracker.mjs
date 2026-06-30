@@ -243,6 +243,10 @@ const membersHtml = await membersResponse.text();
 if (!membersResponse.ok || !membersHtml.includes("root")) {
   throw new Error(`Members route failed: ${membersResponse.status}`);
 }
+const membersBundle = await fetchClientBundle(membersHtml, "Members route", siteUrl);
+if (!membersBundle.includes("Capstone builder") || !membersBundle.includes("Download capstone receipt")) {
+  throw new Error("Members route client bundle missing course capstone builder");
+}
 
 const memberModuleResponse = await fetch(`${siteUrl}/members/module/command-setup/`);
 const memberModuleHtml = await memberModuleResponse.text();

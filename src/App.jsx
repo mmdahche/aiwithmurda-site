@@ -81,6 +81,7 @@ const navItems = [
 
 const followerOverlayRoutes = new Set(["/overlay/followers", "/obs/followers"]);
 const directOverlayRoutes = new Set(["/overlay", "/obs", ...followerOverlayRoutes]);
+const completionDraftStorageKey = "aiwithmurda:future-proof-completion:v1";
 
 const numericFields = new Set([
   "emailSubscribers",
@@ -117,6 +118,35 @@ function getPublicDataMode(config) {
       config.prelaunchCopy ||
       `The dashboard is wired to production, but these numbers are rehearsal data until ${config.startDate}.`,
   };
+}
+
+function createEmptyCompletionDraft() {
+  return Object.fromEntries(courseCompletion.finalReceiptSections.map((section) => [section.title, ""]));
+}
+
+function getCompletionDraftStorageKey(email) {
+  const owner = String(email || "member").trim().toLowerCase() || "member";
+  return `${completionDraftStorageKey}:${owner}`;
+}
+
+function loadCompletionDraft(email) {
+  const emptyDraft = createEmptyCompletionDraft();
+  if (typeof window === "undefined") return emptyDraft;
+
+  try {
+    const saved = window.localStorage.getItem(getCompletionDraftStorageKey(email));
+    if (!saved) return emptyDraft;
+    const parsed = JSON.parse(saved);
+    if (!parsed || typeof parsed !== "object") return emptyDraft;
+    return Object.fromEntries(
+      courseCompletion.finalReceiptSections.map((section) => [
+        section.title,
+        typeof parsed[section.title] === "string" ? parsed[section.title] : "",
+      ]),
+    );
+  } catch {
+    return emptyDraft;
+  }
 }
 
 const offerStack = [
@@ -3159,6 +3189,8 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     cta: "",
     tomorrow: "",
   }));
+  const [completionDraft, setCompletionDraft] = useState(() => loadCompletionDraft(profile?.email));
+  const [completionDraftOwner, setCompletionDraftOwner] = useState(() => profile?.email || "");
   const [progressState, setProgressState] = useState({
     status: "loading",
     items: [],
@@ -3202,6 +3234,18 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       current.moduleKey === activeModuleKey ? current : { ...current, moduleKey: activeModuleKey },
     );
   }, [activeModuleKey]);
+
+  useEffect(() => {
+    const owner = profile?.email || "";
+    setCompletionDraft(loadCompletionDraft(owner));
+    setCompletionDraftOwner(owner);
+  }, [profile?.email]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (completionDraftOwner !== (profile?.email || "")) return;
+    window.localStorage.setItem(getCompletionDraftStorageKey(completionDraftOwner), JSON.stringify(completionDraft));
+  }, [completionDraft, completionDraftOwner, profile?.email]);
 
   const completedTasks = useMemo(() => {
     return new Set(
@@ -3346,6 +3390,10 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     return module && todo ? { module, todo } : null;
   }
 
+  function updateCompletionDraft(sectionTitle, value) {
+    setCompletionDraft((current) => ({ ...current, [sectionTitle]: value }));
+  }
+
   const activeModuleProgress = activeModule ? getModuleProgress(activeModule) : null;
   const selectedProofProgress = selectedProofModule
     ? getModuleProgress(selectedProofModule)
@@ -3402,6 +3450,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   ]);
   const completionReceiptMarkdown = useMemo(() => {
     const receiptDate = new Date().toISOString().slice(0, 10);
+    const fallback = (text) => String(text || "").trim() || "-";
     const criteria = courseCompletion.criteria
       .map((criterion, index) => {
         const module = productModules[index];
@@ -3424,7 +3473,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       })
       .join("\n");
     const receiptSections = courseCompletion.finalReceiptSections
-      .map((section) => `## ${section.title}\n\nPrompt: ${section.prompt}\n\nAnswer:\n-`)
+      .map((section) => `## ${section.title}\n\nPrompt: ${section.prompt}\n\nAnswer:\n${fallback(completionDraft[section.title])}`)
       .join("\n\n");
 
     return [
@@ -3454,7 +3503,17 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       receiptSections,
       "",
     ].join("\n");
-  }, [completedTasks, profile?.email, progressState.summary.completed, progressState.summary.percent, progressState.summary.total]);
+  }, [
+    completedTasks,
+    completionDraft,
+    profile?.email,
+    progressState.summary.completed,
+    progressState.summary.percent,
+    progressState.summary.total,
+  ]);
+  const completionAnswerCount = useMemo(() => {
+    return courseCompletion.finalReceiptSections.filter((section) => completionDraft[section.title]?.trim()).length;
+  }, [completionDraft]);
   const firstRun = progressState.summary.completed === 0;
 
   function updateProofDraft(field, value) {
@@ -3528,6 +3587,10 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       <CourseCompletionPanel
         summary={progressState.summary}
         completedTasks={completedTasks}
+        completionDraft={completionDraft}
+        completionAnswerCount={completionAnswerCount}
+        completionReceiptMarkdown={completionReceiptMarkdown}
+        onCompletionDraftChange={updateCompletionDraft}
         onDownload={handleDownloadCompletionReceipt}
       />
 
@@ -3936,9 +3999,18 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   );
 }
 
-function CourseCompletionPanel({ summary, completedTasks, onDownload }) {
+function CourseCompletionPanel({
+  summary,
+  completedTasks,
+  completionDraft,
+  completionAnswerCount,
+  completionReceiptMarkdown,
+  onCompletionDraftChange,
+  onDownload,
+}) {
   const complete = summary.total > 0 && summary.completed >= summary.total;
   const remaining = Math.max(summary.total - summary.completed, 0);
+  const receiptSectionTotal = courseCompletion.finalReceiptSections.length;
 
   return (
     <section className={`course-completion-panel ${complete ? "complete" : ""}`}>
@@ -3961,8 +4033,9 @@ function CourseCompletionPanel({ summary, completedTasks, onDownload }) {
               ? "Every module output is ready for the final receipt."
               : `${remaining} proof tasks left before the receipt is complete.`}
           </p>
+          <p>{completionAnswerCount}/{receiptSectionTotal} receipt sections drafted.</p>
           <button type="button" className="primary-action" onClick={onDownload}>
-            Download final receipt
+            Download capstone receipt
           </button>
         </div>
         <div className="completion-criteria-list">
@@ -3980,6 +4053,30 @@ function CourseCompletionPanel({ summary, completedTasks, onDownload }) {
             );
           })}
         </div>
+      </div>
+      <div className="completion-builder">
+        <div className="completion-builder-copy">
+          <span className="public-label">Capstone builder</span>
+          <h3>Write the proof packet while the evidence is still fresh.</h3>
+          <p>
+            These answers save in this browser and export inside the final receipt. Use links, screenshots, posts,
+            checkout notes, and lessons that prove the method was completed through work.
+          </p>
+        </div>
+        <div className="completion-section-grid">
+          {courseCompletion.finalReceiptSections.map((section) => (
+            <label className="field completion-section-field" key={section.title}>
+              <span>{section.title}</span>
+              <small>{section.prompt}</small>
+              <textarea
+                value={completionDraft[section.title] || ""}
+                onChange={(event) => onCompletionDraftChange(section.title, event.target.value)}
+                placeholder={`Write the ${section.title.toLowerCase()} proof here...`}
+              />
+            </label>
+          ))}
+        </div>
+        <pre className="proof-preview completion-preview">{completionReceiptMarkdown}</pre>
       </div>
     </section>
   );

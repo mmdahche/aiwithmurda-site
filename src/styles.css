@@ -4314,6 +4314,64 @@ button {
   font-weight: 900;
 }
 
+.completion-builder {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.72fr);
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.17);
+}
+
+.completion-builder-copy {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+
+.completion-builder-copy h3,
+.completion-builder-copy p {
+  margin: 0;
+}
+
+.completion-builder-copy h3 {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.08;
+}
+
+.completion-builder-copy p {
+  max-width: 880px;
+  color: var(--muted);
+  line-height: 1.52;
+}
+
+.completion-section-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.completion-section-field {
+  min-width: 0;
+}
+
+.completion-section-field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.completion-section-field textarea {
+  min-height: 96px;
+}
+
+.completion-preview {
+  min-height: 460px;
+  max-height: 720px;
+}
+
 .member-onboarding {
   display: grid;
   grid-template-columns: 0.52fr 1fr;
@@ -6142,6 +6200,7 @@ button {
   .member-roadmap,
   .member-onboarding,
   .course-completion-panel,
+  .completion-builder,
   .member-proof-builder,
   .proof-builder-panel,
   .prelaunch-banner {
@@ -6349,6 +6408,7 @@ button {
   .onboarding-step-list article,
   .member-start-path,
   .course-completion-panel,
+  .completion-builder,
   .completion-control,
   .completion-criteria-list article,
   .member-lesson-detail,
