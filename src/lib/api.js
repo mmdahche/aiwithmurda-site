@@ -75,6 +75,14 @@ export function applyDailySnapshot({ day } = {}, adminToken) {
   });
 }
 
+export function submitClipIntake(clip, adminToken) {
+  return apiRequest("/api/admin/clips/intake", {
+    method: "POST",
+    body: clip,
+    token: adminToken,
+  });
+}
+
 export function getSystemStatus(adminToken) {
   return apiRequest("/api/admin/system/status", {
     token: adminToken,

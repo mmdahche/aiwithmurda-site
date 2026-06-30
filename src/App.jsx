@@ -27,6 +27,7 @@ import {
   getStreamConfig,
   getSystemStatus,
   previewDailySnapshot,
+  submitClipIntake,
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
@@ -4238,6 +4239,118 @@ function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
   );
 }
 
+function ClipIntakePanel({ latest, adminToken, onApplied }) {
+  const [day, setDay] = useState(latest?.day || 1);
+  const [platform, setPlatform] = useState("tiktok");
+  const [title, setTitle] = useState("Clip posted");
+  const [url, setUrl] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+  const [copyStatus, setCopyStatus] = useState("idle");
+
+  useEffect(() => {
+    if (latest?.day && !day) setDay(latest.day);
+  }, [latest?.day, day]);
+
+  const payload = {
+    day,
+    platform,
+    title,
+    url,
+    count: 1,
+    postedAt: new Date().toISOString(),
+  };
+
+  function formatWebhookTemplate() {
+    return [
+      "POST https://aiwithmurda.com/api/admin/clips/intake",
+      "Authorization: Bearer <ADMIN_API_TOKEN>",
+      "Content-Type: application/json",
+      "",
+      JSON.stringify(payload, null, 2),
+    ].join("\n");
+  }
+
+  async function copyWebhookTemplate() {
+    if (await copyPlainText(formatWebhookTemplate())) {
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1800);
+    } else {
+      setCopyStatus("manual");
+    }
+  }
+
+  async function submitTestClip() {
+    if (!adminToken.trim()) {
+      setStatus("error");
+      setMessage("Add the admin token before testing clip intake.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await submitClipIntake(payload, adminToken.trim());
+      onApplied(data.logs || []);
+      setStatus("success");
+      setMessage(`Clip logged on Day ${data.updatedLog?.day || day}. Clips: ${formatNumber(data.updatedLog?.clipsPosted || 0)}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Clip intake failed.");
+    }
+  }
+
+  return (
+    <article className="panel clip-intake-panel">
+      <PanelTitle icon="video" title="Clip Intake Webhook" right="n8n ready" />
+      <div className="clip-intake-hero">
+        <div>
+          <span className="panel-kicker">Short-form automation</span>
+          <strong>Let posting workflows report clips automatically.</strong>
+          <p>
+            n8n, Zapier, or a posting script can call this after a clip goes live. The endpoint increments
+            clips posted and appends the clip URL to the daily proof assets.
+          </p>
+        </div>
+        <div className="clip-intake-actions">
+          <button type="button" className="primary-action" onClick={submitTestClip} disabled={status === "loading"}>
+            {status === "loading" ? "Logging..." : "Test intake"}
+          </button>
+          <button type="button" className="secondary-action" onClick={copyWebhookTemplate}>
+            {copyStatus === "copied" ? "Copied payload" : copyStatus === "manual" ? "Manual copy ready" : "Copy n8n payload"}
+          </button>
+        </div>
+      </div>
+      <div className="clip-intake-form">
+        <label className="field">
+          <span>Day</span>
+          <input type="number" min="1" max="60" value={day} onChange={(event) => setDay(Number(event.target.value || 1))} />
+        </label>
+        <label className="field">
+          <span>Platform</span>
+          <select value={platform} onChange={(event) => setPlatform(event.target.value)}>
+            <option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option>
+            <option value="youtube">YouTube Shorts</option>
+            <option value="twitch">Twitch Clip</option>
+            <option value="x">X</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Title</span>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} />
+        </label>
+        <label className="field">
+          <span>URL</span>
+          <input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://..." />
+        </label>
+      </div>
+      <pre className="webhook-template-preview">{formatWebhookTemplate()}</pre>
+      {message && <p className={`form-message ${status}`}>{message}</p>}
+    </article>
+  );
+}
+
 function SettingsView({
   authSession,
   config,
@@ -4465,6 +4578,7 @@ function SettingsView({
           onApplied={onSnapshotApplied}
           onRefreshAutomation={refreshMetricsAutomationSummary}
         />
+        <ClipIntakePanel latest={latest} adminToken={adminToken} onApplied={onSnapshotApplied} />
         <article className="panel offer-ops-panel">
           <PanelTitle icon="chart" title="Offer Ops" right={offerOpsStatus === "success" ? "Live product" : "Admin"} />
           <div className="offer-ops-grid">

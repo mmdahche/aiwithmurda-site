@@ -883,6 +883,71 @@ button {
   gap: 14px;
 }
 
+.clip-intake-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
+.clip-intake-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(79, 141, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(79, 141, 255, 0.055);
+}
+
+.clip-intake-hero strong,
+.clip-intake-hero p {
+  display: block;
+  margin: 0;
+}
+
+.clip-intake-hero strong {
+  margin-top: 6px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.clip-intake-hero p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.clip-intake-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.clip-intake-actions button {
+  width: 100%;
+}
+
+.clip-intake-form {
+  display: grid;
+  grid-template-columns: 90px 160px minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 10px;
+}
+
+.webhook-template-preview {
+  min-width: 0;
+  max-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  color: #d7e5dc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .follower-ticker-control-panel {
   display: grid;
   grid-column: span 2;
@@ -4832,12 +4897,14 @@ button {
 
   .metrics-automation-panel,
   .follower-ticker-control-panel,
+  .clip-intake-panel,
   .daily-snapshot-panel {
     grid-column: auto;
   }
 
   .automation-hero,
   .ticker-control-hero,
+  .clip-intake-hero,
   .automation-bottom-grid,
   .snapshot-actions,
   .snapshot-source-list,
@@ -4952,6 +5019,7 @@ button {
   .snapshot-source-list,
   .ticker-control-grid,
   .ticker-setup-list,
+  .clip-intake-form,
   .follower-source-strip,
   .launch-readiness-summary,
   .launch-category-grid,

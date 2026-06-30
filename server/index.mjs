@@ -768,6 +768,34 @@ async function buildLiveFollowerTicker() {
   };
 }
 
+function normalizeClipSubmission(body = {}) {
+  const day = Number(body.day);
+  if (!Number.isInteger(day) || day < 1 || day > 60) {
+    const error = new Error("valid_day_required");
+    error.status = 400;
+    throw error;
+  }
+
+  const count = Math.max(1, Math.min(20, Number(body.count || 1)));
+  const platform = String(body.platform || "clip").trim().slice(0, 40) || "clip";
+  const title = String(body.title || "Clip posted").trim().slice(0, 140) || "Clip posted";
+  const url = String(body.url || "").trim().slice(0, 500);
+  const postedAt = String(body.postedAt || new Date().toISOString()).trim();
+  return {
+    day,
+    count,
+    platform,
+    title,
+    url,
+    postedAt,
+  };
+}
+
+function formatClipProofAsset(clip) {
+  const prefix = `${clip.platform}: ${clip.title}`;
+  return clip.url ? `${prefix} - ${clip.url}` : prefix;
+}
+
 function shouldSendEmail(email) {
   const domain = email.split("@").at(-1);
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
@@ -1550,6 +1578,52 @@ app.post("/api/admin/metrics/daily-snapshot", requireAdmin, async (req, res) => 
   } catch (error) {
     console.error("[admin-metrics-daily-snapshot-apply]", error);
     res.status(error.status || 500).json({ error: error.message || "daily_snapshot_apply_failed" });
+  }
+});
+
+app.post("/api/admin/clips/intake", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    const clip = normalizeClipSubmission(req.body || {});
+    const sourceRow = await getDailyLogForSnapshot(clip.day);
+    if (!sourceRow) {
+      res.status(404).json({ error: "daily_log_not_found" });
+      return;
+    }
+
+    const currentLog = toDailyLog(sourceRow);
+    const proofAsset = formatClipProofAsset(clip);
+    const proofAssets = currentLog.proofAssets.includes(proofAsset)
+      ? currentLog.proofAssets
+      : [...currentLog.proofAssets, proofAsset];
+    const updatedLog = {
+      ...currentLog,
+      clipsPosted: Number(currentLog.clipsPosted || 0) + clip.count,
+      proofAssets,
+      bestMoment: currentLog.bestMoment || `First ${clip.platform} clip logged through automation.`,
+    };
+
+    if (!validateDailyLog(updatedLog)) {
+      res.status(500).json({ error: "generated_daily_log_invalid" });
+      return;
+    }
+
+    const { error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
+      .select("day");
+    if (error) throw error;
+
+    res.json({
+      ok: true,
+      clip,
+      updatedLog,
+      logs: await getAllDailyLogs(),
+    });
+  } catch (error) {
+    console.error("[admin-clips-intake]", error);
+    res.status(error.status || 500).json({ error: error.message || "clip_intake_failed" });
   }
 });
 

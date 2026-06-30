@@ -156,6 +156,9 @@ if (!liveBundle.includes("Follower Ticker Control")) {
 if (!liveBundle.includes("/api/followers/stream")) {
   throw new Error("Client bundle missing follower stream route");
 }
+if (!liveBundle.includes("Clip Intake Webhook")) {
+  throw new Error("Client bundle missing Clip Intake Webhook");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -200,6 +203,17 @@ const blockedWrite = await fetchJson(`${siteUrl}/api/admin/daily-logs`, {
 });
 if (blockedWrite.response.status !== 401 || blockedWrite.data?.error !== "invalid_admin_token") {
   throw new Error(`Admin guard failed: ${blockedWrite.response.status} ${JSON.stringify(blockedWrite.data)}`);
+}
+
+const blockedClipIntake = await fetchJson(`${siteUrl}/api/admin/clips/intake`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ day: 1, platform: "smoke", title: "blocked" }),
+});
+if (blockedClipIntake.response.status !== 401 || blockedClipIntake.data?.error !== "invalid_admin_token") {
+  throw new Error(
+    `Admin clip intake guard failed: ${blockedClipIntake.response.status} ${JSON.stringify(blockedClipIntake.data)}`,
+  );
 }
 
 const blockedAdminSession = await fetchJson(`${siteUrl}/api/admin/session`);
@@ -288,6 +302,7 @@ console.log(
         adminTestPurchaseBundle: true,
         adminMetricsAutomationBundle: true,
         adminDailySnapshotBundle: true,
+        adminClipIntakeBundle: true,
         adminMetricsAutomationApi: true,
         adminDailySnapshotApi: true,
         kitRoute: true,
@@ -297,6 +312,7 @@ console.log(
         obsAliasRoute: true,
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
+        adminClipIntakeBlockedWithoutToken: true,
         adminSessionBlockedWithoutLogin: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,
