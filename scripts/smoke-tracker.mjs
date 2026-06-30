@@ -110,6 +110,9 @@ if (!liveBundle.includes("Start $2 test purchase")) {
 if (!liveBundle.includes("Metrics Automation Hub")) {
   throw new Error("Client bundle missing Metrics Automation Hub");
 }
+if (!liveBundle.includes("Automated Daily Snapshot")) {
+  throw new Error("Client bundle missing Automated Daily Snapshot");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -200,6 +203,20 @@ if (
   );
 }
 
+const dailySnapshot = await fetchJson(`${siteUrl}/api/admin/metrics/daily-snapshot?day=1`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (
+  !dailySnapshot.response.ok ||
+  dailySnapshot.data?.ok !== true ||
+  dailySnapshot.data?.snapshot?.targetDay !== 1 ||
+  !dailySnapshot.data?.snapshot?.proposedLog ||
+  !Array.isArray(dailySnapshot.data?.snapshot?.changes) ||
+  !Array.isArray(dailySnapshot.data?.snapshot?.pendingSources)
+) {
+  throw new Error(`Admin daily snapshot failed: ${dailySnapshot.response.status} ${JSON.stringify(dailySnapshot.data)}`);
+}
+
 console.log(
   JSON.stringify(
     {
@@ -225,7 +242,9 @@ console.log(
         adminMagicLinkBackupBundle: true,
         adminTestPurchaseBundle: true,
         adminMetricsAutomationBundle: true,
+        adminDailySnapshotBundle: true,
         adminMetricsAutomationApi: true,
+        adminDailySnapshotApi: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,

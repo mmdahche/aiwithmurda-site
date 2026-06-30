@@ -474,6 +474,155 @@ function validateDailyLog(log) {
   return true;
 }
 
+function formatSnapshotValue(value, kind = "number") {
+  if (kind === "currency") return `$${Number(value || 0).toFixed(2)}`;
+  return formatNumberForApi(value);
+}
+
+function buildSnapshotChanges(currentLog, proposedLog) {
+  const trackedFields = [
+    {
+      key: "emailSubscribers",
+      label: "Email subscribers",
+      kind: "number",
+      source: "Supabase subscribers",
+    },
+    {
+      key: "revenueCollected",
+      label: "Revenue collected",
+      kind: "currency",
+      source: "Stripe paid purchases",
+    },
+    {
+      key: "productsSold",
+      label: "Products sold",
+      kind: "number",
+      source: "Stripe paid purchases",
+    },
+    {
+      key: "clipsPosted",
+      label: "Clips posted",
+      kind: "number",
+      source: "Daily dashboard until clip webhook is connected",
+    },
+    {
+      key: "hoursStreamed",
+      label: "Hours streamed",
+      kind: "number",
+      source: "Daily dashboard until stream telemetry is connected",
+    },
+  ];
+
+  return trackedFields
+    .filter((field) => Number(currentLog[field.key] || 0) !== Number(proposedLog[field.key] || 0))
+    .map((field) => ({
+      key: field.key,
+      label: field.label,
+      from: currentLog[field.key] || 0,
+      to: proposedLog[field.key] || 0,
+      displayFrom: formatSnapshotValue(currentLog[field.key], field.kind),
+      displayTo: formatSnapshotValue(proposedLog[field.key], field.kind),
+      source: field.source,
+    }));
+}
+
+async function getDailyLogForSnapshot(day = null) {
+  if (day) {
+    const { data, error } = await supabaseAdmin.from("daily_logs").select("*").eq("day", day).maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  const { data, error } = await supabaseAdmin.from("daily_logs").select("*").order("day", { ascending: false }).limit(1);
+  if (error) throw error;
+  return data?.[0] || null;
+}
+
+async function getAllDailyLogs() {
+  const { data, error } = await supabaseAdmin.from("daily_logs").select("*").order("day", { ascending: true });
+  if (error) throw error;
+  return (data || []).map(toDailyLog);
+}
+
+async function buildAutomatedDailySnapshot({ day = null } = {}) {
+  const targetDay = day ? Number(day) : null;
+  if (targetDay && (!Number.isInteger(targetDay) || targetDay < 1 || targetDay > 60)) {
+    const error = new Error("valid_day_required");
+    error.status = 400;
+    throw error;
+  }
+
+  const [sourceRow, metricsSummary] = await Promise.all([
+    getDailyLogForSnapshot(targetDay),
+    getMetricsAutomationSummary(),
+  ]);
+
+  if (!sourceRow) {
+    const error = new Error("daily_log_not_found");
+    error.status = 404;
+    throw error;
+  }
+
+  const currentLog = toDailyLog(sourceRow);
+  const snapshot = metricsSummary.snapshot || {};
+  const proposedLog = {
+    ...currentLog,
+    emailSubscribers: Number(snapshot.emailSubscribers || 0),
+    revenueCollected: Number(((snapshot.revenueCents || 0) / 100).toFixed(2)),
+    productsSold: Number(snapshot.paidPurchases || 0),
+    clipsPosted: Number(snapshot.clipsPosted || currentLog.clipsPosted || 0),
+    hoursStreamed: Number(snapshot.hoursStreamed || currentLog.hoursStreamed || 0),
+  };
+
+  return {
+    targetDay: proposedLog.day,
+    checkedAt: new Date().toISOString(),
+    currentLog,
+    proposedLog,
+    changes: buildSnapshotChanges(currentLog, proposedLog),
+    appliedSources: [
+      {
+        key: "emailSubscribers",
+        label: "Email subscribers",
+        source: "Supabase subscribers",
+        status: "live",
+      },
+      {
+        key: "revenueCollected",
+        label: "Revenue collected",
+        source: "Stripe paid purchases",
+        status: "live",
+      },
+      {
+        key: "productsSold",
+        label: "Products sold",
+        source: "Stripe paid purchases",
+        status: "live",
+      },
+    ],
+    pendingSources: [
+      {
+        key: "followers",
+        label: "Follower ticker",
+        source: "Twitch EventSub first; TikTok/Instagram likely polling",
+        status: "connector-needed",
+      },
+      {
+        key: "clipsPosted",
+        label: "Clips posted",
+        source: "n8n or upload webhook",
+        status: "connector-needed",
+      },
+      {
+        key: "hoursStreamed",
+        label: "Hours streamed",
+        source: "OBS or stream platform session telemetry",
+        status: "connector-needed",
+      },
+    ],
+  };
+}
+
 function shouldSendEmail(email) {
   const domain = email.split("@").at(-1);
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
@@ -809,11 +958,11 @@ async function getMetricsAutomationSummary() {
     {
       key: "daily-dashboard",
       label: "Daily dashboard",
-      status: "assisted",
-      mode: "Admin reviewed sync",
+      status: "live",
+      mode: "Admin reviewed automation",
       metric: latestLog ? `Day ${latestLog.day}` : "No live day",
       detail: latestLog ? `${latestLog.date} · ${formatNumberForApi(latestLog.clips_posted)} clips logged` : "Waiting for Day 1 baseline",
-      next: "Next loop can write automated snapshots into daily_logs with manual approval.",
+      next: "Snapshot writer can apply Stripe, email, and member metrics into daily_logs.",
     },
     {
       key: "twitch-followers",
@@ -838,6 +987,30 @@ async function getMetricsAutomationSummary() {
       metric: "Pending",
       detail: "Live access unlocks about 24 hours after YouTube approval request.",
       next: "After access opens, connect OAuth and poll channel statistics.",
+    },
+    {
+      key: "tiktok-followers",
+      label: "TikTok followers",
+      status: automationStatus({
+        configured: Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET),
+        pendingLabel: "needs-app-review",
+      }),
+      mode: "TikTok Display API polling",
+      metric: "Pending",
+      detail: "Follower count is available through user.info.stats after OAuth approval.",
+      next: "Create TikTok developer app, request user.info.stats, then poll follower_count.",
+    },
+    {
+      key: "instagram-followers",
+      label: "Instagram followers",
+      status: automationStatus({
+        configured: Boolean(process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET),
+        pendingLabel: "needs-meta-app",
+      }),
+      mode: "Meta Graph API polling",
+      metric: "Pending",
+      detail: "Follower total should be reconciled on a schedule; follower-by-follower webhooks are not the safe assumption.",
+      next: "Connect a professional Instagram account through a Meta app and poll account insights.",
     },
     {
       key: "clip-pipeline",
@@ -890,8 +1063,9 @@ async function getMetricsAutomationSummary() {
     sources: liveSources,
     events,
     nextBuilds: [
-      "Automated daily snapshot writer",
       "Twitch OAuth + EventSub follow listener",
+      "TikTok Display API follower_count poller",
+      "Instagram Graph API follower-count poller",
       "YouTube OAuth + statistics poller",
       "Clip submission webhook for n8n/short-form pipeline",
     ],
@@ -1141,6 +1315,51 @@ app.get("/api/admin/metrics/automation", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("[admin-metrics-automation]", error);
     res.status(500).json({ error: "metrics_automation_summary_failed" });
+  }
+});
+
+app.get("/api/admin/metrics/daily-snapshot", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  const day = req.query.day ? Number(req.query.day) : null;
+  try {
+    res.json({
+      ok: true,
+      snapshot: await buildAutomatedDailySnapshot({ day }),
+    });
+  } catch (error) {
+    console.error("[admin-metrics-daily-snapshot]", error);
+    res.status(error.status || 500).json({ error: error.message || "daily_snapshot_failed" });
+  }
+});
+
+app.post("/api/admin/metrics/daily-snapshot", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  const day = req.body?.day ? Number(req.body.day) : null;
+  try {
+    const snapshot = await buildAutomatedDailySnapshot({ day });
+    if (!validateDailyLog(snapshot.proposedLog)) {
+      res.status(500).json({ error: "generated_daily_log_invalid" });
+      return;
+    }
+
+    const { error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert([toDailyLogRow(snapshot.proposedLog)], { onConflict: "day" })
+      .select("day");
+
+    if (error) throw error;
+
+    res.json({
+      ok: true,
+      applied: true,
+      snapshot,
+      logs: await getAllDailyLogs(),
+    });
+  } catch (error) {
+    console.error("[admin-metrics-daily-snapshot-apply]", error);
+    res.status(error.status || 500).json({ error: error.message || "daily_snapshot_apply_failed" });
   }
 });
 

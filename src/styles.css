@@ -604,6 +604,7 @@ button {
 }
 
 .primary-action,
+.secondary-action,
 .toolbar button,
 .panel-actions button,
 .view-header button {
@@ -618,6 +619,11 @@ button {
 .primary-action {
   border-color: rgba(97, 227, 109, 0.56);
   background: linear-gradient(180deg, rgba(97, 227, 109, 0.26), rgba(34, 200, 77, 0.2));
+}
+
+.secondary-action {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .ai-strip {
@@ -871,6 +877,12 @@ button {
   gap: 14px;
 }
 
+.daily-snapshot-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
 .automation-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 210px;
@@ -902,6 +914,18 @@ button {
 
 .automation-hero .primary-action {
   width: 100%;
+}
+
+.snapshot-hero {
+  grid-template-columns: minmax(0, 1fr) 150px;
+}
+
+.snapshot-day-field {
+  margin: 0;
+}
+
+.snapshot-day-field input {
+  min-width: 0;
 }
 
 .automation-snapshot-grid {
@@ -938,6 +962,9 @@ button {
 
 .automation-source.needs-oauth,
 .automation-source.waiting-access,
+.automation-source.needs-app-review,
+.automation-source.needs-meta-app,
+.automation-source.connector-needed,
 .automation-source.planned {
   border-color: rgba(255, 159, 26, 0.28);
 }
@@ -988,8 +1015,69 @@ button {
 
 .automation-source.needs-oauth em,
 .automation-source.waiting-access em,
+.automation-source.needs-app-review em,
+.automation-source.needs-meta-app em,
+.automation-source.connector-needed em,
 .automation-source.planned em {
   background: var(--amber);
+}
+
+.snapshot-change-list {
+  display: grid;
+  gap: 8px;
+}
+
+.snapshot-change-list div,
+.snapshot-change-list p {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.snapshot-change-list span,
+.snapshot-change-list strong,
+.snapshot-change-list p {
+  display: block;
+}
+
+.snapshot-change-list span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.snapshot-change-list strong {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.snapshot-change-list div p,
+.snapshot-change-list > p {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.snapshot-source-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.snapshot-source-list .automation-source {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.snapshot-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+}
+
+.snapshot-actions button {
+  width: 100%;
 }
 
 .automation-bottom-grid {
@@ -4458,6 +4546,8 @@ button {
 .checkout-box button:disabled,
 .recovery-actions button:disabled,
 .auth-form button:disabled,
+.primary-action:disabled,
+.secondary-action:disabled,
 .start-form button:disabled {
   cursor: not-allowed;
   opacity: 0.62;
@@ -4510,12 +4600,15 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .metrics-automation-panel {
+  .metrics-automation-panel,
+  .daily-snapshot-panel {
     grid-column: auto;
   }
 
   .automation-hero,
-  .automation-bottom-grid {
+  .automation-bottom-grid,
+  .snapshot-actions,
+  .snapshot-source-list {
     grid-template-columns: 1fr;
   }
 
@@ -4620,6 +4713,8 @@ button {
   .system-grid,
   .automation-snapshot-grid,
   .automation-source,
+  .snapshot-actions,
+  .snapshot-source-list,
   .launch-readiness-summary,
   .launch-category-grid,
   .launch-blocker-strip,

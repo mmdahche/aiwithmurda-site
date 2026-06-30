@@ -56,6 +56,21 @@ export function getMetricsAutomationSummary(adminToken) {
   });
 }
 
+export function previewDailySnapshot(adminToken, day) {
+  const params = day ? `?day=${encodeURIComponent(day)}` : "";
+  return apiRequest(`/api/admin/metrics/daily-snapshot${params}`, {
+    token: adminToken,
+  });
+}
+
+export function applyDailySnapshot({ day } = {}, adminToken) {
+  return apiRequest("/api/admin/metrics/daily-snapshot", {
+    method: "POST",
+    body: { day },
+    token: adminToken,
+  });
+}
+
 export function getSystemStatus(adminToken) {
   return apiRequest("/api/admin/system/status", {
     token: adminToken,

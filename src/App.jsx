@@ -13,6 +13,7 @@ import {
 } from "./data/product.js";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
+  applyDailySnapshot,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
   downloadMemberAsset,
@@ -24,6 +25,7 @@ import {
   getSubscriberSummary,
   getStreamConfig,
   getSystemStatus,
+  previewDailySnapshot,
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
@@ -915,6 +917,14 @@ function App() {
     }
   }
 
+  function handleSnapshotApplied(nextLogs) {
+    if (!Array.isArray(nextLogs) || !nextLogs.length) return;
+    setLogs(nextLogs);
+    setRemoteLogStatus("live");
+    updateRemoteMeta(nextLogs);
+    clearDirtyDays(nextLogs.map((record) => record.day));
+  }
+
   function updateRecord(day, field, value) {
     markDayDirty(day);
     setLogs((current) =>
@@ -1103,6 +1113,7 @@ function App() {
               refreshMetricsAutomationSummary={refreshMetricsAutomationSummary}
               refreshSystemStatus={refreshSystemStatus}
               syncLogsToPublic={syncLogsToPublic}
+              onSnapshotApplied={handleSnapshotApplied}
               restoreSeedData={restoreSeedData}
             />
           )}
@@ -3825,6 +3836,131 @@ function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
   );
 }
 
+function DailySnapshotPanel({ latest, adminToken, onApplied, onRefreshAutomation }) {
+  const [targetDay, setTargetDay] = useState(latest?.day || 1);
+  const [snapshot, setSnapshot] = useState(null);
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+  const changes = snapshot?.changes || [];
+  const proposedLog = snapshot?.proposedLog || null;
+
+  useEffect(() => {
+    if (latest?.day && !targetDay) setTargetDay(latest.day);
+  }, [latest?.day, targetDay]);
+
+  async function handlePreview() {
+    if (!adminToken.trim()) {
+      setStatus("error");
+      setMessage("Add the admin token before previewing the automated snapshot.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await previewDailySnapshot(adminToken.trim(), targetDay);
+      setSnapshot(data.snapshot || null);
+      setStatus("success");
+      setMessage(data.snapshot?.changes?.length ? "Preview ready. Review the changes before applying." : "Preview ready. No live changes found.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not preview the daily snapshot.");
+    }
+  }
+
+  async function handleApply() {
+    if (!adminToken.trim()) {
+      setStatus("error");
+      setMessage("Add the admin token before applying the automated snapshot.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await applyDailySnapshot({ day: targetDay }, adminToken.trim());
+      setSnapshot(data.snapshot || null);
+      onApplied(data.logs || []);
+      await onRefreshAutomation();
+      setStatus("success");
+      setMessage(`Applied automated metrics to Day ${data.snapshot?.targetDay || targetDay}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not apply the daily snapshot.");
+    }
+  }
+
+  return (
+    <article className="panel daily-snapshot-panel">
+      <PanelTitle icon="calendar" title="Automated Daily Snapshot" right={snapshot ? `Day ${snapshot.targetDay}` : "Admin reviewed"} />
+      <div className="automation-hero snapshot-hero">
+        <div>
+          <span className="panel-kicker">Daily log writer</span>
+          <strong>Preview live metrics, then push them to the public scoreboard.</strong>
+          <p>
+            This writes Stripe sales, email subscribers, and member access into the selected day.
+            Follower and clip automation stay separate until those provider connectors are live.
+          </p>
+        </div>
+        <label className="field snapshot-day-field">
+          <span>Target day</span>
+          <input
+            type="number"
+            min="1"
+            max="60"
+            value={targetDay}
+            onChange={(event) => setTargetDay(Number(event.target.value || latest?.day || 1))}
+          />
+        </label>
+      </div>
+      {proposedLog ? (
+        <div className="automation-snapshot-grid">
+          <KeyValue label="Email list" value={formatNumber(proposedLog.emailSubscribers)} positive />
+          <KeyValue label="Revenue" value={formatCurrency(proposedLog.revenueCollected)} positive />
+          <KeyValue label="Products sold" value={formatNumber(proposedLog.productsSold)} />
+          <KeyValue label="Clips" value={formatNumber(proposedLog.clipsPosted)} />
+        </div>
+      ) : null}
+      <div className="snapshot-change-list">
+        {changes.length ? (
+          changes.map((change) => (
+            <div key={change.key}>
+              <span>{change.label}</span>
+              <strong>
+                {change.displayFrom} -&gt; {change.displayTo}
+              </strong>
+              <p>{change.source}</p>
+            </div>
+          ))
+        ) : (
+          <p>{snapshot ? "No changes from the live sources for this day." : "Preview the snapshot to see exactly what will change before it writes."}</p>
+        )}
+      </div>
+      <div className="automation-source-list snapshot-source-list">
+        {[...(snapshot?.appliedSources || []), ...(snapshot?.pendingSources || [])].map((source) => (
+          <article key={source.key} className={`automation-source ${source.status}`}>
+            <div>
+              <span>{source.label}</span>
+              <strong>{source.status.replaceAll("-", " ")}</strong>
+              <p>{source.source}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="snapshot-actions">
+        <button type="button" className="secondary-action" onClick={handlePreview} disabled={status === "loading"}>
+          {status === "loading" ? "Checking..." : "Preview snapshot"}
+        </button>
+        <button type="button" className="primary-action" onClick={handleApply} disabled={status === "loading"}>
+          {status === "loading" ? "Applying..." : "Apply to public dashboard"}
+        </button>
+      </div>
+      {snapshot?.checkedAt && <p className="panel-note">Snapshot checked {new Date(snapshot.checkedAt).toLocaleString()}</p>}
+      {message && <p className={`form-message ${status}`}>{message}</p>}
+    </article>
+  );
+}
+
 function SettingsView({
   authSession,
   config,
@@ -3855,6 +3991,7 @@ function SettingsView({
   refreshMetricsAutomationSummary,
   refreshSystemStatus,
   syncLogsToPublic,
+  onSnapshotApplied,
   restoreSeedData,
 }) {
   const latest = getLatestRecord(logs);
@@ -4041,6 +4178,12 @@ function SettingsView({
           status={metricsAutomationStatus}
           message={metricsAutomationMessage}
           onRefresh={refreshMetricsAutomationSummary}
+        />
+        <DailySnapshotPanel
+          latest={latest}
+          adminToken={adminToken}
+          onApplied={onSnapshotApplied}
+          onRefreshAutomation={refreshMetricsAutomationSummary}
         />
         <article className="panel offer-ops-panel">
           <PanelTitle icon="chart" title="Offer Ops" right={offerOpsStatus === "success" ? "Live product" : "Admin"} />
