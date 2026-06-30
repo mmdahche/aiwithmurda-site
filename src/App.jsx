@@ -639,7 +639,10 @@ function App() {
   const [streamConfigStatus, setStreamConfigStatus] = useState("idle");
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("view") === "overlay" ? "overlay-only" : "dashboard";
+    const requestedView = params.get("view");
+    if (requestedView === "overlay") return "overlay-only";
+    if (navItems.some((item) => item.key === requestedView)) return requestedView;
+    return "dashboard";
   });
   const latest = useMemo(() => getLatestRecord(logs), [logs]);
   const [selectedDay, setSelectedDay] = useState(latest?.day || 1);
@@ -1169,7 +1172,7 @@ function AdminGate({ authSession, authReady, children }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/admin`,
+        emailRedirectTo: `${window.location.origin}/admin?view=settings&setup=password`,
       },
     });
 
