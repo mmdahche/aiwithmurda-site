@@ -83,6 +83,26 @@ export function submitClipIntake(clip, adminToken) {
   });
 }
 
+export function getTwitchIntegrationStatus(adminToken) {
+  return apiRequest("/api/admin/integrations/twitch/status", {
+    token: adminToken,
+  });
+}
+
+export function startTwitchOAuth(adminToken) {
+  return apiRequest("/api/admin/integrations/twitch/oauth/start", {
+    method: "POST",
+    token: adminToken,
+  });
+}
+
+export function subscribeTwitchEventSub(adminToken) {
+  return apiRequest("/api/admin/integrations/twitch/eventsub/subscribe", {
+    method: "POST",
+    token: adminToken,
+  });
+}
+
 export function getSystemStatus(adminToken) {
   return apiRequest("/api/admin/system/status", {
     token: adminToken,

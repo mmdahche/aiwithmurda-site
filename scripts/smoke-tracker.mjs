@@ -46,6 +46,34 @@ if (
   throw new Error(`Public live followers failed: ${liveFollowers.response.status} ${JSON.stringify(liveFollowers.data)}`);
 }
 
+const twitchStatusUnauthorized = await fetchJson(`${siteUrl}/api/admin/integrations/twitch/status`);
+if (twitchStatusUnauthorized.response.status !== 401 || twitchStatusUnauthorized.data?.error !== "invalid_admin_token") {
+  throw new Error(
+    `Twitch status guard failed: ${twitchStatusUnauthorized.response.status} ${JSON.stringify(twitchStatusUnauthorized.data)}`,
+  );
+}
+
+const twitchOAuthUnauthorized = await fetchJson(`${siteUrl}/api/admin/integrations/twitch/oauth/start`, {
+  method: "POST",
+});
+if (twitchOAuthUnauthorized.response.status !== 401 || twitchOAuthUnauthorized.data?.error !== "invalid_admin_token") {
+  throw new Error(
+    `Twitch OAuth guard failed: ${twitchOAuthUnauthorized.response.status} ${JSON.stringify(twitchOAuthUnauthorized.data)}`,
+  );
+}
+
+const twitchStatus = await fetchJson(`${siteUrl}/api/admin/integrations/twitch/status`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (
+  !twitchStatus.response.ok ||
+  twitchStatus.data?.ok !== true ||
+  !twitchStatus.data?.status?.callbackUrl?.includes("/api/integrations/twitch/callback") ||
+  !twitchStatus.data?.status?.eventSubCallbackUrl?.includes("/api/integrations/twitch/eventsub")
+) {
+  throw new Error(`Twitch status failed: ${twitchStatus.response.status} ${JSON.stringify(twitchStatus.data)}`);
+}
+
 const followerStreamController = new AbortController();
 const followerStream = await fetch(`${siteUrl}/api/followers/stream`, {
   signal: followerStreamController.signal,
@@ -161,6 +189,12 @@ if (!liveBundle.includes("/api/followers/stream")) {
 }
 if (!liveBundle.includes("Clip Intake Webhook")) {
   throw new Error("Client bundle missing Clip Intake Webhook");
+}
+if (!liveBundle.includes("Twitch Live Connector")) {
+  throw new Error("Client bundle missing Twitch Live Connector");
+}
+if (!liveBundle.includes("Subscribe EventSub")) {
+  throw new Error("Client bundle missing Twitch EventSub control");
 }
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);

@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +23,10 @@ const assetDir = path.join(rootDir, "server", "member-assets");
 const app = express();
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:5173";
 const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
+const twitchProviderKey = "twitch";
+const twitchOAuthScopes = ["moderator:read:followers"];
+const twitchCallbackPath = "/api/integrations/twitch/callback";
+const twitchEventSubPath = "/api/integrations/twitch/eventsub";
 const streamLinkKeys = [
   ["twitch", "Twitch", "STREAM_TWITCH_URL"],
   ["kick", "Kick", "STREAM_KICK_URL"],
@@ -631,10 +636,541 @@ function getEnvNumber(...keys) {
   return null;
 }
 
-async function fetchTwitchFollowerCount() {
+function absoluteSiteUrl(pathname) {
+  const base = siteUrl.endsWith("/") ? siteUrl : `${siteUrl}/`;
+  return new URL(pathname, base).toString();
+}
+
+function getTwitchConfig() {
   const clientId = readPublicUrlEnv("TWITCH_CLIENT_ID");
-  const accessToken = readPublicUrlEnv("TWITCH_ACCESS_TOKEN");
-  const broadcasterId = readPublicUrlEnv("TWITCH_BROADCASTER_ID");
+  const clientSecret = readPublicUrlEnv("TWITCH_CLIENT_SECRET");
+  const redirectUri = readPublicUrlEnv("TWITCH_REDIRECT_URI") || absoluteSiteUrl(twitchCallbackPath);
+  const eventSubCallbackUrl =
+    readPublicUrlEnv("TWITCH_EVENTSUB_CALLBACK_URL") || absoluteSiteUrl(twitchEventSubPath);
+  const eventSubSecret = readPublicUrlEnv("TWITCH_EVENTSUB_SECRET");
+  const stateSecret = readPublicUrlEnv("TWITCH_OAUTH_STATE_SECRET") || readPublicUrlEnv("ADMIN_API_TOKEN");
+
+  return {
+    clientId,
+    clientSecret,
+    redirectUri,
+    eventSubCallbackUrl,
+    eventSubSecret,
+    stateSecret,
+    configured: Boolean(clientId && clientSecret),
+    webhookConfigured: Boolean(clientId && clientSecret && eventSubSecret),
+  };
+}
+
+function timingSafeEqualString(left, right) {
+  const leftBuffer = Buffer.from(String(left || ""));
+  const rightBuffer = Buffer.from(String(right || ""));
+  if (leftBuffer.length !== rightBuffer.length) return false;
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function signTwitchOAuthState() {
+  const config = getTwitchConfig();
+  if (!config.stateSecret) {
+    const error = new Error("twitch_oauth_state_secret_missing");
+    error.status = 503;
+    throw error;
+  }
+
+  const payload = Buffer.from(
+    JSON.stringify({
+      provider: twitchProviderKey,
+      createdAt: Date.now(),
+      nonce: crypto.randomUUID(),
+    }),
+  ).toString("base64url");
+  const signature = crypto.createHmac("sha256", config.stateSecret).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function verifyTwitchOAuthState(state) {
+  const config = getTwitchConfig();
+  const [payload, signature] = String(state || "").split(".");
+  if (!payload || !signature || !config.stateSecret) {
+    const error = new Error("invalid_twitch_oauth_state");
+    error.status = 400;
+    throw error;
+  }
+
+  const expected = crypto.createHmac("sha256", config.stateSecret).update(payload).digest("base64url");
+  if (!timingSafeEqualString(signature, expected)) {
+    const error = new Error("invalid_twitch_oauth_state");
+    error.status = 400;
+    throw error;
+  }
+
+  const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  const ageMs = Date.now() - Number(decoded.createdAt || 0);
+  if (decoded.provider !== twitchProviderKey || ageMs < 0 || ageMs > 10 * 60 * 1000) {
+    const error = new Error("expired_twitch_oauth_state");
+    error.status = 400;
+    throw error;
+  }
+
+  return decoded;
+}
+
+function isMissingIntegrationStorageError(error) {
+  const message = String(error?.message || error?.details || "").toLowerCase();
+  return error?.code === "42P01" || message.includes("integration_tokens") || message.includes("integration_events");
+}
+
+function normalizeTwitchScopes(scope) {
+  if (Array.isArray(scope)) return scope.map(String).filter(Boolean);
+  return String(scope || "")
+    .split(/[,\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+async function getStoredIntegrationToken(provider) {
+  if (!supabaseAdmin) return { token: null, missingTable: false };
+
+  const { data, error } = await supabaseAdmin
+    .from("integration_tokens")
+    .select("*")
+    .eq("provider", provider)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingIntegrationStorageError(error)) return { token: null, missingTable: true };
+    throw error;
+  }
+
+  return { token: data || null, missingTable: false };
+}
+
+async function storeIntegrationToken(provider, values) {
+  if (!supabaseAdmin) {
+    const error = new Error("supabase_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("integration_tokens")
+    .upsert({ provider, ...values }, { onConflict: "provider" })
+    .select("*")
+    .single();
+
+  if (error) {
+    if (isMissingIntegrationStorageError(error)) {
+      const migrationError = new Error("integration_tokens_migration_required");
+      migrationError.status = 503;
+      throw migrationError;
+    }
+    throw error;
+  }
+
+  return data;
+}
+
+async function updateStoredIntegrationMetadata(provider, updater) {
+  const { token, missingTable } = await getStoredIntegrationToken(provider);
+  if (!token || missingTable) return null;
+
+  const metadata = typeof token.metadata === "object" && token.metadata ? token.metadata : {};
+  const nextMetadata = updater(metadata);
+  const { data, error } = await supabaseAdmin
+    .from("integration_tokens")
+    .update({ metadata: nextMetadata })
+    .eq("provider", provider)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function exchangeTwitchCode(code) {
+  const config = getTwitchConfig();
+  if (!config.configured) {
+    const error = new Error("twitch_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const response = await fetch("https://id.twitch.tv/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: config.redirectUri,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || `twitch_token_exchange_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+async function validateTwitchAccessToken(accessToken) {
+  const response = await fetch("https://id.twitch.tv/oauth2/validate", {
+    headers: { Authorization: `OAuth ${accessToken}` },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || `twitch_token_validate_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+async function refreshTwitchStoredTokenIfNeeded(token) {
+  if (!token?.refresh_token) return token;
+
+  const expiresAt = token.expires_at ? new Date(token.expires_at).getTime() : 0;
+  if (expiresAt && expiresAt - Date.now() > 5 * 60 * 1000) return token;
+
+  const config = getTwitchConfig();
+  if (!config.configured) return token;
+
+  const response = await fetch("https://id.twitch.tv/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: token.refresh_token,
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || `twitch_token_refresh_${response.status}`);
+
+  const validation = await validateTwitchAccessToken(data.access_token);
+  return storeIntegrationToken(twitchProviderKey, {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || token.refresh_token,
+    token_type: data.token_type || token.token_type || "bearer",
+    scope: normalizeTwitchScopes(data.scope || validation.scopes || token.scope),
+    expires_at: data.expires_in ? new Date(Date.now() + Number(data.expires_in) * 1000).toISOString() : null,
+    provider_user_id: validation.user_id || token.provider_user_id,
+    provider_user_login: validation.login || token.provider_user_login,
+    provider_user_name: validation.login || token.provider_user_name,
+    broadcaster_user_id: validation.user_id || token.broadcaster_user_id,
+    metadata: {
+      ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
+      refreshedAt: new Date().toISOString(),
+      validation,
+    },
+  });
+}
+
+async function getUsableTwitchToken() {
+  const stored = await getStoredIntegrationToken(twitchProviderKey);
+  if (!stored.token) return stored;
+  return {
+    token: await refreshTwitchStoredTokenIfNeeded(stored.token),
+    missingTable: false,
+  };
+}
+
+async function getTwitchAppAccessToken() {
+  const config = getTwitchConfig();
+  if (!config.configured) {
+    const error = new Error("twitch_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const response = await fetch("https://id.twitch.tv/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "client_credentials",
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || `twitch_app_token_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data.access_token;
+}
+
+async function createTwitchFollowSubscription() {
+  const config = getTwitchConfig();
+  if (!config.configured) {
+    const error = new Error("twitch_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+  if (!config.eventSubSecret) {
+    const error = new Error("twitch_eventsub_secret_missing");
+    error.status = 503;
+    throw error;
+  }
+
+  const { token, missingTable } = await getUsableTwitchToken();
+  if (missingTable) {
+    const error = new Error("integration_tokens_migration_required");
+    error.status = 503;
+    throw error;
+  }
+  if (!token?.access_token) {
+    const error = new Error("twitch_account_not_connected");
+    error.status = 409;
+    throw error;
+  }
+
+  const broadcasterUserId = token.broadcaster_user_id || token.provider_user_id || readPublicUrlEnv("TWITCH_BROADCASTER_ID");
+  const moderatorUserId = readPublicUrlEnv("TWITCH_MODERATOR_USER_ID") || broadcasterUserId;
+  if (!broadcasterUserId || !moderatorUserId) {
+    const error = new Error("twitch_broadcaster_id_missing");
+    error.status = 409;
+    throw error;
+  }
+
+  const appAccessToken = await getTwitchAppAccessToken();
+  const response = await fetch("https://api.twitch.tv/helix/eventsub/subscriptions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${appAccessToken}`,
+      "Client-Id": config.clientId,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "channel.follow",
+      version: "2",
+      condition: {
+        broadcaster_user_id: broadcasterUserId,
+        moderator_user_id: moderatorUserId,
+      },
+      transport: {
+        method: "webhook",
+        callback: config.eventSubCallbackUrl,
+        secret: config.eventSubSecret,
+      },
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || `twitch_eventsub_subscribe_${response.status}`);
+    error.status = response.status === 409 ? 409 : 502;
+    error.data = data;
+    throw error;
+  }
+
+  const subscription = data.data?.[0] || null;
+  await updateStoredIntegrationMetadata(twitchProviderKey, (metadata) => ({
+    ...metadata,
+    eventSub: {
+      subscriptionId: subscription?.id || null,
+      status: subscription?.status || "pending",
+      type: "channel.follow",
+      version: "2",
+      callback: config.eventSubCallbackUrl,
+      createdAt: new Date().toISOString(),
+      broadcasterUserId,
+      moderatorUserId,
+    },
+  }));
+
+  return {
+    callbackUrl: config.eventSubCallbackUrl,
+    subscription,
+  };
+}
+
+async function recordIntegrationEvent({ provider, eventId, eventType, payload }) {
+  if (!supabaseAdmin || !eventId) return { duplicate: false, missingTable: false };
+
+  const { error } = await supabaseAdmin.from("integration_events").insert({
+    provider,
+    event_id: eventId,
+    event_type: eventType,
+    payload,
+  });
+
+  if (!error) return { duplicate: false, missingTable: false };
+  if (error.code === "23505") return { duplicate: true, missingTable: false };
+  if (isMissingIntegrationStorageError(error)) return { duplicate: false, missingTable: true };
+  throw error;
+}
+
+async function applyTwitchFollowEvent(event = {}) {
+  const sourceRow = await getDailyLogForSnapshot();
+  if (!sourceRow) return { applied: false, reason: "daily_log_not_found" };
+
+  const currentLog = toDailyLog(sourceRow);
+  const nextFollowers = {
+    ...(currentLog.followers || {}),
+    twitch: Number(currentLog.followers?.twitch || 0) + 1,
+  };
+  const followerName = event.user_name || event.user_login || "new Twitch follower";
+  const updatedLog = {
+    ...currentLog,
+    followers: nextFollowers,
+    bestMoment: currentLog.bestMoment || `Twitch follow logged from ${followerName}.`,
+  };
+
+  if (!validateDailyLog(updatedLog)) {
+    const error = new Error("generated_daily_log_invalid");
+    error.status = 500;
+    throw error;
+  }
+
+  const { error } = await supabaseAdmin
+    .from("daily_logs")
+    .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
+    .select("day");
+  if (error) throw error;
+
+  await updateStoredIntegrationMetadata(twitchProviderKey, (metadata) => ({
+    ...metadata,
+    lastFollowEvent: {
+      userId: event.user_id || null,
+      userLogin: event.user_login || null,
+      userName: event.user_name || null,
+      followedAt: event.followed_at || new Date().toISOString(),
+      appliedAt: new Date().toISOString(),
+      day: updatedLog.day,
+      twitchFollowers: nextFollowers.twitch,
+    },
+  }));
+
+  return { applied: true, updatedLog };
+}
+
+async function getTwitchIntegrationStatus() {
+  const config = getTwitchConfig();
+  const { token, missingTable } = await getUsableTwitchToken();
+  const metadata = typeof token?.metadata === "object" && token.metadata ? token.metadata : {};
+
+  return {
+    configured: config.configured,
+    webhookConfigured: config.webhookConfigured,
+    callbackUrl: config.redirectUri,
+    eventSubCallbackUrl: config.eventSubCallbackUrl,
+    requiredScopes: twitchOAuthScopes,
+    connection: {
+      connected: Boolean(token?.access_token),
+      missingTable,
+      providerUserId: token?.provider_user_id || null,
+      login: token?.provider_user_login || null,
+      displayName: token?.provider_user_name || token?.provider_user_login || null,
+      broadcasterUserId: token?.broadcaster_user_id || null,
+      scopes: token?.scope || [],
+      expiresAt: token?.expires_at || null,
+      updatedAt: token?.updated_at || null,
+    },
+    eventSub: metadata.eventSub || null,
+    lastFollowEvent: metadata.lastFollowEvent || null,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+function buildTwitchAuthorizationUrl() {
+  const config = getTwitchConfig();
+  if (!config.configured) {
+    const error = new Error("twitch_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: config.clientId,
+    redirect_uri: config.redirectUri,
+    scope: twitchOAuthScopes.join(" "),
+    state: signTwitchOAuthState(),
+    force_verify: "true",
+  });
+
+  return `https://id.twitch.tv/oauth2/authorize?${params.toString()}`;
+}
+
+function verifyTwitchEventSubSignature(req, rawBody) {
+  const config = getTwitchConfig();
+  if (!config.eventSubSecret) return false;
+
+  const messageId = req.get("twitch-eventsub-message-id");
+  const timestamp = req.get("twitch-eventsub-message-timestamp");
+  const signature = req.get("twitch-eventsub-message-signature");
+  if (!messageId || !timestamp || !signature) return false;
+
+  const messageAgeMs = Math.abs(Date.now() - new Date(timestamp).getTime());
+  if (!Number.isFinite(messageAgeMs) || messageAgeMs > 10 * 60 * 1000) return false;
+
+  const expected = `sha256=${crypto
+    .createHmac("sha256", config.eventSubSecret)
+    .update(messageId)
+    .update(timestamp)
+    .update(rawBody)
+    .digest("hex")}`;
+  return timingSafeEqualString(signature, expected);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderTwitchCallbackHtml({ title, message, success = true }) {
+  const safeTitle = escapeHtml(title);
+  const safeMessage = escapeHtml(message);
+  const accent = success ? "#61e36d" : "#ff6961";
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${safeTitle}</title>
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #061008; color: #f4fbf6; font-family: Inter, Arial, sans-serif; }
+      main { width: min(560px, calc(100vw - 40px)); padding: 34px; border: 1px solid rgba(97, 227, 109, .22); border-radius: 8px; background: #0d1311; }
+      span { color: ${accent}; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      h1 { margin: 16px 0 0; font-size: 44px; line-height: 1; }
+      p { margin: 16px 0 0; color: #bfd0c7; line-height: 1.6; }
+      a { display: inline-flex; margin-top: 24px; padding: 14px 18px; color: #061008; border-radius: 7px; background: ${accent}; font-weight: 900; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span>AI with Murda</span>
+      <h1>${safeTitle}</h1>
+      <p>${safeMessage}</p>
+      <a href="/admin?view=settings">Return to Settings</a>
+    </main>
+  </body>
+</html>`;
+}
+
+async function fetchTwitchFollowerCount() {
+  const config = getTwitchConfig();
+  const { token } = await getUsableTwitchToken();
+  const clientId = config.clientId;
+  const accessToken = token?.access_token || readPublicUrlEnv("TWITCH_ACCESS_TOKEN");
+  const broadcasterId =
+    token?.broadcaster_user_id || token?.provider_user_id || readPublicUrlEnv("TWITCH_BROADCASTER_ID");
   if (!clientId || !accessToken || !broadcasterId) return null;
 
   const response = await fetch(
@@ -670,6 +1206,20 @@ async function getFollowerConnectorCount(source) {
 }
 
 async function buildLiveFollowerTicker() {
+  let twitchStoredToken = null;
+  try {
+    twitchStoredToken = (await getUsableTwitchToken()).token;
+  } catch (error) {
+    console.error("[twitch-token-fallback]", error.message);
+  }
+  const twitchEnvReady = Boolean(
+    process.env.TWITCH_CLIENT_ID && process.env.TWITCH_ACCESS_TOKEN && process.env.TWITCH_BROADCASTER_ID,
+  );
+  const twitchStoredReady = Boolean(
+    getTwitchConfig().clientId &&
+      twitchStoredToken?.access_token &&
+      (twitchStoredToken.broadcaster_user_id || twitchStoredToken.provider_user_id),
+  );
   const { data, error } = await supabaseAdmin
     .from("daily_logs")
     .select("day,followers,updated_at")
@@ -686,9 +1236,7 @@ async function buildLiveFollowerTicker() {
       platformMetric: "followers",
       mode: "EventSub + Helix reconciliation",
       cadence: "instant after OAuth; API fallback on refresh",
-      configured: Boolean(
-        process.env.TWITCH_CLIENT_ID && process.env.TWITCH_ACCESS_TOKEN && process.env.TWITCH_BROADCASTER_ID,
-      ),
+      configured: twitchEnvReady || twitchStoredReady,
       eventDriven: true,
     },
     {
@@ -1353,6 +1901,71 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
   }
 });
 
+app.post(twitchEventSubPath, express.raw({ type: "application/json" }), async (req, res) => {
+  const config = getTwitchConfig();
+  if (!config.webhookConfigured) {
+    res.status(503).json({ error: "twitch_eventsub_not_configured" });
+    return;
+  }
+
+  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || "");
+  if (!verifyTwitchEventSubSignature(req, rawBody)) {
+    res.status(403).json({ error: "invalid_twitch_eventsub_signature" });
+    return;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(rawBody.toString("utf8"));
+  } catch {
+    res.status(400).json({ error: "invalid_twitch_eventsub_payload" });
+    return;
+  }
+
+  const messageType = req.get("twitch-eventsub-message-type");
+  const eventId = req.get("twitch-eventsub-message-id");
+  const subscriptionType = payload?.subscription?.type || "unknown";
+
+  try {
+    if (messageType === "webhook_callback_verification") {
+      res.type("text/plain").send(payload.challenge || "");
+      return;
+    }
+
+    const recorded = await recordIntegrationEvent({
+      provider: twitchProviderKey,
+      eventId,
+      eventType: `${messageType || "unknown"}:${subscriptionType}`,
+      payload,
+    });
+    if (recorded.duplicate) {
+      res.status(204).send();
+      return;
+    }
+
+    if (messageType === "notification" && subscriptionType === "channel.follow") {
+      await applyTwitchFollowEvent(payload.event || {});
+    }
+
+    if (messageType === "revocation") {
+      await updateStoredIntegrationMetadata(twitchProviderKey, (metadata) => ({
+        ...metadata,
+        eventSubRevocation: {
+          status: payload?.subscription?.status || null,
+          type: subscriptionType,
+          reason: payload?.subscription?.status || "revoked",
+          receivedAt: new Date().toISOString(),
+        },
+      }));
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("[twitch-eventsub]", error);
+    res.status(error.status || 500).json({ error: error.message || "twitch_eventsub_processing_failed" });
+  }
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", (req, res) => {
@@ -1424,6 +2037,130 @@ app.get("/api/followers/stream", async (req, res) => {
   });
 
   await sendTicker();
+});
+
+app.get("/api/admin/integrations/twitch/status", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    res.json({
+      ok: true,
+      status: await getTwitchIntegrationStatus(),
+    });
+  } catch (error) {
+    console.error("[admin-twitch-status]", error);
+    res.status(error.status || 500).json({ error: error.message || "twitch_status_failed" });
+  }
+});
+
+app.post("/api/admin/integrations/twitch/oauth/start", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    res.json({
+      ok: true,
+      url: buildTwitchAuthorizationUrl(),
+      status: await getTwitchIntegrationStatus(),
+    });
+  } catch (error) {
+    console.error("[admin-twitch-oauth-start]", error);
+    res.status(error.status || 500).json({ error: error.message || "twitch_oauth_start_failed" });
+  }
+});
+
+app.post("/api/admin/integrations/twitch/eventsub/subscribe", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    const eventSub = await createTwitchFollowSubscription();
+    res.json({
+      ok: true,
+      eventSub,
+      status: await getTwitchIntegrationStatus(),
+    });
+  } catch (error) {
+    console.error("[admin-twitch-eventsub-subscribe]", error);
+    res.status(error.status || 500).json({
+      error: error.message || "twitch_eventsub_subscribe_failed",
+      detail: error.data || null,
+    });
+  }
+});
+
+app.get(twitchCallbackPath, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  if (req.query.error) {
+    res
+      .status(400)
+      .send(
+        renderTwitchCallbackHtml({
+          success: false,
+          title: "Twitch was not connected",
+          message: String(req.query.error_description || req.query.error || "Twitch returned an authorization error."),
+        }),
+      );
+    return;
+  }
+
+  const code = String(req.query.code || "");
+  const state = String(req.query.state || "");
+  if (!code || !state) {
+    res.status(400).send(
+      renderTwitchCallbackHtml({
+        success: false,
+        title: "Missing Twitch callback data",
+        message: "Twitch did not return the code and state needed to finish this connection.",
+      }),
+    );
+    return;
+  }
+
+  try {
+    verifyTwitchOAuthState(state);
+    const token = await exchangeTwitchCode(code);
+    const validation = await validateTwitchAccessToken(token.access_token);
+    const scopes = normalizeTwitchScopes(token.scope || validation.scopes);
+    const missingScope = twitchOAuthScopes.find((scope) => !scopes.includes(scope));
+    if (missingScope) {
+      const error = new Error(`missing_twitch_scope_${missingScope}`);
+      error.status = 400;
+      throw error;
+    }
+
+    await storeIntegrationToken(twitchProviderKey, {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token || null,
+      token_type: token.token_type || "bearer",
+      scope: scopes,
+      expires_at: token.expires_in ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
+      provider_user_id: validation.user_id || null,
+      provider_user_login: validation.login || null,
+      provider_user_name: validation.login || null,
+      broadcaster_user_id: validation.user_id || null,
+      metadata: {
+        connectedAt: new Date().toISOString(),
+        validation,
+      },
+    });
+
+    res.send(
+      renderTwitchCallbackHtml({
+        title: "Twitch connected",
+        message:
+          "The channel authorization is saved server-side. Return to Settings and press Subscribe EventSub to turn on instant follow events.",
+      }),
+    );
+  } catch (error) {
+    console.error("[twitch-oauth-callback]", error);
+    res.status(error.status || 500).send(
+      renderTwitchCallbackHtml({
+        success: false,
+        title: "Twitch connection failed",
+        message: error.message || "The Twitch OAuth callback could not be completed.",
+      }),
+    );
+  }
 });
 
 app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {

@@ -26,8 +26,11 @@ import {
   getSubscriberSummary,
   getStreamConfig,
   getSystemStatus,
+  getTwitchIntegrationStatus,
   previewDailySnapshot,
+  startTwitchOAuth,
   submitClipIntake,
+  subscribeTwitchEventSub,
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
@@ -645,6 +648,9 @@ function App() {
   const [systemStatus, setSystemStatus] = useState(null);
   const [systemStatusState, setSystemStatusState] = useState("idle");
   const [systemStatusMessage, setSystemStatusMessage] = useState("");
+  const [twitchIntegrationStatus, setTwitchIntegrationStatus] = useState(null);
+  const [twitchIntegrationState, setTwitchIntegrationState] = useState("idle");
+  const [twitchIntegrationMessage, setTwitchIntegrationMessage] = useState("");
   const [streamConfig, setStreamConfig] = useState(fallbackStreamConfig);
   const [streamConfigStatus, setStreamConfigStatus] = useState("idle");
   const [activeView, setActiveView] = useState(() => {
@@ -837,6 +843,9 @@ function App() {
     setSystemStatus(null);
     setSystemStatusState("idle");
     setSystemStatusMessage("");
+    setTwitchIntegrationStatus(null);
+    setTwitchIntegrationState("idle");
+    setTwitchIntegrationMessage("");
     if (value) {
       window.localStorage.setItem(adminTokenStorageKey, value);
     } else {
@@ -943,6 +952,33 @@ function App() {
       refreshSystemStatus();
     }
   }, [activeView, adminToken, refreshSystemStatus, systemStatusState]);
+
+  const refreshTwitchIntegrationStatus = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setTwitchIntegrationState("error");
+      setTwitchIntegrationMessage("Add the admin token before checking Twitch.");
+      return null;
+    }
+
+    setTwitchIntegrationState("loading");
+    setTwitchIntegrationMessage("");
+    try {
+      const data = await getTwitchIntegrationStatus(adminToken.trim());
+      setTwitchIntegrationStatus(data.status || null);
+      setTwitchIntegrationState("success");
+      return data.status || null;
+    } catch (error) {
+      setTwitchIntegrationState("error");
+      setTwitchIntegrationMessage(error.message || "Could not load Twitch connector status.");
+      return null;
+    }
+  }, [adminToken]);
+
+  useEffect(() => {
+    if (activeView === "settings" && adminToken.trim() && twitchIntegrationState === "idle") {
+      refreshTwitchIntegrationStatus();
+    }
+  }, [activeView, adminToken, refreshTwitchIntegrationStatus, twitchIntegrationState]);
 
   async function syncLogsToPublic(targetLogs, label) {
     if (!adminToken.trim()) {
@@ -1170,6 +1206,9 @@ function App() {
               systemStatus={systemStatus}
               systemStatusState={systemStatusState}
               systemStatusMessage={systemStatusMessage}
+              twitchIntegrationStatus={twitchIntegrationStatus}
+              twitchIntegrationState={twitchIntegrationState}
+              twitchIntegrationMessage={twitchIntegrationMessage}
               streamConfig={streamConfig}
               streamConfigStatus={streamConfigStatus}
               updateAdminToken={updateAdminToken}
@@ -1178,6 +1217,7 @@ function App() {
               refreshMetricsAutomationSummary={refreshMetricsAutomationSummary}
               refreshLiveFollowers={refreshLiveFollowers}
               refreshSystemStatus={refreshSystemStatus}
+              refreshTwitchIntegrationStatus={refreshTwitchIntegrationStatus}
               syncLogsToPublic={syncLogsToPublic}
               onSnapshotApplied={handleSnapshotApplied}
               restoreSeedData={restoreSeedData}
@@ -4249,6 +4289,159 @@ function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
   );
 }
 
+function TwitchLiveConnectorPanel({
+  adminToken,
+  twitchStatus,
+  statusState,
+  statusMessage,
+  onRefresh,
+  onTickerRefresh,
+}) {
+  const [actionState, setActionState] = useState("idle");
+  const [actionMessage, setActionMessage] = useState("");
+  const [copyState, setCopyState] = useState("idle");
+  const connection = twitchStatus?.connection || {};
+  const eventSub = twitchStatus?.eventSub || null;
+  const connected = Boolean(connection.connected);
+  const eventSubActive = Boolean(eventSub?.subscriptionId);
+
+  function formatTwitchSetup() {
+    return [
+      "Twitch connector setup",
+      "",
+      "Render env vars:",
+      "TWITCH_CLIENT_ID=<from Twitch developer app>",
+      "TWITCH_CLIENT_SECRET=<from Twitch developer app>",
+      "TWITCH_EVENTSUB_SECRET=<random private webhook secret>",
+      `TWITCH_REDIRECT_URI=${twitchStatus?.callbackUrl || "https://aiwithmurda.com/api/integrations/twitch/callback"}`,
+      `TWITCH_EVENTSUB_CALLBACK_URL=${twitchStatus?.eventSubCallbackUrl || "https://aiwithmurda.com/api/integrations/twitch/eventsub"}`,
+      "",
+      "Twitch developer app callback URL:",
+      twitchStatus?.callbackUrl || "https://aiwithmurda.com/api/integrations/twitch/callback",
+      "",
+      "Required scope:",
+      (twitchStatus?.requiredScopes || ["moderator:read:followers"]).join(" "),
+    ].join("\n");
+  }
+
+  async function handleRefresh() {
+    setActionState("loading");
+    setActionMessage("");
+    await onRefresh();
+    setActionState("idle");
+  }
+
+  async function handleConnect() {
+    if (!adminToken.trim()) {
+      setActionState("error");
+      setActionMessage("Add the admin token before connecting Twitch.");
+      return;
+    }
+
+    setActionState("loading");
+    setActionMessage("");
+    try {
+      const data = await startTwitchOAuth(adminToken.trim());
+      window.location.assign(data.url);
+    } catch (error) {
+      setActionState("error");
+      setActionMessage(error.message || "Could not start Twitch OAuth.");
+    }
+  }
+
+  async function handleSubscribe() {
+    if (!adminToken.trim()) {
+      setActionState("error");
+      setActionMessage("Add the admin token before subscribing to Twitch EventSub.");
+      return;
+    }
+
+    setActionState("loading");
+    setActionMessage("");
+    try {
+      await subscribeTwitchEventSub(adminToken.trim());
+      await onRefresh();
+      await onTickerRefresh();
+      setActionState("success");
+      setActionMessage("Twitch EventSub follow subscription is queued.");
+    } catch (error) {
+      setActionState("error");
+      setActionMessage(error.message || "Could not subscribe Twitch EventSub.");
+    }
+  }
+
+  async function copySetup() {
+    if (await copyPlainText(formatTwitchSetup())) {
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 1800);
+    } else {
+      setCopyState("manual");
+    }
+  }
+
+  return (
+    <article className="panel twitch-connector-panel">
+      <PanelTitle icon="followers" title="Twitch Live Connector" right={connected ? "OAuth saved" : "OAuth needed"} />
+      <div className="twitch-connector-hero">
+        <div>
+          <span className="panel-kicker">Instant follow events</span>
+          <strong>{connected ? connection.displayName || connection.login || "Connected" : "Connect Twitch"}</strong>
+          <p>
+            This upgrades the follower ticker from daily-log fallback to Twitch OAuth, Helix reconciliation,
+            and EventSub webhooks for real follow events.
+          </p>
+        </div>
+        <div className="twitch-connector-actions">
+          <button type="button" className="primary-action" onClick={handleConnect} disabled={actionState === "loading"}>
+            {connected ? "Reconnect Twitch" : "Connect Twitch"}
+          </button>
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={handleSubscribe}
+            disabled={actionState === "loading" || !connected}
+          >
+            Subscribe EventSub
+          </button>
+          <button type="button" className="secondary-action" onClick={copySetup}>
+            {copyState === "copied" ? "Copied setup" : copyState === "manual" ? "Manual copy ready" : "Copy setup"}
+          </button>
+        </div>
+      </div>
+      <div className="twitch-connector-grid">
+        <KeyValue label="OAuth env" value={twitchStatus?.configured ? "Ready" : "Missing"} positive={twitchStatus?.configured} />
+        <KeyValue label="Token storage" value={connection.missingTable ? "Migration needed" : "Ready"} positive={!connection.missingTable} />
+        <KeyValue label="Connection" value={connected ? "Connected" : "Not connected"} positive={connected} />
+        <KeyValue label="EventSub" value={eventSubActive ? eventSub.status || "Subscribed" : twitchStatus?.webhookConfigured ? "Ready" : "Missing secret"} positive={eventSubActive} />
+      </div>
+      <div className="connector-url-list">
+        <div>
+          <span>OAuth callback</span>
+          <code>{twitchStatus?.callbackUrl || "Waiting for server status"}</code>
+        </div>
+        <div>
+          <span>Webhook callback</span>
+          <code>{twitchStatus?.eventSubCallbackUrl || "Waiting for server status"}</code>
+        </div>
+        {connection.expiresAt && (
+          <div>
+            <span>Token refresh window</span>
+            <code>{new Date(connection.expiresAt).toLocaleString()}</code>
+          </div>
+        )}
+        {twitchStatus?.lastFollowEvent && (
+          <div>
+            <span>Last follow event</span>
+            <code>{twitchStatus.lastFollowEvent.userName || twitchStatus.lastFollowEvent.userLogin || "Twitch follower"}</code>
+          </div>
+        )}
+      </div>
+      {statusMessage && <p className={`form-message ${statusState}`}>{statusMessage}</p>}
+      {actionMessage && <p className={`form-message ${actionState}`}>{actionMessage}</p>}
+    </article>
+  );
+}
+
 function ClipIntakePanel({ latest, adminToken, onApplied }) {
   const [day, setDay] = useState(latest?.day || 1);
   const [platform, setPlatform] = useState("tiktok");
@@ -4384,6 +4577,9 @@ function SettingsView({
   systemStatus,
   systemStatusState,
   systemStatusMessage,
+  twitchIntegrationStatus,
+  twitchIntegrationState,
+  twitchIntegrationMessage,
   streamConfig,
   streamConfigStatus,
   updateAdminToken,
@@ -4392,6 +4588,7 @@ function SettingsView({
   refreshMetricsAutomationSummary,
   refreshLiveFollowers,
   refreshSystemStatus,
+  refreshTwitchIntegrationStatus,
   syncLogsToPublic,
   onSnapshotApplied,
   restoreSeedData,
@@ -4582,6 +4779,14 @@ function SettingsView({
           onRefresh={refreshMetricsAutomationSummary}
         />
         <FollowerTickerControlPanel liveFollowers={liveFollowers} onRefresh={refreshLiveFollowers} />
+        <TwitchLiveConnectorPanel
+          adminToken={adminToken}
+          twitchStatus={twitchIntegrationStatus}
+          statusState={twitchIntegrationState}
+          statusMessage={twitchIntegrationMessage}
+          onRefresh={refreshTwitchIntegrationStatus}
+          onTickerRefresh={refreshLiveFollowers}
+        />
         <DailySnapshotPanel
           latest={latest}
           adminToken={adminToken}
