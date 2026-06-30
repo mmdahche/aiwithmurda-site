@@ -98,6 +98,12 @@ if (!liveBundle.includes("Buyer Email Copy Deck")) {
 if (!liveBundle.includes("Admin login required")) {
   throw new Error("Client bundle missing admin login gate");
 }
+if (!liveBundle.includes("Password login is available")) {
+  throw new Error("Client bundle missing admin password settings panel");
+}
+if (!liveBundle.includes("Send magic link backup")) {
+  throw new Error("Client bundle missing admin magic-link backup");
+}
 if (!liveBundle.includes("Start $2 test purchase")) {
   throw new Error("Client bundle missing $2 test purchase control");
 }
@@ -195,6 +201,8 @@ console.log(
         adminStreamCommandDeckBundle: true,
         adminBuyerEmailCopyDeckBundle: true,
         adminLoginGateBundle: true,
+        adminPasswordSettingsBundle: true,
+        adminMagicLinkBackupBundle: true,
         adminTestPurchaseBundle: true,
         kitRoute: true,
         membersRoute: true,

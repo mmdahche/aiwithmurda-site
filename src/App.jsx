@@ -1075,6 +1075,7 @@ function App() {
 
 function AdminGate({ authSession, authReady, children }) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loginStatus, setLoginStatus] = useState("idle");
   const [loginMessage, setLoginMessage] = useState("");
   const [accessStatus, setAccessStatus] = useState("idle");
@@ -1131,10 +1132,37 @@ function AdminGate({ authSession, authReady, children }) {
     };
   }, [authReady, authSession?.access_token]);
 
-  async function handleAdminLogin(event) {
+  async function handlePasswordLogin(event) {
     event.preventDefault();
     const supabase = getSupabaseClient();
     if (!supabase) return;
+
+    setLoginStatus("loading");
+    setLoginMessage("");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setLoginStatus("error");
+      setLoginMessage(error.message);
+      return;
+    }
+
+    setLoginStatus("success");
+    setLoginMessage("Password accepted. Checking the admin allowlist...");
+  }
+
+  async function handleMagicLink() {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    if (!email.trim()) {
+      setLoginStatus("error");
+      setLoginMessage("Enter the admin email first, then send the magic link.");
+      return;
+    }
 
     setLoginStatus("loading");
     setLoginMessage("");
@@ -1152,7 +1180,7 @@ function AdminGate({ authSession, authReady, children }) {
     }
 
     setLoginStatus("success");
-    setLoginMessage("Magic link sent. Open it on this computer to unlock the control room.");
+    setLoginMessage("Magic link sent. Open it on this computer, then set your password in Settings.");
   }
 
   async function handleSignOut() {
@@ -1177,6 +1205,10 @@ function AdminGate({ authSession, authReady, children }) {
             The public dashboard stays open. The control room now requires your Supabase profile and
             the server-side admin allowlist before anything renders.
           </p>
+          <p className="admin-gate-note">
+            Typing an email is not enough. The server only opens this page for the admin email
+            allowlist configured on Render.
+          </p>
           {signedInEmail && (
             <div className="admin-identity-chip">
               <span>Signed in</span>
@@ -1186,7 +1218,7 @@ function AdminGate({ authSession, authReady, children }) {
         </div>
         <div className="admin-gate-panel">
           {!authSession ? (
-            <form className="auth-form" onSubmit={handleAdminLogin}>
+            <form className="auth-form" onSubmit={handlePasswordLogin}>
               <label className="field">
                 <span>Admin email</span>
                 <input
@@ -1197,8 +1229,26 @@ function AdminGate({ authSession, authReady, children }) {
                   required
                 />
               </label>
+              <label className="field">
+                <span>Password</span>
+                <input
+                  type="password"
+                  placeholder="Admin password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </label>
               <button type="submit" disabled={!authReady || loginStatus === "loading"}>
-                {loginStatus === "loading" ? "Sending..." : "Send admin magic link"}
+                {loginStatus === "loading" ? "Checking..." : "Log in"}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleMagicLink}
+                disabled={!authReady || loginStatus === "loading"}
+              >
+                Send magic link backup
               </button>
               {loginMessage && <p className={`form-message ${loginStatus}`}>{loginMessage}</p>}
             </form>
@@ -2250,6 +2300,77 @@ function TestPurchaseButton({ authSession }) {
       </button>
       {message && <p className={`form-message ${status}`}>{message}</p>}
     </div>
+  );
+}
+
+function AdminPasswordPanel({ authSession }) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handlePasswordUpdate(event) {
+    event.preventDefault();
+    const supabase = getSupabaseClient();
+    if (!supabase || !authSession) return;
+
+    if (password.length < 12) {
+      setStatus("error");
+      setMessage("Use at least 12 characters for the admin password.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setStatus("error");
+      setMessage("The password confirmation does not match.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+      return;
+    }
+
+    setPassword("");
+    setConfirmPassword("");
+    setStatus("success");
+    setMessage("Admin password updated. Next time you can use email and password on /admin.");
+  }
+
+  return (
+    <form className="admin-password-form" onSubmit={handlePasswordUpdate}>
+      <label className="field">
+        <span>New password</span>
+        <input
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="At least 12 characters"
+          autoComplete="new-password"
+          required
+        />
+      </label>
+      <label className="field">
+        <span>Confirm password</span>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+          placeholder="Repeat password"
+          autoComplete="new-password"
+          required
+        />
+      </label>
+      <button type="submit" className="primary-action" disabled={status === "loading"}>
+        {status === "loading" ? "Updating..." : "Set admin password"}
+      </button>
+      {message && <p className={`form-message ${status}`}>{message}</p>}
+    </form>
   );
 }
 
@@ -3853,6 +3974,18 @@ function SettingsView({
           <p className="panel-note">
             Use this after stream setup so we can confirm checkout, webhook, email, and client portal access in one pass.
           </p>
+        </article>
+        <article className="panel admin-security-panel">
+          <PanelTitle icon="settings" title="Admin Security" right="Supabase auth" />
+          <div className="sync-state-card">
+            <span>Private operator access</span>
+            <strong>Password login is available</strong>
+            <p>
+              The server still checks the Render admin email allowlist after login. Set your password here
+              once, then use email and password on the admin gate.
+            </p>
+          </div>
+          <AdminPasswordPanel authSession={authSession} />
         </article>
         <article className="panel onboarding-email-panel">
           <PanelTitle icon="email" title="Buyer Onboarding" right="Sequence" />

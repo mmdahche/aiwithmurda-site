@@ -101,6 +101,15 @@ button {
   line-height: 1.6;
 }
 
+.admin-gate-copy .admin-gate-note {
+  padding: 12px 14px;
+  color: #d8f5df;
+  border: 1px solid rgba(97, 227, 109, 0.24);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.07);
+  font-size: 14px;
+}
+
 .admin-gate-panel,
 .admin-denied-panel {
   display: grid;
@@ -122,6 +131,12 @@ button {
   border-radius: 7px;
   background: var(--green);
   font-weight: 900;
+}
+
+.admin-gate-panel .auth-form .secondary-button {
+  color: var(--text);
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .admin-denied-panel strong {
@@ -866,6 +881,16 @@ button {
 
 .test-purchase-panel .checkout-box {
   margin-top: 0;
+}
+
+.admin-security-panel,
+.admin-password-form {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-password-form .primary-action {
+  width: 100%;
 }
 
 .offer-ops-grid {
