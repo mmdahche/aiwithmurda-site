@@ -35,6 +35,17 @@ if (!publicLogs.response.ok || !Array.isArray(publicLogs.data?.logs)) {
   throw new Error(`Public daily logs failed: ${publicLogs.response.status} ${JSON.stringify(publicLogs.data)}`);
 }
 
+const liveFollowers = await fetchJson(`${siteUrl}/api/followers/live`);
+if (
+  !liveFollowers.response.ok ||
+  liveFollowers.data?.ok !== true ||
+  liveFollowers.data?.mode !== "live-follower-ticker" ||
+  typeof liveFollowers.data?.total !== "number" ||
+  !Array.isArray(liveFollowers.data?.sources)
+) {
+  throw new Error(`Public live followers failed: ${liveFollowers.response.status} ${JSON.stringify(liveFollowers.data)}`);
+}
+
 const robotsResponse = await fetch(`${siteUrl}/robots.txt`);
 const robotsText = await robotsResponse.text();
 if (!robotsResponse.ok || !robotsText.includes("Sitemap: https://aiwithmurda.com/sitemap.xml")) {
@@ -112,6 +123,9 @@ if (!liveBundle.includes("Metrics Automation Hub")) {
 }
 if (!liveBundle.includes("Automated Daily Snapshot")) {
   throw new Error("Client bundle missing Automated Daily Snapshot");
+}
+if (!liveBundle.includes("Live follower ticker")) {
+  throw new Error("Client bundle missing Live follower ticker");
 }
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
@@ -224,6 +238,7 @@ console.log(
       siteUrl,
       checks: {
         publicLogsReadable: true,
+        publicLiveFollowersReadable: true,
         robotsReadable: true,
         sitemapReadable: true,
         manifestReadable: true,

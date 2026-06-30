@@ -18,6 +18,7 @@ import {
   createFutureMethodCheckout,
   downloadMemberAsset,
   getDailyLogs,
+  getLiveFollowers,
   getMetricsAutomationSummary,
   getMemberProfile,
   getMemberProgress,
@@ -625,6 +626,7 @@ function App() {
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured());
   const [remoteLogStatus, setRemoteLogStatus] = useState("local");
   const [remoteLogMeta, setRemoteLogMeta] = useState({ count: 0, latestDay: null, loadedAt: null });
+  const [liveFollowers, setLiveFollowers] = useState(null);
   const [dirtyDays, setDirtyDays] = useState([]);
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
   const [syncStatus, setSyncStatus] = useState("idle");
@@ -707,6 +709,29 @@ function App() {
     loadRemoteLogs();
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    let timer = null;
+
+    async function loadLiveFollowers() {
+      try {
+        const data = await getLiveFollowers();
+        if (!mounted) return;
+        setLiveFollowers(data);
+        const refreshMs = Math.max(5000, Number(data.refreshMs || 15000));
+        timer = window.setTimeout(loadLiveFollowers, refreshMs);
+      } catch {
+        if (mounted) timer = window.setTimeout(loadLiveFollowers, 30000);
+      }
+    }
+
+    loadLiveFollowers();
+    return () => {
+      mounted = false;
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 
@@ -997,7 +1022,14 @@ function App() {
   if (overlayOnly) {
     return (
       <main className="overlay-route">
-        <CommandOverlay config={sprintConfig} latest={latest} logs={logs} compact preview={isPrelaunch(sprintConfig)} />
+        <CommandOverlay
+          config={sprintConfig}
+          latest={latest}
+          logs={logs}
+          compact
+          preview={isPrelaunch(sprintConfig)}
+          liveFollowers={liveFollowers}
+        />
       </main>
     );
   }
@@ -1014,6 +1046,7 @@ function App() {
         authReady={authReady}
         streamConfig={streamConfig}
         streamConfigStatus={streamConfigStatus}
+        liveFollowers={liveFollowers}
       />
     );
   }
@@ -1060,6 +1093,7 @@ function App() {
               logs={logs}
               latest={latest}
               weeks={weeks}
+              liveFollowers={liveFollowers}
               onGenerateSlide={() => setActiveView("deck")}
             />
           )}
@@ -1080,7 +1114,7 @@ function App() {
               onSyncSelectedDay={() => syncLogsToPublic([selectedRecord], `Day ${selectedRecord.day}`)}
             />
           )}
-          {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} />}
+          {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} liveFollowers={liveFollowers} />}
           {activeView === "deck" && <DeckView config={sprintConfig} logs={logs} weeks={weeks} />}
           {activeView === "settings" && (
             <SettingsView
@@ -1317,7 +1351,7 @@ function AdminGate({ authSession, authReady, children }) {
   );
 }
 
-function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus }) {
+function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus, liveFollowers }) {
   const dayRouteDay = getDayRouteDay(route);
   const memberModuleKey = getMemberModuleRouteKey(route);
   const knownRoute = dayRouteDay
@@ -1331,10 +1365,17 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
   return (
     <div className="public-site">
       <PublicNav activeRoute={knownRoute} />
-      {knownRoute === "/" && <PublicHome config={config} latest={latest} />}
-      {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} />}
+      {knownRoute === "/" && <PublicHome config={config} latest={latest} liveFollowers={liveFollowers} />}
+      {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
       {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
-      {knownRoute === "/live" && <LiveHub latest={latest} streamConfig={streamConfig} streamConfigStatus={streamConfigStatus} />}
+      {knownRoute === "/live" && (
+        <LiveHub
+          latest={latest}
+          streamConfig={streamConfig}
+          streamConfigStatus={streamConfigStatus}
+          liveFollowers={liveFollowers}
+        />
+      )}
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
@@ -1377,7 +1418,7 @@ function PublicNav({ activeRoute }) {
   );
 }
 
-function PublicHome({ config, latest }) {
+function PublicHome({ config, latest, liveFollowers }) {
   const mode = getPublicDataMode(config);
 
   return (
@@ -1411,7 +1452,13 @@ function PublicHome({ config, latest }) {
             <span>{isPrelaunch(config) ? "Command Center Preview" : "Command Center"}</span>
             <strong>{isPrelaunch(config) ? `Preview Day ${latest.day}` : `Day ${latest.day} / ${config.totalDays}`}</strong>
           </div>
-          <CommandOverlay config={config} latest={latest} logs={seedLogs} preview={isPrelaunch(config)} />
+          <CommandOverlay
+            config={config}
+            latest={latest}
+            logs={seedLogs}
+            preview={isPrelaunch(config)}
+            liveFollowers={liveFollowers}
+          />
         </div>
       </section>
 
@@ -1436,8 +1483,8 @@ function PublicHome({ config, latest }) {
   );
 }
 
-function PublicDashboard({ config, logs, latest, weeks }) {
-  const progressItems = buildProgressItems(config, latest);
+function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
+  const progressItems = buildProgressItems(config, latest, liveFollowers);
   const spike = detectSpike(logs, latest);
   const currentWeek = weeks.at(-1);
   const mode = getPublicDataMode(config);
@@ -1461,6 +1508,8 @@ function PublicDashboard({ config, logs, latest, weeks }) {
       </section>
 
       {isPrelaunch(config) && <PrelaunchBanner mode={mode} />}
+
+      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
 
       <section className="public-metrics">
         {progressItems.slice(0, 6).map((item) => (
@@ -1495,6 +1544,48 @@ function PublicDashboard({ config, logs, latest, weeks }) {
         )}
       </section>
     </main>
+  );
+}
+
+function PublicFollowerTicker({ liveFollowers, latest }) {
+  const sources = liveFollowers?.sources || [];
+  const liveSourceCount = sources.filter((source) => source.status === "live").length;
+  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : totalFollowers(latest);
+
+  return (
+    <section className="public-follower-ticker">
+      <div>
+        <span className="public-label">Live follower ticker</span>
+        <strong>{formatNumber(total)}</strong>
+        <p>
+          Follower counts run as their own live counter. Revenue, clips, notes, and proof receipts stay
+          admin-approved before they hit the public log.
+        </p>
+      </div>
+      <div className="follower-source-strip">
+        {sources.length ? (
+          sources.map((source) => (
+            <article key={source.key} className={source.status}>
+              <span>{source.label}</span>
+              <strong>{formatNumber(source.count)}</strong>
+              <em>{source.status.replaceAll("-", " ")}</em>
+            </article>
+          ))
+        ) : (
+          <article className="daily-log-fallback">
+            <span>Daily log</span>
+            <strong>{formatNumber(totalFollowers(latest))}</strong>
+            <em>loading ticker</em>
+          </article>
+        )}
+      </div>
+      <small>
+        {liveSourceCount
+          ? `${liveSourceCount} live source${liveSourceCount === 1 ? "" : "s"} connected`
+          : "Using approved daily-log counts until platform OAuth is connected"}
+        {liveFollowers?.checkedAt ? ` · Checked ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : ""}
+      </small>
+    </section>
   );
 }
 
@@ -1646,7 +1737,7 @@ function PrelaunchBanner({ mode }) {
   );
 }
 
-function LiveHub({ latest, streamConfig, streamConfigStatus }) {
+function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
   const destinations = streamConfig?.destinations?.length ? streamConfig.destinations : fallbackStreamConfig.destinations;
   const baseCommands = streamConfig?.commands?.length ? streamConfig.commands : fallbackStreamConfig.commands;
   const commands = [{ command: "!today", label: `Day ${latest.day} receipt`, href: `/day/${latest.day}` }, ...baseCommands];
@@ -1685,6 +1776,8 @@ function LiveHub({ latest, streamConfig, streamConfigStatus }) {
           </div>
         </aside>
       </section>
+
+      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
 
       <section className="public-section stream-command-section">
         <div>
@@ -3249,8 +3342,8 @@ function Header({ config, latest }) {
   );
 }
 
-function Dashboard({ config, logs, latest, weeks, onGenerateSlide }) {
-  const progressItems = buildProgressItems(config, latest);
+function Dashboard({ config, logs, latest, weeks, liveFollowers, onGenerateSlide }) {
+  const progressItems = buildProgressItems(config, latest, liveFollowers);
   const recent = [...logs].sort((a, b) => b.day - a.day).slice(0, 5);
   const currentWeek = weeks.at(-1);
   const spike = detectSpike(logs, latest);
@@ -3317,7 +3410,7 @@ function Dashboard({ config, logs, latest, weeks, onGenerateSlide }) {
 
       <article className="panel overlay-panel">
         <PanelTitle icon="monitor" title="OBS Overlay Preview" />
-        <CommandOverlay config={config} latest={latest} logs={logs} />
+        <CommandOverlay config={config} latest={latest} logs={logs} liveFollowers={liveFollowers} />
       </article>
 
       <article className="panel weekly-panel">
@@ -3623,7 +3716,7 @@ function DailyLog({
   );
 }
 
-function OverlayView({ config, latest, logs }) {
+function OverlayView({ config, latest, logs, liveFollowers }) {
   return (
     <section className="workspace-view">
       <div className="view-header">
@@ -3637,7 +3730,14 @@ function OverlayView({ config, latest, logs }) {
         </div>
       </div>
       <div className="overlay-showcase">
-        <CommandOverlay config={config} latest={latest} logs={logs} compact preview={isPrelaunch(config)} />
+        <CommandOverlay
+          config={config}
+          latest={latest}
+          logs={logs}
+          compact
+          preview={isPrelaunch(config)}
+          liveFollowers={liveFollowers}
+        />
       </div>
     </section>
   );
@@ -4476,8 +4576,8 @@ function ProgressCard({ item }) {
   );
 }
 
-function CommandOverlay({ config, latest, logs, compact = false, preview = false }) {
-  const progress = buildProgressItems(config, latest);
+function CommandOverlay({ config, latest, logs, compact = false, preview = false, liveFollowers = null }) {
+  const progress = buildProgressItems(config, latest, liveFollowers);
   const spike = detectSpike(logs, latest);
 
   return (

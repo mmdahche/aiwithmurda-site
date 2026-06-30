@@ -30,6 +30,10 @@ export function getDailyLogs() {
   return apiRequest("/api/daily-logs");
 }
 
+export function getLiveFollowers() {
+  return apiRequest("/api/followers/live");
+}
+
 export function syncDailyLogs(logs, adminToken, { replace = false } = {}) {
   return apiRequest("/api/admin/daily-logs", {
     method: "PUT",

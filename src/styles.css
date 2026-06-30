@@ -2650,6 +2650,90 @@ button {
   line-height: 1;
 }
 
+.public-follower-ticker {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+  padding: 22px;
+  border: 1px solid rgba(97, 227, 109, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(8, 19, 13, 0.92), rgba(14, 49, 24, 0.76)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.public-follower-ticker > div:first-child strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--green);
+  font-size: clamp(52px, 7vw, 110px);
+  line-height: 0.92;
+}
+
+.public-follower-ticker p,
+.public-follower-ticker small {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.public-follower-ticker small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+}
+
+.follower-source-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.follower-source-strip article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.follower-source-strip article.live {
+  border-color: rgba(97, 227, 109, 0.44);
+  background: rgba(97, 227, 109, 0.08);
+}
+
+.follower-source-strip article.connector-error {
+  border-color: rgba(255, 85, 85, 0.42);
+}
+
+.follower-source-strip span,
+.follower-source-strip strong,
+.follower-source-strip em {
+  display: block;
+}
+
+.follower-source-strip span,
+.follower-source-strip em {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.follower-source-strip strong {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.follower-source-strip em {
+  margin-top: 10px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
 .public-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4645,6 +4729,7 @@ button {
   .tool-command-section,
   .public-section.two-col,
   .public-score-header,
+  .public-follower-ticker,
   .public-dashboard-grid,
   .product-hero,
   .members-shell,
@@ -4670,6 +4755,7 @@ button {
   .stream-command-grid,
   .stream-arc-grid,
   .tool-link-grid,
+  .follower-source-strip,
   .launch-category-grid,
   .launch-blocker-strip,
   .manual-gate-list,
@@ -4715,6 +4801,7 @@ button {
   .automation-source,
   .snapshot-actions,
   .snapshot-source-list,
+  .follower-source-strip,
   .launch-readiness-summary,
   .launch-category-grid,
   .launch-blocker-strip,

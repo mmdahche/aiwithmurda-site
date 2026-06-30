@@ -65,8 +65,9 @@ export function daysRemaining(config, latestDay) {
   return Math.max(0, Number(config.totalDays) - Number(latestDay || 0));
 }
 
-export function buildProgressItems(config, latest) {
-  const followers = totalFollowers(latest);
+export function buildProgressItems(config, latest, liveFollowers = null) {
+  const liveFollowerTotal = Number(liveFollowers?.total);
+  const followers = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : totalFollowers(latest);
   return [
     {
       key: "revenue",

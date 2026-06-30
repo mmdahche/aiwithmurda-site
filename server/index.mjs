@@ -623,6 +623,151 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
   };
 }
 
+function getEnvNumber(...keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value !== undefined && value !== "") return Number(value || 0);
+  }
+  return null;
+}
+
+async function fetchTwitchFollowerCount() {
+  const clientId = readPublicUrlEnv("TWITCH_CLIENT_ID");
+  const accessToken = readPublicUrlEnv("TWITCH_ACCESS_TOKEN");
+  const broadcasterId = readPublicUrlEnv("TWITCH_BROADCASTER_ID");
+  if (!clientId || !accessToken || !broadcasterId) return null;
+
+  const response = await fetch(
+    `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${encodeURIComponent(broadcasterId)}&first=1`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Client-Id": clientId,
+      },
+    },
+  );
+  if (!response.ok) throw new Error(`twitch_followers_${response.status}`);
+  const data = await response.json();
+  return Number(data.total || 0);
+}
+
+async function fetchTikTokFollowerCount() {
+  const accessToken = readPublicUrlEnv("TIKTOK_ACCESS_TOKEN");
+  if (!accessToken) return null;
+
+  const response = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=follower_count,username", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) throw new Error(`tiktok_followers_${response.status}`);
+  const data = await response.json();
+  return Number(data?.data?.user?.follower_count || 0);
+}
+
+async function getFollowerConnectorCount(source) {
+  if (source.key === "twitch") return fetchTwitchFollowerCount();
+  if (source.key === "tiktok") return fetchTikTokFollowerCount();
+  return null;
+}
+
+async function buildLiveFollowerTicker() {
+  const { data, error } = await supabaseAdmin
+    .from("daily_logs")
+    .select("day,followers,updated_at")
+    .order("day", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+
+  const latestLog = data?.[0] || null;
+  const fallbackFollowers = latestLog?.followers || {};
+  const sources = [
+    {
+      key: "twitch",
+      label: "Twitch",
+      platformMetric: "followers",
+      mode: "EventSub + Helix reconciliation",
+      cadence: "instant after OAuth; API fallback on refresh",
+      configured: Boolean(
+        process.env.TWITCH_CLIENT_ID && process.env.TWITCH_ACCESS_TOKEN && process.env.TWITCH_BROADCASTER_ID,
+      ),
+      eventDriven: true,
+    },
+    {
+      key: "tiktok",
+      label: "TikTok",
+      platformMetric: "followers",
+      mode: "Display API polling",
+      cadence: "polling after app approval",
+      configured: Boolean(process.env.TIKTOK_ACCESS_TOKEN),
+      eventDriven: false,
+    },
+    {
+      key: "instagram",
+      label: "Instagram",
+      platformMetric: "followers",
+      mode: "Meta Graph API polling",
+      cadence: "polling after Meta app approval",
+      configured: Boolean(process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_USER_ID),
+      eventDriven: false,
+    },
+    {
+      key: "youtube",
+      label: "YouTube",
+      platformMetric: "subscribers",
+      mode: "YouTube Data API polling",
+      cadence: "polling after live access opens",
+      configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
+      eventDriven: false,
+    },
+  ];
+
+  const resolvedSources = await Promise.all(
+    sources.map(async (source) => {
+      const manualEnvCount = getEnvNumber(
+        `FOLLOWER_${source.key.toUpperCase()}_COUNT`,
+        `${source.key.toUpperCase()}_FOLLOWER_COUNT`,
+      );
+      const fallbackCount = Number(manualEnvCount ?? fallbackFollowers[source.key] ?? 0);
+      let count = fallbackCount;
+      let status = source.configured ? "connector-ready" : "daily-log-fallback";
+      let detail = source.configured
+        ? "Connector credentials are present; live count can replace the daily log fallback."
+        : "Using the latest approved daily log until platform access is connected.";
+
+      if (source.configured && ["twitch", "tiktok"].includes(source.key)) {
+        try {
+          const connectorCount = await getFollowerConnectorCount(source);
+          if (Number.isFinite(connectorCount)) {
+            count = connectorCount;
+            status = "live";
+            detail = "Live connector count returned successfully.";
+          }
+        } catch (error) {
+          status = "connector-error";
+          detail = `Connector needs attention: ${error.message}`;
+        }
+      }
+
+      return {
+        ...source,
+        count,
+        status,
+        detail,
+        lastUpdatedAt: status === "live" ? new Date().toISOString() : latestLog?.updated_at || null,
+      };
+    }),
+  );
+
+  return {
+    ok: true,
+    mode: "live-follower-ticker",
+    total: resolvedSources.reduce((sum, source) => sum + Number(source.count || 0), 0),
+    sources: resolvedSources,
+    sourceDay: latestLog?.day || null,
+    refreshMs: Number(process.env.FOLLOWER_TICKER_REFRESH_MS || 15000),
+    checkedAt: new Date().toISOString(),
+  };
+}
+
 function shouldSendEmail(email) {
   const domain = email.split("@").at(-1);
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
@@ -1205,6 +1350,17 @@ app.get("/api/daily-logs", async (req, res) => {
   } catch (error) {
     console.error("[daily-logs]", error);
     res.status(500).json({ error: "daily_logs_lookup_failed" });
+  }
+});
+
+app.get("/api/followers/live", async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    res.json(await buildLiveFollowerTicker());
+  } catch (error) {
+    console.error("[followers-live]", error);
+    res.status(500).json({ error: "followers_live_lookup_failed" });
   }
 });
 
