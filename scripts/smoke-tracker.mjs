@@ -244,7 +244,11 @@ if (!membersResponse.ok || !membersHtml.includes("root")) {
   throw new Error(`Members route failed: ${membersResponse.status}`);
 }
 const membersBundle = await fetchClientBundle(membersHtml, "Members route", siteUrl);
-if (!membersBundle.includes("Capstone builder") || !membersBundle.includes("Download capstone receipt")) {
+if (
+  !membersBundle.includes("Capstone builder") ||
+  !membersBundle.includes("Download capstone receipt") ||
+  !membersBundle.includes("Download certificate")
+) {
   throw new Error("Members route client bundle missing course capstone builder");
 }
 

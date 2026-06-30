@@ -149,6 +149,15 @@ function loadCompletionDraft(email) {
   }
 }
 
+function escapeCertificateHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 const offerStack = [
   {
     title: productName,
@@ -3514,6 +3523,95 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   const completionAnswerCount = useMemo(() => {
     return courseCompletion.finalReceiptSections.filter((section) => completionDraft[section.title]?.trim()).length;
   }, [completionDraft]);
+  const completionCertificateHtml = useMemo(() => {
+    const issueDate = new Date().toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const criteria = courseCompletion.criteria
+      .map((criterion, index) => {
+        const module = productModules[index];
+        const isDone = Boolean(module?.todos.every((todo) => completedTasks.has(`${module.key}:${todo.key}`)));
+        return `<li class="${isDone ? "done" : "open"}"><strong>${escapeCertificateHtml(
+          isDone ? "Done" : "Open",
+        )}</strong><span>${escapeCertificateHtml(criterion.title)}</span><p>${escapeCertificateHtml(criterion.proof)}</p></li>`;
+      })
+      .join("");
+    const certificateLines = courseCompletion.certificateCopy
+      .map((line) => `<p>${escapeCertificateHtml(line)}</p>`)
+      .join("");
+    const publicHost =
+      typeof window !== "undefined" ? window.location.origin.replace(/^https?:\/\//, "") : "aiwithmurda.com";
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeCertificateHtml(courseCompletion.title)} Certificate</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; color: #f4fbf6; background: #06100a; }
+    main { min-height: 100vh; display: grid; place-items: center; padding: 48px 24px; }
+    section { width: min(100%, 980px); padding: 48px; border: 1px solid rgba(97, 227, 109, 0.34); border-radius: 8px; background: radial-gradient(circle at 90% 10%, rgba(247, 201, 72, 0.18), transparent 30%), linear-gradient(135deg, rgba(97, 227, 109, 0.11), rgba(255, 255, 255, 0.035)); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); }
+    .kicker { margin: 0 0 18px; color: #61e36d; font-size: 12px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    h1 { margin: 0; max-width: 780px; font-size: clamp(44px, 8vw, 88px); line-height: 0.92; letter-spacing: 0; }
+    .operator { margin: 22px 0 0; color: #d8e6de; font-size: 21px; line-height: 1.45; }
+    .operator strong { color: #f7c948; }
+    .status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 34px 0; }
+    .status-grid div { padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; background: rgba(0, 0, 0, 0.22); }
+    .status-grid span { display: block; color: #9fb2a8; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .status-grid strong { display: block; margin-top: 8px; color: #f4fbf6; font-size: 25px; line-height: 1; }
+    .certificate-copy { display: grid; gap: 10px; color: #d8e6de; font-size: 16px; line-height: 1.6; }
+    .certificate-copy p { margin: 0; }
+    ol { display: grid; gap: 10px; margin: 30px 0 0; padding: 0; list-style: none; }
+    li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 8px; background: rgba(255, 255, 255, 0.035); }
+    li.done { border-color: rgba(97, 227, 109, 0.28); background: rgba(97, 227, 109, 0.08); }
+    li strong { grid-row: span 2; align-self: start; justify-self: start; padding: 6px 8px; color: #061008; border-radius: 999px; background: #f7c948; font-size: 11px; text-transform: uppercase; }
+    li.done strong { background: #61e36d; }
+    li span { font-weight: 900; }
+    li p { margin: 0; color: #9fb2a8; line-height: 1.45; }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #9fb2a8; font-size: 13px; }
+    @media print { body { background: white; } main { padding: 0; } section { min-height: 100vh; box-shadow: none; } }
+    @media (max-width: 720px) { section { padding: 28px; } .status-grid, li { grid-template-columns: 1fr; } li strong { grid-row: auto; } footer { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <p class="kicker">${escapeCertificateHtml(productName)} Completion Certificate</p>
+      <h1>${escapeCertificateHtml(courseCompletion.title)}</h1>
+      <p class="operator">Issued to <strong>${escapeCertificateHtml(profile?.email || "member")}</strong> on ${escapeCertificateHtml(
+        issueDate,
+      )}.</p>
+      <div class="status-grid">
+        <div><span>Progress</span><strong>${escapeCertificateHtml(progressState.summary.percent)}%</strong></div>
+        <div><span>Tasks</span><strong>${escapeCertificateHtml(progressState.summary.completed)} / ${escapeCertificateHtml(
+          progressState.summary.total,
+        )}</strong></div>
+        <div><span>Receipt draft</span><strong>${escapeCertificateHtml(completionAnswerCount)} / ${escapeCertificateHtml(
+          courseCompletion.finalReceiptSections.length,
+        )}</strong></div>
+      </div>
+      <div class="certificate-copy">${certificateLines}</div>
+      <ol>${criteria}</ol>
+      <footer>
+        <span>${escapeCertificateHtml(productSubtitle)}</span>
+        <span>${escapeCertificateHtml(publicHost)}</span>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>`;
+  }, [
+    completedTasks,
+    completionAnswerCount,
+    profile?.email,
+    progressState.summary.completed,
+    progressState.summary.percent,
+    progressState.summary.total,
+  ]);
   const firstRun = progressState.summary.completed === 0;
 
   function updateProofDraft(field, value) {
@@ -3536,6 +3634,15 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       `future-proof-method-completion-${receiptDate}.md`,
       completionReceiptMarkdown,
       "text/markdown;charset=utf-8",
+    );
+  }
+
+  function handleDownloadCompletionCertificate() {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    downloadFile(
+      `future-proof-method-certificate-${receiptDate}.html`,
+      completionCertificateHtml,
+      "text/html;charset=utf-8",
     );
   }
 
@@ -3592,6 +3699,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         completionReceiptMarkdown={completionReceiptMarkdown}
         onCompletionDraftChange={updateCompletionDraft}
         onDownload={handleDownloadCompletionReceipt}
+        onDownloadCertificate={handleDownloadCompletionCertificate}
       />
 
       <section className={`member-onboarding ${firstRun ? "fresh" : ""}`}>
@@ -4007,6 +4115,7 @@ function CourseCompletionPanel({
   completionReceiptMarkdown,
   onCompletionDraftChange,
   onDownload,
+  onDownloadCertificate,
 }) {
   const complete = summary.total > 0 && summary.completed >= summary.total;
   const remaining = Math.max(summary.total - summary.completed, 0);
@@ -4036,6 +4145,9 @@ function CourseCompletionPanel({
           <p>{completionAnswerCount}/{receiptSectionTotal} receipt sections drafted.</p>
           <button type="button" className="primary-action" onClick={onDownload}>
             Download capstone receipt
+          </button>
+          <button type="button" className="secondary-action" onClick={onDownloadCertificate}>
+            Download certificate
           </button>
         </div>
         <div className="completion-criteria-list">

@@ -4265,7 +4265,8 @@ button {
   font-weight: 900;
 }
 
-.completion-meter-card .primary-action {
+.completion-meter-card .primary-action,
+.completion-meter-card .secondary-action {
   width: 100%;
   min-height: 42px;
   margin-top: 4px;
