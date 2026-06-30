@@ -2058,7 +2058,8 @@ button {
   background: rgba(97, 227, 109, 0.045);
 }
 
-.stream-rehearsal-card {
+.stream-rehearsal-card,
+.stream-platform-setup-card {
   display: grid;
   gap: 12px;
   padding: 14px;
@@ -2208,6 +2209,71 @@ button {
 .stream-rehearsal-proof strong {
   color: #f7c948;
   font-size: 13px;
+  line-height: 1.4;
+}
+
+.stream-platform-setup-list {
+  display: grid;
+  gap: 10px;
+}
+
+.stream-platform-setup-list article {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.13);
+}
+
+.stream-platform-setup-list div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  align-items: baseline;
+}
+
+.stream-platform-setup-list span,
+.stream-platform-setup-list strong,
+.stream-platform-setup-list em,
+.stream-platform-setup-list p {
+  display: block;
+  margin: 0;
+}
+
+.stream-platform-setup-list span {
+  min-width: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.stream-platform-setup-list strong {
+  color: #f7c948;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.stream-platform-setup-list em {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.stream-platform-setup-list ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: #dbeafe;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.stream-platform-setup-list p {
+  color: #d8e6de;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -6170,6 +6236,10 @@ button {
   }
 
   .stream-command-mini-list {
+    grid-template-columns: 1fr;
+  }
+
+  .stream-platform-setup-list div {
     grid-template-columns: 1fr;
   }
 

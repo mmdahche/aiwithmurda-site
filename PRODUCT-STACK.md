@@ -194,6 +194,7 @@ Admin operator workflows:
 - Daily Log includes a Daily Clip Packet for the selected day: three clip hooks, recap caption, follow-up line, and copy/manual-copy output.
 - Settings includes a Manual Gate Runbook for the human-dependent launch gates: final stream links, OBS rehearsal, and real Backbone purchase test.
 - Settings includes a Fake Stream Rehearsal runbook from `/api/stream/config`: live hub check, OBS overlays, command clicks, one proof-loop metric sync, and the money-path test.
+- Settings includes a Stream Platform Setup deck from `/api/stream/config`: Twitch, YouTube, Kick, and the main room mapped to their Render env vars and proof checks.
 - Copy actions use clipboard when available and reveal manual-copy textareas when embedded browser permissions block clipboard writes.
 
 Smoke test:
@@ -202,6 +203,7 @@ Smoke test:
 - `npm run smoke:tracker` verifies `/live-builds` loads and the client bundle includes the second-product offer copy.
 - `npm run smoke:stream` verifies the stream config includes `!builds` and the `/live-builds` destination.
 - `npm run smoke:stream` also verifies the Fake Stream Rehearsal plan is exposed with OBS steps.
+- `npm run smoke:stream` verifies the platform setup deck includes Twitch, YouTube, and main-room env mappings.
 - `npm run smoke:funnel` verifies `/api/checkout/live-builds` creates a `$97` Checkout Session with product key `new_wave_live_builds`.
 - Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates Stripe Checkout Sessions, confirms unpaid sessions return the retryable recovery guard, verifies Future Proof and New Wave Live Builds assets are blocked before entitlement, verifies module action kits, grants temporary entitlements, downloads gated assets, then expires sessions and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.

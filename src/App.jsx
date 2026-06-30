@@ -437,6 +437,60 @@ const fallbackStreamConfig = {
       },
     ],
   },
+  platformSetup: [
+    {
+      key: "twitch",
+      name: "Twitch",
+      envKey: "STREAM_TWITCH_URL",
+      status: "Account connection later",
+      steps: [
+        "Create or confirm the AI with Murda Twitch channel.",
+        "Run one unlisted/private OBS test or a short public test stream when ready.",
+        "Copy the public channel or live URL into STREAM_TWITCH_URL on Render.",
+        "Connect Twitch OAuth in admin when the app credentials are ready.",
+      ],
+      proof: "The Twitch destination card on /live opens the right channel and the admin Twitch connector reports configured OAuth env.",
+    },
+    {
+      key: "youtube",
+      name: "YouTube",
+      envKey: "STREAM_YOUTUBE_URL",
+      status: "Live access unlock dependent",
+      steps: [
+        "Wait for live streaming access if YouTube shows the countdown gate.",
+        "Create the first scheduled live or use the channel live URL after access unlocks.",
+        "Copy that URL into STREAM_YOUTUBE_URL on Render.",
+        "Rerun stream smoke and click !live from the command deck.",
+      ],
+      proof: "The YouTube destination card opens the right channel or scheduled live without showing the unlock gate.",
+    },
+    {
+      key: "kick",
+      name: "Kick",
+      envKey: "STREAM_KICK_URL",
+      status: "Optional destination",
+      steps: [
+        "Create or confirm the Kick channel.",
+        "Add the Kick stream key to OBS or the multistream tool if used.",
+        "Copy the public channel URL into STREAM_KICK_URL on Render.",
+        "Use the fake stream rehearsal to confirm the destination card and command deck.",
+      ],
+      proof: "The Kick destination card opens the correct channel from /live.",
+    },
+    {
+      key: "main",
+      name: "Main room",
+      envKey: "STREAM_PRIMARY_URL",
+      status: "Choose primary before launch",
+      steps: [
+        "Choose the main audience home for Day 1.",
+        "Set STREAM_PRIMARY_URL to the main watch URL.",
+        "Set STREAM_STATUS=ready and STREAM_STATUS_LABEL to the visible launch state when final.",
+        "Set STREAM_MESSAGE to the pinned live-room note for viewers.",
+      ],
+      proof: "The main /live button opens the chosen room and all fallback destination cards still work.",
+    },
+  ],
 };
 
 const launchChecklistItems = [
@@ -5344,6 +5398,9 @@ function SettingsView({
   const streamRehearsal = streamConfig?.rehearsal || fallbackStreamConfig.rehearsal || null;
   const streamRehearsalText = formatStreamRehearsalRunbook(streamRehearsal);
   const [streamRehearsalCopyStatus, setStreamRehearsalCopyStatus] = useState("idle");
+  const streamPlatformSetup = streamConfig?.platformSetup || fallbackStreamConfig.platformSetup || [];
+  const streamPlatformSetupText = formatStreamPlatformSetupDeck(streamPlatformSetup);
+  const [streamPlatformCopyStatus, setStreamPlatformCopyStatus] = useState("idle");
   const buyerEmailDeckText = formatBuyerOnboardingEmailDeck(buyerOnboardingEmails);
   const [buyerEmailCopyStatus, setBuyerEmailCopyStatus] = useState("idle");
   const offerOpsModules =
@@ -5387,6 +5444,15 @@ function SettingsView({
       window.setTimeout(() => setStreamRehearsalCopyStatus("idle"), 1800);
     } else {
       setStreamRehearsalCopyStatus("manual");
+    }
+  }
+
+  async function copyStreamPlatformSetup() {
+    if (await copyPlainText(streamPlatformSetupText)) {
+      setStreamPlatformCopyStatus("copied");
+      window.setTimeout(() => setStreamPlatformCopyStatus("idle"), 1800);
+    } else {
+      setStreamPlatformCopyStatus("manual");
     }
   }
 
@@ -5863,6 +5929,47 @@ function SettingsView({
               ) : null}
             </section>
           )}
+          <section className="stream-platform-setup-card">
+            <div className="stream-command-deck-header">
+              <div>
+                <span>Platform setup</span>
+                <strong>{streamPlatformSetup.length} destinations to finish</strong>
+              </div>
+              <button type="button" onClick={copyStreamPlatformSetup}>
+                {streamPlatformCopyStatus === "copied"
+                  ? "Copied setup"
+                  : streamPlatformCopyStatus === "manual"
+                    ? "Manual copy ready"
+                    : "Copy setup"}
+              </button>
+            </div>
+            <div className="stream-platform-setup-list">
+              {streamPlatformSetup.map((platform) => (
+                <article key={platform.key}>
+                  <div>
+                    <span>{platform.name}</span>
+                    <strong>{platform.envKey}</strong>
+                    <em>{platform.status}</em>
+                  </div>
+                  <ol>
+                    {platform.steps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                  <p>{platform.proof}</p>
+                </article>
+              ))}
+            </div>
+            {streamPlatformCopyStatus === "manual" ? (
+              <textarea
+                aria-label="Stream platform setup text"
+                className="run-sheet-copy-box"
+                readOnly
+                value={streamPlatformSetupText}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            ) : null}
+          </section>
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />
@@ -6352,6 +6459,26 @@ function formatStreamRehearsalRunbook(rehearsal) {
       (step, index) =>
         `${index + 1}. ${step.title}\n   Target: ${step.target}\n   Check: ${step.check}`,
     ),
+  ].join("\n");
+}
+
+function formatStreamPlatformSetupDeck(platforms) {
+  return [
+    "AI with Murda Stream Platform Setup",
+    "",
+    ...(platforms || []).flatMap((platform) => [
+      `${platform.name} (${platform.envKey})`,
+      `Status: ${platform.status}`,
+      "Steps:",
+      ...(platform.steps || []).map((step, index) => `${index + 1}. ${step}`),
+      `Proof: ${platform.proof}`,
+      "",
+    ]),
+    "After env updates:",
+    "1. Wait for Render to redeploy.",
+    "2. Run npm run smoke:stream.",
+    "3. Open /live and click each destination card.",
+    "4. Run the Fake Stream Rehearsal.",
   ].join("\n");
 }
 

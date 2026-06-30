@@ -38,6 +38,11 @@ const checks = {
   rehearsalObsStepPresent:
     Array.isArray(config.rehearsal?.steps) &&
     config.rehearsal.steps.some((step) => String(step.target || "").includes("/obs")),
+  platformSetupPresent:
+    Array.isArray(config.platformSetup) &&
+    config.platformSetup.some((item) => item.key === "youtube" && item.envKey === "STREAM_YOUTUBE_URL") &&
+    config.platformSetup.some((item) => item.key === "twitch" && item.envKey === "STREAM_TWITCH_URL") &&
+    config.platformSetup.some((item) => item.key === "main" && item.envKey === "STREAM_PRIMARY_URL"),
 };
 
 const failed = Object.entries(checks)

@@ -161,6 +161,9 @@ if (!liveBundle.includes("Stream Command Deck")) {
 if (!liveBundle.includes("Fake Stream Rehearsal") || !liveBundle.includes("Copy rehearsal")) {
   throw new Error("Client bundle missing fake stream rehearsal workflow");
 }
+if (!liveBundle.includes("Platform setup") || !liveBundle.includes("STREAM_YOUTUBE_URL")) {
+  throw new Error("Client bundle missing stream platform setup workflow");
+}
 if (!liveBundle.includes("Buyer Email Copy Deck")) {
   throw new Error("Client bundle missing Buyer Email Copy Deck");
 }
@@ -389,6 +392,7 @@ console.log(
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
         adminStreamRehearsalBundle: true,
+        adminStreamPlatformSetupBundle: true,
         adminBuyerEmailCopyDeckBundle: true,
         adminLoginGateBundle: true,
         adminPasswordSettingsBundle: true,
