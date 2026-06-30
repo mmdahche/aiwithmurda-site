@@ -218,6 +218,14 @@ function buildStreamConfig() {
       ...streamLinks,
       { key: "scoreboard", name: "Public scoreboard", href: "/60", status: "Live now", configured: true, external: false },
       { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true, external: false },
+      {
+        key: "live-builds",
+        name: "New Wave Live Builds",
+        href: "/live-builds",
+        status: "Founding waitlist",
+        configured: true,
+        external: false,
+      },
     ],
     commands: [
       { command: "!scoreboard", label: "Public scoreboard", href: "/60" },
@@ -228,6 +236,7 @@ function buildStreamConfig() {
       { command: "!overlay", label: "OBS overlay", href: "/overlay" },
       { command: "!start", label: "Build log signup", href: "/start" },
       { command: "!kit", label: "Founding product", href: "/kit" },
+      { command: "!builds", label: "New Wave Live Builds", href: "/live-builds" },
       { command: "!members", label: "Member login", href: "/members" },
       { command: "!runbook", label: "Launch runbook", href: "/members" },
     ],

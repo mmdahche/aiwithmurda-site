@@ -12,6 +12,13 @@ import {
   productSubtitle,
   productTaskCount,
 } from "./data/product.js";
+import {
+  liveBuildDeliverables,
+  liveBuildFaq,
+  liveBuildOutcomes,
+  liveBuildsProduct,
+  liveBuildSessionFlow,
+} from "./data/liveBuilds.js";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -116,10 +123,11 @@ const offerStack = [
     description: "The paid setup: new-wave workspace, prompts, daily checklist, proof templates, and stream-tested workflows.",
   },
   {
-    title: "New Wave Live Builds",
-    price: "$97+",
-    status: "After kit",
-    description: "Entertainment-first live builds that teach by showing the work, not by pretending the stream is a classroom.",
+    title: liveBuildsProduct.name,
+    price: liveBuildsProduct.priceLabel,
+    status: liveBuildsProduct.status,
+    description: liveBuildsProduct.promise,
+    href: "/live-builds",
   },
   {
     title: "Implementation Sprint",
@@ -372,6 +380,7 @@ const fallbackStreamConfig = {
     { key: "youtube", name: "YouTube", href: null, status: "Waiting for link", configured: false },
     { key: "scoreboard", name: "Public scoreboard", href: "/60", status: "Live now", configured: true },
     { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true },
+    { key: "live-builds", name: liveBuildsProduct.name, href: "/live-builds", status: liveBuildsProduct.status, configured: true },
   ],
   commands: [
     { command: "!scoreboard", label: "Public scoreboard", href: "/60" },
@@ -382,6 +391,7 @@ const fallbackStreamConfig = {
     { command: "!overlay", label: "OBS overlay", href: "/overlay" },
     { command: "!start", label: "Build log signup", href: "/start" },
     { command: "!kit", label: "Founding product", href: "/kit" },
+    { command: "!builds", label: liveBuildsProduct.name, href: "/live-builds" },
     { command: "!members", label: "Member login", href: "/members" },
     { command: "!runbook", label: "Launch runbook", href: "/members" },
   ],
@@ -1432,7 +1442,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/members"].includes(route)
+      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/live-builds", "/members"].includes(route)
         ? route
         : "/";
 
@@ -1453,6 +1463,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/live-builds" && <LiveBuildsPage />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -1466,6 +1477,7 @@ function PublicNav({ activeRoute }) {
     { href: "/60", label: "Dashboard" },
     { href: "/live", label: "Live" },
     { href: "/kit", label: "Kit" },
+    { href: "/live-builds", label: "Live Builds" },
     { href: "/tools", label: "Tools" },
     { href: "/start", label: "Start" },
   ];
@@ -1945,6 +1957,7 @@ function ToolsPage({ latest }) {
     { command: "!live", title: "Live hub", href: "/live", body: "Stream room, pinned commands, run of show, and mode guardrails." },
     { command: "!overlay", title: "Overlay route", href: "/overlay", body: "Clean browser-source URL for the scoreboard overlay." },
     { command: "!kit", title: productName, href: "/kit", body: "The first paid drop and member-product path." },
+    { command: "!builds", title: liveBuildsProduct.name, href: "/live-builds", body: "Second product waitlist for paid live-build rooms and replays." },
     { command: "!start", title: "Build log", href: "/start", body: "Email capture for launch updates and daily receipts." },
     { command: "!members", title: "Member hub", href: "/members", body: "Supabase login, checkout recovery, and gated assets." },
     { command: "!runbook", title: "Launch runbook", href: "/members", body: "Members can download the Day 0 and Day 1 operating checklist from the hub." },
@@ -2141,6 +2154,11 @@ function StarterKitPage({ authSession, authReady }) {
             <h2>{offer.title}</h2>
             <p>{offer.description}</p>
             <strong className="card-price">{offer.price}</strong>
+            {offer.href && (
+              <a className="text-link" href={offer.href}>
+                Preview offer
+              </a>
+            )}
           </article>
         ))}
       </section>
@@ -2233,6 +2251,148 @@ function StarterKitPage({ authSession, authReady }) {
         <div className="kit-final-cta">
           <strong>Ready to build with receipts?</strong>
           <CheckoutButton authSession={authSession} authReady={authReady} />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function LiveBuildsPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleSubscribe(event) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      await subscribeBuildLog({ email, name, source: "live-builds" });
+      setStatus("success");
+      setMessage("You are on the New Wave Live Builds list. I will use this list when the first paid room opens.");
+      setEmail("");
+      setName("");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not join the live-build list yet.");
+    }
+  }
+
+  return (
+    <main className="public-page">
+      <section className="public-section live-builds-hero">
+        <div>
+          <span className="public-label">Second product · {liveBuildsProduct.status}</span>
+          <h1>{liveBuildsProduct.name}</h1>
+          <p>{liveBuildsProduct.promise}</p>
+          <div className="live-builds-positioning">
+            <strong>{liveBuildsProduct.subtitle}</strong>
+            <span>{liveBuildsProduct.positioning}</span>
+          </div>
+          <div className="hero-actions">
+            <a className="primary-link" href="#live-builds-list">
+              {liveBuildsProduct.primaryCta}
+            </a>
+            <a className="secondary-link" href="/kit">
+              {liveBuildsProduct.secondaryCta}
+            </a>
+          </div>
+        </div>
+        <aside className="live-builds-ticket">
+          <span>Target founding ticket</span>
+          <strong>{liveBuildsProduct.priceLabel}</strong>
+          <p>Checkout opens after the first live-build topic and Backbone Stripe price are locked.</p>
+          <form id="live-builds-list" className="start-form" onSubmit={handleSubscribe}>
+            <input
+              type="text"
+              placeholder="First name"
+              aria-label="First name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="you@example.com"
+              aria-label="Email address"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+            <button type="submit" disabled={status === "loading"}>
+              {status === "loading" ? "Joining..." : "Join the list"}
+            </button>
+          </form>
+          {message && <p className={`form-message ${status}`}>{message}</p>}
+        </aside>
+      </section>
+
+      <section className="live-builds-outcomes">
+        {liveBuildOutcomes.map((outcome) => (
+          <article key={outcome.title}>
+            <span>{outcome.title}</span>
+            <p>{outcome.body}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="public-section live-builds-flow-section">
+        <div>
+          <span className="public-label">Room format</span>
+          <h2>A paid build room with receipts.</h2>
+          <p>
+            The point is not a polished webinar. The point is seeing the operator loop happen under time pressure:
+            pick the problem, build the slice, prove the change, and turn the proof into a money-path move.
+          </p>
+        </div>
+        <div className="live-builds-flow">
+          {liveBuildSessionFlow.map((phase) => (
+            <article key={phase.phase}>
+              <strong>{phase.phase}</strong>
+              <div>
+                <span>{phase.time}</span>
+                <h3>{phase.title}</h3>
+                <p>{phase.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="public-section live-builds-deliverables">
+        <div>
+          <span className="public-label">What buyers leave with</span>
+          <h2>The replay is only one part.</h2>
+          <p>
+            Each paid room should create a reusable asset pack so buyers can repeat the build loop after the session ends.
+          </p>
+        </div>
+        <ul>
+          {liveBuildDeliverables.map((deliverable) => (
+            <li key={deliverable}>{deliverable}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="public-section live-builds-faq-section">
+        <div>
+          <span className="public-label">Offer notes</span>
+          <h2>Clear enough to test live.</h2>
+        </div>
+        <div className="kit-faq-list">
+          {liveBuildFaq.map((item) => (
+            <article key={item.question}>
+              <strong>{item.question}</strong>
+              <p>{item.answer}</p>
+            </article>
+          ))}
+        </div>
+        <div className="kit-final-cta">
+          <strong>Want the first paid room?</strong>
+          <a className="primary-link" href="#live-builds-list">
+            Join the live-build list
+          </a>
         </div>
       </section>
     </main>

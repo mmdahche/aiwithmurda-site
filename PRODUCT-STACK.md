@@ -15,6 +15,10 @@ This keeps the show, the scoreboard, checkout, and member delivery in one brande
 - First paid floor price: $47.
 - Product name: `The Future Proof Method`.
 - Product subtitle: `New Wave Operator Kit`.
+- Second product: `New Wave Live Builds`.
+- Second product route: `/live-builds`.
+- Second product CTA command: `!builds`.
+- Second product V1 state: founding waitlist through the existing subscriber endpoint with source `live-builds`.
 - Delivery feel: premium Supabase-gated member hub, not a loose Google Drive folder.
 - Stream angle: entertainment-first, streamer-style show; education happens through live proof, not classroom framing.
 - Deadline: all core funnel pieces live before July 28, 2026.
@@ -148,6 +152,14 @@ Access flow:
 7. Webhook sends access email through Resend.
 8. Member hub unlocks product assets for that profile.
 
+Second product flow:
+
+1. Viewer lands on `/live-builds` from nav, `/kit`, `/tools`, or chat command `!builds`.
+2. Viewer joins the founding live-build list through `/api/subscribe` with source `live-builds`.
+3. Page explains the paid room: problem pick, AI build block, proof check, offer move.
+4. Checkout stays disabled until the live-build topic and Backbone Stripe price ID are created.
+5. Next paid wiring should use a separate product key/price/env instead of overloading the `future_proof_method` entitlement.
+
 Subscriber capture:
 
 - `/api/subscribe` must persist every valid email to Supabase `subscribers` before attempting optional Resend email/contact work.
@@ -179,6 +191,8 @@ Admin operator workflows:
 Smoke test:
 
 - Run `npm run smoke:launch` for the full prelaunch verification pass. It runs tracker, stream config, signup, and paid funnel checks in order.
+- `npm run smoke:tracker` verifies `/live-builds` loads and the client bundle includes the second-product offer copy.
+- `npm run smoke:stream` verifies the stream config includes `!builds` and the `/live-builds` destination.
 - Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, verifies module action kits, grants a temporary entitlement, downloads gated assets, then expires the session and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.
 - Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.

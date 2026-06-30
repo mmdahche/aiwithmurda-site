@@ -18,6 +18,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 - `/tools` - public tools/resources shelf
 - `/start` - production email capture
 - `/kit` - first paid drop sales page
+- `/live-builds` - second product founding waitlist and paid-room offer surface
 - `/members` - Supabase-gated member hub and asset delivery
 - `/day/:day` - public daily receipt pages for clips and recaps
 - `/admin` - private local control room for daily logging and exports
@@ -69,6 +70,13 @@ Why:
 8. Workshop/live-build event page after the starter kit checkout proves conversion.
 9. Cohort and sprint pages after the first paid/drop path is testable end to end.
 
+Current second product state:
+
+- `New Wave Live Builds` page is live-ready at `/live-builds`.
+- Public chat command target is `!builds`.
+- V1 capture uses the existing `/api/subscribe` endpoint with source `live-builds`.
+- Checkout is intentionally not enabled until the Backbone Stripe price ID and entitlement model are added.
+
 ## Render Web Service Settings
 
 Use these same values if creating the Web Service manually instead of through the Blueprint flow.
@@ -107,6 +115,7 @@ Cloudflare SSL/TLS:
 - Supabase durable subscriber list: done
 - Admin audience summary: done
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
+- New Wave Live Builds waitlist page: done; paid checkout pending Backbone Stripe price
 - Member area delivery live: done
 - Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
 - Social share metadata and OG card: done

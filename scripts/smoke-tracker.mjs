@@ -105,7 +105,11 @@ if (!robotsResponse.ok || !robotsText.includes("Sitemap: https://aiwithmurda.com
 
 const sitemapResponse = await fetch(`${siteUrl}/sitemap.xml`);
 const sitemapText = await sitemapResponse.text();
-if (!sitemapResponse.ok || !sitemapText.includes("https://aiwithmurda.com/kit")) {
+if (
+  !sitemapResponse.ok ||
+  !sitemapText.includes("https://aiwithmurda.com/kit") ||
+  !sitemapText.includes("https://aiwithmurda.com/live-builds")
+) {
   throw new Error(`Sitemap route failed: ${sitemapResponse.status}`);
 }
 
@@ -204,6 +208,16 @@ const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
 if (!kitResponse.ok || !kitHtml.includes("root")) {
   throw new Error(`Kit route failed: ${kitResponse.status}`);
+}
+
+const liveBuildsResponse = await fetch(`${siteUrl}/live-builds/`);
+const liveBuildsHtml = await liveBuildsResponse.text();
+if (!liveBuildsResponse.ok || !liveBuildsHtml.includes("root")) {
+  throw new Error(`Live builds route failed: ${liveBuildsResponse.status}`);
+}
+const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Live builds route", siteUrl);
+if (!liveBuildsBundle.includes("New Wave Live Builds") || !liveBuildsBundle.includes("Join the live-build list")) {
+  throw new Error("Live builds route client bundle missing second-product offer copy");
 }
 
 const membersResponse = await fetch(`${siteUrl}/members/`);
@@ -353,6 +367,7 @@ console.log(
         publicToolsRoute: true,
         adminRoute: true,
         publicLiveRoute: true,
+        publicLiveBuildsRoute: true,
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,

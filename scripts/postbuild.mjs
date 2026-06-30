@@ -10,6 +10,7 @@ const routes = [
   "tools",
   "start",
   "kit",
+  "live-builds",
   "members",
   "admin",
   ...productModules.map((module) => `members/module/${module.key}`),

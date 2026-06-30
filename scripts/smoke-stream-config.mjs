@@ -22,12 +22,14 @@ const checks = {
   primaryRoomPresent: Boolean(config.primary?.name),
   destinationsPresent: destinations.length >= 3,
   scoreboardLinked: destinations.some((item) => item.key === "scoreboard" && item.href === "/60"),
+  liveBuildsLinked: destinations.some((item) => item.key === "live-builds" && item.href === "/live-builds"),
   scoreboardCommand: commandMap.get("!scoreboard") === "/60",
   dashboardAliasCommand: commandMap.get("!dashboard") === "/60",
   todayCommand: commandMap.get("!today") === "/day/1",
   dayOneCommand: commandMap.get("!day1") === "/day/1",
   liveCommand: commandMap.get("!live") === "/live",
   overlayCommand: commandMap.get("!overlay") === "/overlay",
+  liveBuildsCommand: commandMap.get("!builds") === "/live-builds",
   runbookCommand: commandMap.get("!runbook") === "/members",
 };
 
