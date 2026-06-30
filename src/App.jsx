@@ -3030,6 +3030,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
                     </ul>
                   </article>
                 </div>
+                <PremiumLessonContent premium={activeModule.premium} />
                 <em className="module-done">Done: {activeModule.done}</em>
               </div>
               <div className="lesson-action-stack">
@@ -3378,6 +3379,70 @@ function ModuleActionKit({ kit, copied, onCopy }) {
           </article>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PremiumLessonContent({ premium }) {
+  if (!premium) return null;
+
+  return (
+    <div className="premium-lesson-content">
+      <article className="premium-lesson-hero">
+        <span className="public-label">Premium lesson</span>
+        <h3>{premium.headline}</h3>
+        <p>{premium.promise}</p>
+        <em>{premium.estimatedTime}</em>
+      </article>
+      <div className="premium-framework-grid">
+        {premium.framework.map((item) => (
+          <article key={item.name}>
+            <span>{item.name}</span>
+            <p>{item.body}</p>
+          </article>
+        ))}
+      </div>
+      <div className="premium-lesson-blocks">
+        {premium.lessonBlocks.map((block) => (
+          <article key={block.title}>
+            <h4>{block.title}</h4>
+            <p>{block.body}</p>
+            <ul>
+              {block.bullets.map((bullet) => (
+                <li key={bullet}>{bullet}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+      <div className="premium-workshop-grid">
+        {premium.workshop.map((workshop) => (
+          <article key={workshop.title}>
+            <span>{workshop.title}</span>
+            <ol>
+              {workshop.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </article>
+        ))}
+      </div>
+      <article className="premium-example-card">
+        <span>{premium.example.title}</span>
+        <div>
+          <strong>Before</strong>
+          <p>{premium.example.before}</p>
+        </div>
+        <div>
+          <strong>After</strong>
+          <p>{premium.example.after}</p>
+        </div>
+        <ul>
+          {premium.example.breakdown.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </article>
     </div>
   );
 }

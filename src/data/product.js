@@ -1,3 +1,5 @@
+import { premiumModuleContent } from "./premiumCourse.js";
+
 export const productKey = "future_proof_method";
 export const productName = "The Future Proof Method";
 export const productSubtitle = "New Wave Operator Kit";
@@ -8,6 +10,7 @@ export const productModules = [
     key: "command-setup",
     title: "Module 1: Command Setup",
     body: "Create the operating folder, tracker habit, account checklist, and proof capture lane before building.",
+    premium: premiumModuleContent["command-setup"],
     lesson: {
       focus: "Set up the operating surface so every build, prompt, proof asset, and offer note has a home.",
       output: "Command folder screenshot and first baseline entry.",
@@ -71,6 +74,7 @@ export const productModules = [
     key: "problem-to-proof",
     title: "Module 2: Problem To Proof",
     body: "Choose a painful workflow, define the smallest useful fix, and name the proof metric before coding.",
+    premium: premiumModuleContent["problem-to-proof"],
     lesson: {
       focus: "Pick a workflow people understand quickly and define proof before touching code.",
       output: "One before-state receipt with pain, buyer, and proof metric.",
@@ -134,6 +138,7 @@ export const productModules = [
     key: "ai-build-loop",
     title: "Module 3: AI Build Loop",
     body: "Use Claude Code, Codex, or your chosen stack to ship one narrow improvement without hiding the messy middle.",
+    premium: premiumModuleContent["ai-build-loop"],
     lesson: {
       focus: "Use AI as the build partner, but keep scope narrow enough to test live.",
       output: "A working slice with before/after proof and a short explanation.",
@@ -197,6 +202,7 @@ export const productModules = [
     key: "proof-and-content",
     title: "Module 4: Proof And Content",
     body: "Turn the build into receipts: daily proof page, clip caption, recap, and one public asset.",
+    premium: premiumModuleContent["proof-and-content"],
     lesson: {
       focus: "Package the work so viewers see what changed, what broke, and why it matters.",
       output: "One day receipt plus one public asset.",
@@ -260,6 +266,7 @@ export const productModules = [
     key: "offer-follow-up",
     title: "Module 5: Offer And Follow-Up",
     body: "Connect proof to a simple offer so the sprint has a money path, not just attention.",
+    premium: premiumModuleContent["offer-follow-up"],
     lesson: {
       focus: "Translate proof into a buyer promise, CTA, objection answer, and follow-up.",
       output: "One improved offer surface and one logged result.",
@@ -433,6 +440,14 @@ export const productAssetHighlights = [
   {
     title: "Module Field Guide",
     body: "The working surface for each module: questions, worksheets, prompts, proof receipts, and exit criteria.",
+  },
+  {
+    title: "Premium Course Workbook",
+    body: "The full paid lesson body: frameworks, teaching notes, workshops, examples, scripts, and quality bars for all five modules.",
+  },
+  {
+    title: "Lesson Scripts",
+    body: "Talking points for livestream segments, recorded lessons, onboarding videos, and future workshop sessions.",
   },
   {
     title: "Daily Operator Checklist",

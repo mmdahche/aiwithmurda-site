@@ -4100,6 +4100,128 @@ button {
   line-height: 1.45;
 }
 
+.premium-lesson-content {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.premium-lesson-hero {
+  padding: 18px;
+  border: 1px solid rgba(97, 227, 109, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 86% 16%, rgba(97, 227, 109, 0.13), transparent 30%),
+    rgba(4, 12, 8, 0.42);
+}
+
+.premium-lesson-hero h3,
+.premium-lesson-hero p {
+  margin: 0;
+}
+
+.premium-lesson-hero h3 {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.premium-lesson-hero p {
+  margin-top: 10px;
+  color: #d8e6de;
+}
+
+.premium-lesson-hero em {
+  display: inline-flex;
+  width: max-content;
+  margin-top: 14px;
+  padding: 7px 10px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--green);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.premium-framework-grid,
+.premium-workshop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.premium-framework-grid article,
+.premium-workshop-grid article,
+.premium-lesson-blocks article,
+.premium-example-card {
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.premium-framework-grid span,
+.premium-workshop-grid span,
+.premium-example-card > span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.premium-framework-grid p,
+.premium-workshop-grid li,
+.premium-example-card p,
+.premium-example-card li {
+  color: #d8e6de;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.premium-lesson-blocks {
+  display: grid;
+  gap: 10px;
+}
+
+.premium-lesson-blocks h4,
+.premium-lesson-blocks p {
+  margin: 0;
+}
+
+.premium-lesson-blocks h4 {
+  font-size: 18px;
+}
+
+.premium-lesson-blocks p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.premium-lesson-blocks ul,
+.premium-workshop-grid ol,
+.premium-example-card ul {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.premium-example-card {
+  display: grid;
+  gap: 10px;
+}
+
+.premium-example-card div {
+  display: grid;
+  gap: 5px;
+}
+
+.premium-example-card strong {
+  color: #f4fbf6;
+}
+
 .lesson-action-stack {
   display: grid;
   gap: 12px;
@@ -5257,6 +5379,8 @@ button {
   .follower-intake-form,
   .follower-overlay-sources,
   .follower-source-strip,
+  .premium-framework-grid,
+  .premium-workshop-grid,
   .launch-readiness-summary,
   .launch-category-grid,
   .launch-blocker-strip,

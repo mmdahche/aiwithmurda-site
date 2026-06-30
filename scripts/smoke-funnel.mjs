@@ -87,7 +87,7 @@ try {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
-  if (!Array.isArray(productAssets) || productAssets.length < 9) {
+  if (!Array.isArray(productAssets) || productAssets.length < 11) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
@@ -107,6 +107,12 @@ try {
   }
   if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
     throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "premium-course-workbook")) {
+    throw new Error(`Premium course workbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "lesson-scripts")) {
+    throw new Error(`Lesson scripts asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
@@ -136,6 +142,18 @@ try {
       !module.actionKit?.streamMove ||
       !module.actionKit?.proofCheckpoint ||
       !module.actionKit?.shutdown ||
+      !module.premium?.headline ||
+      !module.premium?.promise ||
+      !Array.isArray(module.premium?.framework) ||
+      module.premium.framework.length < 3 ||
+      !Array.isArray(module.premium?.lessonBlocks) ||
+      module.premium.lessonBlocks.length < 3 ||
+      !Array.isArray(module.premium?.workshop) ||
+      module.premium.workshop.length < 3 ||
+      !module.premium?.example?.before ||
+      !module.premium?.example?.after ||
+      !Array.isArray(module.premium?.qualityBar) ||
+      module.premium.qualityBar.length < 3 ||
       !Array.isArray(module.todos) ||
       module.todos.length < 4 ||
       module.todos.some((todo) => !todo.key || !todo.label || !todo.proof),
@@ -188,9 +206,37 @@ try {
     !fieldGuideText.includes("Module deliverables:") ||
     !fieldGuideText.includes("Proof questions:") ||
     !fieldGuideText.includes("Operator brief:") ||
-    !fieldGuideText.includes("Traps to avoid:")
+    !fieldGuideText.includes("Traps to avoid:") ||
+    !fieldGuideText.includes("Premium lesson:")
   ) {
     throw new Error("Module field guide is missing generated lesson depth sections");
+  }
+  const premiumWorkbookResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/premium-course-workbook`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const premiumWorkbookText = await premiumWorkbookResponse.text();
+  if (
+    !premiumWorkbookResponse.ok ||
+    !premiumWorkbookText.includes("The Future Proof Method - Premium Course Workbook") ||
+    !premiumWorkbookText.includes("Premium lesson:") ||
+    !premiumWorkbookText.includes("Core framework:") ||
+    !premiumWorkbookText.includes("Quality bar:")
+  ) {
+    throw new Error(
+      `Premium workbook download failed: ${premiumWorkbookResponse.status} ${premiumWorkbookText.slice(0, 160)}`,
+    );
+  }
+  const lessonScriptsResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/lesson-scripts`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const lessonScriptsText = await lessonScriptsResponse.text();
+  if (
+    !lessonScriptsResponse.ok ||
+    !lessonScriptsText.includes("The Future Proof Method - Lesson Scripts") ||
+    !lessonScriptsText.includes("Live demo:") ||
+    !lessonScriptsText.includes("Close:")
+  ) {
+    throw new Error(`Lesson scripts download failed: ${lessonScriptsResponse.status} ${lessonScriptsText.slice(0, 160)}`);
   }
   const runbookResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-day-runbook`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -252,9 +298,12 @@ try {
           productModulesExposed: true,
           moduleOperatorBriefsExposed: true,
           moduleActionKitsExposed: true,
+          premiumModuleDepthExposed: true,
           buyerOnboardingEmailsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
+          premiumWorkbookExposed: true,
+          lessonScriptsExposed: true,
           launchDayRunbookExposed: true,
           launchCopyPackExposed: true,
           streamRunSheetExposed: true,
@@ -263,6 +312,8 @@ try {
           lockedAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledFieldGuideDownload: true,
+          entitledPremiumWorkbookDownload: true,
+          entitledLessonScriptsDownload: true,
           entitledRunbookDownload: true,
           entitledCopyPackDownload: true,
           entitledStreamRunSheetDownload: true,

@@ -146,6 +146,59 @@ function checkboxList(items) {
   return items.map((item) => `- [ ] ${item.label}${item.proof ? `\n  - Proof: ${item.proof}` : ""}`).join("\n");
 }
 
+function numberedList(items) {
+  return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+}
+
+function renderPremiumBlock(module) {
+  const premium = module.premium;
+  if (!premium) return "";
+
+  return `Premium lesson:
+
+${premium.headline}
+
+Promise: ${premium.promise}
+
+Estimated time: ${premium.estimatedTime}
+
+Core framework:
+${premium.framework.map((item) => `- ${item.name}: ${item.body}`).join("\n")}
+
+Teaching notes:
+${premium.lessonBlocks
+  .map(
+    (block) => `### ${block.title}
+
+${block.body}
+
+${bulletList(block.bullets)}`,
+  )
+  .join("\n\n")}
+
+Workshop:
+${premium.workshop
+  .map(
+    (workshop) => `### ${workshop.title}
+
+${numberedList(workshop.steps)}`,
+  )
+  .join("\n\n")}
+
+Example:
+- Before: ${premium.example.before}
+- After: ${premium.example.after}
+- Breakdown:
+${premium.example.breakdown.map((item) => `  - ${item}`).join("\n")}
+
+Swipe script:
+${premium.swipe.lines.map((line) => `> ${line}`).join("\n\n")}
+
+Quality bar:
+${bulletList(premium.qualityBar)}
+`;
+}
+
 function renderRoadmap() {
   const modules = productModules
     .map(
@@ -181,6 +234,8 @@ ${bulletList(module.lesson.proofQuestions)}
 
 Traps to avoid:
 ${bulletList(module.lesson.failureTraps)}
+
+${renderPremiumBlock(module)}
 
 Done criteria:
 - ${module.done}
@@ -255,6 +310,8 @@ Starter prompt:
 Receipt to capture:
 ${bulletList(extra.receipts)}
 
+${renderPremiumBlock(module)}
+
 Exit criteria:
 
 ${module.done}
@@ -283,10 +340,69 @@ Run this every 7 days.
 `;
 }
 
+function renderPremiumWorkbook() {
+  const modules = productModules
+    .map(
+      (module) => `# ${moduleName(module.title)}
+
+${renderPremiumBlock(module)}
+
+Implementation assignment:
+${checkboxList(module.todos)}
+
+Exit receipt:
+- Module output: ${module.lesson.output}
+- Done criteria: ${module.done}
+- Proof checkpoint: ${module.actionKit.proofCheckpoint}
+`,
+    )
+    .join("\n---\n\n");
+
+  return `# ${productName} - Premium Course Workbook
+
+This workbook is the full paid lesson body for the five-module path. Use the member portal checklist to track completion, and use this file when you want the deeper teaching notes, workshop steps, examples, scripts, and quality bars.
+
+${modules}
+`;
+}
+
+function renderLessonScripts() {
+  const modules = productModules
+    .map((module) => {
+      const premium = module.premium;
+      return `## ${moduleName(module.title)}
+
+Opening:
+${premium.swipe.lines.map((line) => `- ${line}`).join("\n")}
+
+Teach:
+${premium.lessonBlocks.map((block) => `- ${block.title}: ${block.body}`).join("\n")}
+
+Live demo:
+${premium.workshop.map((workshop) => `- ${workshop.title}: ${workshop.steps.join(" ")}`).join("\n")}
+
+Close:
+- Output to create: ${module.lesson.output}
+- Quality bar: ${premium.qualityBar.join(" ")}
+- Next action: ${module.actionKit.todayMove}
+`;
+    })
+    .join("\n");
+
+  return `# ${productName} - Lesson Scripts
+
+Use these as talking points for stream segments, recorded lessons, buyer onboarding videos, or short workshop sessions. Do not read them word for word. Use them to keep each module premium, practical, and proof-driven.
+
+${modules}
+`;
+}
+
 await fs.mkdir(assetDir, { recursive: true });
 await Promise.all([
   fs.writeFile(path.join(assetDir, "module-roadmap.md"), renderRoadmap(), "utf8"),
   fs.writeFile(path.join(assetDir, "module-field-guide.md"), renderFieldGuide(), "utf8"),
+  fs.writeFile(path.join(assetDir, "premium-course-workbook.md"), renderPremiumWorkbook(), "utf8"),
+  fs.writeFile(path.join(assetDir, "lesson-scripts.md"), renderLessonScripts(), "utf8"),
 ]);
 
-console.log("Built member assets: module-roadmap.md, module-field-guide.md");
+console.log("Built member assets: module-roadmap.md, module-field-guide.md, premium-course-workbook.md, lesson-scripts.md");
