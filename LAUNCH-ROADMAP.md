@@ -131,6 +131,7 @@ Cloudflare SSL/TLS:
 - One-command launch smoke runner: done; run `npm run smoke:launch` before public kickoff
 - Fake stream rehearsal runbook: done; Settings has a copyable 35-45 minute dry run for `/live`, `/obs`, command clicks, dashboard sync, and test checkout
 - Stream platform setup deck: done; Settings shows Twitch, YouTube, Kick, and main-room env steps with proof targets
+- Stream privacy guard: done; Settings has a copyable preflight for OBS scene discipline, secret screens, clean browser profile, payment blackout, and family boundaries
 - First-week content run sheet: done; Day 0-7 proof beats, clip hooks, and CTAs are in the member assets
 - Admin daily run sheets: done; each selected day has stream beat, proof target, CTA, shutdown checklist, and copy/manual-copy output
 - Admin daily clip packets: done; each selected day generates three hooks, recap caption, follow-up line, and copy/manual-copy output
@@ -162,3 +163,4 @@ npm run smoke:stream
 
 `/api/stream/config` also returns the Fake Stream Rehearsal plan used by the admin Settings runbook.
 It also returns the Stream Platform Setup deck that maps Twitch, YouTube, Kick, and the primary room to their Render env vars.
+The same endpoint returns the Stream Privacy Guard used by the admin preflight card.

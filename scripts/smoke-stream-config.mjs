@@ -43,6 +43,11 @@ const checks = {
     config.platformSetup.some((item) => item.key === "youtube" && item.envKey === "STREAM_YOUTUBE_URL") &&
     config.platformSetup.some((item) => item.key === "twitch" && item.envKey === "STREAM_TWITCH_URL") &&
     config.platformSetup.some((item) => item.key === "main" && item.envKey === "STREAM_PRIMARY_URL"),
+  privacyGuardPresent:
+    config.privacyGuard?.title === "Stream Privacy Guard" &&
+    Array.isArray(config.privacyGuard?.rules) &&
+    config.privacyGuard.rules.some((rule) => rule.key === "secret-screens") &&
+    config.privacyGuard.rules.some((rule) => rule.key === "payment-blackout"),
 };
 
 const failed = Object.entries(checks)

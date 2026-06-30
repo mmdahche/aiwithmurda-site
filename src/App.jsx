@@ -491,6 +491,39 @@ const fallbackStreamConfig = {
       proof: "The main /live button opens the chosen room and all fallback destination cards still work.",
     },
   ],
+  privacyGuard: {
+    title: "Stream Privacy Guard",
+    status: "Required before fake stream",
+    goal: "Keep private data off the public stream while still making the work visible and entertaining.",
+    rules: [
+      {
+        key: "scene-discipline",
+        title: "Use scene discipline",
+        body: "Keep separate OBS scenes for public build, dashboard, browser, break screen, and privacy mode.",
+      },
+      {
+        key: "secret-screens",
+        title: "Never show secret screens",
+        body: "Stripe keys, Supabase service role, Render env vars, Cloudflare DNS edits, email inboxes, and customer data stay off stream.",
+      },
+      {
+        key: "browser-clean-room",
+        title: "Use a clean browser profile",
+        body: "Use a stream-only browser window with no personal tabs, saved accounts, family bookmarks, or private extensions visible.",
+      },
+      {
+        key: "payment-blackout",
+        title: "Black out payment/admin moments",
+        body: "Switch to privacy mode before logging into Stripe, Render, Supabase, GoDaddy, Cloudflare, banking, or email.",
+      },
+      {
+        key: "family-boundary",
+        title: "Protect family time",
+        body: "Calls, kid updates, travel logistics, private addresses, and family messages are not stream content.",
+      },
+    ],
+    proof: "Fake stream recording shows the privacy scene switch works before opening any sensitive admin or payment screen.",
+  },
 };
 
 const launchChecklistItems = [
@@ -5401,6 +5434,9 @@ function SettingsView({
   const streamPlatformSetup = streamConfig?.platformSetup || fallbackStreamConfig.platformSetup || [];
   const streamPlatformSetupText = formatStreamPlatformSetupDeck(streamPlatformSetup);
   const [streamPlatformCopyStatus, setStreamPlatformCopyStatus] = useState("idle");
+  const streamPrivacyGuard = streamConfig?.privacyGuard || fallbackStreamConfig.privacyGuard || null;
+  const streamPrivacyGuardText = formatStreamPrivacyGuard(streamPrivacyGuard);
+  const [streamPrivacyCopyStatus, setStreamPrivacyCopyStatus] = useState("idle");
   const buyerEmailDeckText = formatBuyerOnboardingEmailDeck(buyerOnboardingEmails);
   const [buyerEmailCopyStatus, setBuyerEmailCopyStatus] = useState("idle");
   const offerOpsModules =
@@ -5453,6 +5489,15 @@ function SettingsView({
       window.setTimeout(() => setStreamPlatformCopyStatus("idle"), 1800);
     } else {
       setStreamPlatformCopyStatus("manual");
+    }
+  }
+
+  async function copyStreamPrivacyGuard() {
+    if (await copyPlainText(streamPrivacyGuardText)) {
+      setStreamPrivacyCopyStatus("copied");
+      window.setTimeout(() => setStreamPrivacyCopyStatus("idle"), 1800);
+    } else {
+      setStreamPrivacyCopyStatus("manual");
     }
   }
 
@@ -5970,6 +6015,45 @@ function SettingsView({
               />
             ) : null}
           </section>
+          {streamPrivacyGuard && (
+            <section className="stream-privacy-card">
+              <div className="stream-command-deck-header">
+                <div>
+                  <span>{streamPrivacyGuard.title}</span>
+                  <strong>{streamPrivacyGuard.status}</strong>
+                </div>
+                <button type="button" onClick={copyStreamPrivacyGuard}>
+                  {streamPrivacyCopyStatus === "copied"
+                    ? "Copied guard"
+                    : streamPrivacyCopyStatus === "manual"
+                      ? "Manual copy ready"
+                      : "Copy guard"}
+                </button>
+              </div>
+              <p>{streamPrivacyGuard.goal}</p>
+              <div className="stream-privacy-rule-list">
+                {(streamPrivacyGuard.rules || []).map((rule) => (
+                  <article key={rule.key}>
+                    <strong>{rule.title}</strong>
+                    <p>{rule.body}</p>
+                  </article>
+                ))}
+              </div>
+              <div className="stream-rehearsal-proof">
+                <span>Proof target</span>
+                <strong>{streamPrivacyGuard.proof}</strong>
+              </div>
+              {streamPrivacyCopyStatus === "manual" ? (
+                <textarea
+                  aria-label="Stream privacy guard text"
+                  className="run-sheet-copy-box"
+                  readOnly
+                  value={streamPrivacyGuardText}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+              ) : null}
+            </section>
+          )}
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />
@@ -6479,6 +6563,22 @@ function formatStreamPlatformSetupDeck(platforms) {
     "2. Run npm run smoke:stream.",
     "3. Open /live and click each destination card.",
     "4. Run the Fake Stream Rehearsal.",
+  ].join("\n");
+}
+
+function formatStreamPrivacyGuard(guard) {
+  if (!guard) return "";
+
+  return [
+    `AI with Murda ${guard.title || "Stream Privacy Guard"}`,
+    "",
+    `Status: ${guard.status || "Required"}`,
+    `Goal: ${guard.goal || "Keep private data off stream."}`,
+    "",
+    "Rules:",
+    ...(guard.rules || []).map((rule, index) => `${index + 1}. ${rule.title}\n   ${rule.body}`),
+    "",
+    `Proof: ${guard.proof || "Capture proof that privacy mode works."}`,
   ].join("\n");
 }
 

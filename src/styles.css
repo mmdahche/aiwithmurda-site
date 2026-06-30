@@ -2059,6 +2059,7 @@ button {
 }
 
 .stream-rehearsal-card,
+.stream-privacy-card,
 .stream-platform-setup-card {
   display: grid;
   gap: 12px;
@@ -2070,7 +2071,8 @@ button {
     rgba(255, 255, 255, 0.03);
 }
 
-.stream-rehearsal-card > p {
+.stream-rehearsal-card > p,
+.stream-privacy-card > p {
   margin: 0;
   color: #d8e6de;
   font-size: 13px;
@@ -2272,6 +2274,36 @@ button {
 }
 
 .stream-platform-setup-list p {
+  color: #d8e6de;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.stream-privacy-rule-list {
+  display: grid;
+  gap: 8px;
+}
+
+.stream-privacy-rule-list article {
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 105, 97, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 105, 97, 0.055);
+}
+
+.stream-privacy-rule-list strong,
+.stream-privacy-rule-list p {
+  display: block;
+  margin: 0;
+}
+
+.stream-privacy-rule-list strong {
+  color: #f4fbf6;
+  font-size: 13px;
+}
+
+.stream-privacy-rule-list p {
+  margin-top: 6px;
   color: #d8e6de;
   font-size: 12px;
   line-height: 1.4;

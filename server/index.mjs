@@ -126,6 +126,39 @@ const streamPlatformSetup = [
     proof: "The main /live button opens the chosen room and all fallback destination cards still work.",
   },
 ];
+const streamPrivacyGuard = {
+  title: "Stream Privacy Guard",
+  status: "Required before fake stream",
+  goal: "Keep private data off the public stream while still making the work visible and entertaining.",
+  rules: [
+    {
+      key: "scene-discipline",
+      title: "Use scene discipline",
+      body: "Keep separate OBS scenes for public build, dashboard, browser, break screen, and privacy mode.",
+    },
+    {
+      key: "secret-screens",
+      title: "Never show secret screens",
+      body: "Stripe keys, Supabase service role, Render env vars, Cloudflare DNS edits, email inboxes, and customer data stay off stream.",
+    },
+    {
+      key: "browser-clean-room",
+      title: "Use a clean browser profile",
+      body: "Use a stream-only browser window with no personal tabs, saved accounts, family bookmarks, or private extensions visible.",
+    },
+    {
+      key: "payment-blackout",
+      title: "Black out payment/admin moments",
+      body: "Switch to privacy mode before logging into Stripe, Render, Supabase, GoDaddy, Cloudflare, banking, or email.",
+    },
+    {
+      key: "family-boundary",
+      title: "Protect family time",
+      body: "Calls, kid updates, travel logistics, private addresses, and family messages are not stream content.",
+    },
+  ],
+  proof: "Fake stream recording shows the privacy scene switch works before opening any sensitive admin or payment screen.",
+};
 const memberAssets = [
   {
     key: "quickstart",
@@ -358,6 +391,7 @@ function buildStreamConfig() {
     ],
     rehearsal: streamRehearsalPlan,
     platformSetup: streamPlatformSetup,
+    privacyGuard: streamPrivacyGuard,
     checkedAt: new Date().toISOString(),
   };
 }

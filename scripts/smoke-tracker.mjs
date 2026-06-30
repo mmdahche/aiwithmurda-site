@@ -164,6 +164,9 @@ if (!liveBundle.includes("Fake Stream Rehearsal") || !liveBundle.includes("Copy 
 if (!liveBundle.includes("Platform setup") || !liveBundle.includes("STREAM_YOUTUBE_URL")) {
   throw new Error("Client bundle missing stream platform setup workflow");
 }
+if (!liveBundle.includes("Stream Privacy Guard") || !liveBundle.includes("Never show secret screens")) {
+  throw new Error("Client bundle missing stream privacy guard workflow");
+}
 if (!liveBundle.includes("Buyer Email Copy Deck")) {
   throw new Error("Client bundle missing Buyer Email Copy Deck");
 }
@@ -393,6 +396,7 @@ console.log(
         adminStreamCommandDeckBundle: true,
         adminStreamRehearsalBundle: true,
         adminStreamPlatformSetupBundle: true,
+        adminStreamPrivacyGuardBundle: true,
         adminBuyerEmailCopyDeckBundle: true,
         adminLoginGateBundle: true,
         adminPasswordSettingsBundle: true,
