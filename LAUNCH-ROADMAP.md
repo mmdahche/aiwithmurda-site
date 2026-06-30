@@ -122,6 +122,7 @@ Cloudflare SSL/TLS:
 - New Wave Live Builds member delivery: done; prep pack, first-room plan, ticket hub, and gated downloads are wired
 - Member area delivery live: done
 - Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
+- Admin Offer Ops multi-product breakdown: done; Future Proof and New Wave sales/member counts are separated
 - Social share metadata and OG card: done
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done

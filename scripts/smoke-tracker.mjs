@@ -321,6 +321,7 @@ if (
   offerSummary.data?.ok !== true ||
   offerSummary.data?.summary?.product?.tasks < 20 ||
   offerSummary.data?.summary?.product?.assets < 5 ||
+  !offerSummary.data?.summary?.products?.some((product) => product.key === "new_wave_live_builds") ||
   !Array.isArray(offerSummary.data?.summary?.members)
 ) {
   throw new Error(`Admin offer summary failed: ${offerSummary.response.status} ${JSON.stringify(offerSummary.data)}`);
@@ -409,6 +410,7 @@ console.log(
         adminSessionBlockedWithoutLogin: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,
+        adminOfferProductBreakdownReadable: true,
         adminOfferMembersReadable: true,
       },
       system: {

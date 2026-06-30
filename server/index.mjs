@@ -1609,22 +1609,23 @@ function formatNumberForApi(value) {
 }
 
 async function getOfferOpsSummary() {
+  const productConfigs = [...checkoutProducts.values()];
+  const productKeys = productConfigs.map((item) => item.key);
   const [
-    { data: entitlements, count: activeMembers, error: entitlementError },
-    { data: purchases, count: paidPurchases, error: purchasesError },
+    { data: entitlements, error: entitlementError },
+    { data: purchases, error: purchasesError },
     { data: progressRows, error: progressError },
   ] = await Promise.all([
     supabaseAdmin
       .from("entitlements")
-      .select("user_id,status,granted_at", { count: "exact" })
-      .eq("product_key", productKey)
+      .select("user_id,product_key,status,granted_at")
+      .in("product_key", productKeys)
       .eq("status", "active")
-      .order("granted_at", { ascending: false })
-      .limit(8),
+      .order("granted_at", { ascending: false }),
     supabaseAdmin
       .from("purchases")
-      .select("user_id,amount_total,currency,status,purchased_at", { count: "exact" })
-      .eq("product_key", productKey)
+      .select("user_id,product_key,amount_total,currency,status,purchased_at")
+      .in("product_key", productKeys)
       .eq("status", "paid"),
     supabaseAdmin
       .from("member_task_progress")
@@ -1641,6 +1642,7 @@ async function getOfferOpsSummary() {
   const completedKeys = new Set((progressRows || []).map((row) => `${row.module_key}:${row.task_key}:${row.user_id}`));
   const revenueCents = (purchases || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0);
   const memberUserIds = [...new Set((entitlements || []).map((row) => row.user_id).filter(Boolean))];
+  const activeMembers = new Set(memberUserIds).size;
   const profilesById = new Map();
   if (memberUserIds.length) {
     const { data: profiles, error: profilesError } = await supabaseAdmin
@@ -1654,9 +1656,10 @@ async function getOfferOpsSummary() {
   }
   const purchasesByUserId = new Map();
   for (const purchase of purchases || []) {
-    const existing = purchasesByUserId.get(purchase.user_id);
+    const purchaseKey = `${purchase.user_id}:${purchase.product_key}`;
+    const existing = purchasesByUserId.get(purchaseKey);
     if (!existing || new Date(purchase.purchased_at).getTime() > new Date(existing.purchased_at).getTime()) {
-      purchasesByUserId.set(purchase.user_id, purchase);
+      purchasesByUserId.set(purchaseKey, purchase);
     }
   }
   const progressByUserId = new Map();
@@ -1675,15 +1678,39 @@ async function getOfferOpsSummary() {
       activeUsers: new Set(moduleRows.map((row) => row.user_id)).size,
     };
   });
+  const productBreakdown = productConfigs.map((productConfig) => {
+    const productEntitlements = (entitlements || []).filter((row) => row.product_key === productConfig.key);
+    const productPurchases = (purchases || []).filter((row) => row.product_key === productConfig.key);
+    const productRevenueCents = productPurchases.reduce(
+      (total, purchase) => total + Number(purchase.amount_total || 0),
+      0,
+    );
+    return {
+      key: productConfig.key,
+      name: productConfig.name,
+      priceCents: productConfig.priceCents,
+      activeMembers: new Set(productEntitlements.map((row) => row.user_id)).size,
+      paidPurchases: productPurchases.length,
+      revenueCents: productRevenueCents,
+      currency: productPurchases[0]?.currency || "usd",
+      assets: productConfig.key === liveBuildsProduct.key ? liveBuildMemberAssets.length : memberAssets.length,
+      tasks: productConfig.key === productKey ? productTaskTotal : 0,
+    };
+  });
   const members = (entitlements || []).map((entitlement) => {
     const profile = profilesById.get(entitlement.user_id);
-    const purchase = purchasesByUserId.get(entitlement.user_id);
+    const purchase = purchasesByUserId.get(`${entitlement.user_id}:${entitlement.product_key}`);
     const userProgressRows = progressByUserId.get(entitlement.user_id) || [];
     const completedTaskKeys = new Set(userProgressRows.map((row) => `${row.module_key}:${row.task_key}`));
-    const currentModule =
-      completedTaskKeys.size >= productTaskTotal
+    const isFutureMethod = entitlement.product_key === productKey;
+    const currentModule = isFutureMethod
+      ? completedTaskKeys.size >= productTaskTotal
         ? null
-        : productModules.find((module) => module.todos.some((todo) => !completedTaskKeys.has(`${module.key}:${todo.key}`)));
+        : productModules.find((module) => module.todos.some((todo) => !completedTaskKeys.has(`${module.key}:${todo.key}`)))
+      : {
+          key: "new-wave-room-001",
+          title: "Live-build ticket active",
+        };
     const lastProgressAt = userProgressRows
       .map((row) => row.completed_at || row.updated_at)
       .filter(Boolean)
@@ -1694,14 +1721,16 @@ async function getOfferOpsSummary() {
       userId: entitlement.user_id,
       email: profile?.email || "unknown",
       fullName: profile?.full_name || null,
+      productKey: entitlement.product_key,
+      productName: checkoutProducts.get(entitlement.product_key)?.name || entitlement.product_key,
       status: entitlement.status,
       grantedAt: entitlement.granted_at,
       purchasedAt: purchase?.purchased_at || null,
       amountTotal: Number(purchase?.amount_total || 0),
       currency: purchase?.currency || "usd",
-      completedTasks: completedTaskKeys.size,
-      totalTasks: productTaskTotal,
-      progressPercent: productTaskTotal ? Math.round((completedTaskKeys.size / productTaskTotal) * 100) : 0,
+      completedTasks: isFutureMethod ? completedTaskKeys.size : 0,
+      totalTasks: isFutureMethod ? productTaskTotal : 0,
+      progressPercent: isFutureMethod && productTaskTotal ? Math.round((completedTaskKeys.size / productTaskTotal) * 100) : 0,
       currentModule: currentModule
         ? {
             key: currentModule.key,
@@ -1721,16 +1750,17 @@ async function getOfferOpsSummary() {
       tasks: productTaskTotal,
       assets: memberAssets.length,
     },
+    products: productBreakdown,
     sales: {
-      activeMembers: Number(activeMembers || 0),
-      paidPurchases: Number(paidPurchases || 0),
+      activeMembers,
+      paidPurchases: (purchases || []).length,
       revenueCents,
       currency: purchases?.[0]?.currency || "usd",
     },
     progress: {
       usersStarted: progressUsers.size,
       completedTasks: completedKeys.size,
-      totalPossibleTasks: Number(activeMembers || 0) * productTaskTotal,
+      totalPossibleTasks: Number(productBreakdown.find((item) => item.key === productKey)?.activeMembers || 0) * productTaskTotal,
       moduleSummaries,
     },
     members,

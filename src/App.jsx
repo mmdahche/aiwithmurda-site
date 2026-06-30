@@ -5291,6 +5291,7 @@ function SettingsView({
       activeUsers: 0,
     }));
   const offerOpsMembers = offerOpsSummary?.members || [];
+  const offerProductBreakdown = offerOpsSummary?.products || [];
 
   async function handleSyncPublicLogs() {
     const targetLogs = dirtyDays.length ? logs.filter((record) => dirtyDays.includes(record.day)) : logs;
@@ -5478,6 +5479,19 @@ function SettingsView({
             <KeyValue label="Revenue" value={formatCurrency((offerOpsSummary?.sales?.revenueCents || 0) / 100)} positive />
             <KeyValue label="Tasks" value={`${formatNumber(offerOpsSummary?.progress?.completedTasks || 0)}/${formatNumber(offerOpsSummary?.product?.tasks || productTaskCount)}`} />
           </div>
+          <div className="offer-product-breakdown">
+            {offerProductBreakdown.map((product) => (
+              <article key={product.key}>
+                <div>
+                  <span>{product.name}</span>
+                  <strong>{formatCurrency((product.revenueCents || 0) / 100)}</strong>
+                </div>
+                <p>
+                  {formatNumber(product.activeMembers || 0)} active · {formatNumber(product.paidPurchases || 0)} orders · {formatNumber(product.assets || 0)} assets
+                </p>
+              </article>
+            ))}
+          </div>
           <div className="offer-module-health">
             {offerOpsModules.map((module) => (
               <div key={module.key}>
@@ -5492,11 +5506,12 @@ function SettingsView({
             <span className="panel-kicker">Recent members</span>
             {offerOpsMembers.length ? (
               offerOpsMembers.map((member) => (
-                <div key={member.userId}>
+                <div key={`${member.userId}:${member.productKey || "product"}`}>
                   <div>
                     <strong>{member.email}</strong>
                     <span>
-                      {member.currentModule?.title ? member.currentModule.title.replace(/^Module \d+: /, "") : "Complete path"} · {member.progressPercent}% complete
+                      {member.productName} · {member.currentModule?.title ? member.currentModule.title.replace(/^Module \d+: /, "") : "Complete path"}
+                      {member.totalTasks ? ` · ${member.progressPercent}% complete` : ""}
                     </span>
                   </div>
                   <em>{member.amountTotal ? formatCurrency(member.amountTotal / 100) : "Access"}</em>
