@@ -330,6 +330,83 @@ export const productModules = [
 
 export const productTaskCount = productModules.reduce((total, module) => total + module.todos.length, 0);
 
+export const courseCompletion = {
+  title: "Future Proof Method Completion",
+  subtitle: "Finish with evidence, not vibes.",
+  promise:
+    "A member is complete when they can show the command setup, the chosen problem, the shipped slice, the proof receipt, and the offer follow-up that came from the work.",
+  capstone: {
+    title: "Final Proof Sprint",
+    body:
+      "Use the last pass to pull the five module outputs into one public operator receipt: what existed before, what you built, what changed, what proof you captured, and what offer or next build the proof now supports.",
+    prompt:
+      "Use my completed Future Proof Method module outputs to build a final operator receipt. Include before state, command setup proof, selected problem, shipped build, proof/content asset, offer change, follow-up result, strongest lesson, and next 7-day plan.",
+    output: "One final receipt that can become a member portfolio page, stream recap, sales page proof block, or Day 60 slide.",
+  },
+  criteria: [
+    {
+      key: "command-center",
+      title: "Command center is real",
+      proof: "Folders, tracker, proof lane, offer lane, and daily operating links exist outside chat history.",
+    },
+    {
+      key: "problem-receipt",
+      title: "Problem is chosen by proof speed",
+      proof: "A workflow is scored by buyer pain, viewer clarity, proof speed, and money path.",
+    },
+    {
+      key: "build-receipt",
+      title: "One AI-assisted slice shipped",
+      proof: "The build has a before state, working after state, and test or browser receipt.",
+    },
+    {
+      key: "content-receipt",
+      title: "Proof became content",
+      proof: "At least one receipt, clip hook, recap, email, or public asset was created from the build.",
+    },
+    {
+      key: "offer-receipt",
+      title: "Proof touched the money path",
+      proof: "A CTA, checkout promise, objection answer, follow-up, lead, sale, or pipeline note was logged.",
+    },
+  ],
+  finalReceiptSections: [
+    {
+      title: "Before",
+      prompt: "What was messy, manual, invisible, or unproven before starting the method?",
+    },
+    {
+      title: "Command setup",
+      prompt: "Where do prompts, proof, content, offers, tracker rows, and AI handoffs live now?",
+    },
+    {
+      title: "Problem picked",
+      prompt: "Which workflow did you choose, who feels the pain, and why was it the fastest path to proof?",
+    },
+    {
+      title: "Build shipped",
+      prompt: "What working slice shipped, what test passed, and what visible before/after changed?",
+    },
+    {
+      title: "Proof packaged",
+      prompt: "Which screenshot, clip, post, receipt, recap, or asset proves the work happened?",
+    },
+    {
+      title: "Offer moved",
+      prompt: "What CTA, objection answer, follow-up, pipeline note, or sale changed because of the proof?",
+    },
+    {
+      title: "Next seven days",
+      prompt: "What gets doubled down, removed, clipped, sold, rebuilt, or turned into the next offer?",
+    },
+  ],
+  certificateCopy: [
+    "I completed the Future Proof Method by building the operating surface, choosing a proof-backed problem, shipping one AI-assisted slice, packaging the proof, and connecting the result to an offer path.",
+    "Completion does not mean I watched every lesson. Completion means the outputs exist and can be inspected.",
+    "My next move is to repeat the loop for seven more days with tighter proof, sharper offers, and cleaner receipts.",
+  ],
+};
+
 export const memberStartPath = [
   {
     title: "1. Open the roadmap",

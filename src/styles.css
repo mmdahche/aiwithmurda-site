@@ -3710,6 +3710,146 @@ button {
   text-transform: uppercase;
 }
 
+.course-completion-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr);
+  gap: 20px;
+  align-items: stretch;
+  padding: 26px 28px;
+  border: 1px solid rgba(97, 227, 109, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(97, 227, 109, 0.13), transparent 28%),
+    linear-gradient(135deg, rgba(97, 227, 109, 0.07), rgba(247, 201, 72, 0.045)),
+    rgba(10, 18, 14, 0.76);
+}
+
+.course-completion-panel.complete {
+  border-color: rgba(247, 201, 72, 0.5);
+  background:
+    radial-gradient(circle at 92% 14%, rgba(247, 201, 72, 0.16), transparent 30%),
+    rgba(12, 17, 13, 0.84);
+}
+
+.completion-copy,
+.completion-control {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.completion-copy h2 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.completion-copy > p,
+.completion-capstone p,
+.completion-meter-card p,
+.completion-criteria-list p {
+  margin: 0;
+  color: #d8e6de;
+  line-height: 1.55;
+}
+
+.completion-capstone {
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid rgba(247, 201, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(247, 201, 72, 0.06);
+}
+
+.completion-capstone strong {
+  color: #f7c948;
+  font-size: 18px;
+}
+
+.completion-capstone em {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.completion-control {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.completion-meter-card {
+  display: grid;
+  gap: 10px;
+  align-content: center;
+  padding: 18px;
+  border: 1px solid rgba(97, 227, 109, 0.24);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.completion-meter-card strong {
+  color: var(--green);
+  font-size: 46px;
+  line-height: 0.95;
+}
+
+.completion-meter-card span {
+  color: #f4fbf6;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.completion-meter-card .primary-action {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 4px;
+}
+
+.completion-criteria-list {
+  display: grid;
+  gap: 8px;
+}
+
+.completion-criteria-list article {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.completion-criteria-list article.done {
+  border-color: rgba(97, 227, 109, 0.28);
+  background: rgba(97, 227, 109, 0.07);
+}
+
+.completion-criteria-list article > strong {
+  display: inline-flex;
+  justify-content: center;
+  padding: 6px 7px;
+  color: #061008;
+  border-radius: 999px;
+  background: #f7c948;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.completion-criteria-list article.done > strong {
+  background: var(--green);
+}
+
+.completion-criteria-list span {
+  display: block;
+  margin-bottom: 5px;
+  color: #f4fbf6;
+  font-weight: 900;
+}
+
 .member-onboarding {
   display: grid;
   grid-template-columns: 0.52fr 1fr;
@@ -5310,6 +5450,7 @@ button {
   .member-welcome,
   .member-roadmap,
   .member-onboarding,
+  .course-completion-panel,
   .member-proof-builder,
   .proof-builder-panel,
   .prelaunch-banner {
@@ -5500,6 +5641,9 @@ button {
   .member-onboarding,
   .onboarding-step-list article,
   .member-start-path,
+  .course-completion-panel,
+  .completion-control,
+  .completion-criteria-list article,
   .member-lesson-detail,
   .lesson-output-grid,
   .module-operator-brief,

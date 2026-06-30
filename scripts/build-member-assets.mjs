@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { productModules, productName } from "../src/data/product.js";
+import { courseCompletion, productModules, productName } from "../src/data/product.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -397,12 +397,64 @@ ${modules}
 `;
 }
 
+function renderCourseCompletionKit() {
+  const criteria = courseCompletion.criteria
+    .map((item) => `- [ ] ${item.title}\n  - Proof: ${item.proof}`)
+    .join("\n");
+  const finalReceipt = courseCompletion.finalReceiptSections
+    .map((section) => `## ${section.title}\n\nPrompt: ${section.prompt}\n\nAnswer:\n`)
+    .join("\n");
+
+  return `# ${productName} - Course Completion Kit
+
+${courseCompletion.subtitle}
+
+${courseCompletion.promise}
+
+## Capstone - ${courseCompletion.capstone.title}
+
+${courseCompletion.capstone.body}
+
+Output: ${courseCompletion.capstone.output}
+
+Capstone prompt:
+
+> ${courseCompletion.capstone.prompt}
+
+## Completion criteria
+
+${criteria}
+
+## Certificate copy
+
+${courseCompletion.certificateCopy.map((line) => `- ${line}`).join("\n")}
+
+## Final receipt
+
+${finalReceipt}
+## Day 60 review
+
+- Strongest proof:
+- Biggest audience jump:
+- Biggest revenue or pipeline movement:
+- Best clip:
+- Biggest mistake:
+- Most useful AI prompt:
+- Offer to keep:
+- Offer to kill:
+- Next product to build:
+`;
+}
+
 await fs.mkdir(assetDir, { recursive: true });
 await Promise.all([
   fs.writeFile(path.join(assetDir, "module-roadmap.md"), renderRoadmap(), "utf8"),
   fs.writeFile(path.join(assetDir, "module-field-guide.md"), renderFieldGuide(), "utf8"),
   fs.writeFile(path.join(assetDir, "premium-course-workbook.md"), renderPremiumWorkbook(), "utf8"),
   fs.writeFile(path.join(assetDir, "lesson-scripts.md"), renderLessonScripts(), "utf8"),
+  fs.writeFile(path.join(assetDir, "course-completion-kit.md"), renderCourseCompletionKit(), "utf8"),
 ]);
 
-console.log("Built member assets: module-roadmap.md, module-field-guide.md, premium-course-workbook.md, lesson-scripts.md");
+console.log(
+  "Built member assets: module-roadmap.md, module-field-guide.md, premium-course-workbook.md, lesson-scripts.md, course-completion-kit.md",
+);

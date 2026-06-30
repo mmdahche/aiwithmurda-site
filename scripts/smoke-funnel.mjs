@@ -87,7 +87,7 @@ try {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
-  if (!Array.isArray(productAssets) || productAssets.length < 11) {
+  if (!Array.isArray(productAssets) || productAssets.length < 12) {
     throw new Error(`Product assets were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   if (!productAssets.some((asset) => asset.key === "module-roadmap")) {
@@ -114,6 +114,9 @@ try {
   if (!productAssets.some((asset) => asset.key === "lesson-scripts")) {
     throw new Error(`Lesson scripts asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
+  if (!productAssets.some((asset) => asset.key === "course-completion-kit")) {
+    throw new Error(`Course completion kit asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
     throw new Error(`Product modules were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
@@ -121,6 +124,16 @@ try {
   const onboardingEmails = profile.data?.product?.onboardingEmails;
   if (!Array.isArray(onboardingEmails) || onboardingEmails.length < 4) {
     throw new Error(`Buyer onboarding emails were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
+  }
+  const courseCompletion = profile.data?.product?.courseCompletion;
+  if (
+    !courseCompletion?.capstone?.prompt ||
+    !Array.isArray(courseCompletion?.criteria) ||
+    courseCompletion.criteria.length < 5 ||
+    !Array.isArray(courseCompletion?.finalReceiptSections) ||
+    courseCompletion.finalReceiptSections.length < 7
+  ) {
+    throw new Error(`Course completion data was not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
   }
   const moduleWithoutLesson = productModules.find(
     (module) =>
@@ -238,6 +251,20 @@ try {
   ) {
     throw new Error(`Lesson scripts download failed: ${lessonScriptsResponse.status} ${lessonScriptsText.slice(0, 160)}`);
   }
+  const completionKitResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/course-completion-kit`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const completionKitText = await completionKitResponse.text();
+  if (
+    !completionKitResponse.ok ||
+    !completionKitText.includes("The Future Proof Method - Course Completion Kit") ||
+    !completionKitText.includes("Completion criteria") ||
+    !completionKitText.includes("Final receipt")
+  ) {
+    throw new Error(
+      `Course completion kit download failed: ${completionKitResponse.status} ${completionKitText.slice(0, 160)}`,
+    );
+  }
   const runbookResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-day-runbook`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -300,10 +327,12 @@ try {
           moduleActionKitsExposed: true,
           premiumModuleDepthExposed: true,
           buyerOnboardingEmailsExposed: true,
+          courseCompletionExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           premiumWorkbookExposed: true,
           lessonScriptsExposed: true,
+          courseCompletionKitExposed: true,
           launchDayRunbookExposed: true,
           launchCopyPackExposed: true,
           streamRunSheetExposed: true,
@@ -314,6 +343,7 @@ try {
           entitledFieldGuideDownload: true,
           entitledPremiumWorkbookDownload: true,
           entitledLessonScriptsDownload: true,
+          entitledCompletionKitDownload: true,
           entitledRunbookDownload: true,
           entitledCopyPackDownload: true,
           entitledStreamRunSheetDownload: true,

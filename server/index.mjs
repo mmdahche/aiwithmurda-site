@@ -8,6 +8,7 @@ import { Resend } from "resend";
 import Stripe from "stripe";
 import {
   buyerOnboardingEmails,
+  courseCompletion,
   productKey,
   productModules,
   productName,
@@ -130,6 +131,16 @@ const memberAssets = [
     description: "Talking points for stream segments, recorded lessons, buyer onboarding videos, and workshop sessions.",
     fileName: "lesson-scripts.md",
     downloadName: "future-proof-method-lesson-scripts.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "course-completion-kit",
+    title: "Course Completion Kit",
+    kind: "Capstone",
+    description:
+      "Final proof sprint, completion criteria, certificate language, and Day 60 receipt prompts.",
+    fileName: "course-completion-kit.md",
+    downloadName: "future-proof-method-course-completion-kit.md",
     mimeType: "text/markdown; charset=utf-8",
   },
   {
@@ -419,6 +430,7 @@ async function getMemberAccess(user) {
       modules: productModules.map(publicModule),
       assets: memberAssets.map(publicAsset),
       onboardingEmails: buyerOnboardingEmails,
+      courseCompletion,
     },
   };
 }

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   buyerOnboardingEmails,
+  courseCompletion,
   memberOnboardingSteps,
   memberStartPath,
   productAssetHighlights,
@@ -2855,6 +2856,61 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     selectedProofProgress.percent,
     selectedProofProgress.total,
   ]);
+  const completionReceiptMarkdown = useMemo(() => {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    const criteria = courseCompletion.criteria
+      .map((criterion, index) => {
+        const module = productModules[index];
+        const isDone = module?.todos.every((todo) => completedTasks.has(`${module.key}:${todo.key}`));
+        return `- [${isDone ? "x" : " "}] ${criterion.title}\n  - Proof: ${criterion.proof}`;
+      })
+      .join("\n");
+    const modules = productModules
+      .map((module) => {
+        const completed = module.todos.filter((todo) => completedTasks.has(`${module.key}:${todo.key}`));
+        return `## ${module.title}
+
+Progress: ${completed.length}/${module.todos.length} tasks
+Output: ${module.lesson.output}
+Done criteria: ${module.done}
+
+Completed tasks:
+${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"}
+`;
+      })
+      .join("\n");
+    const receiptSections = courseCompletion.finalReceiptSections
+      .map((section) => `## ${section.title}\n\nPrompt: ${section.prompt}\n\nAnswer:\n-`)
+      .join("\n\n");
+
+    return [
+      "# Future Proof Method Completion Receipt",
+      "",
+      `Date: ${receiptDate}`,
+      `Operator: ${profile?.email || "member"}`,
+      `Course progress: ${progressState.summary.completed}/${progressState.summary.total} tasks (${progressState.summary.percent}%)`,
+      "",
+      `## ${courseCompletion.capstone.title}`,
+      courseCompletion.capstone.body,
+      "",
+      `Output: ${courseCompletion.capstone.output}`,
+      "",
+      "Capstone prompt:",
+      courseCompletion.capstone.prompt,
+      "",
+      "## Completion criteria",
+      criteria,
+      "",
+      "## Module receipts",
+      modules,
+      "## Certificate copy",
+      courseCompletion.certificateCopy.map((line) => `- ${line}`).join("\n"),
+      "",
+      "## Final receipt",
+      receiptSections,
+      "",
+    ].join("\n");
+  }, [completedTasks, profile?.email, progressState.summary.completed, progressState.summary.percent, progressState.summary.total]);
   const firstRun = progressState.summary.completed === 0;
 
   function updateProofDraft(field, value) {
@@ -2867,6 +2923,15 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     downloadFile(
       `future-proof-receipt-${receiptDate}-${moduleSlug}.md`,
       proofReceiptMarkdown,
+      "text/markdown;charset=utf-8",
+    );
+  }
+
+  function handleDownloadCompletionReceipt() {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    downloadFile(
+      `future-proof-method-completion-${receiptDate}.md`,
+      completionReceiptMarkdown,
       "text/markdown;charset=utf-8",
     );
   }
@@ -2915,6 +2980,12 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
           <span>complete</span>
         </div>
       </article>
+
+      <CourseCompletionPanel
+        summary={progressState.summary}
+        completedTasks={completedTasks}
+        onDownload={handleDownloadCompletionReceipt}
+      />
 
       <section className={`member-onboarding ${firstRun ? "fresh" : ""}`}>
         <div className="member-onboarding-copy">
@@ -3317,6 +3388,55 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
           ))}
         </div>
       </section>
+    </section>
+  );
+}
+
+function CourseCompletionPanel({ summary, completedTasks, onDownload }) {
+  const complete = summary.total > 0 && summary.completed >= summary.total;
+  const remaining = Math.max(summary.total - summary.completed, 0);
+
+  return (
+    <section className={`course-completion-panel ${complete ? "complete" : ""}`}>
+      <div className="completion-copy">
+        <span className="public-label">{complete ? "Completion ready" : "Course finish line"}</span>
+        <h2>{courseCompletion.title}</h2>
+        <p>{courseCompletion.promise}</p>
+        <div className="completion-capstone">
+          <strong>{courseCompletion.capstone.title}</strong>
+          <p>{courseCompletion.capstone.body}</p>
+          <em>{courseCompletion.capstone.output}</em>
+        </div>
+      </div>
+      <div className="completion-control">
+        <div className="completion-meter-card">
+          <strong>{summary.percent}%</strong>
+          <span>{summary.completed}/{summary.total} tasks complete</span>
+          <p>
+            {complete
+              ? "Every module output is ready for the final receipt."
+              : `${remaining} proof tasks left before the receipt is complete.`}
+          </p>
+          <button type="button" className="primary-action" onClick={onDownload}>
+            Download final receipt
+          </button>
+        </div>
+        <div className="completion-criteria-list">
+          {courseCompletion.criteria.map((criterion, index) => {
+            const module = productModules[index];
+            const isDone = Boolean(module?.todos.every((todo) => completedTasks.has(`${module.key}:${todo.key}`)));
+            return (
+              <article key={criterion.key} className={isDone ? "done" : ""}>
+                <strong>{isDone ? "Done" : "Open"}</strong>
+                <div>
+                  <span>{criterion.title}</span>
+                  <p>{criterion.proof}</p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
