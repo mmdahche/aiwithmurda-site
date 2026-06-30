@@ -134,6 +134,24 @@ try {
   if (!productAssets.some((asset) => asset.key === "course-completion-kit")) {
     throw new Error(`Course completion kit asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
+  const liveBuilds = profile.data?.liveBuilds;
+  if (
+    liveBuilds?.key !== "new_wave_live_builds" ||
+    liveBuilds?.price_cents !== 9700 ||
+    !liveBuilds?.accessPlan?.firstRoomPromise ||
+    !Array.isArray(liveBuilds?.accessPlan?.candidateBuilds) ||
+    liveBuilds.accessPlan.candidateBuilds.length < 3 ||
+    !Array.isArray(liveBuilds?.assets) ||
+    liveBuilds.assets.length < 4
+  ) {
+    throw new Error(`Live-build member package was not exposed on profile: ${JSON.stringify(liveBuilds)}`);
+  }
+  if (!liveBuilds.assets.some((asset) => asset.key === "session-build-brief")) {
+    throw new Error(`Live-build session brief asset missing: ${JSON.stringify(liveBuilds.assets)}`);
+  }
+  if (!liveBuilds.assets.some((asset) => asset.key === "replay-proof-kit")) {
+    throw new Error(`Live-build replay proof kit asset missing: ${JSON.stringify(liveBuilds.assets)}`);
+  }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
     throw new Error(`Product modules were not exposed on profile: ${JSON.stringify(profile.data?.product)}`);
@@ -200,6 +218,14 @@ try {
       `Expected asset entitlement guard, got ${blockedAsset.response.status}: ${JSON.stringify(blockedAsset.data)}`,
     );
   }
+  const blockedLiveBuildAsset = await fetchJson(`${siteUrl}/api/member-assets/new-wave-live-builds/session-build-brief`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (blockedLiveBuildAsset.response.status !== 403 || blockedLiveBuildAsset.data?.error !== "entitlement_required") {
+    throw new Error(
+      `Expected live-build asset entitlement guard, got ${blockedLiveBuildAsset.response.status}: ${JSON.stringify(blockedLiveBuildAsset.data)}`,
+    );
+  }
 
   const entitlement = await admin
     .from("entitlements")
@@ -218,12 +244,55 @@ try {
     throw entitlement.error || new Error("Failed to grant smoke entitlement");
   }
 
+  const liveBuildEntitlement = await admin
+    .from("entitlements")
+    .upsert(
+      {
+        user_id: userId,
+        product_key: "new_wave_live_builds",
+        status: "active",
+        revoked_at: null,
+      },
+      { onConflict: "user_id,product_key" },
+    )
+    .select("id")
+    .single();
+  if (liveBuildEntitlement.error || !liveBuildEntitlement.data?.id) {
+    throw liveBuildEntitlement.error || new Error("Failed to grant live-build smoke entitlement");
+  }
+
   const assetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const assetText = await assetResponse.text();
   if (!assetResponse.ok || !assetText.includes("The Future Proof Method - Quickstart Map")) {
     throw new Error(`Asset download failed: ${assetResponse.status} ${assetText.slice(0, 120)}`);
+  }
+  const liveBuildBriefResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/session-build-brief`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const liveBuildBriefText = await liveBuildBriefResponse.text();
+  if (
+    !liveBuildBriefResponse.ok ||
+    !liveBuildBriefText.includes("New Wave Live Builds - Session Build Brief") ||
+    !liveBuildBriefText.includes("Room 001 Selection Score")
+  ) {
+    throw new Error(
+      `Live-build brief download failed: ${liveBuildBriefResponse.status} ${liveBuildBriefText.slice(0, 160)}`,
+    );
+  }
+  const liveBuildReplayResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/replay-proof-kit`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const liveBuildReplayText = await liveBuildReplayResponse.text();
+  if (
+    !liveBuildReplayResponse.ok ||
+    !liveBuildReplayText.includes("New Wave Live Builds - Replay Proof Kit") ||
+    !liveBuildReplayText.includes("Seven-Day Implementation Plan")
+  ) {
+    throw new Error(
+      `Live-build replay proof kit download failed: ${liveBuildReplayResponse.status} ${liveBuildReplayText.slice(0, 160)}`,
+    );
   }
   const fieldGuideResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/module-field-guide`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -347,6 +416,9 @@ try {
           premiumModuleDepthExposed: true,
           buyerOnboardingEmailsExposed: true,
           courseCompletionExposed: true,
+          liveBuildPackageExposed: true,
+          liveBuildAccessPlanExposed: true,
+          liveBuildAssetsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           premiumWorkbookExposed: true,
@@ -358,7 +430,10 @@ try {
           generatedFieldGuideDepth: true,
           generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
+          lockedLiveBuildAssetsBlocked: true,
           entitledAssetDownload: true,
+          entitledLiveBuildBriefDownload: true,
+          entitledLiveBuildReplayKitDownload: true,
           entitledFieldGuideDownload: true,
           entitledPremiumWorkbookDownload: true,
           entitledLessonScriptsDownload: true,

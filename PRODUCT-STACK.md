@@ -1,6 +1,6 @@
 # AI with Murda Product Stack
 
-Last updated: 2026-06-29
+Last updated: 2026-06-30
 
 ## Locked Direction
 
@@ -128,6 +128,7 @@ Environment variables:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_FUTURE_METHOD_PRICE_ID`
+- `STRIPE_LIVE_BUILDS_PRICE_ID` optional; the server falls back to inline `$97` Checkout `price_data`
 - `SITE_URL=https://aiwithmurda.com`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -161,6 +162,7 @@ Second product flow:
 4. Logged-in viewer can open Backbone Stripe checkout through `POST /api/checkout/live-builds`.
 5. Stripe metadata uses product key `new_wave_live_builds`; access verification grants that entitlement separately from `future_proof_method`.
 6. `STRIPE_LIVE_BUILDS_PRICE_ID` can be added later; until then the server uses Stripe Checkout `price_data` at 9700 cents.
+7. Active `new_wave_live_builds` buyers see a live-build ticket hub inside `/members` with the first-room plan, prep checklist, candidate builds, buyer path, and gated prep-pack downloads.
 
 Subscriber capture:
 
@@ -179,6 +181,9 @@ Gated assets:
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
 - The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
 - Current assets: Quickstart Map, Daily Operator Checklist, Launch Day Runbook, Launch Copy Pack, Day 0-7 Stream Run Sheet, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, Module Field Guide, and Proof To Offer Canvas.
+- New Wave Live Builds assets are served through `GET /api/member-assets/new-wave-live-builds/:assetKey`.
+- The live-build endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
+- Current live-build assets: Session Build Brief, Buyer Prep Checklist, Live Prompt Stack, and Replay Proof Kit.
 - `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, action kits, and task lists do not drift.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
 - The member hub includes a local proof receipt builder. It follows the active module route, includes module progress and completed task names, previews the markdown, and downloads the receipt without adding a new database dependency.
@@ -196,7 +201,7 @@ Smoke test:
 - `npm run smoke:tracker` verifies `/live-builds` loads and the client bundle includes the second-product offer copy.
 - `npm run smoke:stream` verifies the stream config includes `!builds` and the `/live-builds` destination.
 - `npm run smoke:funnel` verifies `/api/checkout/live-builds` creates a `$97` Checkout Session with product key `new_wave_live_builds`.
-- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates a Stripe Checkout Session, confirms unpaid sessions return the retryable recovery guard, verifies assets are blocked before entitlement, verifies module action kits, grants a temporary entitlement, downloads gated assets, then expires the session and deletes the test user.
+- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates Stripe Checkout Sessions, confirms unpaid sessions return the retryable recovery guard, verifies Future Proof and New Wave Live Builds assets are blocked before entitlement, verifies module action kits, grants temporary entitlements, downloads gated assets, then expires sessions and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.
 - Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.

@@ -15,7 +15,7 @@ import {
   productPriceCents,
   productSubtitle,
 } from "../src/data/product.js";
-import { liveBuildsProduct } from "../src/data/liveBuilds.js";
+import { liveBuildAccessPlan, liveBuildMemberAssets, liveBuildsProduct } from "../src/data/liveBuilds.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -465,20 +465,33 @@ async function getMemberAccess(user) {
       onboardingEmails: buyerOnboardingEmails,
       courseCompletion,
     },
+    liveBuilds: {
+      key: liveBuildsProduct.key,
+      name: liveBuildsProduct.name,
+      subtitle: liveBuildsProduct.subtitle,
+      status: liveBuildsProduct.status,
+      price_cents: liveBuildsProduct.priceCents,
+      accessPlan: liveBuildAccessPlan,
+      assets: liveBuildMemberAssets.map(publicAsset),
+    },
   };
 }
 
-async function hasActiveEntitlement(userId) {
+async function hasActiveProductEntitlement(userId, entitlementProductKey) {
   const { data, error } = await supabaseAdmin
     .from("entitlements")
     .select("id")
     .eq("user_id", userId)
-    .eq("product_key", productKey)
+    .eq("product_key", entitlementProductKey)
     .eq("status", "active")
     .maybeSingle();
 
   if (error) throw error;
   return Boolean(data?.id);
+}
+
+async function hasActiveEntitlement(userId) {
+  return hasActiveProductEntitlement(userId, productKey);
 }
 
 function toDailyLog(row) {
@@ -2926,6 +2939,30 @@ app.get("/api/member-assets/future-proof-method/:assetKey", requireUser, async (
     res.send(file);
   } catch (error) {
     console.error("[member-asset]", error);
+    res.status(500).json({ error: "asset_download_failed" });
+  }
+});
+
+app.get("/api/member-assets/new-wave-live-builds/:assetKey", requireUser, async (req, res) => {
+  try {
+    const asset = liveBuildMemberAssets.find((item) => item.key === req.params.assetKey);
+    if (!asset) {
+      res.status(404).json({ error: "asset_not_found" });
+      return;
+    }
+
+    if (!(await hasActiveProductEntitlement(req.user.id, liveBuildsProduct.key))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    const filePath = path.join(assetDir, asset.fileName);
+    const file = await fs.readFile(filePath);
+    res.setHeader("Content-Type", asset.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${asset.downloadName}"`);
+    res.send(file);
+  } catch (error) {
+    console.error("[live-build-member-asset]", error);
     res.status(500).json({ error: "asset_download_failed" });
   }
 });

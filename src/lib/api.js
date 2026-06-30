@@ -183,3 +183,19 @@ export async function downloadMemberAsset(assetKey, token) {
 
   return response.blob();
 }
+
+export async function downloadLiveBuildAsset(assetKey, token) {
+  const response = await fetch(`/api/member-assets/new-wave-live-builds/${encodeURIComponent(assetKey)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const error = new Error(data.error || "asset_download_failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return response.blob();
+}

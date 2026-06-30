@@ -13,6 +13,7 @@ import {
   productTaskCount,
 } from "./data/product.js";
 import {
+  liveBuildAccessPlan,
   liveBuildDeliverables,
   liveBuildFaq,
   liveBuildOutcomes,
@@ -25,6 +26,7 @@ import {
   createLiveBuildCheckout,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
+  downloadLiveBuildAsset,
   downloadMemberAsset,
   getDailyLogs,
   getLiveFollowers,
@@ -2492,9 +2494,15 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [notice, setNotice] = useState(null);
   const [accessCheck, setAccessCheck] = useState({ status: "idle" });
   const accessToken = authSession?.access_token;
-  const entitled = Boolean(
+  const futureMethodEntitled = Boolean(
     memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
   );
+  const liveBuildEntitled = Boolean(
+    memberData?.entitlements?.some(
+      (entitlement) => entitlement.product_key === liveBuildsProduct.key && entitlement.status === "active",
+    ),
+  );
+  const hasAnyPaidAccess = futureMethodEntitled || liveBuildEntitled;
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2583,9 +2591,9 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <div className="member-login-card">
           <span>Access state</span>
           <strong>
-            {entitled ? "Unlocked" : status === "loading" ? "Checking" : authSession ? "Profile active" : "Login required"}
+            {hasAnyPaidAccess ? "Unlocked" : status === "loading" ? "Checking" : authSession ? "Profile active" : "Login required"}
           </strong>
-          <p>{authSession?.user?.email || "Use magic link auth before checkout."}</p>
+          <p>{authSession?.user?.email || "Use your member login before checkout."}</p>
         </div>
       </section>
 
@@ -2604,17 +2612,23 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           onProfileRefresh={() => refreshMemberAccess({ verifyCheckout: false })}
         />
       )}
-      {authSession && !entitled && (
+      {authSession && liveBuildEntitled && (
+        <LiveBuildMemberPanel accessToken={authSession.access_token} liveBuilds={memberData?.liveBuilds} />
+      )}
+      {authSession && !futureMethodEntitled && (
         <section className="public-section unlock-section">
           <div>
             <span className="public-label">Unlock required</span>
             <h2>{productName}</h2>
-            <p>Your profile is active. Buy the $47 founding drop to unlock the member hub.</p>
+            <p>
+              Your profile is active. Buy the $47 founding drop to unlock the operator kit, modules,
+              workbooks, and proof receipts.
+            </p>
           </div>
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </section>
       )}
-      {authSession && entitled && (
+      {authSession && futureMethodEntitled && (
         <MemberModules
           accessToken={authSession.access_token}
           activeModuleKey={activeModuleKey}
@@ -2623,6 +2637,116 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         />
       )}
     </main>
+  );
+}
+
+function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
+  const [downloadState, setDownloadState] = useState({});
+  const accessPlan = liveBuilds?.accessPlan || liveBuildAccessPlan;
+  const assets = liveBuilds?.assets || [];
+
+  async function handleDownload(asset) {
+    if (!asset?.key) return;
+
+    setDownloadState((current) => ({ ...current, [asset.key]: "loading" }));
+    try {
+      const blob = await downloadLiveBuildAsset(asset.key, accessToken);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = asset.downloadName || `${asset.key}.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState((current) => ({ ...current, [asset.key]: "success" }));
+    } catch (error) {
+      setDownloadState((current) => ({ ...current, [asset.key]: "error" }));
+    }
+  }
+
+  return (
+    <section className="live-build-member-panel">
+      <article className="live-build-member-hero">
+        <div>
+          <span className="public-label">{accessPlan.label}</span>
+          <h2>Your live-build ticket is active.</h2>
+          <p>{accessPlan.accessNote}</p>
+        </div>
+        <div className="live-build-ticket-strip">
+          <strong>{accessPlan.room}</strong>
+          <span>{accessPlan.status}</span>
+          <a className="secondary-link" href="/live-builds">
+            Open offer page
+          </a>
+        </div>
+      </article>
+
+      <div className="live-build-member-grid">
+        <article className="live-build-room-plan">
+          <span>First room promise</span>
+          <p>{accessPlan.firstRoomPromise}</p>
+          <div className="live-build-buyer-path">
+            {accessPlan.buyerPath.map((step, index) => (
+              <div key={step}>
+                <strong>{String(index + 1).padStart(2, "0")}</strong>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="live-build-prep-list">
+          <span>Buyer prep</span>
+          <ul>
+            {accessPlan.prepChecklist.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+
+      <section className="live-build-candidates">
+        <div>
+          <span className="public-label">Candidate first builds</span>
+          <h2>The first room can lock around the strongest signal.</h2>
+        </div>
+        <div className="live-build-candidate-list">
+          {accessPlan.candidateBuilds.map((candidate) => (
+            <article key={candidate.title}>
+              <strong>{candidate.title}</strong>
+              <p>{candidate.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="live-build-asset-section">
+        <div>
+          <span className="public-label">Buyer assets</span>
+          <h2>Prep pack unlocked now.</h2>
+          <p>These files are gated to the New Wave Live Builds ticket and will grow after each paid room.</p>
+        </div>
+        <div className="live-build-asset-list">
+          {assets.map((asset) => (
+            <article key={asset.key}>
+              <span>{asset.kind}</span>
+              <strong>{asset.title}</strong>
+              <p>{asset.description}</p>
+              <button
+                type="button"
+                onClick={() => handleDownload(asset)}
+                disabled={downloadState[asset.key] === "loading"}
+              >
+                {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
+              </button>
+              {downloadState[asset.key] === "success" && <em>Saved</em>}
+              {downloadState[asset.key] === "error" && <em>Retry</em>}
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
   );
 }
 

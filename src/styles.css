@@ -3617,6 +3617,180 @@ button {
   margin-top: 18px;
 }
 
+.live-build-member-panel {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.live-build-member-hero,
+.live-build-member-grid,
+.live-build-candidates,
+.live-build-asset-section {
+  padding: 26px 28px;
+  border: 1px solid rgba(247, 201, 72, 0.32);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(247, 201, 72, 0.14), transparent 28%),
+    linear-gradient(135deg, rgba(97, 227, 109, 0.07), rgba(247, 201, 72, 0.055)),
+    rgba(14, 17, 13, 0.76);
+}
+
+.live-build-member-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: center;
+  gap: 22px;
+}
+
+.live-build-member-hero h2,
+.live-build-candidates h2,
+.live-build-asset-section h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 38px;
+  line-height: 1;
+}
+
+.live-build-member-hero p,
+.live-build-room-plan p,
+.live-build-candidate-list p,
+.live-build-asset-section p,
+.live-build-asset-list p {
+  margin: 14px 0 0;
+  color: #d8e6de;
+  line-height: 1.5;
+}
+
+.live-build-ticket-strip {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(247, 201, 72, 0.28);
+  border-radius: 8px;
+  background: rgba(247, 201, 72, 0.07);
+}
+
+.live-build-ticket-strip strong {
+  color: #f7c948;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.live-build-ticket-strip span,
+.live-build-room-plan > span,
+.live-build-prep-list > span,
+.live-build-asset-list span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.live-build-member-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
+  gap: 18px;
+}
+
+.live-build-room-plan,
+.live-build-prep-list,
+.live-build-candidate-list article,
+.live-build-asset-list article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.live-build-buyer-path {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.live-build-buyer-path div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid rgba(97, 227, 109, 0.16);
+  border-radius: 7px;
+  background: rgba(97, 227, 109, 0.045);
+}
+
+.live-build-buyer-path strong {
+  color: #f7c948;
+  font-size: 13px;
+}
+
+.live-build-buyer-path span {
+  color: #d8e6de;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.live-build-prep-list ul {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #d8e6de;
+  line-height: 1.45;
+}
+
+.live-build-candidates,
+.live-build-asset-section {
+  display: grid;
+  gap: 18px;
+}
+
+.live-build-candidate-list,
+.live-build-asset-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.live-build-candidate-list strong,
+.live-build-asset-list strong {
+  display: block;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.live-build-asset-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.live-build-asset-list button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 14px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  background: var(--green);
+  font-weight: 850;
+}
+
+.live-build-asset-list button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.live-build-asset-list em {
+  display: block;
+  margin-top: 8px;
+  color: #f7c948;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
 .member-welcome,
 .member-roadmap {
   display: grid;
@@ -5672,6 +5846,8 @@ button {
   .auth-section,
   .unlock-section,
   .access-recovery,
+  .live-build-member-hero,
+  .live-build-member-grid,
   .member-welcome,
   .member-roadmap,
   .member-onboarding,
@@ -5698,6 +5874,8 @@ button {
   .launch-blocker-strip,
   .manual-gate-list,
   .stream-command-mini-list,
+  .live-build-candidate-list,
+  .live-build-asset-list,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -5751,6 +5929,9 @@ button {
   .launch-readiness-summary,
   .launch-category-grid,
   .launch-blocker-strip,
+  .live-build-buyer-path,
+  .live-build-candidate-list,
+  .live-build-asset-list,
   .metric-grid,
   .weekly-stats,
   .deck-summary-strip,

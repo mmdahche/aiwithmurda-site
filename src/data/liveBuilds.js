@@ -69,6 +69,81 @@ export const liveBuildDeliverables = [
   "Seven-day implementation checklist.",
 ];
 
+export const liveBuildAccessPlan = {
+  label: "Founding ticket access",
+  room: "Room 001",
+  status: "Topic lock pending",
+  accessNote:
+    "The founding ticket unlocks the buyer prep pack now. Room link, replay, and final assets get attached as soon as the first live-build date is locked.",
+  firstRoomPromise:
+    "The first paid room should turn one real AI workflow into a visible working slice, then package the prompts, proof receipt, and implementation checklist for buyers.",
+  candidateBuilds: [
+    {
+      title: "Live follower ticker",
+      body: "Connect stream metrics into the public dashboard and OBS overlay so the audience sees the scoreboard move.",
+    },
+    {
+      title: "Clip-to-proof pipeline",
+      body: "Turn one stream moment into a short-form clip, recap caption, daily receipt, and follow-up CTA.",
+    },
+    {
+      title: "Mini offer checkout",
+      body: "Scope, build, and prove a small paid offer path with Stripe, Supabase access, and buyer delivery.",
+    },
+  ],
+  prepChecklist: [
+    "Pick one workflow you want to understand or copy.",
+    "Write the before state in one paragraph.",
+    "Bring the tool stack, account links, and one example of the manual process.",
+    "Watch for the stop condition: useful proof beats feature creep.",
+  ],
+  buyerPath: [
+    "Prep pack unlocked now.",
+    "Room topic and date locked after first buyer signal.",
+    "Live room runs the build loop under time pressure.",
+    "Replay, prompt stack, proof receipt, and checklist get added after the session.",
+  ],
+};
+
+export const liveBuildMemberAssets = [
+  {
+    key: "session-build-brief",
+    title: "Session Build Brief",
+    kind: "Brief",
+    description: "How the live room will score candidate workflows, pick the slice, and define a stop condition.",
+    fileName: "new-wave-live-builds-session-brief.md",
+    downloadName: "new-wave-live-builds-session-brief.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "buyer-prep-checklist",
+    title: "Buyer Prep Checklist",
+    kind: "Prep",
+    description: "What to bring before the room so the live build can move fast and stay useful.",
+    fileName: "new-wave-live-builds-buyer-prep-checklist.md",
+    downloadName: "new-wave-live-builds-buyer-prep-checklist.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "live-prompt-stack",
+    title: "Live Prompt Stack",
+    kind: "Prompts",
+    description: "Prompt patterns for scoping, building, testing, proof capture, and offer translation during the room.",
+    fileName: "new-wave-live-builds-prompt-stack.md",
+    downloadName: "new-wave-live-builds-prompt-stack.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
+    key: "replay-proof-kit",
+    title: "Replay Proof Kit",
+    kind: "Proof",
+    description: "The post-session template for replay notes, proof receipt, clip hook, and seven-day implementation plan.",
+    fileName: "new-wave-live-builds-replay-proof-kit.md",
+    downloadName: "new-wave-live-builds-replay-proof-kit.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+];
+
 export const liveBuildFaq = [
   {
     question: "Is this a course?",

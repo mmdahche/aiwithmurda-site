@@ -219,6 +219,12 @@ const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Live builds ro
 if (!liveBuildsBundle.includes("New Wave Live Builds") || !liveBuildsBundle.includes("Reserve founding ticket")) {
   throw new Error("Live builds route client bundle missing second-product offer copy");
 }
+if (
+  !liveBuildsBundle.includes("Your live-build ticket is active.") ||
+  !liveBuildsBundle.includes("Prep pack unlocked now.")
+) {
+  throw new Error("Client bundle missing live-build member delivery copy");
+}
 
 const membersResponse = await fetch(`${siteUrl}/members/`);
 const membersHtml = await membersResponse.text();
@@ -368,6 +374,7 @@ console.log(
         adminRoute: true,
         publicLiveRoute: true,
         publicLiveBuildsRoute: true,
+        liveBuildMemberDeliveryBundle: true,
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,
