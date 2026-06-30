@@ -110,9 +110,6 @@ if (!liveBundle.includes("Start $2 test purchase")) {
 if (!liveBundle.includes("Metrics Automation Hub")) {
   throw new Error("Client bundle missing Metrics Automation Hub");
 }
-if (!liveBundle.includes("Twitch OAuth + EventSub follow listener")) {
-  throw new Error("Client bundle missing automation next connector copy");
-}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -195,7 +192,8 @@ if (
   !Array.isArray(metricsAutomation.data?.summary?.sources) ||
   !metricsAutomation.data.summary.sources.some((source) => source.key === "email-subscribers" && source.status === "live") ||
   !metricsAutomation.data.summary.sources.some((source) => source.key === "twitch-followers") ||
-  !Array.isArray(metricsAutomation.data?.summary?.nextBuilds)
+  !Array.isArray(metricsAutomation.data?.summary?.nextBuilds) ||
+  !metricsAutomation.data.summary.nextBuilds.includes("Twitch OAuth + EventSub follow listener")
 ) {
   throw new Error(
     `Admin metrics automation summary failed: ${metricsAutomation.response.status} ${JSON.stringify(metricsAutomation.data)}`,
