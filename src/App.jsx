@@ -63,7 +63,8 @@ const navItems = [
   { key: "settings", label: "Settings", icon: "settings" },
 ];
 
-const directOverlayRoutes = new Set(["/overlay", "/obs"]);
+const followerOverlayRoutes = new Set(["/overlay/followers", "/obs/followers"]);
+const directOverlayRoutes = new Set(["/overlay", "/obs", ...followerOverlayRoutes]);
 
 const numericFields = new Set([
   "emailSubscribers",
@@ -1046,15 +1047,19 @@ function App() {
 
   if (overlayOnly) {
     return (
-      <main className="overlay-route">
-        <CommandOverlay
-          config={sprintConfig}
-          latest={latest}
-          logs={logs}
-          compact
-          preview={isPrelaunch(sprintConfig)}
-          liveFollowers={liveFollowers}
-        />
+      <main className={`overlay-route ${followerOverlayRoutes.has(route) ? "follower-overlay-route" : ""}`}>
+        {followerOverlayRoutes.has(route) ? (
+          <FollowerOverlay liveFollowers={liveFollowers} latest={latest} />
+        ) : (
+          <CommandOverlay
+            config={sprintConfig}
+            latest={latest}
+            logs={logs}
+            compact
+            preview={isPrelaunch(sprintConfig)}
+            liveFollowers={liveFollowers}
+          />
+        )}
       </main>
     );
   }
@@ -3754,6 +3759,8 @@ function OverlayView({ config, latest, logs, liveFollowers }) {
         <div className="overlay-route-list">
           <code>{window.location.origin}/overlay</code>
           <span>Alias: {window.location.origin}/obs</span>
+          <code>{window.location.origin}/overlay/followers</code>
+          <span>Alias: {window.location.origin}/obs/followers</span>
         </div>
       </div>
       <div className="overlay-showcase">
@@ -3765,6 +3772,9 @@ function OverlayView({ config, latest, logs, liveFollowers }) {
           preview={isPrelaunch(config)}
           liveFollowers={liveFollowers}
         />
+      </div>
+      <div className="overlay-showcase follower-preview">
+        <FollowerOverlay liveFollowers={liveFollowers} latest={latest} />
       </div>
     </section>
   );
@@ -4905,6 +4915,33 @@ function CommandOverlay({ config, latest, logs, compact = false, preview = false
           <strong>Codex</strong>
         </div>
       </section>
+    </div>
+  );
+}
+
+function FollowerOverlay({ liveFollowers, latest }) {
+  const sources = liveFollowers?.sources || [];
+  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : totalFollowers(latest);
+  const liveCount = sources.filter((source) => source.status === "live").length;
+
+  return (
+    <div className="follower-overlay">
+      <div className="follower-overlay-header">
+        <span>Live follower counter</span>
+        <em>{liveCount ? `${liveCount} live` : "fallback live"}</em>
+      </div>
+      <strong>{formatNumber(total)}</strong>
+      <div className="follower-overlay-sources">
+        {(sources.length ? sources : [{ key: "fallback", label: "Daily log", count: total, status: "fallback" }]).map((source) => (
+          <div key={source.key} className={source.status}>
+            <span>{source.label}</span>
+            <b>{formatNumber(source.count)}</b>
+          </div>
+        ))}
+      </div>
+      <small>
+        {liveFollowers?.checkedAt ? `Checked ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : "Connecting ticker"}
+      </small>
     </div>
   );
 }

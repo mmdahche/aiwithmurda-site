@@ -814,6 +814,92 @@ button {
   font-size: 13px;
 }
 
+.follower-preview {
+  margin-top: 14px;
+}
+
+.follower-overlay {
+  display: grid;
+  width: min(920px, 100%);
+  gap: 16px;
+  padding: 26px 30px;
+  overflow: hidden;
+  border: 1px solid rgba(97, 227, 109, 0.28);
+  background:
+    linear-gradient(rgba(97, 227, 109, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(97, 227, 109, 0.04) 1px, transparent 1px),
+    rgba(4, 10, 8, 0.9);
+  background-size: 22px 22px;
+  box-shadow: inset 0 0 60px rgba(97, 227, 109, 0.06);
+}
+
+.follower-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.follower-overlay-header span,
+.follower-overlay-header em,
+.follower-overlay small {
+  color: var(--green);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.follower-overlay-header em {
+  color: #061008;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.follower-overlay > strong {
+  color: var(--green);
+  font-size: clamp(76px, 14vw, 168px);
+  line-height: 0.86;
+  letter-spacing: 0;
+}
+
+.follower-overlay-sources {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.follower-overlay-sources div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(97, 227, 109, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.follower-overlay-sources div.live {
+  border-color: rgba(97, 227, 109, 0.52);
+  background: rgba(97, 227, 109, 0.09);
+}
+
+.follower-overlay-sources span,
+.follower-overlay-sources b {
+  display: block;
+}
+
+.follower-overlay-sources span {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.follower-overlay-sources b {
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  font-size: 22px;
+}
+
 .corner {
   position: absolute;
   width: 26px;
@@ -2435,6 +2521,10 @@ button {
   place-items: center;
   min-height: 100vh;
   background: transparent;
+}
+
+.follower-overlay-route {
+  padding: 24px;
 }
 
 .deck-layout {
@@ -5020,6 +5110,7 @@ button {
   .ticker-control-grid,
   .ticker-setup-list,
   .clip-intake-form,
+  .follower-overlay-sources,
   .follower-source-strip,
   .launch-readiness-summary,
   .launch-category-grid,

@@ -150,6 +150,9 @@ if (!liveBundle.includes("Automated Daily Snapshot")) {
 if (!liveBundle.includes("Live follower ticker")) {
   throw new Error("Client bundle missing Live follower ticker");
 }
+if (!liveBundle.includes("Live follower counter")) {
+  throw new Error("Client bundle missing Live follower counter");
+}
 if (!liveBundle.includes("Follower Ticker Control")) {
   throw new Error("Client bundle missing Follower Ticker Control");
 }
@@ -184,10 +187,22 @@ if (!overlayResponse.ok || !overlayHtml.includes("root")) {
   throw new Error(`Overlay route failed: ${overlayResponse.status}`);
 }
 
+const followerOverlayResponse = await fetch(`${siteUrl}/overlay/followers/`);
+const followerOverlayHtml = await followerOverlayResponse.text();
+if (!followerOverlayResponse.ok || !followerOverlayHtml.includes("root")) {
+  throw new Error(`Follower overlay route failed: ${followerOverlayResponse.status}`);
+}
+
 const obsResponse = await fetch(`${siteUrl}/obs/`);
 const obsHtml = await obsResponse.text();
 if (!obsResponse.ok || !obsHtml.includes("root")) {
   throw new Error(`OBS alias route failed: ${obsResponse.status}`);
+}
+
+const followerObsResponse = await fetch(`${siteUrl}/obs/followers/`);
+const followerObsHtml = await followerObsResponse.text();
+if (!followerObsResponse.ok || !followerObsHtml.includes("root")) {
+  throw new Error(`Follower OBS alias route failed: ${followerObsResponse.status}`);
 }
 
 const dayReceiptResponse = await fetch(`${siteUrl}/day/1/`);
@@ -309,7 +324,9 @@ console.log(
         membersRoute: true,
         memberModuleRoute: true,
         overlayRoute: true,
+        followerOverlayRoute: true,
         obsAliasRoute: true,
+        followerObsAliasRoute: true,
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminClipIntakeBlockedWithoutToken: true,
