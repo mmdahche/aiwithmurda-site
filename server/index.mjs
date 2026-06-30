@@ -1364,6 +1364,40 @@ app.get("/api/followers/live", async (req, res) => {
   }
 });
 
+app.get("/api/followers/stream", async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  let closed = false;
+  let timer = null;
+
+  async function sendTicker() {
+    if (closed) return;
+    try {
+      const ticker = await buildLiveFollowerTicker();
+      res.write(`event: followers\n`);
+      res.write(`data: ${JSON.stringify(ticker)}\n\n`);
+      const refreshMs = Math.max(5000, Number(ticker.refreshMs || 15000));
+      timer = setTimeout(sendTicker, refreshMs);
+    } catch (error) {
+      res.write(`event: ticker-error\n`);
+      res.write(`data: ${JSON.stringify({ error: "followers_stream_tick_failed", message: error.message })}\n\n`);
+      timer = setTimeout(sendTicker, 30000);
+    }
+  }
+
+  req.on("close", () => {
+    closed = true;
+    if (timer) clearTimeout(timer);
+  });
+
+  await sendTicker();
+});
+
 app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 

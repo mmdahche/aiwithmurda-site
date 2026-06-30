@@ -655,6 +655,12 @@ function App() {
   const latest = useMemo(() => getLatestRecord(logs), [logs]);
   const [selectedDay, setSelectedDay] = useState(latest?.day || 1);
 
+  const refreshLiveFollowers = useCallback(async () => {
+    const data = await getLiveFollowers();
+    setLiveFollowers(data);
+    return data;
+  }, []);
+
   useEffect(() => {
     saveLogs(logs);
   }, [logs]);
@@ -715,25 +721,43 @@ function App() {
   useEffect(() => {
     let mounted = true;
     let timer = null;
+    let eventSource = null;
 
-    async function loadLiveFollowers() {
+    async function pollLiveFollowers() {
       try {
-        const data = await getLiveFollowers();
+        const data = await refreshLiveFollowers();
         if (!mounted) return;
-        setLiveFollowers(data);
         const refreshMs = Math.max(5000, Number(data.refreshMs || 15000));
-        timer = window.setTimeout(loadLiveFollowers, refreshMs);
+        timer = window.setTimeout(pollLiveFollowers, refreshMs);
       } catch {
-        if (mounted) timer = window.setTimeout(loadLiveFollowers, 30000);
+        if (mounted) timer = window.setTimeout(pollLiveFollowers, 30000);
       }
     }
 
-    loadLiveFollowers();
+    if ("EventSource" in window) {
+      eventSource = new EventSource("/api/followers/stream");
+      eventSource.addEventListener("followers", (event) => {
+        try {
+          setLiveFollowers(JSON.parse(event.data));
+        } catch {
+          // Ignore malformed stream frames and let the next tick correct state.
+        }
+      });
+      eventSource.onerror = () => {
+        eventSource?.close();
+        eventSource = null;
+        if (!timer) pollLiveFollowers();
+      };
+    } else {
+      pollLiveFollowers();
+    }
+
     return () => {
       mounted = false;
       if (timer) window.clearTimeout(timer);
+      eventSource?.close();
     };
-  }, []);
+  }, [refreshLiveFollowers]);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -1133,6 +1157,7 @@ function App() {
               metricsAutomationSummary={metricsAutomationSummary}
               metricsAutomationStatus={metricsAutomationStatus}
               metricsAutomationMessage={metricsAutomationMessage}
+              liveFollowers={liveFollowers}
               subscriberSummary={subscriberSummary}
               subscriberStatus={subscriberStatus}
               subscriberMessage={subscriberMessage}
@@ -1145,6 +1170,7 @@ function App() {
               refreshSubscriberSummary={refreshSubscriberSummary}
               refreshOfferOpsSummary={refreshOfferOpsSummary}
               refreshMetricsAutomationSummary={refreshMetricsAutomationSummary}
+              refreshLiveFollowers={refreshLiveFollowers}
               refreshSystemStatus={refreshSystemStatus}
               syncLogsToPublic={syncLogsToPublic}
               onSnapshotApplied={handleSnapshotApplied}
@@ -4061,6 +4087,157 @@ function DailySnapshotPanel({ latest, adminToken, onApplied, onRefreshAutomation
   );
 }
 
+const followerConnectorSteps = [
+  {
+    key: "twitch",
+    title: "Twitch",
+    steps: [
+      "Create or open the Twitch developer app.",
+      "Authorize the channel with follower read scopes.",
+      "Save TWITCH_CLIENT_ID, TWITCH_ACCESS_TOKEN, and TWITCH_BROADCASTER_ID in Render.",
+      "Next loop: create EventSub channel.follow subscription for true instant updates.",
+    ],
+  },
+  {
+    key: "tiktok",
+    title: "TikTok",
+    steps: [
+      "Create a TikTok developer app.",
+      "Request user.info.stats access.",
+      "Authorize the account and save TIKTOK_ACCESS_TOKEN in Render.",
+      "Ticker will poll follower_count until TikTok provides a better event path.",
+    ],
+  },
+  {
+    key: "instagram",
+    title: "Instagram",
+    steps: [
+      "Confirm the Instagram account is professional, creator, or business.",
+      "Connect it through a Meta app and linked Facebook page when required.",
+      "Save INSTAGRAM_ACCESS_TOKEN and INSTAGRAM_USER_ID in Render.",
+      "Ticker will poll the Meta/Instagram count on a schedule.",
+    ],
+  },
+  {
+    key: "youtube",
+    title: "YouTube",
+    steps: [
+      "Wait for live streaming/API access to fully unlock.",
+      "Create or connect a Google Cloud OAuth client.",
+      "Save YouTube client credentials in Render.",
+      "Ticker will poll public channel statistics on a schedule.",
+    ],
+  },
+];
+
+function formatFollowerTickerRunbook(liveFollowers) {
+  const sourceByKey = new Map((liveFollowers?.sources || []).map((source) => [source.key, source]));
+  return followerConnectorSteps
+    .map((connector) => {
+      const source = sourceByKey.get(connector.key);
+      return [
+        `# ${connector.title}`,
+        `Current status: ${source?.status || "not loaded"}`,
+        `Current count: ${formatNumber(source?.count || 0)}`,
+        `Mode: ${source?.mode || "pending"}`,
+        "",
+        ...connector.steps.map((step, index) => `${index + 1}. ${step}`),
+      ].join("\n");
+    })
+    .join("\n\n");
+}
+
+function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+  const [copyStatus, setCopyStatus] = useState("idle");
+  const sources = liveFollowers?.sources || [];
+  const liveCount = sources.filter((source) => source.status === "live").length;
+  const connectorReadyCount = sources.filter((source) => ["live", "connector-ready"].includes(source.status)).length;
+  const fallbackCount = sources.filter((source) => source.status === "daily-log-fallback").length;
+
+  async function handleRefresh() {
+    setStatus("loading");
+    setMessage("");
+    try {
+      await onRefresh();
+      setStatus("success");
+      setMessage("Ticker status refreshed.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Ticker refresh failed.");
+    }
+  }
+
+  async function copyRunbook() {
+    if (await copyPlainText(formatFollowerTickerRunbook(liveFollowers))) {
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1800);
+    } else {
+      setCopyStatus("manual");
+    }
+  }
+
+  return (
+    <article className="panel follower-ticker-control-panel">
+      <PanelTitle icon="monitor" title="Follower Ticker Control" right={`${liveCount}/${sources.length || 4} live`} />
+      <div className="ticker-control-hero">
+        <div>
+          <span className="panel-kicker">OBS-ready counter</span>
+          <strong>{formatNumber(liveFollowers?.total || 0)}</strong>
+          <p>
+            This is the stream-facing count. It updates through the live stream endpoint now and can
+            upgrade source-by-source when your platform accounts are connected.
+          </p>
+        </div>
+        <div className="ticker-control-actions">
+          <button type="button" className="primary-action" onClick={handleRefresh} disabled={status === "loading"}>
+            {status === "loading" ? "Refreshing..." : "Refresh ticker"}
+          </button>
+          <button type="button" className="secondary-action" onClick={copyRunbook}>
+            {copyStatus === "copied" ? "Copied runbook" : copyStatus === "manual" ? "Manual copy ready" : "Copy setup runbook"}
+          </button>
+        </div>
+      </div>
+      <div className="ticker-control-grid">
+        <KeyValue label="Stream endpoint" value="/api/followers/stream" positive />
+        <KeyValue label="Ready sources" value={formatNumber(connectorReadyCount)} />
+        <KeyValue label="Fallback sources" value={formatNumber(fallbackCount)} />
+        <KeyValue label="Refresh" value={`${formatNumber((liveFollowers?.refreshMs || 15000) / 1000)}s`} />
+      </div>
+      <div className="ticker-source-list">
+        {sources.map((source) => (
+          <article key={source.key} className={source.status}>
+            <div>
+              <span>{source.label}</span>
+              <strong>{formatNumber(source.count)}</strong>
+              <p>{source.detail}</p>
+            </div>
+            <div>
+              <em>{source.status.replaceAll("-", " ")}</em>
+              <small>{source.cadence}</small>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="ticker-setup-list">
+        {followerConnectorSteps.map((connector) => (
+          <article key={connector.key}>
+            <span>{connector.title}</span>
+            <ol>
+              {connector.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </article>
+        ))}
+      </div>
+      {liveFollowers?.checkedAt && <p className="panel-note">Checked {new Date(liveFollowers.checkedAt).toLocaleString()}</p>}
+      {message && <p className={`form-message ${status}`}>{message}</p>}
+    </article>
+  );
+}
+
 function SettingsView({
   authSession,
   config,
@@ -4077,6 +4254,7 @@ function SettingsView({
   metricsAutomationSummary,
   metricsAutomationStatus,
   metricsAutomationMessage,
+  liveFollowers,
   subscriberSummary,
   subscriberStatus,
   subscriberMessage,
@@ -4089,6 +4267,7 @@ function SettingsView({
   refreshSubscriberSummary,
   refreshOfferOpsSummary,
   refreshMetricsAutomationSummary,
+  refreshLiveFollowers,
   refreshSystemStatus,
   syncLogsToPublic,
   onSnapshotApplied,
@@ -4279,6 +4458,7 @@ function SettingsView({
           message={metricsAutomationMessage}
           onRefresh={refreshMetricsAutomationSummary}
         />
+        <FollowerTickerControlPanel liveFollowers={liveFollowers} onRefresh={refreshLiveFollowers} />
         <DailySnapshotPanel
           latest={latest}
           adminToken={adminToken}

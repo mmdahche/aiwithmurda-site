@@ -46,6 +46,29 @@ if (
   throw new Error(`Public live followers failed: ${liveFollowers.response.status} ${JSON.stringify(liveFollowers.data)}`);
 }
 
+const followerStreamController = new AbortController();
+const followerStream = await fetch(`${siteUrl}/api/followers/stream`, {
+  signal: followerStreamController.signal,
+});
+const followerStreamReader = followerStream.body?.getReader();
+const followerStreamDecoder = new TextDecoder();
+let followerStreamText = "";
+for (let index = 0; index < 5 && followerStreamReader; index += 1) {
+  const chunk = await followerStreamReader.read();
+  if (chunk.done) break;
+  followerStreamText += followerStreamDecoder.decode(chunk.value, { stream: true });
+  if (followerStreamText.includes("live-follower-ticker")) break;
+}
+followerStreamController.abort();
+if (
+  !followerStream.ok ||
+  !followerStream.headers.get("content-type")?.includes("text/event-stream") ||
+  !followerStreamText.includes("event: followers") ||
+  !followerStreamText.includes("live-follower-ticker")
+) {
+  throw new Error(`Public live follower stream failed: ${followerStream.status} ${followerStreamText}`);
+}
+
 const robotsResponse = await fetch(`${siteUrl}/robots.txt`);
 const robotsText = await robotsResponse.text();
 if (!robotsResponse.ok || !robotsText.includes("Sitemap: https://aiwithmurda.com/sitemap.xml")) {
@@ -126,6 +149,12 @@ if (!liveBundle.includes("Automated Daily Snapshot")) {
 }
 if (!liveBundle.includes("Live follower ticker")) {
   throw new Error("Client bundle missing Live follower ticker");
+}
+if (!liveBundle.includes("Follower Ticker Control")) {
+  throw new Error("Client bundle missing Follower Ticker Control");
+}
+if (!liveBundle.includes("/api/followers/stream")) {
+  throw new Error("Client bundle missing follower stream route");
 }
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
@@ -239,6 +268,7 @@ console.log(
       checks: {
         publicLogsReadable: true,
         publicLiveFollowersReadable: true,
+        publicLiveFollowerStreamReadable: true,
         robotsReadable: true,
         sitemapReadable: true,
         manifestReadable: true,
