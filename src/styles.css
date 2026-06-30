@@ -59,6 +59,103 @@ button {
   min-height: 100vh;
 }
 
+.admin-gate-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 32px;
+  place-items: center;
+}
+
+.admin-gate-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.72fr);
+  gap: 24px;
+  width: min(980px, 100%);
+  padding: 32px;
+  border: 1px solid rgba(97, 227, 109, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(17, 24, 21, 0.96), rgba(8, 14, 12, 0.94)),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.admin-gate-copy {
+  display: grid;
+  align-content: center;
+  gap: 16px;
+}
+
+.admin-gate-copy h1 {
+  margin: 0;
+  max-width: 560px;
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 0.94;
+}
+
+.admin-gate-copy p {
+  max-width: 580px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.admin-gate-panel,
+.admin-denied-panel {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+}
+
+.admin-gate-panel {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-gate-panel .auth-form button {
+  min-height: 48px;
+  color: #061008;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  background: var(--green);
+  font-weight: 900;
+}
+
+.admin-denied-panel strong {
+  font-size: 18px;
+}
+
+.admin-denied-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-identity-chip {
+  display: grid;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-identity-chip span {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-identity-chip strong {
+  overflow-wrap: anywhere;
+}
+
 .sidebar {
   position: sticky;
   top: 0;
@@ -760,6 +857,15 @@ button {
 
 .offer-ops-panel .primary-action {
   width: 100%;
+}
+
+.test-purchase-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.test-purchase-panel .checkout-box {
+  margin-top: 0;
 }
 
 .offer-ops-grid {
@@ -4172,6 +4278,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .admin-gate-card {
+    grid-template-columns: 1fr;
+  }
+
   .sidebar {
     position: static;
     height: auto;
@@ -4279,8 +4389,17 @@ button {
 
 @media (max-width: 760px) {
   .main-panel,
-  .sidebar {
+  .sidebar,
+  .admin-gate-shell {
     padding: 16px;
+  }
+
+  .admin-gate-card {
+    padding: 22px;
+  }
+
+  .admin-gate-copy h1 {
+    font-size: 42px;
   }
 
   .top-header h1 {

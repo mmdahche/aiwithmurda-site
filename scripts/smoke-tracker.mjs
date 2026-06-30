@@ -65,6 +65,12 @@ if (!toolsResponse.ok || !toolsHtml.includes("root")) {
   throw new Error(`Public tools route failed: ${toolsResponse.status}`);
 }
 
+const adminResponse = await fetch(`${siteUrl}/admin/`);
+const adminHtml = await adminResponse.text();
+if (!adminResponse.ok || !adminHtml.includes("root")) {
+  throw new Error(`Admin route failed: ${adminResponse.status}`);
+}
+
 const liveResponse = await fetch(`${siteUrl}/live/`);
 const liveHtml = await liveResponse.text();
 if (!liveResponse.ok || !liveHtml.includes("root")) {
@@ -88,6 +94,12 @@ if (!liveBundle.includes("Stream Command Deck")) {
 }
 if (!liveBundle.includes("Buyer Email Copy Deck")) {
   throw new Error("Client bundle missing Buyer Email Copy Deck");
+}
+if (!liveBundle.includes("Admin login required")) {
+  throw new Error("Client bundle missing admin login gate");
+}
+if (!liveBundle.includes("Start $2 test purchase")) {
+  throw new Error("Client bundle missing $2 test purchase control");
 }
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
@@ -135,6 +147,13 @@ if (blockedWrite.response.status !== 401 || blockedWrite.data?.error !== "invali
   throw new Error(`Admin guard failed: ${blockedWrite.response.status} ${JSON.stringify(blockedWrite.data)}`);
 }
 
+const blockedAdminSession = await fetchJson(`${siteUrl}/api/admin/session`);
+if (blockedAdminSession.response.status !== 401 || blockedAdminSession.data?.error !== "missing_bearer_token") {
+  throw new Error(
+    `Admin session guard failed: ${blockedAdminSession.response.status} ${JSON.stringify(blockedAdminSession.data)}`,
+  );
+}
+
 const systemStatus = await fetchJson(`${siteUrl}/api/admin/system/status`, {
   headers: { Authorization: `Bearer ${adminToken}` },
 });
@@ -167,6 +186,7 @@ console.log(
         manifestReadable: true,
         publicDashboardRoute: true,
         publicToolsRoute: true,
+        adminRoute: true,
         publicLiveRoute: true,
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
@@ -174,6 +194,8 @@ console.log(
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
         adminBuyerEmailCopyDeckBundle: true,
+        adminLoginGateBundle: true,
+        adminTestPurchaseBundle: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
@@ -181,6 +203,7 @@ console.log(
         obsAliasRoute: true,
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
+        adminSessionBlockedWithoutLogin: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,
         adminOfferMembersReadable: true,

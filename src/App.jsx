@@ -13,6 +13,7 @@ import {
 } from "./data/product.js";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
+  createTestPurchaseCheckout,
   createFutureMethodCheckout,
   downloadMemberAsset,
   getDailyLogs,
@@ -25,6 +26,7 @@ import {
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
+  verifyAdminSession,
   verifyCheckoutSession,
 } from "./lib/api.js";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
@@ -972,99 +974,246 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand-lockup">
-          <div className="brand-mark">
-            <Icon name="code" />
+    <AdminGate authSession={authSession} authReady={authReady}>
+      <div className="app-shell">
+        <aside className="sidebar">
+          <div className="brand-lockup">
+            <div className="brand-mark">
+              <Icon name="code" />
+            </div>
+            <div>
+              <strong>60-Day Build</strong>
+              <span>In Public</span>
+            </div>
           </div>
-          <div>
-            <strong>60-Day Build</strong>
-            <span>In Public</span>
+
+          <nav className="side-nav" aria-label="Main navigation">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={activeView === item.key ? "active" : ""}
+                onClick={() => setActiveView(item.key)}
+              >
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="sidebar-footer">
+            <StatusPanel />
+            <OperatorsPanel />
           </div>
+        </aside>
+
+        <main className="main-panel">
+          <Header config={sprintConfig} latest={latest} />
+          {activeView === "dashboard" && (
+            <Dashboard
+              config={sprintConfig}
+              logs={logs}
+              latest={latest}
+              weeks={weeks}
+              onGenerateSlide={() => setActiveView("deck")}
+            />
+          )}
+          {activeView === "daily-log" && (
+            <DailyLog
+              config={sprintConfig}
+              logs={logs}
+              selectedDay={selectedDay}
+              selectedRecord={selectedRecord}
+              setSelectedDay={setSelectedDay}
+              updateRecord={updateRecord}
+              updateFollowers={updateFollowers}
+              updateList={updateList}
+              addNextDay={addNextDay}
+              dirtyDays={dirtyDays}
+              syncStatus={syncStatus}
+              syncMessage={syncMessage}
+              onSyncSelectedDay={() => syncLogsToPublic([selectedRecord], `Day ${selectedRecord.day}`)}
+            />
+          )}
+          {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} />}
+          {activeView === "deck" && <DeckView config={sprintConfig} logs={logs} weeks={weeks} />}
+          {activeView === "settings" && (
+            <SettingsView
+              authSession={authSession}
+              config={sprintConfig}
+              logs={logs}
+              remoteLogStatus={remoteLogStatus}
+              remoteLogMeta={remoteLogMeta}
+              dirtyDays={dirtyDays}
+              adminToken={adminToken}
+              syncStatus={syncStatus}
+              syncMessage={syncMessage}
+              offerOpsSummary={offerOpsSummary}
+              offerOpsStatus={offerOpsStatus}
+              offerOpsMessage={offerOpsMessage}
+              subscriberSummary={subscriberSummary}
+              subscriberStatus={subscriberStatus}
+              subscriberMessage={subscriberMessage}
+              systemStatus={systemStatus}
+              systemStatusState={systemStatusState}
+              systemStatusMessage={systemStatusMessage}
+              streamConfig={streamConfig}
+              streamConfigStatus={streamConfigStatus}
+              updateAdminToken={updateAdminToken}
+              refreshSubscriberSummary={refreshSubscriberSummary}
+              refreshOfferOpsSummary={refreshOfferOpsSummary}
+              refreshSystemStatus={refreshSystemStatus}
+              syncLogsToPublic={syncLogsToPublic}
+              restoreSeedData={restoreSeedData}
+            />
+          )}
+        </main>
+      </div>
+    </AdminGate>
+  );
+}
+
+function AdminGate({ authSession, authReady, children }) {
+  const [email, setEmail] = useState("");
+  const [loginStatus, setLoginStatus] = useState("idle");
+  const [loginMessage, setLoginMessage] = useState("");
+  const [accessStatus, setAccessStatus] = useState("idle");
+  const [accessMessage, setAccessMessage] = useState("");
+  const [adminIdentity, setAdminIdentity] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkAdminAccess() {
+      if (!isSupabaseConfigured()) {
+        setAccessStatus("error");
+        setAccessMessage("Supabase login is not configured yet.");
+        return;
+      }
+
+      if (!authReady) {
+        setAccessStatus("checking");
+        setAccessMessage("");
+        return;
+      }
+
+      if (!authSession?.access_token) {
+        setAdminIdentity(null);
+        setAccessStatus("signed-out");
+        setAccessMessage("");
+        return;
+      }
+
+      setAccessStatus("checking");
+      setAccessMessage("");
+      try {
+        const data = await verifyAdminSession(authSession.access_token);
+        if (!mounted) return;
+        setAdminIdentity(data.admin || null);
+        setAccessStatus("authorized");
+      } catch (error) {
+        if (!mounted) return;
+        setAdminIdentity(null);
+        setAccessStatus("denied");
+        if (error.data?.error === "admin_email_allowlist_missing") {
+          setAccessMessage("Admin login needs ADMIN_EMAILS set on Render before the control room can open.");
+        } else if (error.data?.error === "admin_email_not_allowed") {
+          setAccessMessage("This Supabase profile is signed in, but it is not on the admin allowlist.");
+        } else {
+          setAccessMessage(error.message || "Admin access check failed.");
+        }
+      }
+    }
+
+    checkAdminAccess();
+    return () => {
+      mounted = false;
+    };
+  }, [authReady, authSession?.access_token]);
+
+  async function handleAdminLogin(event) {
+    event.preventDefault();
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    setLoginStatus("loading");
+    setLoginMessage("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/admin`,
+      },
+    });
+
+    if (error) {
+      setLoginStatus("error");
+      setLoginMessage(error.message);
+      return;
+    }
+
+    setLoginStatus("success");
+    setLoginMessage("Magic link sent. Open it on this computer to unlock the control room.");
+  }
+
+  async function handleSignOut() {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    await supabase.auth.signOut();
+  }
+
+  if (accessStatus === "authorized") {
+    return children;
+  }
+
+  const signedInEmail = authSession?.user?.email || adminIdentity?.email || "";
+
+  return (
+    <main className="admin-gate-shell">
+      <section className="admin-gate-card">
+        <div className="admin-gate-copy">
+          <span className="public-label">Private control room</span>
+          <h1>Admin login required</h1>
+          <p>
+            The public dashboard stays open. The control room now requires your Supabase profile and
+            the server-side admin allowlist before anything renders.
+          </p>
+          {signedInEmail && (
+            <div className="admin-identity-chip">
+              <span>Signed in</span>
+              <strong>{signedInEmail}</strong>
+            </div>
+          )}
         </div>
-
-        <nav className="side-nav" aria-label="Main navigation">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={activeView === item.key ? "active" : ""}
-              onClick={() => setActiveView(item.key)}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <StatusPanel />
-          <OperatorsPanel />
+        <div className="admin-gate-panel">
+          {!authSession ? (
+            <form className="auth-form" onSubmit={handleAdminLogin}>
+              <label className="field">
+                <span>Admin email</span>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <button type="submit" disabled={!authReady || loginStatus === "loading"}>
+                {loginStatus === "loading" ? "Sending..." : "Send admin magic link"}
+              </button>
+              {loginMessage && <p className={`form-message ${loginStatus}`}>{loginMessage}</p>}
+            </form>
+          ) : (
+            <div className="admin-denied-panel">
+              <strong>{accessStatus === "checking" ? "Checking admin access..." : "Access not open yet"}</strong>
+              <p>{accessMessage || "Waiting for the admin session check to finish."}</p>
+              <button type="button" className="secondary-button" onClick={handleSignOut}>
+                Sign out and try another email
+              </button>
+            </div>
+          )}
         </div>
-      </aside>
-
-      <main className="main-panel">
-        <Header config={sprintConfig} latest={latest} />
-        {activeView === "dashboard" && (
-          <Dashboard
-            config={sprintConfig}
-            logs={logs}
-            latest={latest}
-            weeks={weeks}
-            onGenerateSlide={() => setActiveView("deck")}
-          />
-        )}
-        {activeView === "daily-log" && (
-          <DailyLog
-            config={sprintConfig}
-            logs={logs}
-            selectedDay={selectedDay}
-            selectedRecord={selectedRecord}
-            setSelectedDay={setSelectedDay}
-            updateRecord={updateRecord}
-            updateFollowers={updateFollowers}
-            updateList={updateList}
-            addNextDay={addNextDay}
-            dirtyDays={dirtyDays}
-            syncStatus={syncStatus}
-            syncMessage={syncMessage}
-            onSyncSelectedDay={() => syncLogsToPublic([selectedRecord], `Day ${selectedRecord.day}`)}
-          />
-        )}
-        {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} />}
-        {activeView === "deck" && <DeckView config={sprintConfig} logs={logs} weeks={weeks} />}
-        {activeView === "settings" && (
-          <SettingsView
-            config={sprintConfig}
-            logs={logs}
-            remoteLogStatus={remoteLogStatus}
-            remoteLogMeta={remoteLogMeta}
-            dirtyDays={dirtyDays}
-            adminToken={adminToken}
-            syncStatus={syncStatus}
-            syncMessage={syncMessage}
-            offerOpsSummary={offerOpsSummary}
-            offerOpsStatus={offerOpsStatus}
-            offerOpsMessage={offerOpsMessage}
-            subscriberSummary={subscriberSummary}
-            subscriberStatus={subscriberStatus}
-            subscriberMessage={subscriberMessage}
-            systemStatus={systemStatus}
-            systemStatusState={systemStatusState}
-            systemStatusMessage={systemStatusMessage}
-            streamConfig={streamConfig}
-            streamConfigStatus={streamConfigStatus}
-            updateAdminToken={updateAdminToken}
-            refreshSubscriberSummary={refreshSubscriberSummary}
-            refreshOfferOpsSummary={refreshOfferOpsSummary}
-            refreshSystemStatus={refreshSystemStatus}
-            syncLogsToPublic={syncLogsToPublic}
-            restoreSeedData={restoreSeedData}
-          />
-        )}
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
 
@@ -2068,6 +2217,38 @@ function CheckoutButton({ authSession, authReady }) {
         {authSession ? (status === "loading" ? "Opening Stripe..." : "Buy for $47") : "Create profile to buy"}
       </button>
       {message && <p className="form-message error">{message}</p>}
+    </div>
+  );
+}
+
+function TestPurchaseButton({ authSession }) {
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleTestPurchase() {
+    if (!authSession?.access_token) {
+      setStatus("error");
+      setMessage("Admin profile session missing. Sign into /admin again.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await createTestPurchaseCheckout(authSession.access_token);
+      window.location.href = data.url;
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not open the $2 test checkout.");
+    }
+  }
+
+  return (
+    <div className="checkout-box compact">
+      <button type="button" onClick={handleTestPurchase} disabled={status === "loading"}>
+        {status === "loading" ? "Opening Stripe..." : "Start $2 test purchase"}
+      </button>
+      {message && <p className={`form-message ${status}`}>{message}</p>}
     </div>
   );
 }
@@ -3405,6 +3586,7 @@ function DeckView({ config, logs, weeks }) {
 }
 
 function SettingsView({
+  authSession,
   config,
   logs,
   remoteLogStatus,
@@ -3657,6 +3839,21 @@ function SettingsView({
           {offerOpsSummary?.checkedAt && <p className="panel-note">Checked {new Date(offerOpsSummary.checkedAt).toLocaleString()}</p>}
           {offerOpsMessage && <p className={`form-message ${offerOpsStatus}`}>{offerOpsMessage}</p>}
         </article>
+        <article className="panel test-purchase-panel">
+          <PanelTitle icon="settings" title="Payment Test" right="$2 live check" />
+          <div className="sync-state-card">
+            <span>Backbone Stripe</span>
+            <strong>Run a real $2 purchase</strong>
+            <p>
+              This creates a live Stripe Checkout Session for a small test payment, then redirects
+              back to the member portal to verify the webhook and entitlement.
+            </p>
+          </div>
+          <TestPurchaseButton authSession={authSession} />
+          <p className="panel-note">
+            Use this after stream setup so we can confirm checkout, webhook, email, and client portal access in one pass.
+          </p>
+        </article>
         <article className="panel onboarding-email-panel">
           <PanelTitle icon="email" title="Buyer Onboarding" right="Sequence" />
           <div className="buyer-email-deck-header">
@@ -3779,6 +3976,7 @@ function SettingsView({
             <KeyValue label="Supabase" value={systemStatus?.supabase ? "Ready" : "Missing"} positive={systemStatus?.supabase} />
             <KeyValue label="Stripe" value={systemStatus?.stripe ? "Ready" : "Missing"} positive={systemStatus?.stripe} />
             <KeyValue label="Resend" value={systemStatus?.resend ? "Ready" : "Missing"} positive={systemStatus?.resend} />
+            <KeyValue label="Admin Login" value={systemStatus?.adminLogin ? "Allowlist ready" : "Needs ADMIN_EMAILS"} positive={systemStatus?.adminLogin} />
             <KeyValue label="Stripe Mode" value={systemStatus?.stripeMode || "Unknown"} />
             <KeyValue label="Site URL" value={systemStatus?.siteUrl || "Not checked"} />
             <KeyValue label="Commit" value={systemStatus?.renderCommit || "Local"} />

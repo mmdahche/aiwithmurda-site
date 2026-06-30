@@ -28,6 +28,7 @@ const email = `aiwm-smoke+${runId}@example.com`;
 const password = `Smoke-${runId}-${Math.random().toString(36).slice(2)}!`;
 let userId = null;
 let checkoutSessionId = null;
+let testCheckoutSessionId = null;
 
 try {
   const created = await admin.auth.admin.createUser({
@@ -53,6 +54,24 @@ try {
     throw new Error(`Checkout creation failed: ${JSON.stringify(checkout.data)}`);
   }
   checkoutSessionId = checkout.data.session_id;
+
+  const testCheckout = await fetchJson(`${siteUrl}/api/checkout/test-purchase`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!testCheckout.response.ok || !testCheckout.data?.session_id || !testCheckout.data?.url) {
+    throw new Error(`Test checkout creation failed: ${JSON.stringify(testCheckout.data)}`);
+  }
+  testCheckoutSessionId = testCheckout.data.session_id;
+
+  const testCheckoutSession = await stripe.checkout.sessions.retrieve(testCheckoutSessionId);
+  if (
+    testCheckoutSession.amount_total !== 200 ||
+    testCheckoutSession.metadata?.checkout_kind !== "live_test_purchase" ||
+    testCheckoutSession.metadata?.product_key !== "future_proof_method"
+  ) {
+    throw new Error(`Test checkout session shape failed: ${JSON.stringify(testCheckoutSession)}`);
+  }
 
   const access = await fetchJson(`${siteUrl}/api/access/session/${encodeURIComponent(checkoutSessionId)}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -225,6 +244,8 @@ try {
         checks: {
           authProfileCreated: true,
           checkoutSessionCreated: true,
+          testCheckoutSessionCreated: true,
+          testCheckoutAmountVerified: true,
           unpaidAccessGuard: true,
           profileLookup: true,
           productAssetsExposed: true,
@@ -254,6 +275,9 @@ try {
     ),
   );
 } finally {
+  if (testCheckoutSessionId) {
+    await stripe.checkout.sessions.expire(testCheckoutSessionId).catch(() => {});
+  }
   if (checkoutSessionId) {
     await stripe.checkout.sessions.expire(checkoutSessionId).catch(() => {});
   }

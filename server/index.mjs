@@ -213,6 +213,31 @@ function getBearerToken(req) {
   return scheme?.toLowerCase() === "bearer" ? token : null;
 }
 
+function getAdminAllowedEmails() {
+  return String(process.env.ADMIN_EMAILS || process.env.ADMIN_ALLOWED_EMAILS || process.env.ADMIN_EMAIL || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+async function getAuthenticatedUser(req, res) {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return null;
+
+  const token = getBearerToken(req);
+  if (!token) {
+    res.status(401).json({ error: "missing_bearer_token" });
+    return null;
+  }
+
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !data?.user) {
+    res.status(401).json({ error: "invalid_session" });
+    return null;
+  }
+
+  return data.user;
+}
+
 function requireAdmin(req, res, next) {
   const configuredToken = process.env.ADMIN_API_TOKEN;
   if (!configuredToken) {
@@ -230,21 +255,30 @@ function requireAdmin(req, res, next) {
 }
 
 async function requireUser(req, res, next) {
-  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const user = await getAuthenticatedUser(req, res);
+  if (!user) return;
 
-  const token = getBearerToken(req);
-  if (!token) {
-    res.status(401).json({ error: "missing_bearer_token" });
+  req.user = user;
+  next();
+}
+
+async function requireAdminSession(req, res, next) {
+  const user = await getAuthenticatedUser(req, res);
+  if (!user) return;
+
+  const allowedEmails = getAdminAllowedEmails();
+  if (!allowedEmails.length) {
+    res.status(503).json({ error: "admin_email_allowlist_missing" });
     return;
   }
 
-  const { data, error } = await supabaseAdmin.auth.getUser(token);
-  if (error || !data?.user) {
-    res.status(401).json({ error: "invalid_session" });
+  const email = String(user.email || "").trim().toLowerCase();
+  if (!email || !allowedEmails.includes(email)) {
+    res.status(403).json({ error: "admin_email_not_allowed" });
     return;
   }
 
-  req.user = data.user;
+  req.user = user;
   next();
 }
 
@@ -920,6 +954,7 @@ app.get("/api/admin/offer/summary", requireAdmin, async (req, res) => {
 app.get("/api/admin/system/status", requireAdmin, (req, res) => {
   const stripeKey = process.env.STRIPE_SECRET_KEY || "";
   const stripeMode = stripeKey.startsWith("sk_live_") ? "live" : stripeKey.startsWith("sk_test_") ? "test" : "unknown";
+  const adminEmails = getAdminAllowedEmails();
 
   res.json({
     ok: true,
@@ -929,9 +964,20 @@ app.get("/api/admin/system/status", requireAdmin, (req, res) => {
       stripe: Boolean(stripe),
       stripeMode,
       resend: Boolean(resend),
+      adminLogin: Boolean(adminEmails.length),
       renderCommit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) || null,
       nodeEnv: process.env.NODE_ENV || "development",
       checkedAt: new Date().toISOString(),
+    },
+  });
+});
+
+app.get("/api/admin/session", requireAdminSession, (req, res) => {
+  res.json({
+    ok: true,
+    admin: {
+      id: req.user.id,
+      email: req.user.email,
     },
   });
 });
@@ -1120,6 +1166,48 @@ app.post("/api/checkout/future-proof-method", requireUser, async (req, res) => {
   } catch (error) {
     console.error("[checkout]", error);
     res.status(500).json({ error: "checkout_create_failed" });
+  }
+});
+
+app.post("/api/checkout/test-purchase", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    const profile = await ensureProfile(req.user);
+    const customerTarget = profile.stripe_customer_id
+      ? { customer: profile.stripe_customer_id }
+      : { customer_email: profile.email };
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      ...customerTarget,
+      client_reference_id: req.user.id,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: 200,
+            product_data: {
+              name: "AI with Murda Live Test Purchase",
+              description: "Confirms Backbone Stripe checkout, webhook delivery, and member portal access.",
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${siteUrl}/members?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/admin?checkout=test-cancel`,
+      metadata: {
+        product_key: productKey,
+        supabase_user_id: req.user.id,
+        checkout_kind: "live_test_purchase",
+      },
+    });
+
+    res.json({ url: session.url, session_id: session.id });
+  } catch (error) {
+    console.error("[test-checkout]", error);
+    res.status(500).json({ error: "test_checkout_create_failed" });
   }
 });
 

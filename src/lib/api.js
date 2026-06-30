@@ -56,6 +56,10 @@ export function getSystemStatus(adminToken) {
   });
 }
 
+export function verifyAdminSession(token) {
+  return apiRequest("/api/admin/session", { token });
+}
+
 export function getStreamConfig() {
   return apiRequest("/api/stream/config");
 }
@@ -78,6 +82,13 @@ export function updateMemberTaskProgress({ moduleKey, taskKey, completed }, toke
 
 export function createFutureMethodCheckout(token) {
   return apiRequest("/api/checkout/future-proof-method", {
+    method: "POST",
+    token,
+  });
+}
+
+export function createTestPurchaseCheckout(token) {
+  return apiRequest("/api/checkout/test-purchase", {
     method: "POST",
     token,
   });
