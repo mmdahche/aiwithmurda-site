@@ -590,6 +590,10 @@ async function countSubscribersSince(isoDate = null) {
   return Number(count || 0);
 }
 
+function formatNumberForApi(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
 async function getOfferOpsSummary() {
   const [
     { data: entitlements, count: activeMembers, error: entitlementError },
@@ -716,6 +720,181 @@ async function getOfferOpsSummary() {
       moduleSummaries,
     },
     members,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+function automationStatus({ configured, live = false, pendingLabel = "Waiting" }) {
+  if (live) return "live";
+  return configured ? "configured" : pendingLabel;
+}
+
+async function getMetricsAutomationSummary() {
+  const now = Date.now();
+  const since24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [
+    activeSubscribers,
+    subscriber24h,
+    subscriber7d,
+    latestSubscribers,
+    offerSummary,
+    latestPurchases,
+    latestEntitlements,
+    latestLogs,
+  ] = await Promise.all([
+    countSubscribersSince(),
+    countSubscribersSince(since24h),
+    countSubscribersSince(since7d),
+    supabaseAdmin
+      .from("subscribers")
+      .select("email,source,subscribed_at,last_seen_at")
+      .is("unsubscribed_at", null)
+      .order("subscribed_at", { ascending: false })
+      .limit(6),
+    getOfferOpsSummary(),
+    supabaseAdmin
+      .from("purchases")
+      .select("user_id,product_key,amount_total,currency,status,purchased_at")
+      .eq("status", "paid")
+      .order("purchased_at", { ascending: false })
+      .limit(6),
+    supabaseAdmin
+      .from("entitlements")
+      .select("user_id,product_key,status,granted_at")
+      .eq("status", "active")
+      .order("granted_at", { ascending: false })
+      .limit(6),
+    supabaseAdmin
+      .from("daily_logs")
+      .select("day,date,email_subscribers,revenue_collected,products_sold,clips_posted,hours_streamed,updated_at")
+      .order("day", { ascending: false })
+      .limit(1),
+  ]);
+
+  for (const result of [latestSubscribers, latestPurchases, latestEntitlements, latestLogs]) {
+    if (result.error) throw result.error;
+  }
+
+  const latestLog = latestLogs.data?.[0] || null;
+  const liveSources = [
+    {
+      key: "email-subscribers",
+      label: "Email subscribers",
+      status: "live",
+      mode: "Supabase capture",
+      metric: formatNumberForApi(activeSubscribers),
+      detail: `+${formatNumberForApi(subscriber24h)} in 24h · +${formatNumberForApi(subscriber7d)} in 7d`,
+      next: "Auto-counts from /api/subscribe and Resend-backed signup forms.",
+    },
+    {
+      key: "stripe-sales",
+      label: "Stripe purchases",
+      status: "live",
+      mode: "Stripe webhook",
+      metric: `$${(offerSummary.sales.revenueCents / 100).toFixed(2)}`,
+      detail: `${formatNumberForApi(offerSummary.sales.paidPurchases)} paid order${offerSummary.sales.paidPurchases === 1 ? "" : "s"}`,
+      next: "Webhook writes purchases and unlocks entitlements automatically.",
+    },
+    {
+      key: "member-access",
+      label: "Member access",
+      status: "live",
+      mode: "Supabase entitlements",
+      metric: formatNumberForApi(offerSummary.sales.activeMembers),
+      detail: `${formatNumberForApi(offerSummary.progress.completedTasks)} completed checklist task${offerSummary.progress.completedTasks === 1 ? "" : "s"}`,
+      next: "Member portal activity updates from the gated hub.",
+    },
+    {
+      key: "daily-dashboard",
+      label: "Daily dashboard",
+      status: "assisted",
+      mode: "Admin reviewed sync",
+      metric: latestLog ? `Day ${latestLog.day}` : "No live day",
+      detail: latestLog ? `${latestLog.date} · ${formatNumberForApi(latestLog.clips_posted)} clips logged` : "Waiting for Day 1 baseline",
+      next: "Next loop can write automated snapshots into daily_logs with manual approval.",
+    },
+    {
+      key: "twitch-followers",
+      label: "Twitch followers",
+      status: automationStatus({
+        configured: Boolean(process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET),
+        pendingLabel: "needs-oauth",
+      }),
+      mode: "EventSub + API reconciliation",
+      metric: "Not connected",
+      detail: "Real-time follow events after Twitch app OAuth is connected.",
+      next: "Create Twitch app, authorize channel, then subscribe to channel.follow.",
+    },
+    {
+      key: "youtube-subscribers",
+      label: "YouTube subscribers",
+      status: automationStatus({
+        configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
+        pendingLabel: "waiting-access",
+      }),
+      mode: "YouTube Data API polling",
+      metric: "Pending",
+      detail: "Live access unlocks about 24 hours after YouTube approval request.",
+      next: "After access opens, connect OAuth and poll channel statistics.",
+    },
+    {
+      key: "clip-pipeline",
+      label: "Clips posted",
+      status: "planned",
+      mode: "Upload workflow / n8n",
+      metric: latestLog ? formatNumberForApi(latestLog.clips_posted) : "0",
+      detail: "Manual today; can become automatic when clips are posted through our pipeline.",
+      next: "Add a clip submission webhook and count every accepted clip event.",
+    },
+  ];
+
+  const events = [
+    ...(latestSubscribers.data || []).map((row) => ({
+      type: "subscriber",
+      label: row.email,
+      detail: row.source || "unknown source",
+      at: row.subscribed_at,
+    })),
+    ...(latestPurchases.data || []).map((row) => ({
+      type: "purchase",
+      label: `$${(Number(row.amount_total || 0) / 100).toFixed(2)} ${row.currency || "usd"}`,
+      detail: row.product_key,
+      at: row.purchased_at,
+    })),
+    ...(latestEntitlements.data || []).map((row) => ({
+      type: "entitlement",
+      label: row.product_key,
+      detail: row.user_id,
+      at: row.granted_at,
+    })),
+  ]
+    .filter((event) => event.at)
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 10);
+
+  return {
+    snapshot: {
+      emailSubscribers: activeSubscribers,
+      emailSubscribers24h: subscriber24h,
+      emailSubscribers7d: subscriber7d,
+      revenueCents: offerSummary.sales.revenueCents,
+      paidPurchases: offerSummary.sales.paidPurchases,
+      activeMembers: offerSummary.sales.activeMembers,
+      completedMemberTasks: offerSummary.progress.completedTasks,
+      latestSyncedDay: latestLog?.day || null,
+      clipsPosted: Number(latestLog?.clips_posted || 0),
+      hoursStreamed: Number(latestLog?.hours_streamed || 0),
+    },
+    sources: liveSources,
+    events,
+    nextBuilds: [
+      "Automated daily snapshot writer",
+      "Twitch OAuth + EventSub follow listener",
+      "YouTube OAuth + statistics poller",
+      "Clip submission webhook for n8n/short-form pipeline",
+    ],
     checkedAt: new Date().toISOString(),
   };
 }
@@ -948,6 +1127,20 @@ app.get("/api/admin/offer/summary", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("[admin-offer-summary]", error);
     res.status(500).json({ error: "offer_summary_failed" });
+  }
+});
+
+app.get("/api/admin/metrics/automation", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    res.json({
+      ok: true,
+      summary: await getMetricsAutomationSummary(),
+    });
+  } catch (error) {
+    console.error("[admin-metrics-automation]", error);
+    res.status(500).json({ error: "metrics_automation_summary_failed" });
   }
 });
 

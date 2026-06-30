@@ -50,6 +50,12 @@ export function getOfferOpsSummary(adminToken) {
   });
 }
 
+export function getMetricsAutomationSummary(adminToken) {
+  return apiRequest("/api/admin/metrics/automation", {
+    token: adminToken,
+  });
+}
+
 export function getSystemStatus(adminToken) {
   return apiRequest("/api/admin/system/status", {
     token: adminToken,

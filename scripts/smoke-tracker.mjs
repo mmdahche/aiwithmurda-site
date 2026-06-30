@@ -107,6 +107,12 @@ if (!liveBundle.includes("Send magic link backup")) {
 if (!liveBundle.includes("Start $2 test purchase")) {
   throw new Error("Client bundle missing $2 test purchase control");
 }
+if (!liveBundle.includes("Metrics Automation Hub")) {
+  throw new Error("Client bundle missing Metrics Automation Hub");
+}
+if (!liveBundle.includes("Twitch OAuth + EventSub follow listener")) {
+  throw new Error("Client bundle missing automation next connector copy");
+}
 
 const kitResponse = await fetch(`${siteUrl}/kit/`);
 const kitHtml = await kitResponse.text();
@@ -180,6 +186,22 @@ if (
   throw new Error(`Admin offer summary failed: ${offerSummary.response.status} ${JSON.stringify(offerSummary.data)}`);
 }
 
+const metricsAutomation = await fetchJson(`${siteUrl}/api/admin/metrics/automation`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (
+  !metricsAutomation.response.ok ||
+  metricsAutomation.data?.ok !== true ||
+  !Array.isArray(metricsAutomation.data?.summary?.sources) ||
+  !metricsAutomation.data.summary.sources.some((source) => source.key === "email-subscribers" && source.status === "live") ||
+  !metricsAutomation.data.summary.sources.some((source) => source.key === "twitch-followers") ||
+  !Array.isArray(metricsAutomation.data?.summary?.nextBuilds)
+) {
+  throw new Error(
+    `Admin metrics automation summary failed: ${metricsAutomation.response.status} ${JSON.stringify(metricsAutomation.data)}`,
+  );
+}
+
 console.log(
   JSON.stringify(
     {
@@ -204,6 +226,8 @@ console.log(
         adminPasswordSettingsBundle: true,
         adminMagicLinkBackupBundle: true,
         adminTestPurchaseBundle: true,
+        adminMetricsAutomationBundle: true,
+        adminMetricsAutomationApi: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,

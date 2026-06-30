@@ -865,6 +865,175 @@ button {
   width: 100%;
 }
 
+.metrics-automation-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
+.automation-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(97, 227, 109, 0.18);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.automation-hero strong,
+.automation-hero p {
+  display: block;
+  margin: 0;
+}
+
+.automation-hero strong {
+  margin-top: 6px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.automation-hero p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.automation-hero .primary-action {
+  width: 100%;
+}
+
+.automation-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.automation-source-list,
+.automation-event-list,
+.automation-next-list {
+  display: grid;
+  gap: 8px;
+}
+
+.automation-source {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.automation-source.live {
+  border-color: rgba(97, 227, 109, 0.28);
+}
+
+.automation-source.configured,
+.automation-source.assisted {
+  border-color: rgba(79, 141, 255, 0.28);
+}
+
+.automation-source.needs-oauth,
+.automation-source.waiting-access,
+.automation-source.planned {
+  border-color: rgba(255, 159, 26, 0.28);
+}
+
+.automation-source span,
+.automation-source strong,
+.automation-source em,
+.automation-source small {
+  display: block;
+}
+
+.automation-source span,
+.automation-source small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.automation-source strong {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.automation-source p {
+  margin: 4px 0 0;
+  color: #d7e5dc;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.automation-source > p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.automation-source em {
+  width: max-content;
+  max-width: 100%;
+  margin-left: auto;
+  padding: 5px 8px;
+  color: #061008;
+  border-radius: 999px;
+  background: var(--green);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.automation-source.needs-oauth em,
+.automation-source.waiting-access em,
+.automation-source.planned em {
+  background: var(--amber);
+}
+
+.automation-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 14px;
+}
+
+.automation-event-list div,
+.automation-next-list div {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.automation-event-list span,
+.automation-event-list strong,
+.automation-event-list p,
+.automation-event-list em {
+  display: block;
+}
+
+.automation-event-list span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.automation-event-list strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+.automation-event-list p,
+.automation-event-list em {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
 .offer-ops-panel {
   display: grid;
   gap: 14px;
@@ -4341,6 +4510,15 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .metrics-automation-panel {
+    grid-column: auto;
+  }
+
+  .automation-hero,
+  .automation-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
   .deck-summary-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4440,6 +4618,8 @@ button {
   .side-nav,
   .audience-grid,
   .system-grid,
+  .automation-snapshot-grid,
+  .automation-source,
   .launch-readiness-summary,
   .launch-category-grid,
   .launch-blocker-strip,

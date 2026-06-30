@@ -17,6 +17,7 @@ import {
   createFutureMethodCheckout,
   downloadMemberAsset,
   getDailyLogs,
+  getMetricsAutomationSummary,
   getMemberProfile,
   getMemberProgress,
   getOfferOpsSummary,
@@ -632,6 +633,9 @@ function App() {
   const [offerOpsSummary, setOfferOpsSummary] = useState(null);
   const [offerOpsStatus, setOfferOpsStatus] = useState("idle");
   const [offerOpsMessage, setOfferOpsMessage] = useState("");
+  const [metricsAutomationSummary, setMetricsAutomationSummary] = useState(null);
+  const [metricsAutomationStatus, setMetricsAutomationStatus] = useState("idle");
+  const [metricsAutomationMessage, setMetricsAutomationMessage] = useState("");
   const [systemStatus, setSystemStatus] = useState(null);
   const [systemStatusState, setSystemStatusState] = useState("idle");
   const [systemStatusMessage, setSystemStatusMessage] = useState("");
@@ -774,6 +778,9 @@ function App() {
     setOfferOpsSummary(null);
     setOfferOpsStatus("idle");
     setOfferOpsMessage("");
+    setMetricsAutomationSummary(null);
+    setMetricsAutomationStatus("idle");
+    setMetricsAutomationMessage("");
     setSystemStatus(null);
     setSystemStatusState("idle");
     setSystemStatusMessage("");
@@ -833,6 +840,31 @@ function App() {
       refreshOfferOpsSummary();
     }
   }, [activeView, adminToken, refreshOfferOpsSummary, offerOpsStatus]);
+
+  const refreshMetricsAutomationSummary = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setMetricsAutomationStatus("error");
+      setMetricsAutomationMessage("Add the admin token before checking automation.");
+      return;
+    }
+
+    setMetricsAutomationStatus("loading");
+    setMetricsAutomationMessage("");
+    try {
+      const data = await getMetricsAutomationSummary(adminToken.trim());
+      setMetricsAutomationSummary(data.summary || null);
+      setMetricsAutomationStatus("success");
+    } catch (error) {
+      setMetricsAutomationStatus("error");
+      setMetricsAutomationMessage(error.message || "Could not load automation summary.");
+    }
+  }, [adminToken]);
+
+  useEffect(() => {
+    if (activeView === "settings" && adminToken.trim() && metricsAutomationStatus === "idle") {
+      refreshMetricsAutomationSummary();
+    }
+  }, [activeView, adminToken, metricsAutomationStatus, refreshMetricsAutomationSummary]);
 
   const refreshSystemStatus = useCallback(async () => {
     if (!adminToken.trim()) {
@@ -1054,6 +1086,9 @@ function App() {
               offerOpsSummary={offerOpsSummary}
               offerOpsStatus={offerOpsStatus}
               offerOpsMessage={offerOpsMessage}
+              metricsAutomationSummary={metricsAutomationSummary}
+              metricsAutomationStatus={metricsAutomationStatus}
+              metricsAutomationMessage={metricsAutomationMessage}
               subscriberSummary={subscriberSummary}
               subscriberStatus={subscriberStatus}
               subscriberMessage={subscriberMessage}
@@ -1065,6 +1100,7 @@ function App() {
               updateAdminToken={updateAdminToken}
               refreshSubscriberSummary={refreshSubscriberSummary}
               refreshOfferOpsSummary={refreshOfferOpsSummary}
+              refreshMetricsAutomationSummary={refreshMetricsAutomationSummary}
               refreshSystemStatus={refreshSystemStatus}
               syncLogsToPublic={syncLogsToPublic}
               restoreSeedData={restoreSeedData}
@@ -3709,6 +3745,86 @@ function DeckView({ config, logs, weeks }) {
   );
 }
 
+function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
+  const snapshot = summary?.snapshot || {};
+  const sources = summary?.sources || [];
+  const events = summary?.events || [];
+  const nextBuilds = summary?.nextBuilds || [];
+  const liveCount = sources.filter((source) => source.status === "live").length;
+
+  return (
+    <article className="panel metrics-automation-panel">
+      <PanelTitle icon="chart" title="Metrics Automation Hub" right={status === "success" ? `${liveCount}/${sources.length} live` : "Admin"} />
+      <div className="automation-hero">
+        <div>
+          <span className="panel-kicker">Source of truth</span>
+          <strong>Live metrics are moving into automation.</strong>
+          <p>
+            Email, Stripe, member access, and product activity are already server-tracked.
+            Twitch, YouTube, and clips become automatic after their provider tokens are connected.
+          </p>
+        </div>
+        <button type="button" className="primary-action" onClick={onRefresh} disabled={status === "loading"}>
+          {status === "loading" ? "Refreshing..." : "Refresh automation"}
+        </button>
+      </div>
+      <div className="automation-snapshot-grid">
+        <KeyValue label="Email list" value={formatNumber(snapshot.emailSubscribers || 0)} positive />
+        <KeyValue label="Revenue" value={formatCurrency((snapshot.revenueCents || 0) / 100)} positive />
+        <KeyValue label="Orders" value={formatNumber(snapshot.paidPurchases || 0)} />
+        <KeyValue label="Members" value={formatNumber(snapshot.activeMembers || 0)} positive />
+        <KeyValue label="Latest day" value={snapshot.latestSyncedDay ? `Day ${snapshot.latestSyncedDay}` : "No day yet"} />
+        <KeyValue label="Clips logged" value={formatNumber(snapshot.clipsPosted || 0)} />
+      </div>
+      <div className="automation-source-list">
+        {sources.map((source) => (
+          <article key={source.key} className={`automation-source ${source.status}`}>
+            <div>
+              <span>{source.label}</span>
+              <strong>{source.metric}</strong>
+              <p>{source.detail}</p>
+            </div>
+            <div>
+              <em>{source.status.replace("-", " ")}</em>
+              <small>{source.mode}</small>
+            </div>
+            <p>{source.next}</p>
+          </article>
+        ))}
+      </div>
+      <div className="automation-bottom-grid">
+        <section>
+          <span className="panel-kicker">Recent tracked events</span>
+          <div className="automation-event-list">
+            {events.length ? (
+              events.map((event, index) => (
+                <div key={`${event.type}-${event.at}-${index}`}>
+                  <span>{event.type}</span>
+                  <strong>{event.label}</strong>
+                  <p>{event.detail}</p>
+                  <em>{event.at ? new Date(event.at).toLocaleString() : "Unknown time"}</em>
+                </div>
+              ))
+            ) : (
+              <p>No tracked automation events yet.</p>
+            )}
+          </div>
+        </section>
+        <section>
+          <span className="panel-kicker">Next connectors</span>
+          <div className="automation-next-list">
+            {nextBuilds.map((item) => (
+              <div key={item}>{item}</div>
+            ))}
+          </div>
+          {summary?.checkedAt && <p className="panel-note">Checked {new Date(summary.checkedAt).toLocaleString()}</p>}
+          {message && <p className={`form-message ${status}`}>{message}</p>}
+        </section>
+      </div>
+    </article>
+  );
+}
+
 function SettingsView({
   authSession,
   config,
@@ -3722,6 +3838,9 @@ function SettingsView({
   offerOpsSummary,
   offerOpsStatus,
   offerOpsMessage,
+  metricsAutomationSummary,
+  metricsAutomationStatus,
+  metricsAutomationMessage,
   subscriberSummary,
   subscriberStatus,
   subscriberMessage,
@@ -3733,6 +3852,7 @@ function SettingsView({
   updateAdminToken,
   refreshSubscriberSummary,
   refreshOfferOpsSummary,
+  refreshMetricsAutomationSummary,
   refreshSystemStatus,
   syncLogsToPublic,
   restoreSeedData,
@@ -3916,6 +4036,12 @@ function SettingsView({
             ))}
           </div>
         </article>
+        <MetricsAutomationPanel
+          summary={metricsAutomationSummary}
+          status={metricsAutomationStatus}
+          message={metricsAutomationMessage}
+          onRefresh={refreshMetricsAutomationSummary}
+        />
         <article className="panel offer-ops-panel">
           <PanelTitle icon="chart" title="Offer Ops" right={offerOpsStatus === "success" ? "Live product" : "Admin"} />
           <div className="offer-ops-grid">
