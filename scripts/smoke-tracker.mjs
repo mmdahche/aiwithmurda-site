@@ -158,6 +158,9 @@ if (!liveBundle.includes("Manual Gate Runbook")) {
 if (!liveBundle.includes("Stream Command Deck")) {
   throw new Error("Client bundle missing Stream Command Deck");
 }
+if (!liveBundle.includes("Fake Stream Rehearsal") || !liveBundle.includes("Copy rehearsal")) {
+  throw new Error("Client bundle missing fake stream rehearsal workflow");
+}
 if (!liveBundle.includes("Buyer Email Copy Deck")) {
   throw new Error("Client bundle missing Buyer Email Copy Deck");
 }
@@ -385,6 +388,7 @@ console.log(
         adminDailyClipPacketBundle: true,
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
+        adminStreamRehearsalBundle: true,
         adminBuyerEmailCopyDeckBundle: true,
         adminLoginGateBundle: true,
         adminPasswordSettingsBundle: true,

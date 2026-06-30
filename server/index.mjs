@@ -34,6 +34,44 @@ const streamLinkKeys = [
   ["kick", "Kick", "STREAM_KICK_URL"],
   ["youtube", "YouTube", "STREAM_YOUTUBE_URL"],
 ];
+const streamRehearsalPlan = {
+  title: "Fake Stream Rehearsal",
+  goal: "Prove the stream stack without going public: live hub, OBS browser sources, dashboard, follower ticker, commands, and checkout links.",
+  duration: "35-45 min",
+  proof: "A short recording or screenshot set showing OBS, overlay, dashboard, command links, and one test checkout path.",
+  steps: [
+    {
+      key: "open-live-hub",
+      title: "Open the live hub",
+      target: "/live",
+      check: "Room status, destination cards, and stream command shelf are visible.",
+    },
+    {
+      key: "load-obs-overlay",
+      title: "Load OBS overlays",
+      target: "/obs and /obs/followers",
+      check: "Scoreboard overlay and follower ticker fit without covering code, chat, or private data.",
+    },
+    {
+      key: "run-command-clicks",
+      title: "Click the command deck",
+      target: "!scoreboard, !today, !kit, !builds, !members",
+      check: "Every public command lands on the expected route and can be read on stream.",
+    },
+    {
+      key: "simulate-proof-loop",
+      title: "Simulate one proof loop",
+      target: "Daily Log plus public dashboard",
+      check: "Update one rehearsal metric, sync it, and confirm the public dashboard changes.",
+    },
+    {
+      key: "test-money-path",
+      title: "Run the money path",
+      target: "$2 test purchase or Stripe test session",
+      check: "Checkout redirects back to member access and the client portal still unlocks.",
+    },
+  ],
+};
 const memberAssets = [
   {
     key: "quickstart",
@@ -264,6 +302,7 @@ function buildStreamConfig() {
       { command: "!members", label: "Member login", href: "/members" },
       { command: "!runbook", label: "Launch runbook", href: "/members" },
     ],
+    rehearsal: streamRehearsalPlan,
     checkedAt: new Date().toISOString(),
   };
 }

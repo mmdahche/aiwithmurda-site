@@ -129,6 +129,7 @@ Cloudflare SSL/TLS:
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
 - One-command launch smoke runner: done; run `npm run smoke:launch` before public kickoff
+- Fake stream rehearsal runbook: done; Settings has a copyable 35-45 minute dry run for `/live`, `/obs`, command clicks, dashboard sync, and test checkout
 - First-week content run sheet: done; Day 0-7 proof beats, clip hooks, and CTAs are in the member assets
 - Admin daily run sheets: done; each selected day has stream beat, proof target, CTA, shutdown checklist, and copy/manual-copy output
 - Admin daily clip packets: done; each selected day generates three hooks, recap caption, follow-up line, and copy/manual-copy output
@@ -157,3 +158,5 @@ Verify with:
 ```bash
 npm run smoke:stream
 ```
+
+`/api/stream/config` also returns the Fake Stream Rehearsal plan used by the admin Settings runbook.

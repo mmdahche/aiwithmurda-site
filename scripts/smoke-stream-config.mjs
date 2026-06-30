@@ -31,6 +31,13 @@ const checks = {
   overlayCommand: commandMap.get("!overlay") === "/overlay",
   liveBuildsCommand: commandMap.get("!builds") === "/live-builds",
   runbookCommand: commandMap.get("!runbook") === "/members",
+  rehearsalPlanPresent:
+    config.rehearsal?.title === "Fake Stream Rehearsal" &&
+    Array.isArray(config.rehearsal?.steps) &&
+    config.rehearsal.steps.length >= 5,
+  rehearsalObsStepPresent:
+    Array.isArray(config.rehearsal?.steps) &&
+    config.rehearsal.steps.some((step) => String(step.target || "").includes("/obs")),
 };
 
 const failed = Object.entries(checks)

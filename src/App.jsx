@@ -399,6 +399,44 @@ const fallbackStreamConfig = {
     { command: "!members", label: "Member login", href: "/members" },
     { command: "!runbook", label: "Launch runbook", href: "/members" },
   ],
+  rehearsal: {
+    title: "Fake Stream Rehearsal",
+    goal: "Prove the stream stack without going public: live hub, OBS browser sources, dashboard, follower ticker, commands, and checkout links.",
+    duration: "35-45 min",
+    proof: "A short recording or screenshot set showing OBS, overlay, dashboard, command links, and one test checkout path.",
+    steps: [
+      {
+        key: "open-live-hub",
+        title: "Open the live hub",
+        target: "/live",
+        check: "Room status, destination cards, and stream command shelf are visible.",
+      },
+      {
+        key: "load-obs-overlay",
+        title: "Load OBS overlays",
+        target: "/obs and /obs/followers",
+        check: "Scoreboard overlay and follower ticker fit without covering code, chat, or private data.",
+      },
+      {
+        key: "run-command-clicks",
+        title: "Click the command deck",
+        target: "!scoreboard, !today, !kit, !builds, !members",
+        check: "Every public command lands on the expected route and can be read on stream.",
+      },
+      {
+        key: "simulate-proof-loop",
+        title: "Simulate one proof loop",
+        target: "Daily Log plus public dashboard",
+        check: "Update one rehearsal metric, sync it, and confirm the public dashboard changes.",
+      },
+      {
+        key: "test-money-path",
+        title: "Run the money path",
+        target: "$2 test purchase or Stripe test session",
+        check: "Checkout redirects back to member access and the client portal still unlocks.",
+      },
+    ],
+  },
 };
 
 const launchChecklistItems = [
@@ -5303,6 +5341,9 @@ function SettingsView({
   const visibleStreamCommandCount = streamCommands.length + 1;
   const streamCommandDeckText = formatStreamCommandDeck(streamConfig, streamPlatformDestinations, streamCommands);
   const [streamCommandCopyStatus, setStreamCommandCopyStatus] = useState("idle");
+  const streamRehearsal = streamConfig?.rehearsal || fallbackStreamConfig.rehearsal || null;
+  const streamRehearsalText = formatStreamRehearsalRunbook(streamRehearsal);
+  const [streamRehearsalCopyStatus, setStreamRehearsalCopyStatus] = useState("idle");
   const buyerEmailDeckText = formatBuyerOnboardingEmailDeck(buyerOnboardingEmails);
   const [buyerEmailCopyStatus, setBuyerEmailCopyStatus] = useState("idle");
   const offerOpsModules =
@@ -5337,6 +5378,15 @@ function SettingsView({
       window.setTimeout(() => setStreamCommandCopyStatus("idle"), 1800);
     } else {
       setStreamCommandCopyStatus("manual");
+    }
+  }
+
+  async function copyStreamRehearsalRunbook() {
+    if (await copyPlainText(streamRehearsalText)) {
+      setStreamRehearsalCopyStatus("copied");
+      window.setTimeout(() => setStreamRehearsalCopyStatus("idle"), 1800);
+    } else {
+      setStreamRehearsalCopyStatus("manual");
     }
   }
 
@@ -5770,6 +5820,49 @@ function SettingsView({
               />
             ) : null}
           </section>
+          {streamRehearsal && (
+            <section className="stream-rehearsal-card">
+              <div className="stream-command-deck-header">
+                <div>
+                  <span>{streamRehearsal.title}</span>
+                  <strong>{streamRehearsal.duration} dry run</strong>
+                </div>
+                <button type="button" onClick={copyStreamRehearsalRunbook}>
+                  {streamRehearsalCopyStatus === "copied"
+                    ? "Copied runbook"
+                    : streamRehearsalCopyStatus === "manual"
+                      ? "Manual copy ready"
+                      : "Copy rehearsal"}
+                </button>
+              </div>
+              <p>{streamRehearsal.goal}</p>
+              <div className="stream-rehearsal-step-list">
+                {(streamRehearsal.steps || []).map((step, index) => (
+                  <article key={step.key}>
+                    <strong>{String(index + 1).padStart(2, "0")}</strong>
+                    <div>
+                      <span>{step.title}</span>
+                      <p>{step.check}</p>
+                      <em>{step.target}</em>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="stream-rehearsal-proof">
+                <span>Proof target</span>
+                <strong>{streamRehearsal.proof}</strong>
+              </div>
+              {streamRehearsalCopyStatus === "manual" ? (
+                <textarea
+                  aria-label="Stream rehearsal runbook text"
+                  className="run-sheet-copy-box"
+                  readOnly
+                  value={streamRehearsalText}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+              ) : null}
+            </section>
+          )}
         </article>
         <article className="panel">
           <PanelTitle icon="monitor" title="Stream Goals" />
@@ -6241,6 +6334,24 @@ function formatStreamCommandDeck(streamConfig, destinations, commands) {
     "",
     "Destinations:",
     ...destinationLines,
+  ].join("\n");
+}
+
+function formatStreamRehearsalRunbook(rehearsal) {
+  if (!rehearsal) return "";
+
+  return [
+    `AI with Murda ${rehearsal.title || "Stream Rehearsal"}`,
+    "",
+    `Duration: ${rehearsal.duration || "35-45 min"}`,
+    `Goal: ${rehearsal.goal || "Prove the stream stack before going public."}`,
+    `Proof: ${rehearsal.proof || "Capture a short recording or screenshot set."}`,
+    "",
+    "Dry-run steps:",
+    ...(rehearsal.steps || []).map(
+      (step, index) =>
+        `${index + 1}. ${step.title}\n   Target: ${step.target}\n   Check: ${step.check}`,
+    ),
   ].join("\n");
 }
 
