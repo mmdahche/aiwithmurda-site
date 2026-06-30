@@ -2,13 +2,14 @@ export const liveBuildsProduct = {
   key: "new_wave_live_builds",
   name: "New Wave Live Builds",
   subtitle: "Watch a real AI workflow become a working asset.",
-  priceLabel: "$97+",
-  status: "Founding waitlist",
+  priceCents: 9700,
+  priceLabel: "$97",
+  status: "Founding ticket",
   promise:
     "A paid live-build room where Murad takes one real workflow, scopes it in public, builds the useful slice with AI, packages the proof, and leaves buyers with the replay, prompts, checklist, and implementation notes.",
   positioning:
     "Future Proof Method teaches the operating loop. New Wave Live Builds lets buyers watch the loop happen on a real problem with the receipts included.",
-  primaryCta: "Join the live-build list",
+  primaryCta: "Reserve founding ticket",
   secondaryCta: "Start with the $47 kit",
 };
 

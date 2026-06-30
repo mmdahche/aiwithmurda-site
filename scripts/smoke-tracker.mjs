@@ -216,7 +216,7 @@ if (!liveBuildsResponse.ok || !liveBuildsHtml.includes("root")) {
   throw new Error(`Live builds route failed: ${liveBuildsResponse.status}`);
 }
 const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Live builds route", siteUrl);
-if (!liveBuildsBundle.includes("New Wave Live Builds") || !liveBuildsBundle.includes("Join the live-build list")) {
+if (!liveBuildsBundle.includes("New Wave Live Builds") || !liveBuildsBundle.includes("Reserve founding ticket")) {
   throw new Error("Live builds route client bundle missing second-product offer copy");
 }
 

@@ -22,6 +22,7 @@ import {
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
+  createLiveBuildCheckout,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
   downloadMemberAsset,
@@ -1463,7 +1464,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/live-builds" && <LiveBuildsPage />}
+      {knownRoute === "/live-builds" && <LiveBuildsPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -2257,11 +2258,57 @@ function StarterKitPage({ authSession, authReady }) {
   );
 }
 
-function LiveBuildsPage() {
+function LiveBuildsPage({ authSession, authReady }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [accessCheck, setAccessCheck] = useState({ status: "idle" });
+
+  useEffect(() => {
+    if (!authSession?.access_token) return undefined;
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const checkoutState = params.get("checkout");
+    if (!sessionId || checkoutState !== "success") return undefined;
+
+    let cancelled = false;
+    setAccessCheck({
+      status: "checking",
+      title: "Checking your live-build ticket",
+      body: "Confirming Stripe payment and attaching the ticket to your profile.",
+    });
+
+    verifyCheckoutSession(sessionId, authSession.access_token)
+      .then((result) => {
+        if (cancelled) return;
+        window.history.replaceState({}, "", "/live-builds?checkout=success");
+        setAccessCheck({
+          status: "success",
+          title: "Ticket confirmed",
+          body:
+            result.entitlement?.product_key === liveBuildsProduct.key
+              ? "Your New Wave Live Builds ticket is attached to this profile."
+              : "Stripe confirmed the payment and your profile was updated.",
+        });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        const pending = error.data?.error === "checkout_not_paid";
+        setAccessCheck({
+          status: pending ? "pending" : "error",
+          title: pending ? "Payment is not marked paid yet" : "Ticket check needs attention",
+          body: pending
+            ? "Stripe has the session, but it is not marked paid yet. Refresh in a moment if you completed payment."
+            : error.message || "Could not verify the live-build ticket yet.",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authSession?.access_token]);
 
   async function handleSubscribe(event) {
     event.preventDefault();
@@ -2301,9 +2348,16 @@ function LiveBuildsPage() {
           </div>
         </div>
         <aside className="live-builds-ticket">
-          <span>Target founding ticket</span>
+          <span>Founding ticket</span>
           <strong>{liveBuildsProduct.priceLabel}</strong>
-          <p>Checkout opens after the first live-build topic and Backbone Stripe price are locked.</p>
+          <p>Backbone Stripe checkout. The room topic and date can be assigned after the first buyer signal.</p>
+          <LiveBuildCheckoutButton authSession={authSession} authReady={authReady} />
+          {accessCheck.status !== "idle" && (
+            <div className={`live-builds-access ${accessCheck.status}`}>
+              <strong>{accessCheck.title}</strong>
+              <p>{accessCheck.body}</p>
+            </div>
+          )}
           <form id="live-builds-list" className="start-form" onSubmit={handleSubscribe}>
             <input
               type="text"
@@ -2390,12 +2444,45 @@ function LiveBuildsPage() {
         </div>
         <div className="kit-final-cta">
           <strong>Want the first paid room?</strong>
-          <a className="primary-link" href="#live-builds-list">
-            Join the live-build list
-          </a>
+          <LiveBuildCheckoutButton authSession={authSession} authReady={authReady} compact />
         </div>
       </section>
     </main>
+  );
+}
+
+function LiveBuildCheckoutButton({ authSession, authReady, compact = false }) {
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleCheckout() {
+    if (!authSession?.access_token) {
+      window.location.href = "/members";
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await createLiveBuildCheckout(authSession.access_token);
+      window.location.href = data.url;
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not open the live-build checkout.");
+    }
+  }
+
+  return (
+    <div className={`checkout-box ${compact ? "compact" : ""}`}>
+      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
+        {authSession
+          ? status === "loading"
+            ? "Opening Stripe..."
+            : `Reserve for ${liveBuildsProduct.priceLabel}`
+          : "Create profile to reserve"}
+      </button>
+      {message && <p className="form-message error">{message}</p>}
+    </div>
   );
 }
 

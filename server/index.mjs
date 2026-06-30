@@ -15,6 +15,7 @@ import {
   productPriceCents,
   productSubtitle,
 } from "../src/data/product.js";
+import { liveBuildsProduct } from "../src/data/liveBuilds.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -168,6 +169,29 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+const checkoutProducts = new Map(
+  [
+    {
+      key: productKey,
+      name: productName,
+      subtitle: productSubtitle,
+      priceCents: productPriceCents,
+      priceEnvKey: "STRIPE_FUTURE_METHOD_PRICE_ID",
+      successPath: "/members",
+      cancelPath: "/kit",
+    },
+    {
+      key: liveBuildsProduct.key,
+      name: liveBuildsProduct.name,
+      subtitle: liveBuildsProduct.subtitle,
+      priceCents: liveBuildsProduct.priceCents,
+      priceEnvKey: "STRIPE_LIVE_BUILDS_PRICE_ID",
+      successPath: "/live-builds",
+      cancelPath: "/live-builds",
+    },
+  ].map((item) => [item.key, item]),
+);
 
 function readPublicUrlEnv(key) {
   const value = String(process.env[key] || "").trim();
@@ -1494,7 +1518,37 @@ function buildWelcomeEmail() {
   };
 }
 
-function buildAccessEmail() {
+function buildAccessEmail(productConfig = checkoutProducts.get(productKey)) {
+  if (productConfig?.key === liveBuildsProduct.key) {
+    return {
+      subject: "Your New Wave Live Builds ticket is confirmed",
+      text: [
+        "Your founding ticket is confirmed.",
+        "",
+        `Open the live-build page: ${siteUrl}/live-builds`,
+        "What happens next:",
+        "- Watch for the room topic, date, and access notes.",
+        "- Bring one workflow you want to understand better.",
+        "- After the session, use the replay, prompts, proof receipt, and implementation checklist.",
+        `Open the public dashboard: ${siteUrl}/60`,
+      ].join("\n"),
+      html: baseEmailTemplate({
+        preheader: "Your New Wave Live Builds ticket is confirmed.",
+        title: "Your live-build ticket is confirmed.",
+        intro:
+          "Your profile now has a New Wave Live Builds founding ticket. This is the paid room where the AI operator loop happens live on a real workflow.",
+        bullets: [
+          "The room topic, date, and access notes can be assigned from the launch plan.",
+          "The session ends with replay access, prompts, a proof receipt, and implementation notes.",
+          "Use the $47 kit first if you want the operating system before the live room.",
+        ],
+        primaryUrl: `${siteUrl}/live-builds`,
+        primaryLabel: "Open live-build page",
+        footer: `This confirmation was sent by AI with Murda after Stripe confirmed ${liveBuildsProduct.name}.`,
+      }),
+    };
+  }
+
   const accessSteps = buyerOnboardingEmails[0]?.bullets || [];
   return {
     subject: "Your Future Proof Method access is ready",
@@ -1871,13 +1925,37 @@ async function getMetricsAutomationSummary() {
   };
 }
 
-async function grantEntitlement({ userId, email, session }) {
+async function ensureProductRecord(productConfig) {
+  if (!supabaseAdmin || !productConfig?.key) return;
+
+  await supabaseAdmin
+    .from("products")
+    .upsert(
+      {
+        key: productConfig.key,
+        name: productConfig.name,
+        subtitle: productConfig.subtitle,
+        price_cents: productConfig.priceCents,
+        currency: "usd",
+        active: true,
+      },
+      { onConflict: "key" },
+    )
+    .throwOnError();
+}
+
+async function grantEntitlement({ userId, email, session, productConfig = checkoutProducts.get(productKey) }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
+  if (!productConfig?.key || !checkoutProducts.has(productConfig.key)) {
+    throw new Error("unknown_product_entitlement");
+  }
 
   const stripeCustomerId =
     typeof session.customer === "string" ? session.customer : session.customer?.id || null;
-  const amountTotal = Number(session.amount_total || productPriceCents);
+  const amountTotal = Number(session.amount_total || productConfig.priceCents);
   const currency = String(session.currency || "usd").toLowerCase();
+
+  await ensureProductRecord(productConfig);
 
   await supabaseAdmin
     .from("profiles")
@@ -1896,7 +1974,7 @@ async function grantEntitlement({ userId, email, session }) {
     .upsert(
       {
         user_id: userId,
-        product_key: productKey,
+        product_key: productConfig.key,
         stripe_checkout_session_id: session.id,
         stripe_customer_id: stripeCustomerId,
         amount_total: amountTotal,
@@ -1916,7 +1994,7 @@ async function grantEntitlement({ userId, email, session }) {
     .upsert(
       {
         user_id: userId,
-        product_key: productKey,
+        product_key: productConfig.key,
         source_purchase_id: purchase.id,
         status: "active",
         revoked_at: null,
@@ -1928,6 +2006,43 @@ async function grantEntitlement({ userId, email, session }) {
 
   if (entitlementError) throw entitlementError;
   return entitlement;
+}
+
+async function createCheckoutSessionForProduct({ req, productConfig }) {
+  await ensureProductRecord(productConfig);
+
+  const profile = await ensureProfile(req.user);
+  const customerTarget = profile.stripe_customer_id
+    ? { customer: profile.stripe_customer_id }
+    : { customer_email: profile.email };
+  const stripePriceId = productConfig.priceEnvKey ? process.env[productConfig.priceEnvKey] : null;
+  const lineItem = stripePriceId
+    ? { price: stripePriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: productConfig.priceCents,
+          product_data: {
+            name: productConfig.name,
+            description: productConfig.subtitle,
+          },
+        },
+        quantity: 1,
+      };
+
+  return stripe.checkout.sessions.create({
+    mode: "payment",
+    ...customerTarget,
+    allow_promotion_codes: true,
+    client_reference_id: req.user.id,
+    line_items: [lineItem],
+    success_url: `${siteUrl}${productConfig.successPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}${productConfig.cancelPath}?checkout=cancel`,
+    metadata: {
+      product_key: productConfig.key,
+      supabase_user_id: req.user.id,
+    },
+  });
 }
 
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
@@ -1951,15 +2066,17 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      if (session.metadata?.product_key === productKey && session.payment_status === "paid") {
+      const productConfig = checkoutProducts.get(session.metadata?.product_key);
+      if (productConfig && session.payment_status === "paid") {
         await grantEntitlement({
           userId: session.metadata?.supabase_user_id,
           email: session.customer_details?.email,
           session,
+          productConfig,
         });
 
         if (resend && session.customer_details?.email) {
-          const accessEmail = buildAccessEmail();
+          const accessEmail = buildAccessEmail(productConfig);
           await resend.emails.send({
             from: process.env.RESEND_FROM || defaultEmailFrom,
             to: session.customer_details.email,
@@ -2671,42 +2788,31 @@ app.post("/api/checkout/future-proof-method", requireUser, async (req, res) => {
   if (!requireConfigured(res, stripe, "stripe")) return;
 
   try {
-    const profile = await ensureProfile(req.user);
-    const customerTarget = profile.stripe_customer_id
-      ? { customer: profile.stripe_customer_id }
-      : { customer_email: profile.email };
-    const lineItem = process.env.STRIPE_FUTURE_METHOD_PRICE_ID
-      ? { price: process.env.STRIPE_FUTURE_METHOD_PRICE_ID, quantity: 1 }
-      : {
-          price_data: {
-            currency: "usd",
-            unit_amount: productPriceCents,
-            product_data: {
-              name: productName,
-              description: productSubtitle,
-            },
-          },
-          quantity: 1,
-        };
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ...customerTarget,
-      allow_promotion_codes: true,
-      client_reference_id: req.user.id,
-      line_items: [lineItem],
-      success_url: `${siteUrl}/members?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/kit?checkout=cancel`,
-      metadata: {
-        product_key: productKey,
-        supabase_user_id: req.user.id,
-      },
+    const session = await createCheckoutSessionForProduct({
+      req,
+      productConfig: checkoutProducts.get(productKey),
     });
 
     res.json({ url: session.url, session_id: session.id });
   } catch (error) {
     console.error("[checkout]", error);
     res.status(500).json({ error: "checkout_create_failed" });
+  }
+});
+
+app.post("/api/checkout/live-builds", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    const session = await createCheckoutSessionForProduct({
+      req,
+      productConfig: checkoutProducts.get(liveBuildsProduct.key),
+    });
+
+    res.json({ url: session.url, session_id: session.id });
+  } catch (error) {
+    console.error("[live-builds-checkout]", error);
+    res.status(500).json({ error: "live_builds_checkout_create_failed" });
   }
 });
 
@@ -2758,8 +2864,9 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
     const sessionUserId = session.metadata?.supabase_user_id;
+    const productConfig = checkoutProducts.get(session.metadata?.product_key);
 
-    if (session.metadata?.product_key !== productKey) {
+    if (!productConfig) {
       res.status(403).json({ error: "checkout_product_mismatch" });
       return;
     }
@@ -2782,10 +2889,12 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
       userId: req.user.id,
       email: req.user.email,
       session,
+      productConfig,
     });
 
     res.json({
       ok: true,
+      product_key: productConfig.key,
       checkout_status: session.status,
       payment_status: session.payment_status,
       entitlement,

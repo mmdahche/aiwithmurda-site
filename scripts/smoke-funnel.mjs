@@ -28,6 +28,7 @@ const email = `aiwm-smoke+${runId}@example.com`;
 const password = `Smoke-${runId}-${Math.random().toString(36).slice(2)}!`;
 let userId = null;
 let checkoutSessionId = null;
+let liveBuildCheckoutSessionId = null;
 let testCheckoutSessionId = null;
 
 try {
@@ -54,6 +55,22 @@ try {
     throw new Error(`Checkout creation failed: ${JSON.stringify(checkout.data)}`);
   }
   checkoutSessionId = checkout.data.session_id;
+
+  const liveBuildCheckout = await fetchJson(`${siteUrl}/api/checkout/live-builds`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!liveBuildCheckout.response.ok || !liveBuildCheckout.data?.session_id || !liveBuildCheckout.data?.url) {
+    throw new Error(`Live build checkout creation failed: ${JSON.stringify(liveBuildCheckout.data)}`);
+  }
+  liveBuildCheckoutSessionId = liveBuildCheckout.data.session_id;
+  const liveBuildCheckoutSession = await stripe.checkout.sessions.retrieve(liveBuildCheckoutSessionId);
+  if (
+    liveBuildCheckoutSession.amount_total !== 9700 ||
+    liveBuildCheckoutSession.metadata?.product_key !== "new_wave_live_builds"
+  ) {
+    throw new Error(`Live build checkout session shape failed: ${JSON.stringify(liveBuildCheckoutSession)}`);
+  }
 
   const testCheckout = await fetchJson(`${siteUrl}/api/checkout/test-purchase`, {
     method: "POST",
@@ -317,6 +334,8 @@ try {
         checks: {
           authProfileCreated: true,
           checkoutSessionCreated: true,
+          liveBuildCheckoutSessionCreated: true,
+          liveBuildCheckoutAmountVerified: true,
           testCheckoutSessionCreated: true,
           testCheckoutAmountVerified: true,
           unpaidAccessGuard: true,
@@ -358,6 +377,9 @@ try {
 } finally {
   if (testCheckoutSessionId) {
     await stripe.checkout.sessions.expire(testCheckoutSessionId).catch(() => {});
+  }
+  if (liveBuildCheckoutSessionId) {
+    await stripe.checkout.sessions.expire(liveBuildCheckoutSessionId).catch(() => {});
   }
   if (checkoutSessionId) {
     await stripe.checkout.sessions.expire(checkoutSessionId).catch(() => {});

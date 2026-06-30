@@ -75,7 +75,9 @@ Current second product state:
 - `New Wave Live Builds` page is live-ready at `/live-builds`.
 - Public chat command target is `!builds`.
 - V1 capture uses the existing `/api/subscribe` endpoint with source `live-builds`.
-- Checkout is intentionally not enabled until the Backbone Stripe price ID and entitlement model are added.
+- Checkout is wired through `POST /api/checkout/live-builds`.
+- Entitlement grants use product key `new_wave_live_builds`, separate from the Future Proof Method.
+- `STRIPE_LIVE_BUILDS_PRICE_ID` is optional; fallback Checkout `price_data` is `$97`.
 
 ## Render Web Service Settings
 
@@ -115,7 +117,7 @@ Cloudflare SSL/TLS:
 - Supabase durable subscriber list: done
 - Admin audience summary: done
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
-- New Wave Live Builds waitlist page: done; paid checkout pending Backbone Stripe price
+- New Wave Live Builds waitlist + paid checkout: done; live event date/topic pending
 - Member area delivery live: done
 - Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
 - Social share metadata and OG card: done

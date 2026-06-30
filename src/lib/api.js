@@ -148,6 +148,13 @@ export function createFutureMethodCheckout(token) {
   });
 }
 
+export function createLiveBuildCheckout(token) {
+  return apiRequest("/api/checkout/live-builds", {
+    method: "POST",
+    token,
+  });
+}
+
 export function createTestPurchaseCheckout(token) {
   return apiRequest("/api/checkout/test-purchase", {
     method: "POST",
