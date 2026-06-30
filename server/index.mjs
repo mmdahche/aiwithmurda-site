@@ -1344,6 +1344,43 @@ function formatClipProofAsset(clip) {
   return clip.url ? `${prefix} - ${clip.url}` : prefix;
 }
 
+function normalizeFollowerCountSubmission(body = {}) {
+  const rawPlatform = String(body.platform || "").trim().toLowerCase();
+  const platform = rawPlatform.replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+  if (!platform) {
+    const error = new Error("valid_platform_required");
+    error.status = 400;
+    throw error;
+  }
+
+  const count = Number(body.count);
+  if (!Number.isFinite(count) || count < 0 || count > 100000000) {
+    const error = new Error("valid_count_required");
+    error.status = 400;
+    throw error;
+  }
+
+  const day = body.day === undefined || body.day === null || body.day === "" ? null : Number(body.day);
+  if (day !== null && (!Number.isInteger(day) || day < 1 || day > 60)) {
+    const error = new Error("valid_day_required");
+    error.status = 400;
+    throw error;
+  }
+
+  return {
+    day,
+    platform,
+    count: Math.floor(count),
+    source: String(body.source || "automation").trim().slice(0, 80) || "automation",
+    observedAt: String(body.observedAt || new Date().toISOString()).trim(),
+    addProof: body.addProof === true,
+  };
+}
+
+function formatFollowerCountProofAsset(update) {
+  return `${update.platform}: ${formatNumberForApi(update.count)} followers via ${update.source}`;
+}
+
 function shouldSendEmail(email) {
   const domain = email.split("@").at(-1);
   return !["example.com", "example.org", "example.net", "test.invalid"].includes(domain);
@@ -2361,6 +2398,57 @@ app.post("/api/admin/clips/intake", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("[admin-clips-intake]", error);
     res.status(error.status || 500).json({ error: error.message || "clip_intake_failed" });
+  }
+});
+
+app.post("/api/admin/followers/intake", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  try {
+    const update = normalizeFollowerCountSubmission(req.body || {});
+    const sourceRow = await getDailyLogForSnapshot(update.day);
+    if (!sourceRow) {
+      res.status(404).json({ error: "daily_log_not_found" });
+      return;
+    }
+
+    const currentLog = toDailyLog(sourceRow);
+    const proofAsset = formatFollowerCountProofAsset(update);
+    const proofAssets =
+      update.addProof && !currentLog.proofAssets.includes(proofAsset)
+        ? [...currentLog.proofAssets, proofAsset]
+        : currentLog.proofAssets;
+    const updatedLog = {
+      ...currentLog,
+      followers: {
+        ...(currentLog.followers || {}),
+        [update.platform]: update.count,
+      },
+      proofAssets,
+      bestMoment: currentLog.bestMoment || `${update.platform} follower count started updating through automation.`,
+    };
+
+    if (!validateDailyLog(updatedLog)) {
+      res.status(500).json({ error: "generated_daily_log_invalid" });
+      return;
+    }
+
+    const { error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
+      .select("day");
+    if (error) throw error;
+
+    res.json({
+      ok: true,
+      update,
+      updatedLog,
+      liveFollowers: await buildLiveFollowerTicker(),
+      logs: await getAllDailyLogs(),
+    });
+  } catch (error) {
+    console.error("[admin-followers-intake]", error);
+    res.status(error.status || 500).json({ error: error.message || "followers_intake_failed" });
   }
 });
 

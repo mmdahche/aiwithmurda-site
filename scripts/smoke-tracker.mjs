@@ -190,6 +190,9 @@ if (!liveBundle.includes("/api/followers/stream")) {
 if (!liveBundle.includes("Clip Intake Webhook")) {
   throw new Error("Client bundle missing Clip Intake Webhook");
 }
+if (!liveBundle.includes("Follower Count Intake")) {
+  throw new Error("Client bundle missing Follower Count Intake");
+}
 if (!liveBundle.includes("Twitch Live Connector")) {
   throw new Error("Client bundle missing Twitch Live Connector");
 }
@@ -262,6 +265,17 @@ const blockedClipIntake = await fetchJson(`${siteUrl}/api/admin/clips/intake`, {
 if (blockedClipIntake.response.status !== 401 || blockedClipIntake.data?.error !== "invalid_admin_token") {
   throw new Error(
     `Admin clip intake guard failed: ${blockedClipIntake.response.status} ${JSON.stringify(blockedClipIntake.data)}`,
+  );
+}
+
+const blockedFollowerIntake = await fetchJson(`${siteUrl}/api/admin/followers/intake`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ platform: "instagram", count: 1 }),
+});
+if (blockedFollowerIntake.response.status !== 401 || blockedFollowerIntake.data?.error !== "invalid_admin_token") {
+  throw new Error(
+    `Admin follower intake guard failed: ${blockedFollowerIntake.response.status} ${JSON.stringify(blockedFollowerIntake.data)}`,
   );
 }
 
@@ -352,8 +366,11 @@ console.log(
         adminMetricsAutomationBundle: true,
         adminDailySnapshotBundle: true,
         adminClipIntakeBundle: true,
+        adminFollowerIntakeBundle: true,
+        adminTwitchConnectorBundle: true,
         adminMetricsAutomationApi: true,
         adminDailySnapshotApi: true,
+        adminTwitchStatusApi: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
@@ -364,6 +381,9 @@ console.log(
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminClipIntakeBlockedWithoutToken: true,
+        adminFollowerIntakeBlockedWithoutToken: true,
+        adminTwitchStatusBlockedWithoutToken: true,
+        adminTwitchOAuthBlockedWithoutToken: true,
         adminSessionBlockedWithoutLogin: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,

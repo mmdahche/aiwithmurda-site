@@ -83,6 +83,14 @@ export function submitClipIntake(clip, adminToken) {
   });
 }
 
+export function submitFollowerCountIntake(update, adminToken) {
+  return apiRequest("/api/admin/followers/intake", {
+    method: "POST",
+    body: update,
+    token: adminToken,
+  });
+}
+
 export function getTwitchIntegrationStatus(adminToken) {
   return apiRequest("/api/admin/integrations/twitch/status", {
     token: adminToken,

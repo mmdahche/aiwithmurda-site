@@ -30,6 +30,7 @@ import {
   previewDailySnapshot,
   startTwitchOAuth,
   submitClipIntake,
+  submitFollowerCountIntake,
   subscribeTwitchEventSub,
   subscribeBuildLog,
   syncDailyLogs,
@@ -4442,6 +4443,119 @@ function TwitchLiveConnectorPanel({
   );
 }
 
+function FollowerCountIntakePanel({ latest, adminToken, onApplied, onRefreshFollowers }) {
+  const [platform, setPlatform] = useState("instagram");
+  const [count, setCount] = useState(Number(latest?.followers?.instagram || 0));
+  const [source, setSource] = useState("n8n");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+  const [copyStatus, setCopyStatus] = useState("idle");
+
+  useEffect(() => {
+    setCount(Number(latest?.followers?.[platform] || 0));
+  }, [latest?.day, latest?.followers, platform]);
+
+  const payload = {
+    day: latest?.day || 1,
+    platform,
+    count: Number(count || 0),
+    source,
+    observedAt: new Date().toISOString(),
+  };
+
+  function formatWebhookTemplate() {
+    return [
+      "POST https://aiwithmurda.com/api/admin/followers/intake",
+      "Authorization: Bearer <ADMIN_API_TOKEN>",
+      "Content-Type: application/json",
+      "",
+      JSON.stringify(payload, null, 2),
+    ].join("\n");
+  }
+
+  async function copyWebhookTemplate() {
+    if (await copyPlainText(formatWebhookTemplate())) {
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1800);
+    } else {
+      setCopyStatus("manual");
+    }
+  }
+
+  async function submitTestCount() {
+    if (!adminToken.trim()) {
+      setStatus("error");
+      setMessage("Add the admin token before testing follower intake.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await submitFollowerCountIntake(payload, adminToken.trim());
+      onApplied(data.logs || []);
+      await onRefreshFollowers();
+      const nextCount = data.updatedLog?.followers?.[platform] ?? payload.count;
+      setStatus("success");
+      setMessage(`${platform} count updated to ${formatNumber(nextCount)} on Day ${data.updatedLog?.day || payload.day}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Follower intake failed.");
+    }
+  }
+
+  return (
+    <article className="panel follower-intake-panel">
+      <PanelTitle icon="followers" title="Follower Count Intake" right="n8n ready" />
+      <div className="follower-intake-hero">
+        <div>
+          <span className="panel-kicker">Automation bridge</span>
+          <strong>{formatNumber(payload.count)}</strong>
+          <p>
+            Use this for Instagram, TikTok, YouTube, Kick, or any approved source that can poll a count
+            and push it into the public ticker.
+          </p>
+        </div>
+        <div className="follower-intake-actions">
+          <button type="button" className="primary-action" onClick={submitTestCount} disabled={status === "loading"}>
+            {status === "loading" ? "Updating..." : "Test update"}
+          </button>
+          <button type="button" className="secondary-action" onClick={copyWebhookTemplate}>
+            {copyStatus === "copied" ? "Copied payload" : copyStatus === "manual" ? "Manual copy ready" : "Copy n8n payload"}
+          </button>
+        </div>
+      </div>
+      <div className="follower-intake-form">
+        <label>
+          Platform
+          <select value={platform} onChange={(event) => setPlatform(event.target.value)}>
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="twitch">Twitch</option>
+            <option value="kick">Kick</option>
+          </select>
+        </label>
+        <label>
+          Count
+          <input
+            type="number"
+            min="0"
+            value={count}
+            onChange={(event) => setCount(event.target.value)}
+          />
+        </label>
+        <label>
+          Source
+          <input value={source} onChange={(event) => setSource(event.target.value)} />
+        </label>
+      </div>
+      <pre className="webhook-template-preview">{formatWebhookTemplate()}</pre>
+      {message && <p className={`form-message ${status}`}>{message}</p>}
+    </article>
+  );
+}
+
 function ClipIntakePanel({ latest, adminToken, onApplied }) {
   const [day, setDay] = useState(latest?.day || 1);
   const [platform, setPlatform] = useState("tiktok");
@@ -4786,6 +4900,12 @@ function SettingsView({
           statusMessage={twitchIntegrationMessage}
           onRefresh={refreshTwitchIntegrationStatus}
           onTickerRefresh={refreshLiveFollowers}
+        />
+        <FollowerCountIntakePanel
+          latest={latest}
+          adminToken={adminToken}
+          onApplied={onSnapshotApplied}
+          onRefreshFollowers={refreshLiveFollowers}
         />
         <DailySnapshotPanel
           latest={latest}

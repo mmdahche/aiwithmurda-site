@@ -975,6 +975,12 @@ button {
   gap: 14px;
 }
 
+.follower-intake-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
 .clip-intake-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 220px;
@@ -1013,9 +1019,54 @@ button {
   width: 100%;
 }
 
+.follower-intake-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(97, 227, 109, 0.2);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.048);
+}
+
+.follower-intake-hero strong,
+.follower-intake-hero p {
+  display: block;
+  margin: 0;
+}
+
+.follower-intake-hero strong {
+  margin-top: 6px;
+  color: var(--green);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.follower-intake-hero p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.follower-intake-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.follower-intake-actions button {
+  width: 100%;
+}
+
 .clip-intake-form {
   display: grid;
   grid-template-columns: 90px 160px minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 10px;
+}
+
+.follower-intake-form {
+  display: grid;
+  grid-template-columns: 180px 150px minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -5068,6 +5119,7 @@ button {
   .metrics-automation-panel,
   .follower-ticker-control-panel,
   .twitch-connector-panel,
+  .follower-intake-panel,
   .clip-intake-panel,
   .daily-snapshot-panel {
     grid-column: auto;
@@ -5076,6 +5128,7 @@ button {
   .automation-hero,
   .ticker-control-hero,
   .twitch-connector-hero,
+  .follower-intake-hero,
   .clip-intake-hero,
   .automation-bottom-grid,
   .snapshot-actions,
@@ -5201,6 +5254,7 @@ button {
   .twitch-connector-grid,
   .ticker-setup-list,
   .clip-intake-form,
+  .follower-intake-form,
   .follower-overlay-sources,
   .follower-source-strip,
   .launch-readiness-summary,
