@@ -247,7 +247,8 @@ const membersBundle = await fetchClientBundle(membersHtml, "Members route", site
 if (
   !membersBundle.includes("Capstone builder") ||
   !membersBundle.includes("Download capstone receipt") ||
-  !membersBundle.includes("Download certificate")
+  !membersBundle.includes("Download certificate") ||
+  !membersBundle.includes("Download share pack")
 ) {
   throw new Error("Members route client bundle missing course capstone builder");
 }

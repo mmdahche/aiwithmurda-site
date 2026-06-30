@@ -3612,6 +3612,56 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
     progressState.summary.percent,
     progressState.summary.total,
   ]);
+  const completionSharePackMarkdown = useMemo(() => {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    const answerFor = (title) => completionDraft[title]?.trim() || "[add proof]";
+    return [
+      "# Future Proof Method Completion Share Pack",
+      "",
+      `Date: ${receiptDate}`,
+      `Operator: ${profile?.email || "member"}`,
+      `Progress: ${progressState.summary.completed}/${progressState.summary.total} tasks (${progressState.summary.percent}%)`,
+      `Receipt sections drafted: ${completionAnswerCount}/${courseCompletion.finalReceiptSections.length}`,
+      "",
+      "## Public recap post",
+      "",
+      `I finished the ${productName} loop by turning a messy starting point into a proof-backed operating system.`,
+      "",
+      `Before: ${answerFor("Before")}`,
+      "",
+      `What shipped: ${answerFor("Build shipped")}`,
+      "",
+      `Proof packaged: ${answerFor("Proof packaged")}`,
+      "",
+      `Offer moved: ${answerFor("Offer moved")}`,
+      "",
+      `Next seven days: ${answerFor("Next seven days")}`,
+      "",
+      "## Short clip hook",
+      "",
+      `I did not finish this by watching lessons. I finished it by shipping proof: ${answerFor("Build shipped")}`,
+      "",
+      "## Buyer proof blurb",
+      "",
+      `${productName} is built around a simple standard: if the output does not exist, the lesson is not complete. My completion proof includes command setup, problem selection, one shipped AI-assisted slice, proof packaging, and an offer/follow-up move.`,
+      "",
+      "## Next-seven-days commitment",
+      "",
+      `For the next seven days I am doubling down on: ${answerFor("Next seven days")}`,
+      "",
+      "## Stream close",
+      "",
+      "This is why the system matters: the course is not a playlist. It is a proof loop. The output is the credential.",
+      "",
+    ].join("\n");
+  }, [
+    completionAnswerCount,
+    completionDraft,
+    profile?.email,
+    progressState.summary.completed,
+    progressState.summary.percent,
+    progressState.summary.total,
+  ]);
   const firstRun = progressState.summary.completed === 0;
 
   function updateProofDraft(field, value) {
@@ -3643,6 +3693,15 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       `future-proof-method-certificate-${receiptDate}.html`,
       completionCertificateHtml,
       "text/html;charset=utf-8",
+    );
+  }
+
+  function handleDownloadCompletionSharePack() {
+    const receiptDate = new Date().toISOString().slice(0, 10);
+    downloadFile(
+      `future-proof-method-share-pack-${receiptDate}.md`,
+      completionSharePackMarkdown,
+      "text/markdown;charset=utf-8",
     );
   }
 
@@ -3700,6 +3759,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         onCompletionDraftChange={updateCompletionDraft}
         onDownload={handleDownloadCompletionReceipt}
         onDownloadCertificate={handleDownloadCompletionCertificate}
+        onDownloadSharePack={handleDownloadCompletionSharePack}
       />
 
       <section className={`member-onboarding ${firstRun ? "fresh" : ""}`}>
@@ -4116,6 +4176,7 @@ function CourseCompletionPanel({
   onCompletionDraftChange,
   onDownload,
   onDownloadCertificate,
+  onDownloadSharePack,
 }) {
   const complete = summary.total > 0 && summary.completed >= summary.total;
   const remaining = Math.max(summary.total - summary.completed, 0);
@@ -4148,6 +4209,9 @@ function CourseCompletionPanel({
           </button>
           <button type="button" className="secondary-action" onClick={onDownloadCertificate}>
             Download certificate
+          </button>
+          <button type="button" className="secondary-action" onClick={onDownloadSharePack}>
+            Download share pack
           </button>
         </div>
         <div className="completion-criteria-list">
