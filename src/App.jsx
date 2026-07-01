@@ -3625,7 +3625,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
       "",
       "## Public recap post",
       "",
-      `I finished the ${productName} loop by turning a messy starting point into a proof-backed operating system.`,
+      `I finished ${productName} by turning a messy starting point into a proof-backed operating system.`,
       "",
       `Before: ${answerFor("Before")}`,
       "",
