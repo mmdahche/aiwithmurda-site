@@ -2789,13 +2789,14 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
 
   return (
     <main className="public-page">
-      <section className="public-section members-shell">
+      <section className={`public-section members-shell ${hasAnyPaidAccess ? "paid" : ""}`}>
         <div>
-          <span className="public-label">Member area preview</span>
-          <h1>Profile-gated from day one.</h1>
+          <span className="public-label">{hasAnyPaidAccess ? "Member home" : "Member area preview"}</span>
+          <h1>{hasAnyPaidAccess ? "Start with one move." : "Profile-gated from day one."}</h1>
           <p>
-            Sign in with your profile, buy {productName}, and unlock the member hub for the kit,
-            updates, replays, and future live-build assets.
+            {hasAnyPaidAccess
+              ? "Your workspace is unlocked. Use Today for the next action, then open Course, Tools, Proof, or Finish only when you need them."
+              : `Sign in with your profile, buy ${productName}, and unlock the member hub for the kit, updates, replays, and future live-build assets.`}
           </p>
           {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
         </div>
@@ -3663,6 +3664,20 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
     progressState.summary.total,
   ]);
   const firstRun = progressState.summary.completed === 0;
+  const memberWorkspaceTabs = [
+    { key: "today", label: "Today", body: "Next step only" },
+    { key: "course", label: "Course", body: `${progressState.summary.completed}/${progressState.summary.total} tasks` },
+    { key: "tools", label: "Tools", body: `${assets.length} downloads` },
+    { key: "proof", label: "Proof", body: "Receipt builder" },
+    { key: "finish", label: "Finish", body: `${completionAnswerCount}/${courseCompletion.finalReceiptSections.length} answers` },
+  ];
+  const [activeMemberTab, setActiveMemberTab] = useState(activeModuleKey ? "course" : "today");
+
+  useEffect(() => {
+    if (activeModuleKey) {
+      setActiveMemberTab("course");
+    }
+  }, [activeModuleKey]);
 
   function updateProofDraft(field, value) {
     setProofDraft((current) => ({ ...current, [field]: value }));
@@ -3706,7 +3721,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   }
 
   return (
-    <section className="member-hub">
+    <section className={`member-hub active-tab-${activeMemberTab}${activeModuleKey ? " has-active-module" : ""}`}>
       <article className="member-welcome">
         <div>
           <span className="public-label">Unlocked hub</span>
@@ -3721,7 +3736,24 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </a>
       </article>
 
-      <article className="member-next-action">
+      {!activeModuleKey && (
+        <nav className="member-tab-nav" aria-label="Member workspace sections">
+          {memberWorkspaceTabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={activeMemberTab === tab.key ? "active" : ""}
+              onClick={() => setActiveMemberTab(tab.key)}
+              aria-current={activeMemberTab === tab.key ? "page" : undefined}
+            >
+              <strong>{tab.label}</strong>
+              <span>{tab.body}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+
+      <article className="member-next-action member-tab-content tab-today">
         <div>
           <span className="public-label">Next action</span>
           {nextMemberTask ? (
@@ -3750,19 +3782,21 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </article>
 
-      <CourseCompletionPanel
-        summary={progressState.summary}
-        completedTasks={completedTasks}
-        completionDraft={completionDraft}
-        completionAnswerCount={completionAnswerCount}
-        completionReceiptMarkdown={completionReceiptMarkdown}
-        onCompletionDraftChange={updateCompletionDraft}
-        onDownload={handleDownloadCompletionReceipt}
-        onDownloadCertificate={handleDownloadCompletionCertificate}
-        onDownloadSharePack={handleDownloadCompletionSharePack}
-      />
+      <div className="member-tab-content tab-finish">
+        <CourseCompletionPanel
+          summary={progressState.summary}
+          completedTasks={completedTasks}
+          completionDraft={completionDraft}
+          completionAnswerCount={completionAnswerCount}
+          completionReceiptMarkdown={completionReceiptMarkdown}
+          onCompletionDraftChange={updateCompletionDraft}
+          onDownload={handleDownloadCompletionReceipt}
+          onDownloadCertificate={handleDownloadCompletionCertificate}
+          onDownloadSharePack={handleDownloadCompletionSharePack}
+        />
+      </div>
 
-      <section className={`member-onboarding ${firstRun ? "fresh" : ""}`}>
+      <section className={`member-onboarding member-tab-content tab-today ${firstRun ? "fresh" : ""}`}>
         <div className="member-onboarding-copy">
           <span className="public-label">{firstRun ? "Start here" : "Activation path"}</span>
           <h2>{firstRun ? "Your first 20 minutes are already decided." : "Keep the setup path tight."}</h2>
@@ -3811,7 +3845,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </section>
 
-      <section className="member-start-path">
+      <section className="member-start-path member-tab-content tab-today">
         {memberStartPath.map((item) => (
           <article key={item.title}>
             <strong>{item.title}</strong>
@@ -3944,7 +3978,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </section>
       )}
 
-      <section className="member-proof-builder">
+      <section className="member-proof-builder member-tab-content tab-proof">
         <div className="proof-builder-copy">
           <span className="public-label">Proof receipt</span>
           <h2>Turn one finished task into a receipt.</h2>
@@ -4036,7 +4070,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </section>
 
-      <section className="member-workbench">
+      <section className="member-workbench member-tab-content tab-course">
         <div>
           <span className="public-label">Module workbench</span>
           <h2>Use each module like a live operating station.</h2>
@@ -4076,7 +4110,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </section>
 
-      <div className="member-grid">
+      <div className="member-grid member-tab-content tab-tools">
         {assets.map((asset) => (
           <article key={asset.key} className="tool-card live">
             <span>{asset.kind}</span>
@@ -4096,7 +4130,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         ))}
       </div>
 
-      <section className="member-roadmap">
+      <section className="member-roadmap member-tab-content tab-course">
         <div>
           <span className="public-label">Module path</span>
           <h2>Build the proof loop in order.</h2>
@@ -4146,7 +4180,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </section>
 
-      <section className="member-roadmap compact">
+      <section className="member-roadmap compact member-tab-content tab-finish">
         <div>
           <span className="public-label">Live drop rhythm</span>
           <h2>The kit grows with the sprint.</h2>

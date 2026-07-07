@@ -3687,6 +3687,19 @@ button {
   gap: 34px;
 }
 
+.members-shell.paid {
+  align-items: stretch;
+}
+
+.members-shell.paid h1 {
+  max-width: 680px;
+  font-size: clamp(42px, 5vw, 64px);
+}
+
+.members-shell.paid .member-login-card {
+  min-height: 190px;
+}
+
 .price-card,
 .member-login-card {
   min-height: 260px;
@@ -3850,6 +3863,79 @@ button {
   display: grid;
   gap: 18px;
   margin-top: 18px;
+}
+
+.member-tab-nav {
+  position: sticky;
+  top: 82px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(6, 10, 9, 0.92);
+  backdrop-filter: blur(18px);
+}
+
+.member-tab-nav button {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 66px;
+  padding: 12px 14px;
+  color: var(--muted);
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+}
+
+.member-tab-nav button:hover,
+.member-tab-nav button:focus-visible {
+  color: var(--text);
+  border-color: rgba(97, 227, 109, 0.22);
+  background: rgba(97, 227, 109, 0.055);
+  outline: none;
+}
+
+.member-tab-nav button.active {
+  color: var(--text);
+  border-color: rgba(97, 227, 109, 0.44);
+  background:
+    radial-gradient(circle at 88% 10%, rgba(97, 227, 109, 0.16), transparent 36%),
+    rgba(97, 227, 109, 0.1);
+}
+
+.member-tab-nav strong {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.member-tab-nav span {
+  overflow-wrap: anywhere;
+  color: currentColor;
+  font-size: 12px;
+  line-height: 1.25;
+  opacity: 0.78;
+}
+
+.member-tab-content {
+  display: none;
+}
+
+.member-hub.active-tab-today .tab-today,
+.member-hub.active-tab-course .tab-course,
+.member-hub.active-tab-tools .tab-tools,
+.member-hub.active-tab-proof .tab-proof,
+.member-hub.active-tab-finish .tab-finish {
+  display: grid;
+}
+
+.member-hub.has-active-module .member-tab-content {
+  display: none;
 }
 
 .live-build-member-panel {
@@ -6174,6 +6260,10 @@ button {
     display: none;
   }
 
+  .member-tab-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .public-hero,
   .day-receipt-hero,
   .day-empty-state,
@@ -6360,6 +6450,15 @@ button {
 
   .public-nav nav a {
     white-space: nowrap;
+  }
+
+  .member-tab-nav {
+    position: static;
+    grid-template-columns: 1fr;
+  }
+
+  .member-tab-nav button {
+    min-height: 56px;
   }
 
   .hero-copy h1,
