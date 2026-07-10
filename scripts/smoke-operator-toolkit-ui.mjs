@@ -65,7 +65,10 @@ try {
   const checkoutButton = desktopPage.getByRole("button", { name: "Create profile to continue" }).first();
   await checkoutButton.waitFor();
   await checkoutButton.click();
-  await desktopPage.waitForURL("**/members?next=operator-toolkit");
+  await desktopPage.waitForURL((url) => {
+    const normalizedPath = url.pathname.replace(/\/+$/, "") || "/";
+    return normalizedPath === "/members" && url.searchParams.get("next") === "operator-toolkit";
+  });
   await desktopPage.getByRole("heading", { name: "Set up. Build. Verify." }).waitFor();
   await desktop.close();
 
