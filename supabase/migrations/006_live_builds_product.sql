@@ -1,10 +1,10 @@
--- New Wave Live Builds is the second AI with Murda paid product.
+-- Compatibility key for the second AI with Murda paid product.
 
 insert into public.products (key, name, subtitle, price_cents, currency, active)
 values (
   'new_wave_live_builds',
-  'New Wave Live Builds',
-  'Watch a real AI workflow become a working asset.',
+  'New Wave Operator Bundle',
+  'More skills. More scripts. More ways to ship.',
   9700,
   'usd',
   true

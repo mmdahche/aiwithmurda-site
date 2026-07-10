@@ -19,6 +19,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 - `/start` - production email capture
 - `/kit` - first paid drop sales page
 - `/live-builds` - second product founding waitlist and paid-room offer surface
+- `/operator-toolkit` - full `$297` launch-edition system plus `$30/month` update-channel offer
 - `/members` - Supabase-gated member hub and asset delivery
 - `/day/:day` - public daily receipt pages for clips and recaps
 - `/admin` - private local control room for daily logging and exports
@@ -68,7 +69,8 @@ Why:
 6. Live hub shell and stream command links.
 7. Admin operator workflows for daily run sheets, clip packets, proof deck review, and manual launch gates.
 8. Operator Bundle page for the advanced skill, script, review, debug, deployment, and blueprint vault.
-9. Cohort and sprint pages after the first paid/drop path is testable end to end.
+9. Operator Toolkit page, mixed Checkout, permanent/recurring access split, 24-skill ZIP, guided setup, update channel, and billing portal.
+10. Cohort and sprint pages after the three paid paths are testable end to end.
 
 Current second product state:
 
@@ -80,6 +82,17 @@ Current second product state:
 - Active buyers see a product switcher between the starter build path and advanced Operator Vault.
 - The bundle page presents Plan + Review, Debug + Quality, and Ship + Handoff collections.
 - `STRIPE_LIVE_BUILDS_PRICE_ID` is optional; fallback Checkout `price_data` is `$97`.
+
+Current third product state:
+
+- `The Operator Toolkit` uses `/operator-toolkit` and permanent product key `operator_toolkit`.
+- `Operator System Updates` uses recurring product key `operator_updates`.
+- Checkout contains a `$297` one-time setup line and `$30/month` update line: `$327 due today`, then `$30/month`.
+- The launch edition permanently includes both lower tiers, 24 original customer-safe skills, command-center templates, installation, automation, design/QA, research/launch, delivery, review, and recovery systems.
+- The recurring channel includes versioned new/revised skills, compatibility reviews, migrations, release notes, verification receipts, and rollback guidance.
+- Subscription cancellation revokes only `operator_updates`; `operator_toolkit` remains active.
+- Members use four focused views: Setup, System Files, Updates, and Billing.
+- Customer portal cancellation is configured for period end, and permanent owners can restart only the update subscription.
 
 ## Render Web Service Settings
 
@@ -122,6 +135,12 @@ Cloudflare SSL/TLS:
 - New Wave Operator Bundle update list + paid checkout: done; live Stripe display name needs final confirmation
 - New Wave Operator Bundle member delivery: done; starter-course inclusion and seven advanced downloads are wired
 - Operator Bundle collections: done; Plan + Review, Debug + Quality, and Ship + Handoff are visible
+- Operator Toolkit sales page and three-tier comparison: done locally; production deploy pending
+- Operator Toolkit mixed `$297 + $30/month` sandbox Checkout: done and smoke-tested at `$327` initial total
+- Operator Toolkit member delivery: done locally; 24-skill ZIP, ten supporting systems, guided setup, releases, and billing separation are wired
+- Operator Toolkit subscription lifecycle: done locally; signed cancellation test proves permanent access survives and update access is revoked
+- Operator Toolkit recurring revenue ledger: done locally; only paid renewal-cycle invoices create new `$30` purchase rows
+- Backbone live Toolkit products, portal, webhook events, and Render IDs: pending final production provisioning
 - Member area delivery live: done
 - Member module lessons, generated roadmap/field guide assets, module run kits, build log, and first-build handoff: done
 - Admin Offer Ops multi-product breakdown: done; Future Proof and Operator Bundle sales/member counts are separated

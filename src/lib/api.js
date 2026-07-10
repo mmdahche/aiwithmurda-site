@@ -155,6 +155,27 @@ export function createOperatorBundleCheckout(token) {
   });
 }
 
+export function createOperatorToolkitCheckout(token) {
+  return apiRequest("/api/checkout/operator-toolkit", {
+    method: "POST",
+    token,
+  });
+}
+
+export function createOperatorUpdatesCheckout(token) {
+  return apiRequest("/api/checkout/operator-updates", {
+    method: "POST",
+    token,
+  });
+}
+
+export function createBillingPortal(token) {
+  return apiRequest("/api/billing/portal", {
+    method: "POST",
+    token,
+  });
+}
+
 export function createTestPurchaseCheckout(token) {
   return apiRequest("/api/checkout/test-purchase", {
     method: "POST",
@@ -198,4 +219,34 @@ export async function downloadOperatorBundleAsset(assetKey, token) {
   }
 
   return response.blob();
+}
+
+async function downloadProtectedAsset(path, fallbackError, token) {
+  const response = await fetch(path, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const error = new Error(data.error || fallbackError);
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return response.blob();
+}
+
+export function downloadOperatorToolkitAsset(assetKey, token) {
+  return downloadProtectedAsset(
+    `/api/member-assets/operator-toolkit/${encodeURIComponent(assetKey)}`,
+    "operator_toolkit_asset_download_failed",
+    token,
+  );
+}
+
+export function downloadOperatorUpdateAsset(assetKey, token) {
+  return downloadProtectedAsset(
+    `/api/member-assets/operator-updates/${encodeURIComponent(assetKey)}`,
+    "operator_update_asset_download_failed",
+    token,
+  );
 }

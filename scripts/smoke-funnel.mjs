@@ -29,7 +29,9 @@ const password = `Smoke-${runId}-${Math.random().toString(36).slice(2)}!`;
 let userId = null;
 let checkoutSessionId = null;
 let liveBuildCheckoutSessionId = null;
+let operatorToolkitCheckoutSessionId = null;
 let testCheckoutSessionId = null;
+let billingCustomerId = null;
 
 try {
   const created = await admin.auth.admin.createUser({
@@ -84,6 +86,51 @@ try {
     throw new Error(`Operator Bundle Stripe display failed: ${JSON.stringify(operatorBundleLineItems.data[0])}`);
   }
 
+  const operatorToolkitCheckout = await fetchJson(`${siteUrl}/api/checkout/operator-toolkit`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (
+    !operatorToolkitCheckout.response.ok ||
+    !operatorToolkitCheckout.data?.session_id ||
+    !operatorToolkitCheckout.data?.url
+  ) {
+    throw new Error(`Operator Toolkit checkout creation failed: ${JSON.stringify(operatorToolkitCheckout.data)}`);
+  }
+  operatorToolkitCheckoutSessionId = operatorToolkitCheckout.data.session_id;
+  const operatorToolkitSession = await stripe.checkout.sessions.retrieve(operatorToolkitCheckoutSessionId);
+  if (
+    operatorToolkitSession.mode !== "subscription" ||
+    operatorToolkitSession.amount_total !== 32700 ||
+    operatorToolkitSession.metadata?.product_key !== "operator_toolkit" ||
+    operatorToolkitSession.metadata?.update_product_key !== "operator_updates"
+  ) {
+    throw new Error(`Operator Toolkit checkout shape failed: ${JSON.stringify(operatorToolkitSession)}`);
+  }
+  const operatorToolkitLineItems = await stripe.checkout.sessions.listLineItems(operatorToolkitCheckoutSessionId, {
+    limit: 10,
+    expand: ["data.price.product"],
+  });
+  const setupItem = operatorToolkitLineItems.data.find((item) => item.price?.unit_amount === 29700);
+  const updateItem = operatorToolkitLineItems.data.find((item) => item.price?.unit_amount === 3000);
+  const setupProduct = setupItem?.price?.product;
+  const updateProduct = updateItem?.price?.product;
+  if (
+    operatorToolkitLineItems.data.length !== 2 ||
+    !setupItem ||
+    !updateItem ||
+    setupItem.price?.recurring ||
+    updateItem.price?.recurring?.interval !== "month" ||
+    !setupProduct ||
+    typeof setupProduct === "string" ||
+    setupProduct.name !== "The Operator Toolkit" ||
+    !updateProduct ||
+    typeof updateProduct === "string" ||
+    updateProduct.name !== "Operator System Updates"
+  ) {
+    throw new Error(`Operator Toolkit Stripe display failed: ${JSON.stringify(operatorToolkitLineItems.data)}`);
+  }
+
   const testCheckout = await fetchJson(`${siteUrl}/api/checkout/test-purchase`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -114,6 +161,27 @@ try {
   });
   if (!profile.response.ok || profile.data?.profile?.email !== email) {
     throw new Error(`Profile lookup failed: ${JSON.stringify(profile.data)}`);
+  }
+  const billingCustomer = await stripe.customers.create({
+    email,
+    metadata: { smoke_test: "aiwithmurda_billing_portal" },
+  });
+  billingCustomerId = billingCustomer.id;
+  const billingProfile = await admin
+    .from("profiles")
+    .update({ stripe_customer_id: billingCustomerId })
+    .eq("id", userId);
+  if (billingProfile.error) throw billingProfile.error;
+  const billingPortal = await fetchJson(`${siteUrl}/api/billing/portal`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (
+    !billingPortal.response.ok ||
+    !billingPortal.data?.url ||
+    !billingPortal.data.url.startsWith("https://billing.stripe.com/")
+  ) {
+    throw new Error(`Billing portal creation failed: ${JSON.stringify(billingPortal.data)}`);
   }
   const productAssets = profile.data?.product?.assets;
   if (!Array.isArray(productAssets) || productAssets.length < 12) {
@@ -163,6 +231,29 @@ try {
   }
   if (!operatorBundle.assets.some((asset) => asset.key === "deployment-runbook")) {
     throw new Error(`Deployment runbook missing: ${JSON.stringify(operatorBundle.assets)}`);
+  }
+  const operatorToolkit = profile.data?.operatorToolkit;
+  if (
+    operatorToolkit?.key !== "operator_toolkit" ||
+    operatorToolkit?.price_cents !== 29700 ||
+    operatorToolkit?.monthly_price_cents !== 3000 ||
+    operatorToolkit?.initial_total_cents !== 32700 ||
+    operatorToolkit?.updateProduct?.key !== "operator_updates" ||
+    !operatorToolkit?.accessPlan?.activationPromise ||
+    !Array.isArray(operatorToolkit?.assets) ||
+    operatorToolkit.assets.length < 11 ||
+    !Array.isArray(operatorToolkit?.updateAssets) ||
+    operatorToolkit.updateAssets.length < 3 ||
+    !Array.isArray(operatorToolkit?.releases) ||
+    operatorToolkit.releases.length < 1
+  ) {
+    throw new Error(`Operator Toolkit was not exposed on profile: ${JSON.stringify(operatorToolkit)}`);
+  }
+  if (!operatorToolkit.assets.some((asset) => asset.key === "full-skill-pack")) {
+    throw new Error(`Operator Toolkit skill pack missing: ${JSON.stringify(operatorToolkit.assets)}`);
+  }
+  if (!operatorToolkit.updateAssets.some((asset) => asset.key === "founding-update-001")) {
+    throw new Error(`Operator Toolkit update pack missing: ${JSON.stringify(operatorToolkit.updateAssets)}`);
   }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
@@ -238,6 +329,23 @@ try {
       `Expected bundle asset entitlement guard, got ${blockedBundleAsset.response.status}: ${JSON.stringify(blockedBundleAsset.data)}`,
     );
   }
+  const blockedToolkitAsset = await fetchJson(
+    `${siteUrl}/api/member-assets/operator-toolkit/system-installation-guide`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (blockedToolkitAsset.response.status !== 403 || blockedToolkitAsset.data?.error !== "entitlement_required") {
+    throw new Error(
+      `Expected toolkit asset entitlement guard, got ${blockedToolkitAsset.response.status}: ${JSON.stringify(blockedToolkitAsset.data)}`,
+    );
+  }
+  const blockedUpdateAsset = await fetchJson(`${siteUrl}/api/member-assets/operator-updates/founding-update-001`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (blockedUpdateAsset.response.status !== 403 || blockedUpdateAsset.data?.error !== "active_subscription_required") {
+    throw new Error(
+      `Expected update asset entitlement guard, got ${blockedUpdateAsset.response.status}: ${JSON.stringify(blockedUpdateAsset.data)}`,
+    );
+  }
 
   const entitlement = await admin
     .from("entitlements")
@@ -272,6 +380,53 @@ try {
   if (operatorBundleEntitlement.error || !operatorBundleEntitlement.data?.id) {
     throw operatorBundleEntitlement.error || new Error("Failed to grant Operator Bundle smoke entitlement");
   }
+
+  const operatorToolkitEntitlement = await admin
+    .from("entitlements")
+    .upsert(
+      {
+        user_id: userId,
+        product_key: "operator_toolkit",
+        status: "active",
+        revoked_at: null,
+      },
+      { onConflict: "user_id,product_key" },
+    )
+    .select("id")
+    .single();
+  if (operatorToolkitEntitlement.error || !operatorToolkitEntitlement.data?.id) {
+    throw operatorToolkitEntitlement.error || new Error("Failed to grant Operator Toolkit smoke entitlement");
+  }
+
+  const operatorUpdatesEntitlement = await admin
+    .from("entitlements")
+    .upsert(
+      {
+        user_id: userId,
+        product_key: "operator_updates",
+        status: "active",
+        revoked_at: null,
+      },
+      { onConflict: "user_id,product_key" },
+    )
+    .select("id")
+    .single();
+  if (operatorUpdatesEntitlement.error || !operatorUpdatesEntitlement.data?.id) {
+    throw operatorUpdatesEntitlement.error || new Error("Failed to grant Operator Updates smoke entitlement");
+  }
+
+  const operatorSubscription = await admin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      product_key: "operator_updates",
+      stripe_subscription_id: `sub_smoke_${runId}`,
+      status: "active",
+      cancel_at_period_end: false,
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    { onConflict: "user_id,product_key" },
+  );
+  if (operatorSubscription.error) throw operatorSubscription.error;
 
   const assetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -386,6 +541,67 @@ try {
     );
   }
 
+  const toolkitGuideResponse = await fetch(
+    `${siteUrl}/api/member-assets/operator-toolkit/system-installation-guide`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  const toolkitGuideText = await toolkitGuideResponse.text();
+  if (
+    !toolkitGuideResponse.ok ||
+    !toolkitGuideText.includes("Operator Toolkit - System Installation Guide") ||
+    !toolkitGuideText.includes("## Stage 5 - Run the first system test")
+  ) {
+    throw new Error(
+      `Operator Toolkit guide download failed: ${toolkitGuideResponse.status} ${toolkitGuideText.slice(0, 160)}`,
+    );
+  }
+  const toolkitSkillPackResponse = await fetch(`${siteUrl}/api/member-assets/operator-toolkit/full-skill-pack`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const toolkitSkillPackBytes = new Uint8Array(await toolkitSkillPackResponse.arrayBuffer());
+  if (
+    !toolkitSkillPackResponse.ok ||
+    toolkitSkillPackBytes.length < 1000 ||
+    toolkitSkillPackBytes[0] !== 0x50 ||
+    toolkitSkillPackBytes[1] !== 0x4b
+  ) {
+    throw new Error(
+      `Operator Toolkit ZIP download failed: ${toolkitSkillPackResponse.status} ${toolkitSkillPackBytes.length} bytes`,
+    );
+  }
+  const operatorUpdateResponse = await fetch(`${siteUrl}/api/member-assets/operator-updates/founding-update-001`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const operatorUpdateBytes = new Uint8Array(await operatorUpdateResponse.arrayBuffer());
+  if (
+    !operatorUpdateResponse.ok ||
+    operatorUpdateBytes.length < 500 ||
+    operatorUpdateBytes[0] !== 0x50 ||
+    operatorUpdateBytes[1] !== 0x4b
+  ) {
+    throw new Error(
+      `Operator update ZIP download failed: ${operatorUpdateResponse.status} ${operatorUpdateBytes.length} bytes`,
+    );
+  }
+
+  const entitledProfile = await fetchJson(`${siteUrl}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (
+    !entitledProfile.response.ok ||
+    !entitledProfile.data?.entitlements?.some(
+      (item) => item.product_key === "operator_toolkit" && item.status === "active",
+    ) ||
+    !entitledProfile.data?.entitlements?.some(
+      (item) => item.product_key === "operator_updates" && item.status === "active",
+    ) ||
+    !entitledProfile.data?.subscriptions?.some(
+      (item) => item.product_key === "operator_updates" && item.status === "active",
+    )
+  ) {
+    throw new Error(`Operator Toolkit access state failed: ${JSON.stringify(entitledProfile.data)}`);
+  }
+
   const staleProgress = await admin.from("member_task_progress").upsert(
     {
       user_id: userId,
@@ -440,10 +656,15 @@ try {
           operatorBundleCheckoutSessionCreated: true,
           operatorBundleCheckoutAmountVerified: true,
           operatorBundleStripeDisplayVerified: true,
+          operatorToolkitCheckoutSessionCreated: true,
+          operatorToolkitCheckoutAmountVerified: true,
+          operatorToolkitMixedBillingVerified: true,
+          operatorToolkitStripeDisplayVerified: true,
           testCheckoutSessionCreated: true,
           testCheckoutAmountVerified: true,
           unpaidAccessGuard: true,
           profileLookup: true,
+          billingPortalCreated: true,
           productAssetsExposed: true,
           productModulesExposed: true,
           moduleOperatorBriefsExposed: true,
@@ -454,6 +675,10 @@ try {
           operatorBundleExposed: true,
           operatorBundleAccessPlanExposed: true,
           operatorBundleAssetsExposed: true,
+          operatorToolkitExposed: true,
+          operatorToolkitAccessPlanExposed: true,
+          operatorToolkitAssetsExposed: true,
+          operatorUpdateAssetsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           premiumWorkbookExposed: true,
@@ -466,6 +691,8 @@ try {
           generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
           lockedOperatorBundleAssetsBlocked: true,
+          lockedOperatorToolkitAssetsBlocked: true,
+          lockedOperatorUpdateAssetsBlocked: true,
           entitledAssetDownload: true,
           entitledOperatorVaultDownload: true,
           entitledProjectBlueprintsDownload: true,
@@ -476,6 +703,10 @@ try {
           entitledInstallPackDownload: true,
           entitledStarterSkillPackDownload: true,
           entitledFirstBuildLabDownload: true,
+          entitledOperatorToolkitGuideDownload: true,
+          entitledOperatorToolkitZipDownload: true,
+          entitledOperatorUpdateZipDownload: true,
+          operatorSubscriptionExposed: true,
           memberProgressLookup: true,
           staleProgressIgnored: true,
           memberProgressUpdate: true,
@@ -489,8 +720,14 @@ try {
   if (testCheckoutSessionId) {
     await stripe.checkout.sessions.expire(testCheckoutSessionId).catch(() => {});
   }
+  if (billingCustomerId) {
+    await stripe.customers.del(billingCustomerId).catch(() => {});
+  }
   if (liveBuildCheckoutSessionId) {
     await stripe.checkout.sessions.expire(liveBuildCheckoutSessionId).catch(() => {});
+  }
+  if (operatorToolkitCheckoutSessionId) {
+    await stripe.checkout.sessions.expire(operatorToolkitCheckoutSessionId).catch(() => {});
   }
   if (checkoutSessionId) {
     await stripe.checkout.sessions.expire(checkoutSessionId).catch(() => {});

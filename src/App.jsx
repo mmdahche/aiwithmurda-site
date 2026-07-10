@@ -8,10 +8,14 @@ import {
   FileCheck2,
   FolderDown,
   House,
+  Layers3,
   LogOut,
   Menu,
+  PackageCheck,
   RadioTower,
+  RefreshCw,
   Search,
+  ShieldCheck,
   Trophy,
   X,
 } from "lucide-react";
@@ -37,16 +41,31 @@ import {
   operatorBundlePath,
   operatorBundleProduct,
 } from "./data/operatorBundle.js";
+import {
+  operatorToolkitAccessPlan,
+  operatorToolkitCollections,
+  operatorToolkitFaq,
+  operatorToolkitOutcomes,
+  operatorToolkitPath,
+  operatorToolkitProduct,
+  operatorToolkitReleases,
+  operatorUpdatesProduct,
+} from "./data/operatorToolkit.js";
 import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
+  createBillingPortal,
+  createOperatorToolkitCheckout,
+  createOperatorUpdatesCheckout,
   createOperatorBundleCheckout,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
   downloadOperatorBundleAsset,
+  downloadOperatorToolkitAsset,
+  downloadOperatorUpdateAsset,
   downloadMemberAsset,
   getDailyLogs,
   getLiveFollowers,
@@ -1653,7 +1672,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/live-builds", "/members"].includes(route)
+      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/live-builds", "/operator-toolkit", "/members"].includes(route)
         ? route
         : "/";
 
@@ -1677,6 +1696,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/live-builds" && <OperatorBundlePage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/operator-toolkit" && <OperatorToolkitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -1692,6 +1712,7 @@ function PublicNav({ activeRoute }) {
     { href: "/live", label: "Live" },
     { href: "/kit", label: "Kit" },
     { href: "/live-builds", label: "Operator Bundle" },
+    { href: "/operator-toolkit", label: "Full System" },
     { href: "/tools", label: "Tools" },
     { href: "/start", label: "Start" },
   ];
@@ -2811,23 +2832,233 @@ function OperatorBundleCheckoutButton({ authSession, authReady, compact = false 
   );
 }
 
+function OperatorToolkitPage({ authSession, authReady }) {
+  const checkoutCanceled = new URLSearchParams(window.location.search).get("checkout") === "cancel";
+
+  return (
+    <main className="public-page operator-toolkit-page">
+      <section className="operator-toolkit-hero">
+        <div className="operator-toolkit-hero-copy">
+          <span className="public-label">Full system · Permanent launch edition + monthly updates</span>
+          <h1>{operatorToolkitProduct.name}</h1>
+          <p>{operatorToolkitProduct.promise}</p>
+          <div className="operator-toolkit-hero-actions">
+            <a className="primary-link" href="#toolkit-checkout">Install the full system</a>
+            <a className="secondary-link" href="#compare-tiers">Compare tiers</a>
+          </div>
+          <div className="operator-toolkit-trust-strip">
+            <span><PackageCheck size={17} aria-hidden="true" /> Launch edition stays yours</span>
+            <span><RefreshCw size={17} aria-hidden="true" /> Versioned monthly releases</span>
+            <span><ShieldCheck size={17} aria-hidden="true" /> Customer-safe system</span>
+          </div>
+        </div>
+        <aside id="toolkit-checkout" className="operator-toolkit-pricing">
+          <span>Complete setup</span>
+          <strong>{operatorToolkitProduct.priceLabel}</strong>
+          <p>{operatorToolkitProduct.checkoutLabel}</p>
+          <ul>
+            <li>Permanent 24-skill launch edition</li>
+            <li>Both lower tiers included</li>
+            <li>First month of system updates included</li>
+            <li>Cancel future updates without losing the toolkit</li>
+          </ul>
+          <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} />
+          {checkoutCanceled && <em>Checkout was canceled. Nothing was charged.</em>}
+        </aside>
+      </section>
+
+      <section className="operator-toolkit-outcomes" aria-label="Operator Toolkit outcomes">
+        {operatorToolkitOutcomes.map((outcome, index) => (
+          <article key={outcome.title}>
+            <strong>{String(index + 1).padStart(2, "0")}</strong>
+            <div><span>{outcome.title}</span><p>{outcome.body}</p></div>
+          </article>
+        ))}
+      </section>
+
+      <section id="compare-tiers" className="operator-tier-comparison">
+        <header>
+          <span className="public-label">Three clear levels</span>
+          <h2>Buy the amount of system you are ready to operate.</h2>
+          <p>The $97 bundle stays available. The full system earns the higher price through setup, installation, ownership, and ongoing versioned releases.</p>
+        </header>
+        <div className="operator-tier-grid">
+          <article>
+            <span>Learn</span>
+            <strong>$47</strong>
+            <h3>The Future Proof Method</h3>
+            <p>Set up Claude Code and Codex and ship the first verified build.</p>
+            <a href="/kit">Open starter course</a>
+          </article>
+          <article>
+            <span>Repeat</span>
+            <strong>$97</strong>
+            <h3>{operatorBundleProduct.name}</h3>
+            <p>Add focused skills, advanced scripts, review, debugging, deployment, and blueprints.</p>
+            <a href="/live-builds">Open Operator Bundle</a>
+          </article>
+          <article className="featured">
+            <span>Install</span>
+            <strong>$297 + $30/mo</strong>
+            <h3>{operatorToolkitProduct.name}</h3>
+            <p>Install the complete customer-safe command center and keep its release channel active.</p>
+            <a href="#toolkit-checkout">Choose full system</a>
+          </article>
+        </div>
+      </section>
+
+      <section className="operator-toolkit-path-section">
+        <header>
+          <span className="public-label">Installation path</span>
+          <h2>From clean environment to verified operating system.</h2>
+        </header>
+        <div className="operator-toolkit-path">
+          {operatorToolkitPath.map((phase) => (
+            <article key={phase.phase}>
+              <strong>{phase.phase}</strong>
+              <div><span>{phase.time}</span><h3>{phase.title}</h3><p>{phase.body}</p></div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="operator-toolkit-collections-section">
+        <header>
+          <span className="public-label">24 original skills</span>
+          <h2>Four collections. Installed by actual need.</h2>
+          <p>The pack includes matching project layouts for Claude Code and Codex. Every skill has an explicit workflow, output contract, and safety guardrails.</p>
+        </header>
+        <div className="operator-toolkit-collections">
+          {operatorToolkitCollections.map((collection) => (
+            <article key={collection.key}>
+              <span>{collection.label}</span>
+              <strong>{collection.status}</strong>
+              <h3>{collection.title}</h3>
+              <p>{collection.outcome}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="operator-toolkit-ownership">
+        <div>
+          <span className="public-label">Permanent ownership</span>
+          <h2>The launch edition remains yours.</h2>
+          <p>The $297 purchase permanently unlocks the setup, 24-skill ZIP, command center, templates, playbooks, and recovery system.</p>
+        </div>
+        <div>
+          <span className="public-label">Recurring continuity</span>
+          <h2>The $30/month keeps the system current.</h2>
+          <p>Active members receive new and revised skills, compatibility reviews, release notes, migrations, verification receipts, and rollback instructions.</p>
+        </div>
+      </section>
+
+      <section className="operator-toolkit-release-preview">
+        <header>
+          <span className="public-label">Release discipline</span>
+          <h2>Every update has a version and a rollback.</h2>
+        </header>
+        <div>
+          {operatorToolkitReleases.map((release) => (
+            <article key={release.version}>
+              <strong>v{release.version}</strong>
+              <span>{release.access}</span>
+              <h3>{release.title}</h3>
+              <p>{release.summary}</p>
+              <em>{release.date}</em>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="operator-toolkit-faq">
+        <header>
+          <span className="public-label">Billing and access</span>
+          <h2>No hidden ownership rules.</h2>
+        </header>
+        <div className="kit-faq-list">
+          {operatorToolkitFaq.map((item) => (
+            <article key={item.question}><strong>{item.question}</strong><p>{item.answer}</p></article>
+          ))}
+        </div>
+        <div className="operator-toolkit-final-cta">
+          <div><span>Initial payment</span><strong>$327 today</strong><small>$30/month thereafter</small></div>
+          <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function OperatorToolkitCheckoutButton({ authSession, authReady, compact = false }) {
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  async function handleCheckout() {
+    if (!authSession?.access_token) {
+      window.location.href = "/members?next=operator-toolkit";
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const data = await createOperatorToolkitCheckout(authSession.access_token);
+      window.location.href = data.url;
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not open the Operator Toolkit checkout.");
+    }
+  }
+
+  return (
+    <div className={`checkout-box operator-toolkit-checkout ${compact ? "compact" : ""}`}>
+      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
+        {authSession ? (status === "loading" ? "Opening Stripe..." : "Pay $327 and activate") : "Create profile to continue"}
+      </button>
+      <small>$297 permanent setup + first $30 month. Then $30/month until canceled.</small>
+      {message && <p className="form-message error">{message}</p>}
+    </div>
+  );
+}
+
 function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [memberData, setMemberData] = useState(null);
   const [status, setStatus] = useState("idle");
   const [notice, setNotice] = useState(null);
   const [accessCheck, setAccessCheck] = useState({ status: "idle" });
-  const [activeMemberProduct, setActiveMemberProduct] = useState("future-method");
+  const [activeMemberProduct, setActiveMemberProduct] = useState(() =>
+    new URLSearchParams(window.location.search).get("product") === "operator-toolkit"
+      ? "operator-toolkit"
+      : "future-method",
+  );
   const accessToken = authSession?.access_token;
+  const requestedNext = new URLSearchParams(window.location.search).get("next");
   const futureMethodPurchased = Boolean(
     memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
   );
-  const operatorBundleEntitled = Boolean(
+  const operatorBundlePurchased = Boolean(
     memberData?.entitlements?.some(
       (entitlement) => entitlement.product_key === operatorBundleProduct.key && entitlement.status === "active",
     ),
   );
-  const futureMethodEntitled = futureMethodPurchased || operatorBundleEntitled;
-  const hasAnyPaidAccess = futureMethodEntitled || operatorBundleEntitled;
+  const operatorToolkitEntitled = Boolean(
+    memberData?.entitlements?.some(
+      (entitlement) => entitlement.product_key === operatorToolkitProduct.key && entitlement.status === "active",
+    ),
+  );
+  const operatorUpdatesEntitled = Boolean(
+    memberData?.entitlements?.some(
+      (entitlement) => entitlement.product_key === operatorUpdatesProduct.key && entitlement.status === "active",
+    ),
+  );
+  const operatorUpdateSubscription = memberData?.subscriptions?.find(
+    (subscription) => subscription.product_key === operatorUpdatesProduct.key,
+  );
+  const operatorBundleEntitled = operatorBundlePurchased || operatorToolkitEntitled;
+  const futureMethodEntitled = futureMethodPurchased || operatorBundleEntitled || operatorToolkitEntitled;
+  const hasAnyPaidAccess = futureMethodEntitled || operatorBundleEntitled || operatorToolkitEntitled;
+  const entitledProductCount = [futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled].filter(Boolean).length;
 
   useEffect(() => {
     if (activeModuleKey && futureMethodEntitled) {
@@ -2836,12 +3067,15 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     }
     if (activeMemberProduct === "future-method" && futureMethodEntitled) return;
     if (activeMemberProduct === "operator-bundle" && operatorBundleEntitled) return;
+    if (activeMemberProduct === "operator-toolkit" && operatorToolkitEntitled) return;
     if (futureMethodEntitled) {
       setActiveMemberProduct("future-method");
     } else if (operatorBundleEntitled) {
       setActiveMemberProduct("operator-bundle");
+    } else if (operatorToolkitEntitled) {
+      setActiveMemberProduct("operator-toolkit");
     }
-  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled]);
+  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled]);
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2861,7 +3095,9 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           });
           const result = await verifyCheckoutSession(sessionId, accessToken);
           verifiedAccess = result.access || null;
-          window.history.replaceState({}, "", "/members?checkout=success");
+          const verifiedProduct = result.product_key === operatorToolkitProduct.key ? "&product=operator-toolkit" : "";
+          window.history.replaceState({}, "", `/members?checkout=success${verifiedProduct}`);
+          if (result.product_key === operatorToolkitProduct.key) setActiveMemberProduct("operator-toolkit");
           setNotice({ tone: "success", text: "Payment verified. Your profile is unlocked." });
           setAccessCheck({
             status: "success",
@@ -2983,7 +3219,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <MemberStateCard title="Loading your workspace" body="Checking products, progress, and member assets." />
       )}
 
-      {authSession && status === "ready" && futureMethodEntitled && operatorBundleEntitled && !activeModuleKey && (
+      {authSession && status === "ready" && entitledProductCount > 1 && !activeModuleKey && (
         <nav className="member-product-switcher" aria-label="Your products">
           <button
             type="button"
@@ -3003,6 +3239,17 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             <span><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
+          {operatorToolkitEntitled && (
+            <button
+              type="button"
+              className={activeMemberProduct === "operator-toolkit" ? "active" : ""}
+              onClick={() => setActiveMemberProduct("operator-toolkit")}
+            >
+              <Layers3 size={19} aria-hidden="true" />
+              <span><strong>{operatorToolkitProduct.name}</strong><small>Full setup and versioned updates</small></span>
+              <Check size={16} aria-hidden="true" />
+            </button>
+          )}
         </nav>
       )}
 
@@ -3010,17 +3257,33 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <OperatorBundleMemberPanel accessToken={authSession.access_token} bundle={memberData?.operatorBundle} />
       )}
 
-      {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && (
+      {authSession && status === "ready" && operatorToolkitEntitled && activeMemberProduct === "operator-toolkit" && (
+        <OperatorToolkitMemberPanel
+          accessToken={authSession.access_token}
+          toolkit={memberData?.operatorToolkit}
+          profile={memberData?.profile}
+          updatesEntitled={operatorUpdatesEntitled}
+          subscription={operatorUpdateSubscription}
+          onRefresh={() => refreshMemberAccess({ verifyCheckout: false })}
+        />
+      )}
+
+      {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && !operatorToolkitEntitled && (
         <section className="public-section unlock-section">
           <div>
             <span className="public-label">Unlock required</span>
-            <h2>{productName}</h2>
-            <p>
-              Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules,
-              core prompt scripts, starter skills, and the first-build lab.
-            </p>
+            <h2>{requestedNext === "operator-toolkit" ? operatorToolkitProduct.name : productName}</h2>
+            {requestedNext === "operator-toolkit" ? (
+              <p>Your profile is active. Continue to the transparent mixed checkout: $327 today, then $30/month. The $297 launch edition remains yours if updates are canceled.</p>
+            ) : (
+              <p>Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules, core prompt scripts, starter skills, and the first-build lab.</p>
+            )}
           </div>
-          <CheckoutButton authSession={authSession} authReady={authReady} />
+          {requestedNext === "operator-toolkit" ? (
+            <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
+          ) : (
+            <CheckoutButton authSession={authSession} authReady={authReady} />
+          )}
         </section>
       )}
 
@@ -3142,6 +3405,301 @@ function OperatorBundleMemberPanel({ accessToken, bundle }) {
             </article>
           ))}
         </div>
+      </section>
+    </section>
+  );
+}
+
+function OperatorToolkitMemberPanel({ accessToken, toolkit, profile, updatesEntitled, subscription, onRefresh }) {
+  const accessPlan = toolkit?.accessPlan || operatorToolkitAccessPlan;
+  const assets = toolkit?.assets || [];
+  const updateAssets = toolkit?.updateAssets || [];
+  const releases = toolkit?.releases || operatorToolkitReleases;
+  const storageKey = `aiwithmurda:operator-toolkit-setup:${profile?.id || "member"}:v1`;
+  const savedSetup = useMemo(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(storageKey) || "null") || {};
+    } catch {
+      return {};
+    }
+  }, [storageKey]);
+  const [activeView, setActiveView] = useState("setup");
+  const [goal, setGoal] = useState(savedSetup.goal || "build-products");
+  const [agentMode, setAgentMode] = useState(savedSetup.agentMode || "both");
+  const [selectedCollections, setSelectedCollections] = useState(
+    savedSetup.selectedCollections || ["foundation", "build-quality"],
+  );
+  const [setupChecks, setSetupChecks] = useState(savedSetup.setupChecks || {});
+  const [downloadState, setDownloadState] = useState({});
+  const [billingState, setBillingState] = useState("idle");
+  const [billingMessage, setBillingMessage] = useState("");
+
+  const goalOptions = [
+    { key: "build-products", label: "Build products", collections: ["foundation", "build-quality", "design-product"] },
+    { key: "automate-business", label: "Automate business", collections: ["foundation", "build-quality", "operations-growth"] },
+    { key: "client-delivery", label: "Deliver client work", collections: ["foundation", "build-quality", "design-product", "operations-growth"] },
+    { key: "launch-growth", label: "Launch and grow", collections: ["foundation", "design-product", "operations-growth"] },
+  ];
+  const selectedGoal = goalOptions.find((item) => item.key === goal) || goalOptions[0];
+  const selectedCollectionDetails = operatorToolkitCollections.filter((collection) =>
+    selectedCollections.includes(collection.key),
+  );
+  const completedSetupSteps = Object.values(setupChecks).filter(Boolean).length;
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({ goal, agentMode, selectedCollections, setupChecks }),
+    );
+  }, [agentMode, goal, selectedCollections, setupChecks, storageKey]);
+
+  function chooseGoal(option) {
+    setGoal(option.key);
+    setSelectedCollections(option.collections);
+  }
+
+  function toggleCollection(collectionKey) {
+    setSelectedCollections((current) =>
+      current.includes(collectionKey)
+        ? current.filter((key) => key !== collectionKey)
+        : [...current, collectionKey],
+    );
+  }
+
+  async function handleDownload(asset, update = false) {
+    setDownloadState((current) => ({ ...current, [asset.key]: "loading" }));
+    try {
+      const blob = update
+        ? await downloadOperatorUpdateAsset(asset.key, accessToken)
+        : await downloadOperatorToolkitAsset(asset.key, accessToken);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = asset.downloadName || `${asset.key}.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState((current) => ({ ...current, [asset.key]: "success" }));
+    } catch (error) {
+      setDownloadState((current) => ({ ...current, [asset.key]: "error" }));
+    }
+  }
+
+  const setupPlanMarkdown = useMemo(
+    () => [
+      "# Operator Toolkit Setup Plan",
+      "",
+      `Operator: ${profile?.email || "member"}`,
+      `Primary goal: ${selectedGoal.label}`,
+      `Agent mode: ${agentMode === "both" ? "Claude Code + Codex" : agentMode === "claude" ? "Claude Code" : "Codex"}`,
+      `Setup progress: ${completedSetupSteps}/${accessPlan.setupChecklist.length}`,
+      "",
+      "## Install collections",
+      "",
+      ...selectedCollectionDetails.map((collection) => `- ${collection.title} (${collection.status})`),
+      "",
+      "## Setup sequence",
+      "",
+      ...accessPlan.setupChecklist.map((item, index) => `${setupChecks[index] ? "[x]" : "[ ]"} ${item}`),
+      "",
+      "## Verification",
+      "",
+      "- Save the clean environment receipt.",
+      "- Run one real task through builder, reviewer, user-path test, and handoff.",
+      "- Record the installed Operator System version and restore point.",
+      "",
+    ].join("\n"),
+    [accessPlan.setupChecklist, agentMode, completedSetupSteps, profile?.email, selectedCollectionDetails, selectedGoal.label, setupChecks],
+  );
+
+  function handleDownloadSetupPlan() {
+    downloadFile("operator-toolkit-setup-plan.md", setupPlanMarkdown, "text/markdown;charset=utf-8");
+  }
+
+  async function handleBillingPortal() {
+    setBillingState("loading");
+    setBillingMessage("");
+    try {
+      const data = await createBillingPortal(accessToken);
+      window.location.href = data.url;
+    } catch (error) {
+      setBillingState("error");
+      setBillingMessage(error.message || "Could not open billing management.");
+    }
+  }
+
+  async function handleRestartUpdates() {
+    setBillingState("loading");
+    setBillingMessage("");
+    try {
+      const data = await createOperatorUpdatesCheckout(accessToken);
+      window.location.href = data.url;
+    } catch (error) {
+      setBillingState("error");
+      setBillingMessage(error.message || "Could not restart Operator System Updates.");
+    }
+  }
+
+  const periodEnd = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+    : null;
+
+  return (
+    <section className={`operator-toolkit-member active-view-${activeView}`}>
+      <header className="operator-toolkit-member-header">
+        <div>
+          <span className="public-label">{accessPlan.label}</span>
+          <h2>Your full operator system is ready.</h2>
+          <p>{accessPlan.accessNote}</p>
+        </div>
+        <aside>
+          <span>{accessPlan.tier}</span>
+          <strong>{accessPlan.status}</strong>
+          <em>{updatesEntitled ? "Updates active" : "Updates paused"}</em>
+        </aside>
+      </header>
+
+      <nav className="operator-toolkit-member-nav" aria-label="Operator Toolkit sections">
+        {[
+          ["setup", "Setup", Layers3],
+          ["system", "System files", PackageCheck],
+          ["updates", "Updates", RefreshCw],
+          ["billing", "Billing", ShieldCheck],
+        ].map(([key, label, ViewIcon]) => (
+          <button key={key} type="button" className={activeView === key ? "active" : ""} onClick={() => setActiveView(key)}>
+            <ViewIcon size={18} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <section className="operator-toolkit-setup-view toolkit-member-view setup-view">
+        <header>
+          <div><span>Guided setup</span><h3>Build the system around your actual work.</h3></div>
+          <strong>{completedSetupSteps}/{accessPlan.setupChecklist.length} setup checks</strong>
+        </header>
+
+        <div className="operator-toolkit-configurator">
+          <fieldset>
+            <legend>1. What are you operating?</legend>
+            <div className="operator-toolkit-choice-grid">
+              {goalOptions.map((option) => (
+                <button key={option.key} type="button" className={goal === option.key ? "active" : ""} onClick={() => chooseGoal(option)}>
+                  {goal === option.key && <Check size={15} aria-hidden="true" />}
+                  <span>{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>2. Which agent setup?</legend>
+            <div className="operator-toolkit-choice-grid compact">
+              {[
+                ["both", "Claude Code + Codex"],
+                ["claude", "Claude Code"],
+                ["codex", "Codex"],
+              ].map(([key, label]) => (
+                <button key={key} type="button" className={agentMode === key ? "active" : ""} onClick={() => setAgentMode(key)}>
+                  {agentMode === key && <Check size={15} aria-hidden="true" />}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>3. Select skill collections</legend>
+            <div className="operator-toolkit-collection-selector">
+              {operatorToolkitCollections.map((collection) => (
+                <label key={collection.key} className={selectedCollections.includes(collection.key) ? "active" : ""}>
+                  <input
+                    type="checkbox"
+                    checked={selectedCollections.includes(collection.key)}
+                    onChange={() => toggleCollection(collection.key)}
+                  />
+                  <span><strong>{collection.title}</strong><small>{collection.status} · {collection.outcome}</small></span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+
+        <div className="operator-toolkit-setup-checks">
+          <div><span>4. Installation sequence</span><p>Mark a step complete only when its evidence exists outside the agent transcript.</p></div>
+          <div>
+            {accessPlan.setupChecklist.map((item, index) => (
+              <label key={item} className={setupChecks[index] ? "complete" : ""}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(setupChecks[index])}
+                  onChange={(event) => setSetupChecks((current) => ({ ...current, [index]: event.target.checked }))}
+                />
+                <span>{item}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="operator-toolkit-generated-plan">
+          <div><span>Your setup plan</span><strong>{selectedGoal.label} · {selectedCollectionDetails.length} collections</strong></div>
+          <pre>{setupPlanMarkdown}</pre>
+          <button type="button" onClick={handleDownloadSetupPlan}>Download setup plan</button>
+        </div>
+      </section>
+
+      <section className="operator-toolkit-system-view toolkit-member-view system-view">
+        <header><div><span>Permanent launch edition</span><h3>Your owned system files.</h3></div><p>These remain available even if monthly updates end.</p></header>
+        <div className="operator-toolkit-asset-grid">
+          {assets.map((asset) => (
+            <article key={asset.key}>
+              <span>{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
+              <button type="button" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
+                {downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download"}
+              </button>
+              {downloadState[asset.key] === "error" && <em>Download failed. Retry.</em>}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="operator-toolkit-updates-view toolkit-member-view updates-view">
+        <header>
+          <div><span>Versioned releases</span><h3>{updatesEntitled ? "Your update channel is active." : "Your permanent toolkit is safe."}</h3></div>
+          <p>{updatesEntitled ? "Read migration and rollback notes before applying a release." : "Future update files are paused until the $30/month channel is restarted."}</p>
+        </header>
+        <div className="operator-toolkit-release-list">
+          {releases.map((release) => (
+            <article key={release.version}>
+              <strong>v{release.version}</strong><span>{release.access}</span><h4>{release.title}</h4><p>{release.summary}</p><em>{release.date}</em>
+            </article>
+          ))}
+        </div>
+        <div className={`operator-toolkit-update-assets ${updatesEntitled ? "active" : "locked"}`}>
+          {updateAssets.map((asset) => (
+            <article key={asset.key}>
+              <span>{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
+              <button type="button" onClick={() => handleDownload(asset, true)} disabled={!updatesEntitled || downloadState[asset.key] === "loading"}>
+                {!updatesEntitled ? "Subscription required" : downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download update"}
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="operator-toolkit-billing-view toolkit-member-view billing-view">
+        <header><div><span>Ownership and billing</span><h3>The toolkit and update channel are separate.</h3></div></header>
+        <div className="operator-toolkit-billing-grid">
+          <article className="owned"><PackageCheck size={24} aria-hidden="true" /><span>Permanent</span><h4>Operator Toolkit launch edition</h4><p>The $297 system remains attached to your profile.</p><strong>Owned</strong></article>
+          <article className={updatesEntitled ? "active" : "paused"}><RefreshCw size={24} aria-hidden="true" /><span>Recurring</span><h4>Operator System Updates</h4><p>{updatesEntitled ? `${subscription?.cancel_at_period_end ? "Scheduled to end" : "Active"}${periodEnd ? ` · through ${periodEnd}` : ""}` : "No active update entitlement."}</p><strong>{updatesEntitled ? "$30/month" : "Paused"}</strong></article>
+        </div>
+        <div className="operator-toolkit-billing-actions">
+          {subscription && <button type="button" onClick={handleBillingPortal} disabled={billingState === "loading"}>Manage billing</button>}
+          {!updatesEntitled && <button type="button" onClick={handleRestartUpdates} disabled={billingState === "loading"}>Restart updates for $30/month</button>}
+          <button type="button" className="secondary-button" onClick={onRefresh} disabled={billingState === "loading"}>Refresh status</button>
+        </div>
+        {billingMessage && <p className="form-message error">{billingMessage}</p>}
       </section>
     </section>
   );

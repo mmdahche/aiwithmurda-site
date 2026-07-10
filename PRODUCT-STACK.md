@@ -20,6 +20,9 @@ This keeps the show, the scoreboard, checkout, and member delivery in one brande
 - Second product CTA command: `!builds`.
 - Second product price: `$97` one-time bundle.
 - Second product V1 state: checkout-enabled advanced skill, script, review, debug, deployment, and blueprint vault.
+- Third product: `The Operator Toolkit` at `$297` one time plus `Operator System Updates` at `$30/month`.
+- Third product initial Checkout total: `$327` for the permanent launch edition plus the first update month; then `$30/month` until canceled.
+- Ownership rule: canceling updates revokes only future update files. The purchased launch-edition toolkit remains active.
 - Delivery feel: premium Supabase-gated member hub, not a loose Google Drive folder.
 - Stream angle: entertainment-first, streamer-style show; education happens through live proof, not classroom framing.
 - Deadline: all core funnel pieces live before July 28, 2026.
@@ -48,6 +51,7 @@ Use Stripe Checkout Sessions for:
 
 - $47 first paid drop.
 - $97 New Wave Operator Bundle.
+- $297 Operator Toolkit launch edition plus its $30/month update channel in one transparent mixed cart.
 - Later cohort applications or deposits.
 
 Reason:
@@ -73,12 +77,14 @@ V1:
 - Modules and downloadable assets served from the site.
 - Module run kits give each module a timebox, next move, commands or script, verification checkpoint, and stop rule.
 - The build log turns finished module work into downloadable implementation receipts without adding another database dependency.
+- Operator Toolkit members receive a focused Setup, System Files, Updates, and Billing workspace.
+- Permanent toolkit and recurring update access use separate entitlements so cancellation cannot remove owned files.
 
 V2:
 
 - Account settings page.
 - Entitlement audit/history.
-- Update library and cohort access groups.
+- Cohort access groups.
 
 ### Kajabi
 
@@ -129,6 +135,9 @@ Environment variables:
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_FUTURE_METHOD_PRICE_ID`
 - `STRIPE_LIVE_BUILDS_PRICE_ID` configured to the persistent Backbone live `$97` Operator Bundle price; inline Checkout `price_data` remains a development fallback
+- `STRIPE_OPERATOR_TOOLKIT_PRICE_ID` for the persistent Backbone `$297` one-time launch-edition price
+- `STRIPE_OPERATOR_UPDATES_PRICE_ID` for the persistent Backbone `$30/month` recurring update price
+- `STRIPE_PORTAL_CONFIGURATION_ID` for the update-subscription billing portal
 - `SITE_URL=https://aiwithmurda.com`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -139,6 +148,10 @@ API endpoints:
 
 - `POST /api/subscribe`
 - `POST /api/checkout/future-proof-method`
+- `POST /api/checkout/live-builds`
+- `POST /api/checkout/operator-toolkit`
+- `POST /api/checkout/operator-updates`
+- `POST /api/billing/portal`
 - `POST /api/stripe/webhook`
 - `GET /api/me`
 - `GET /api/access/session/:sessionId`
@@ -164,6 +177,18 @@ Second product flow:
 6. `STRIPE_LIVE_BUILDS_PRICE_ID` remains the compatibility environment variable; without it the server uses Stripe Checkout `price_data` at 9700 cents.
 7. Active bundle buyers can switch between the guided starter course and the advanced Operator Vault inside `/members`.
 
+Third product flow:
+
+1. Viewer compares all three tiers at `/operator-toolkit`.
+2. An authenticated profile opens a subscription-mode Checkout containing a `$297` one-time line and a `$30/month` recurring line.
+3. Checkout states `$327 due today`; only the update line renews monthly.
+4. Paid completion grants permanent `operator_toolkit` and recurring `operator_updates` entitlements.
+5. Subscription webhooks keep the update entitlement synchronized for active, past-due, canceled, unpaid, and deleted states.
+6. Cancellation or failed termination revokes `operator_updates` while preserving `operator_toolkit`.
+7. The billing portal lets members update payment details, inspect invoices, and cancel future updates at period end.
+8. Existing toolkit owners can restart only the `$30/month` update channel without repurchasing the toolkit.
+9. Paid `subscription_cycle` invoices create idempotent `$30` purchase rows so recurring revenue reaches the dashboard without duplicating the initial `$327` Checkout.
+
 Subscriber capture:
 
 - `/api/subscribe` must persist every valid email to Supabase `subscribers` before attempting optional Resend email/contact work.
@@ -184,6 +209,10 @@ Gated assets:
 - New Wave Operator Bundle assets use the compatibility endpoint `GET /api/member-assets/new-wave-live-builds/:assetKey`.
 - The bundle endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
 - Current bundle assets: Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.
+- Operator Toolkit permanent assets use `GET /api/member-assets/operator-toolkit/:assetKey` and require `operator_toolkit` access.
+- The permanent library includes the 24-skill dual-layout ZIP, installation guide, command center, project instructions, dual-agent protocol, automation, design/QA, research/launch, client delivery, weekly review, and recovery systems.
+- Recurring release assets use `GET /api/member-assets/operator-updates/:assetKey` and require an active `operator_updates` entitlement.
+- The first update release includes four maintenance skills, a compatibility matrix, changelog, migration notes, verification receipt, and rollback guidance.
 - `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, action kits, and task lists do not drift.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
 - The member hub includes a local build-log receipt builder. It follows the active module route, includes progress and completed steps, previews the markdown, and downloads the receipt without adding another database dependency.
@@ -201,14 +230,16 @@ Admin operator workflows:
 Smoke test:
 
 - Run `npm run smoke:launch` for the full prelaunch verification pass. It runs tracker, stream config, signup, and paid funnel checks in order.
-- Run `npm run smoke:member-ui` against a local or deployed URL for the password-login, dual-entitlement, 20-step curriculum, personalization, lesson, vault-search, Operator Bundle, desktop, and mobile browser journey.
+- Run `npm run smoke:member-ui` against a local or deployed URL for password login, all three products, the 20-step curriculum, personalization, toolkit setup persistence, permanent files, updates, billing, desktop, and mobile journeys.
+- Run `npm run smoke:operator-toolkit-ui` for public pricing disclosure, tier comparison, installation path, ownership language, checkout handoff, and responsive QA.
+- Run `npm run smoke:operator-subscription` locally with the test webhook secret to prove grant, subscription storage, cancellation, permanent ownership, and update revocation.
 - `npm run smoke:tracker` verifies `/live-builds` loads and the client bundle includes the second-product offer copy.
 - `npm run smoke:stream` verifies the stream config includes `!builds` and the `/live-builds` destination.
 - `npm run smoke:stream` also verifies the Fake Stream Rehearsal plan is exposed with OBS steps.
 - `npm run smoke:stream` verifies the platform setup deck includes Twitch, YouTube, and main-room env mappings.
 - `npm run smoke:stream` verifies the privacy guard includes secret-screen and payment-blackout rules.
 - `npm run smoke:funnel` verifies `/api/checkout/live-builds` creates a `$97` Checkout Session with product key `new_wave_live_builds`.
-- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates Stripe Checkout Sessions, confirms unpaid sessions return the retryable recovery guard, verifies starter and Operator Bundle assets are blocked before entitlement, verifies module run kits, grants temporary entitlements, downloads gated assets, then expires sessions and deletes the test user.
+- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, verifies the `$47`, `$97`, and mixed `$327` Checkout objects, checks permanent and recurring asset gates, downloads entitled files, then expires sessions and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.
 - Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
@@ -226,6 +257,8 @@ Dashboard phase:
 - Welcome email sends.
 - `/kit` sells The Future Proof Method through Stripe test and live mode.
 - `/members` requires Supabase login and unlocks after payment.
+- `/operator-toolkit` sells the `$297` permanent system and `$30/month` updates with transparent mixed billing.
+- Subscription cancellation preserves owned toolkit access and pauses only future update releases.
 - Member modules include checklists, outputs, verification questions, traps, run kits, gated downloads, a build log, and first-build handoff export.
 - Purchase email sends with access link.
 - Live hub has stream embeds or direct watch links.

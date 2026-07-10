@@ -15,8 +15,19 @@ import {
   productPriceCents,
   productSubtitle,
 } from "../src/data/product.js";
-import { coreMemberAssets, operatorBundleAssets } from "../src/data/memberAssets.js";
+import {
+  coreMemberAssets,
+  operatorBundleAssets,
+  operatorToolkitAssets,
+  operatorUpdateAssets,
+} from "../src/data/memberAssets.js";
 import { operatorBundleAccessPlan, operatorBundleProduct } from "../src/data/operatorBundle.js";
+import {
+  operatorToolkitAccessPlan,
+  operatorToolkitProduct,
+  operatorToolkitReleases,
+  operatorUpdatesProduct,
+} from "../src/data/operatorToolkit.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -196,6 +207,25 @@ const checkoutProducts = new Map(
       priceEnvKey: "STRIPE_LIVE_BUILDS_PRICE_ID",
       successPath: "/live-builds",
       cancelPath: "/live-builds",
+    },
+    {
+      key: operatorToolkitProduct.key,
+      name: operatorToolkitProduct.name,
+      subtitle: operatorToolkitProduct.subtitle,
+      priceCents: operatorToolkitProduct.priceCents,
+      priceEnvKey: "STRIPE_OPERATOR_TOOLKIT_PRICE_ID",
+      recurringPriceEnvKey: "STRIPE_OPERATOR_UPDATES_PRICE_ID",
+      successPath: "/members",
+      cancelPath: "/operator-toolkit",
+      billing: "mixed_subscription",
+    },
+    {
+      key: operatorUpdatesProduct.key,
+      name: operatorUpdatesProduct.name,
+      subtitle: operatorUpdatesProduct.subtitle,
+      priceCents: operatorUpdatesProduct.priceCents,
+      priceEnvKey: "STRIPE_OPERATOR_UPDATES_PRICE_ID",
+      billing: "subscription_entitlement",
     },
   ].map((item) => [item.key, item]),
 );
@@ -446,7 +476,11 @@ async function getMemberTaskProgress(userId) {
 
 async function getMemberAccess(user) {
   const profile = await ensureProfile(user);
-  const [{ data: entitlements, error: entitlementsError }, { data: purchases, error: purchasesError }] =
+  const [
+    { data: entitlements, error: entitlementsError },
+    { data: purchases, error: purchasesError },
+    { data: subscriptions, error: subscriptionsError },
+  ] =
     await Promise.all([
       supabaseAdmin
         .from("entitlements")
@@ -458,15 +492,22 @@ async function getMemberAccess(user) {
         .select("product_key,status,amount_total,currency,purchased_at")
         .eq("user_id", user.id)
         .order("purchased_at", { ascending: false }),
+      supabaseAdmin
+        .from("subscriptions")
+        .select("product_key,status,cancel_at_period_end,current_period_end,created_at,updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false }),
     ]);
 
   if (entitlementsError) throw entitlementsError;
   if (purchasesError) throw purchasesError;
+  if (subscriptionsError) throw subscriptionsError;
 
   return {
     profile,
     entitlements: entitlements || [],
     purchases: purchases || [],
+    subscriptions: subscriptions || [],
     product: {
       key: productKey,
       name: productName,
@@ -486,6 +527,24 @@ async function getMemberAccess(user) {
       accessPlan: operatorBundleAccessPlan,
       assets: operatorBundleAssets.map(publicAsset),
     },
+    operatorToolkit: {
+      key: operatorToolkitProduct.key,
+      name: operatorToolkitProduct.name,
+      subtitle: operatorToolkitProduct.subtitle,
+      status: operatorToolkitProduct.status,
+      price_cents: operatorToolkitProduct.priceCents,
+      monthly_price_cents: operatorToolkitProduct.monthlyPriceCents,
+      initial_total_cents: operatorToolkitProduct.initialTotalCents,
+      accessPlan: operatorToolkitAccessPlan,
+      assets: operatorToolkitAssets.map(publicAsset),
+      updateProduct: {
+        key: operatorUpdatesProduct.key,
+        name: operatorUpdatesProduct.name,
+        price_cents: operatorUpdatesProduct.priceCents,
+      },
+      updateAssets: operatorUpdateAssets.map(publicAsset),
+      releases: operatorToolkitReleases,
+    },
   };
 }
 
@@ -503,11 +562,12 @@ async function hasActiveProductEntitlement(userId, entitlementProductKey) {
 }
 
 async function hasActiveEntitlement(userId) {
-  const [starterAccess, bundleAccess] = await Promise.all([
+  const [starterAccess, bundleAccess, toolkitAccess] = await Promise.all([
     hasActiveProductEntitlement(userId, productKey),
     hasActiveProductEntitlement(userId, operatorBundleProduct.key),
+    hasActiveProductEntitlement(userId, operatorToolkitProduct.key),
   ]);
-  return starterAccess || bundleAccess;
+  return starterAccess || bundleAccess || toolkitAccess;
 }
 
 function toDailyLog(row) {
@@ -1548,6 +1608,67 @@ function buildWelcomeEmail() {
 }
 
 function buildAccessEmail(productConfig = checkoutProducts.get(productKey)) {
+  if (productConfig?.key === operatorToolkitProduct.key) {
+    return {
+      subject: "Your Operator Toolkit is ready",
+      text: [
+        "Your permanent Operator Toolkit launch edition and monthly update channel are active.",
+        "",
+        `Open your member workspace: ${siteUrl}/members`,
+        "Start in this order:",
+        "- Audit the environment before installing anything.",
+        "- Generate the project command center from verified facts.",
+        "- Install only the skill collections tied to your current work.",
+        "- Run one build through builder, reviewer, user-path test, and handoff.",
+        "",
+        "Billing: $297 one-time setup plus $30/month for Operator System Updates.",
+        "The launch-edition toolkit remains yours if you cancel future updates.",
+      ].join("\n"),
+      html: baseEmailTemplate({
+        preheader: "Your permanent Operator Toolkit and update channel are active.",
+        title: "Your full operator system is ready.",
+        intro:
+          "Your profile now owns the launch-edition Operator Toolkit and has active access to versioned monthly system updates.",
+        bullets: [
+          "Begin with the environment audit and command-center setup.",
+          "Install skill collections deliberately instead of copying everything into every project.",
+          "Use the second agent as an independent reviewer and record a verified setup receipt.",
+          "The $297 launch edition remains yours; the $30/month update channel can be managed separately.",
+        ],
+        primaryUrl: `${siteUrl}/members`,
+        primaryLabel: "Open Operator Toolkit",
+        footer: `This confirmation was sent after Stripe activated ${operatorToolkitProduct.name} and ${operatorUpdatesProduct.name}.`,
+      }),
+    };
+  }
+
+  if (productConfig?.key === operatorUpdatesProduct.key) {
+    return {
+      subject: "Your Operator System Updates are active",
+      text: [
+        "Your $30/month Operator System Updates membership is active.",
+        "",
+        `Open the update channel: ${siteUrl}/members?product=operator-toolkit`,
+        "Your permanent Operator Toolkit remains attached to your profile.",
+        "Use Manage billing in the member area to view invoices or cancel future renewals.",
+      ].join("\n"),
+      html: baseEmailTemplate({
+        preheader: "Your Operator System update channel is active.",
+        title: "The update channel is active.",
+        intro:
+          "Your profile can access versioned skills, compatibility notes, migrations, verification receipts, and future Operator System releases.",
+        bullets: [
+          "Read the changelog before applying a release.",
+          "Preserve customized files and a restore point.",
+          "Your permanent launch-edition toolkit is unaffected by future cancellation.",
+        ],
+        primaryUrl: `${siteUrl}/members?product=operator-toolkit`,
+        primaryLabel: "Open update channel",
+        footer: `Operator System Updates renew at ${operatorUpdatesProduct.priceLabel} until canceled.`,
+      }),
+    };
+  }
+
   if (productConfig?.key === operatorBundleProduct.key) {
     return {
       subject: "Your New Wave Operator Bundle is ready",
@@ -1685,6 +1806,12 @@ async function getOfferOpsSummary() {
     current.push(row);
     progressByUserId.set(row.user_id, current);
   }
+  const assetCountByProduct = new Map([
+    [productKey, memberAssets.length],
+    [operatorBundleProduct.key, operatorBundleAssets.length],
+    [operatorToolkitProduct.key, operatorToolkitAssets.length],
+    [operatorUpdatesProduct.key, operatorUpdateAssets.length],
+  ]);
   const moduleSummaries = productModules.map((module) => {
     const moduleRows = validProgressRows.filter((row) => row.module_key === module.key);
     return {
@@ -1710,7 +1837,7 @@ async function getOfferOpsSummary() {
       paidPurchases: productPurchases.length,
       revenueCents: productRevenueCents,
       currency: productPurchases[0]?.currency || "usd",
-      assets: productConfig.key === operatorBundleProduct.key ? operatorBundleAssets.length : memberAssets.length,
+      assets: assetCountByProduct.get(productConfig.key) || 0,
       tasks: productConfig.key === productKey ? productTaskTotal : 0,
     };
   });
@@ -1719,15 +1846,22 @@ async function getOfferOpsSummary() {
     const purchase = purchasesByUserId.get(`${entitlement.user_id}:${entitlement.product_key}`);
     const userProgressRows = progressByUserId.get(entitlement.user_id) || [];
     const completedTaskKeys = new Set(userProgressRows.map((row) => `${row.module_key}:${row.task_key}`));
-    const includesStarterCourse = [productKey, operatorBundleProduct.key].includes(entitlement.product_key);
+    const includesStarterCourse = [productKey, operatorBundleProduct.key, operatorToolkitProduct.key].includes(
+      entitlement.product_key,
+    );
     const currentModule = includesStarterCourse
       ? completedTaskKeys.size >= productTaskTotal
         ? null
         : productModules.find((module) => module.todos.some((todo) => !completedTaskKeys.has(`${module.key}:${todo.key}`)))
-      : {
-          key: "operator-vault",
-          title: "Operator vault unlocked",
-        };
+      : entitlement.product_key === operatorUpdatesProduct.key
+        ? {
+            key: "operator-updates",
+            title: "Operator update channel active",
+          }
+        : {
+            key: "operator-vault",
+            title: "Operator vault unlocked",
+          };
     const lastProgressAt = userProgressRows
       .map((row) => row.completed_at || row.updated_at)
       .filter(Boolean)
@@ -2005,6 +2139,26 @@ async function ensureProductRecord(productConfig) {
     .throwOnError();
 }
 
+async function upsertProductEntitlement({ userId, productConfig, sourcePurchaseId = null, active = true }) {
+  await ensureProductRecord(productConfig);
+  const payload = {
+    user_id: userId,
+    product_key: productConfig.key,
+    status: active ? "active" : "revoked",
+    revoked_at: active ? null : new Date().toISOString(),
+  };
+  if (sourcePurchaseId) payload.source_purchase_id = sourcePurchaseId;
+
+  const { data, error } = await supabaseAdmin
+    .from("entitlements")
+    .upsert(payload, { onConflict: "user_id,product_key" })
+    .select("id,product_key,status,granted_at,revoked_at")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 async function grantEntitlement({ userId, email, session, productConfig = checkoutProducts.get(productKey) }) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
   if (!productConfig?.key || !checkoutProducts.has(productConfig.key)) {
@@ -2050,23 +2204,162 @@ async function grantEntitlement({ userId, email, session, productConfig = checko
 
   if (purchaseError) throw purchaseError;
 
-  const { data: entitlement, error: entitlementError } = await supabaseAdmin
-    .from("entitlements")
+  return upsertProductEntitlement({
+    userId,
+    productConfig,
+    sourcePurchaseId: purchase.id,
+    active: true,
+  });
+}
+
+const updateAccessStatuses = new Set(["active", "trialing", "past_due"]);
+
+function getSubscriptionPeriodEnd(subscription) {
+  const direct = Number(subscription?.current_period_end || 0);
+  const itemEnds = (subscription?.items?.data || []).map((item) => Number(item.current_period_end || 0));
+  const timestamp = Math.max(direct, ...itemEnds, 0);
+  return timestamp ? new Date(timestamp * 1000).toISOString() : null;
+}
+
+function getInvoiceSubscriptionReference(invoice) {
+  return invoice?.subscription || invoice?.parent?.subscription_details?.subscription || null;
+}
+
+function getInvoiceSubscriptionId(invoice) {
+  const reference = getInvoiceSubscriptionReference(invoice);
+  return typeof reference === "string" ? reference : reference?.id || null;
+}
+
+async function resolveSubscriptionUserId(subscription) {
+  const metadataUserId = String(subscription?.metadata?.supabase_user_id || "").trim();
+  if (metadataUserId) return metadataUserId;
+
+  const { data, error } = await supabaseAdmin
+    .from("subscriptions")
+    .select("user_id")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.user_id || null;
+}
+
+async function syncOperatorUpdateSubscription(
+  subscription,
+  { userId = null, checkoutSessionId = null, sourcePurchaseId = null } = {},
+) {
+  if (!subscription?.id) throw new Error("stripe_subscription_required");
+  const resolvedUserId = userId || (await resolveSubscriptionUserId(subscription));
+  if (!resolvedUserId) throw new Error("subscription_user_missing");
+
+  const status = String(subscription.status || "unknown");
+  const active = updateAccessStatuses.has(status);
+  const stripeCustomerId =
+    typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null;
+  const subscriptionPayload = {
+    user_id: resolvedUserId,
+    product_key: operatorUpdatesProduct.key,
+    stripe_subscription_id: subscription.id,
+    stripe_customer_id: stripeCustomerId,
+    status,
+    cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+    current_period_end: getSubscriptionPeriodEnd(subscription),
+  };
+  if (checkoutSessionId) subscriptionPayload.stripe_checkout_session_id = checkoutSessionId;
+
+  await ensureProductRecord(checkoutProducts.get(operatorUpdatesProduct.key));
+  const { data: subscriptionRow, error: subscriptionError } = await supabaseAdmin
+    .from("subscriptions")
+    .upsert(subscriptionPayload, { onConflict: "user_id,product_key" })
+    .select("product_key,status,cancel_at_period_end,current_period_end,created_at,updated_at")
+    .single();
+  if (subscriptionError) throw subscriptionError;
+
+  const entitlement = await upsertProductEntitlement({
+    userId: resolvedUserId,
+    productConfig: checkoutProducts.get(operatorUpdatesProduct.key),
+    sourcePurchaseId,
+    active,
+  });
+
+  return { userId: resolvedUserId, subscription: subscriptionRow, entitlement };
+}
+
+async function recordOperatorUpdateInvoicePayment({ invoice, userId }) {
+  if (!invoice?.id || !userId || invoice.billing_reason !== "subscription_cycle") return null;
+  const amountPaid = Number(invoice.amount_paid || 0);
+  if (amountPaid <= 0) return null;
+
+  const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
+  await ensureProductRecord(updatesConfig);
+  const stripeCustomerId =
+    typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id || null;
+  const paidTimestamp = Number(invoice.status_transitions?.paid_at || invoice.created || 0);
+  const { data, error } = await supabaseAdmin
+    .from("purchases")
     .upsert(
       {
         user_id: userId,
-        product_key: productConfig.key,
-        source_purchase_id: purchase.id,
-        status: "active",
-        revoked_at: null,
+        product_key: operatorUpdatesProduct.key,
+        stripe_checkout_session_id: `invoice:${invoice.id}`,
+        stripe_customer_id: stripeCustomerId,
+        amount_total: amountPaid,
+        currency: String(invoice.currency || "usd").toLowerCase(),
+        status: "paid",
+        purchased_at: paidTimestamp ? new Date(paidTimestamp * 1000).toISOString() : new Date().toISOString(),
       },
-      { onConflict: "user_id,product_key" },
+      { onConflict: "stripe_checkout_session_id" },
     )
-    .select("id,product_key,status,granted_at")
+    .select("id,product_key,amount_total,currency,purchased_at")
     .single();
+  if (error) throw error;
+  return data;
+}
 
-  if (entitlementError) throw entitlementError;
-  return entitlement;
+async function grantOperatorToolkitAccess({ userId, email, session }) {
+  const toolkitConfig = checkoutProducts.get(operatorToolkitProduct.key);
+  const permanentEntitlement = await grantEntitlement({ userId, email, session, productConfig: toolkitConfig });
+  const { data: purchase, error: purchaseError } = await supabaseAdmin
+    .from("purchases")
+    .select("id")
+    .eq("stripe_checkout_session_id", session.id)
+    .single();
+  if (purchaseError) throw purchaseError;
+
+  let subscription = session.subscription;
+  if (typeof subscription === "string") {
+    subscription = await stripe.subscriptions.retrieve(subscription);
+  }
+  if (!subscription?.id) throw new Error("operator_update_subscription_missing");
+
+  const updates = await syncOperatorUpdateSubscription(subscription, {
+    userId,
+    checkoutSessionId: session.id,
+    sourcePurchaseId: purchase.id,
+  });
+
+  return { permanentEntitlement, updates };
+}
+
+async function grantOperatorUpdateOnlyAccess({ userId, email, session }) {
+  const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
+  const updateEntitlement = await grantEntitlement({ userId, email, session, productConfig: updatesConfig });
+  const { data: purchase, error: purchaseError } = await supabaseAdmin
+    .from("purchases")
+    .select("id")
+    .eq("stripe_checkout_session_id", session.id)
+    .single();
+  if (purchaseError) throw purchaseError;
+
+  let subscription = session.subscription;
+  if (typeof subscription === "string") subscription = await stripe.subscriptions.retrieve(subscription);
+  if (!subscription?.id) throw new Error("operator_update_subscription_missing");
+
+  const updates = await syncOperatorUpdateSubscription(subscription, {
+    userId,
+    checkoutSessionId: session.id,
+    sourcePurchaseId: purchase.id,
+  });
+  return { updateEntitlement, updates };
 }
 
 async function createCheckoutSessionForProduct({ req, productConfig }) {
@@ -2106,6 +2399,115 @@ async function createCheckoutSessionForProduct({ req, productConfig }) {
   });
 }
 
+async function createOperatorToolkitCheckoutSession(req) {
+  const toolkitConfig = checkoutProducts.get(operatorToolkitProduct.key);
+  const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
+  await Promise.all([ensureProductRecord(toolkitConfig), ensureProductRecord(updatesConfig)]);
+
+  const profile = await ensureProfile(req.user);
+  const customerTarget = profile.stripe_customer_id
+    ? { customer: profile.stripe_customer_id }
+    : { customer_email: profile.email };
+  const toolkitPriceId = process.env.STRIPE_OPERATOR_TOOLKIT_PRICE_ID;
+  const updatesPriceId = process.env.STRIPE_OPERATOR_UPDATES_PRICE_ID;
+  const setupLineItem = toolkitPriceId
+    ? { price: toolkitPriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: operatorToolkitProduct.priceCents,
+          product_data: {
+            name: operatorToolkitProduct.name,
+            description: "Permanent launch-edition setup and customer-safe operating system.",
+          },
+        },
+        quantity: 1,
+      };
+  const updateLineItem = updatesPriceId
+    ? { price: updatesPriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: operatorUpdatesProduct.priceCents,
+          recurring: { interval: "month" },
+          product_data: {
+            name: operatorUpdatesProduct.name,
+            description: operatorUpdatesProduct.subtitle,
+          },
+        },
+        quantity: 1,
+      };
+
+  return stripe.checkout.sessions.create({
+    mode: "subscription",
+    ...customerTarget,
+    allow_promotion_codes: true,
+    client_reference_id: req.user.id,
+    line_items: [setupLineItem, updateLineItem],
+    success_url: `${siteUrl}/members?checkout=success&product=operator-toolkit&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/operator-toolkit?checkout=cancel`,
+    metadata: {
+      product_key: operatorToolkitProduct.key,
+      update_product_key: operatorUpdatesProduct.key,
+      supabase_user_id: req.user.id,
+      billing_model: "297_setup_plus_30_monthly",
+    },
+    subscription_data: {
+      metadata: {
+        product_key: operatorUpdatesProduct.key,
+        permanent_product_key: operatorToolkitProduct.key,
+        supabase_user_id: req.user.id,
+      },
+    },
+  });
+}
+
+async function createOperatorUpdatesCheckoutSession(req) {
+  const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
+  await ensureProductRecord(updatesConfig);
+  const profile = await ensureProfile(req.user);
+  const customerTarget = profile.stripe_customer_id
+    ? { customer: profile.stripe_customer_id }
+    : { customer_email: profile.email };
+  const updatesPriceId = process.env.STRIPE_OPERATOR_UPDATES_PRICE_ID;
+  const updateLineItem = updatesPriceId
+    ? { price: updatesPriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: operatorUpdatesProduct.priceCents,
+          recurring: { interval: "month" },
+          product_data: {
+            name: operatorUpdatesProduct.name,
+            description: operatorUpdatesProduct.subtitle,
+          },
+        },
+        quantity: 1,
+      };
+
+  return stripe.checkout.sessions.create({
+    mode: "subscription",
+    ...customerTarget,
+    allow_promotion_codes: true,
+    client_reference_id: req.user.id,
+    line_items: [updateLineItem],
+    success_url: `${siteUrl}/members?checkout=success&product=operator-toolkit&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/members?product=operator-toolkit&checkout=cancel`,
+    metadata: {
+      product_key: operatorUpdatesProduct.key,
+      supabase_user_id: req.user.id,
+      billing_model: "30_monthly_reactivation",
+    },
+    subscription_data: {
+      metadata: {
+        product_key: operatorUpdatesProduct.key,
+        permanent_product_key: operatorToolkitProduct.key,
+        supabase_user_id: req.user.id,
+      },
+    },
+  });
+}
+
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
     res.status(503).json({ error: "stripe_webhook_not_configured" });
@@ -2129,12 +2531,26 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
       const session = event.data.object;
       const productConfig = checkoutProducts.get(session.metadata?.product_key);
       if (productConfig && session.payment_status === "paid") {
-        await grantEntitlement({
-          userId: session.metadata?.supabase_user_id,
-          email: session.customer_details?.email,
-          session,
-          productConfig,
-        });
+        if (productConfig.key === operatorToolkitProduct.key) {
+          await grantOperatorToolkitAccess({
+            userId: session.metadata?.supabase_user_id,
+            email: session.customer_details?.email,
+            session,
+          });
+        } else if (productConfig.key === operatorUpdatesProduct.key) {
+          await grantOperatorUpdateOnlyAccess({
+            userId: session.metadata?.supabase_user_id,
+            email: session.customer_details?.email,
+            session,
+          });
+        } else {
+          await grantEntitlement({
+            userId: session.metadata?.supabase_user_id,
+            email: session.customer_details?.email,
+            session,
+            productConfig,
+          });
+        }
 
         if (resend && session.customer_details?.email) {
           const accessEmail = buildAccessEmail(productConfig);
@@ -2145,6 +2561,35 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
             text: accessEmail.text,
             html: accessEmail.html,
           });
+        }
+      }
+    }
+
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      const subscription = event.data.object;
+      if (subscription.metadata?.product_key === operatorUpdatesProduct.key) {
+        await syncOperatorUpdateSubscription(subscription);
+      }
+    }
+
+    if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
+      const invoice = event.data.object;
+      const subscriptionId = getInvoiceSubscriptionId(invoice);
+      if (subscriptionId) {
+        const reference = getInvoiceSubscriptionReference(invoice);
+        const subscription =
+          typeof reference === "object" && reference?.metadata?.product_key
+            ? reference
+            : await stripe.subscriptions.retrieve(subscriptionId);
+        if (subscription.metadata?.product_key === operatorUpdatesProduct.key) {
+          const synced = await syncOperatorUpdateSubscription(subscription);
+          if (event.type === "invoice.paid") {
+            await recordOperatorUpdateInvoicePayment({ invoice, userId: synced.userId });
+          }
         }
       }
     }
@@ -2877,6 +3322,63 @@ app.post("/api/checkout/live-builds", requireUser, async (req, res) => {
   }
 });
 
+app.post("/api/checkout/operator-toolkit", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    const session = await createOperatorToolkitCheckoutSession(req);
+    res.json({ url: session.url, session_id: session.id });
+  } catch (error) {
+    console.error("[operator-toolkit-checkout]", error);
+    res.status(500).json({ error: "operator_toolkit_checkout_create_failed" });
+  }
+});
+
+app.post("/api/checkout/operator-updates", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    if (!(await hasActiveProductEntitlement(req.user.id, operatorToolkitProduct.key))) {
+      res.status(403).json({ error: "operator_toolkit_required" });
+      return;
+    }
+    if (await hasActiveProductEntitlement(req.user.id, operatorUpdatesProduct.key)) {
+      res.status(409).json({ error: "operator_updates_already_active" });
+      return;
+    }
+
+    const session = await createOperatorUpdatesCheckoutSession(req);
+    res.json({ url: session.url, session_id: session.id });
+  } catch (error) {
+    console.error("[operator-updates-checkout]", error);
+    res.status(500).json({ error: "operator_updates_checkout_create_failed" });
+  }
+});
+
+app.post("/api/billing/portal", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    const profile = await ensureProfile(req.user);
+    if (!profile?.stripe_customer_id) {
+      res.status(409).json({ error: "stripe_customer_missing" });
+      return;
+    }
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: `${siteUrl}/members`,
+      ...(process.env.STRIPE_PORTAL_CONFIGURATION_ID
+        ? { configuration: process.env.STRIPE_PORTAL_CONFIGURATION_ID }
+        : {}),
+    });
+    res.json({ url: portalSession.url });
+  } catch (error) {
+    console.error("[billing-portal]", error);
+    res.status(500).json({ error: "billing_portal_create_failed" });
+  }
+});
+
 app.post("/api/checkout/test-purchase", requireUser, async (req, res) => {
   if (!requireConfigured(res, stripe, "stripe")) return;
 
@@ -2946,12 +3448,25 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
       return;
     }
 
-    const entitlement = await grantEntitlement({
-      userId: req.user.id,
-      email: req.user.email,
-      session,
-      productConfig,
-    });
+    const entitlement =
+      productConfig.key === operatorToolkitProduct.key
+        ? await grantOperatorToolkitAccess({
+            userId: req.user.id,
+            email: req.user.email,
+            session,
+          })
+        : productConfig.key === operatorUpdatesProduct.key
+          ? await grantOperatorUpdateOnlyAccess({
+              userId: req.user.id,
+              email: req.user.email,
+              session,
+            })
+        : await grantEntitlement({
+            userId: req.user.id,
+            email: req.user.email,
+            session,
+            productConfig,
+          });
 
     res.json({
       ok: true,
@@ -2999,7 +3514,11 @@ app.get("/api/member-assets/new-wave-live-builds/:assetKey", requireUser, async 
       return;
     }
 
-    if (!(await hasActiveProductEntitlement(req.user.id, operatorBundleProduct.key))) {
+    const [bundleAccess, toolkitAccess] = await Promise.all([
+      hasActiveProductEntitlement(req.user.id, operatorBundleProduct.key),
+      hasActiveProductEntitlement(req.user.id, operatorToolkitProduct.key),
+    ]);
+    if (!bundleAccess && !toolkitAccess) {
       res.status(403).json({ error: "entitlement_required" });
       return;
     }
@@ -3011,6 +3530,54 @@ app.get("/api/member-assets/new-wave-live-builds/:assetKey", requireUser, async 
     res.send(file);
   } catch (error) {
     console.error("[live-build-member-asset]", error);
+    res.status(500).json({ error: "asset_download_failed" });
+  }
+});
+
+app.get("/api/member-assets/operator-toolkit/:assetKey", requireUser, async (req, res) => {
+  try {
+    const asset = operatorToolkitAssets.find((item) => item.key === req.params.assetKey);
+    if (!asset) {
+      res.status(404).json({ error: "asset_not_found" });
+      return;
+    }
+
+    if (!(await hasActiveProductEntitlement(req.user.id, operatorToolkitProduct.key))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    const filePath = path.join(assetDir, asset.fileName);
+    const file = await fs.readFile(filePath);
+    res.setHeader("Content-Type", asset.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${asset.downloadName}"`);
+    res.send(file);
+  } catch (error) {
+    console.error("[operator-toolkit-member-asset]", error);
+    res.status(500).json({ error: "asset_download_failed" });
+  }
+});
+
+app.get("/api/member-assets/operator-updates/:assetKey", requireUser, async (req, res) => {
+  try {
+    const asset = operatorUpdateAssets.find((item) => item.key === req.params.assetKey);
+    if (!asset) {
+      res.status(404).json({ error: "asset_not_found" });
+      return;
+    }
+
+    if (!(await hasActiveProductEntitlement(req.user.id, operatorUpdatesProduct.key))) {
+      res.status(403).json({ error: "active_subscription_required" });
+      return;
+    }
+
+    const filePath = path.join(assetDir, asset.fileName);
+    const file = await fs.readFile(filePath);
+    res.setHeader("Content-Type", asset.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${asset.downloadName}"`);
+    res.send(file);
+  } catch (error) {
+    console.error("[operator-update-member-asset]", error);
     res.status(500).json({ error: "asset_download_failed" });
   }
 });

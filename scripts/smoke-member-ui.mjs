@@ -71,7 +71,12 @@ try {
   if (created.error || !created.data?.user) throw created.error || new Error("UI smoke user creation failed");
   userId = created.data.user.id;
 
-  const entitlementRows = ["future_proof_method", "new_wave_live_builds"].map((productKey) => ({
+  const entitlementRows = [
+    "future_proof_method",
+    "new_wave_live_builds",
+    "operator_toolkit",
+    "operator_updates",
+  ].map((productKey) => ({
     user_id: userId,
     product_key: productKey,
     status: "active",
@@ -81,6 +86,18 @@ try {
     onConflict: "user_id,product_key",
   });
   if (entitlements.error) throw entitlements.error;
+  const subscription = await admin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      product_key: "operator_updates",
+      stripe_subscription_id: `sub_member_ui_${runId}`,
+      status: "active",
+      cancel_at_period_end: false,
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    { onConflict: "user_id,product_key" },
+  );
+  if (subscription.error) throw subscription.error;
 
   browser = await chromium.launch({ headless: true });
   const desktop = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
@@ -120,6 +137,51 @@ try {
   await auditLayout(desktopPage, "desktop operator bundle");
   await saveScreenshot(desktopPage, "06-operator-bundle-desktop");
 
+  await desktopPage
+    .getByRole("navigation", { name: "Your products" })
+    .getByRole("button", { name: /The Operator Toolkit/ })
+    .click();
+  await desktopPage.getByRole("heading", { name: "Your full operator system is ready." }).waitFor();
+  const toolkitNav = desktopPage.getByRole("navigation", { name: "Operator Toolkit sections" });
+  assert((await toolkitNav.getByRole("button").count()) === 4, "Toolkit navigation does not expose four focused views");
+  await desktopPage.getByRole("button", { name: "Automate business", exact: true }).click();
+  await desktopPage.getByRole("button", { name: "Codex", exact: true }).click();
+  await desktopPage.locator(".operator-toolkit-setup-checks input").first().check();
+  await auditLayout(desktopPage, "desktop toolkit setup");
+  await saveScreenshot(desktopPage, "07-operator-toolkit-setup-desktop");
+
+  await desktopPage.goto(`${siteUrl}/members?product=operator-toolkit`, { waitUntil: "domcontentloaded" });
+  await desktopPage.getByRole("heading", { name: "Your full operator system is ready." }).waitFor({ timeout: 20_000 });
+  assert(
+    await desktopPage.getByRole("button", { name: "Automate business", exact: true }).evaluate((node) =>
+      node.classList.contains("active"),
+    ),
+    "Toolkit goal did not persist after reload",
+  );
+  assert(
+    await desktopPage.getByRole("button", { name: "Codex", exact: true }).evaluate((node) => node.classList.contains("active")),
+    "Toolkit agent choice did not persist after reload",
+  );
+  assert(await desktopPage.locator(".operator-toolkit-setup-checks input").first().isChecked(), "Toolkit setup check did not persist");
+
+  await toolkitNav.getByRole("button", { name: "System files", exact: true }).click();
+  await desktopPage.getByRole("heading", { name: "Your owned system files." }).waitFor();
+  assert((await desktopPage.locator(".operator-toolkit-asset-grid article").count()) >= 11, "Owned toolkit files are incomplete");
+  await auditLayout(desktopPage, "desktop toolkit files");
+  await saveScreenshot(desktopPage, "08-operator-toolkit-files-desktop");
+
+  await toolkitNav.getByRole("button", { name: "Updates", exact: true }).click();
+  await desktopPage.getByRole("heading", { name: "Your update channel is active." }).waitFor();
+  assert((await desktopPage.locator(".operator-toolkit-update-assets article").count()) >= 3, "Update assets are incomplete");
+  await saveScreenshot(desktopPage, "09-operator-toolkit-updates-desktop");
+
+  await toolkitNav.getByRole("button", { name: "Billing", exact: true }).click();
+  await desktopPage.getByRole("heading", { name: "The toolkit and update channel are separate." }).waitFor();
+  await desktopPage.getByText("Owned", { exact: true }).waitFor();
+  await desktopPage.getByText("$30/month", { exact: true }).waitFor();
+  await auditLayout(desktopPage, "desktop toolkit billing");
+  await saveScreenshot(desktopPage, "10-operator-toolkit-billing-desktop");
+
   const storageState = await desktop.storageState();
   const mobile = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -144,12 +206,28 @@ try {
   );
   assert(workspaceButtonsFit, "One or more mobile member destinations are outside the viewport");
   await auditLayout(mobilePage, "mobile start");
-  await saveScreenshot(mobilePage, "07-member-start-mobile");
+  await saveScreenshot(mobilePage, "11-member-start-mobile");
 
   await mobilePage.getByRole("link", { name: /Continue module/ }).click();
   await mobilePage.getByRole("heading", { name: "Module 1: Set Up Both AI Builders" }).waitFor();
   await auditLayout(mobilePage, "mobile lesson");
-  await saveScreenshot(mobilePage, "08-module-one-mobile");
+  await saveScreenshot(mobilePage, "12-module-one-mobile");
+
+  await mobilePage.goto(`${siteUrl}/members?product=operator-toolkit`, { waitUntil: "domcontentloaded" });
+  await mobilePage.getByRole("heading", { name: "Your full operator system is ready." }).waitFor({ timeout: 20_000 });
+  const mobileToolkitButtons = mobilePage
+    .getByRole("navigation", { name: "Operator Toolkit sections" })
+    .getByRole("button");
+  assert((await mobileToolkitButtons.count()) === 4, "Mobile toolkit navigation is incomplete");
+  const mobileToolkitButtonsFit = await mobileToolkitButtons.evaluateAll((buttons) =>
+    buttons.every((button) => {
+      const rect = button.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= window.innerWidth;
+    }),
+  );
+  assert(mobileToolkitButtonsFit, "One or more mobile toolkit destinations are outside the viewport");
+  await auditLayout(mobilePage, "mobile toolkit setup");
+  await saveScreenshot(mobilePage, "13-operator-toolkit-mobile");
 
   await mobile.close();
   await desktop.close();
@@ -162,14 +240,21 @@ try {
         siteUrl,
         checks: {
           passwordLogin: true,
-          bothEntitlementsVisible: true,
+          allProductEntitlementsVisible: true,
           twentyStepCurriculum: true,
           buildTrackPersists: true,
           lessonProgressiveDisclosure: true,
           scriptVaultSearch: true,
           operatorBundleAccess: true,
+          operatorToolkitAccess: true,
+          operatorToolkitFourViewNavigation: true,
+          operatorToolkitSetupPersists: true,
+          operatorToolkitOwnedFiles: true,
+          operatorToolkitUpdates: true,
+          operatorToolkitBillingBoundary: true,
           mobileNavigation: true,
           allWorkspaceDestinationsVisible: true,
+          allToolkitDestinationsVisible: true,
           desktopOverflow: false,
           mobileOverflow: false,
           browserErrors: 0,
