@@ -1,9 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
+  BookOpenText,
+  Check,
+  Download,
+  ExternalLink,
+  FileCheck2,
+  FolderDown,
+  House,
+  LogOut,
+  RadioTower,
+  Search,
+  Trophy,
+} from "lucide-react";
+import {
   buyerOnboardingEmails,
   courseCompletion,
   memberOnboardingSteps,
-  memberStartPath,
   productAssetHighlights,
   productFaqItems,
   productKey,
@@ -2787,6 +2800,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [status, setStatus] = useState("idle");
   const [notice, setNotice] = useState(null);
   const [accessCheck, setAccessCheck] = useState({ status: "idle" });
+  const [activeMemberProduct, setActiveMemberProduct] = useState("future-method");
   const accessToken = authSession?.access_token;
   const futureMethodEntitled = Boolean(
     memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
@@ -2797,6 +2811,20 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     ),
   );
   const hasAnyPaidAccess = futureMethodEntitled || liveBuildEntitled;
+
+  useEffect(() => {
+    if (activeModuleKey && futureMethodEntitled) {
+      setActiveMemberProduct("future-method");
+      return;
+    }
+    if (activeMemberProduct === "future-method" && futureMethodEntitled) return;
+    if (activeMemberProduct === "live-builds" && liveBuildEntitled) return;
+    if (futureMethodEntitled) {
+      setActiveMemberProduct("future-method");
+    } else if (liveBuildEntitled) {
+      setActiveMemberProduct("live-builds");
+    }
+  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, liveBuildEntitled]);
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2870,26 +2898,52 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     };
   }, [accessToken, refreshMemberAccess]);
 
+  async function handleMemberSignOut() {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      window.location.href = "/members";
+    } catch (error) {
+      setNotice({ tone: "error", text: error.message || "Could not sign out yet." });
+    }
+  }
+
   return (
-    <main className="public-page">
-      <section className={`public-section members-shell ${hasAnyPaidAccess ? "paid" : ""}`}>
+    <main className={`public-page members-page ${hasAnyPaidAccess ? "has-access" : ""}`}>
+      <section className={`member-entry-header ${hasAnyPaidAccess ? "paid" : ""}`}>
         <div>
-          <span className="public-label">{hasAnyPaidAccess ? "Member home" : "Member area preview"}</span>
-          <h1>{hasAnyPaidAccess ? "Start with one move." : "Profile-gated from day one."}</h1>
+          <span className="member-entry-kicker">{hasAnyPaidAccess ? "Member workspace" : "Future Proof Method"}</span>
+          <h1>{hasAnyPaidAccess ? "Your operator desk." : "Build proof. Keep the receipts."}</h1>
           <p>
             {hasAnyPaidAccess
-              ? "Your workspace is unlocked. Use Today for the next action, then open Course, Tools, Proof, or Finish only when you need them."
-              : `Sign in with your profile, buy ${productName}, and unlock the member hub for the kit, updates, replays, and future live-build assets.`}
+              ? "Pick up the next task, open the exact tool you need, and leave everything else out of the way."
+              : `Sign in to access ${productName}, your progress, downloads, proof receipts, and live-build purchases.`}
           </p>
           {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
         </div>
-        <div className="member-login-card">
-          <span>Access state</span>
-          <strong>
-            {hasAnyPaidAccess ? "Unlocked" : status === "loading" ? "Checking" : authSession ? "Profile active" : "Login required"}
-          </strong>
-          <p>{authSession?.user?.email || "Use your member login before checkout."}</p>
-        </div>
+        <aside className="member-account-panel">
+          <div className="member-account-state">
+            <i className={hasAnyPaidAccess ? "active" : ""} aria-hidden="true" />
+            <span>{hasAnyPaidAccess ? "Access active" : status === "loading" ? "Checking access" : authSession ? "Profile active" : "Secure login"}</span>
+          </div>
+          <strong>{authSession?.user?.email || "Your member profile"}</strong>
+          <p>{hasAnyPaidAccess ? "Progress syncs to this account." : "Use the same email at login and checkout."}</p>
+          <div className="member-account-actions">
+            {authSession && (
+              <button type="button" onClick={handleMemberSignOut}>
+                <LogOut size={16} aria-hidden="true" />
+                Sign out
+              </button>
+            )}
+            <a href="/60">
+              <ExternalLink size={16} aria-hidden="true" />
+              Public scoreboard
+            </a>
+          </div>
+        </aside>
       </section>
 
       {!authReady && <MemberStateCard title="Checking profile" body="Loading Supabase session..." />}
@@ -2907,10 +2961,39 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           onProfileRefresh={() => refreshMemberAccess({ verifyCheckout: false })}
         />
       )}
-      {authSession && liveBuildEntitled && (
+
+      {authSession && status === "loading" && (
+        <MemberStateCard title="Loading your workspace" body="Checking products, progress, and member assets." />
+      )}
+
+      {authSession && status === "ready" && futureMethodEntitled && liveBuildEntitled && !activeModuleKey && (
+        <nav className="member-product-switcher" aria-label="Your products">
+          <button
+            type="button"
+            className={activeMemberProduct === "future-method" ? "active" : ""}
+            onClick={() => setActiveMemberProduct("future-method")}
+          >
+            <BookOpenText size={19} aria-hidden="true" />
+            <span><strong>The Future Proof Method</strong><small>Course and operator tools</small></span>
+            <Check size={16} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={activeMemberProduct === "live-builds" ? "active" : ""}
+            onClick={() => setActiveMemberProduct("live-builds")}
+          >
+            <RadioTower size={19} aria-hidden="true" />
+            <span><strong>New Wave Live Builds</strong><small>Ticket and room assets</small></span>
+            <Check size={16} aria-hidden="true" />
+          </button>
+        </nav>
+      )}
+
+      {authSession && status === "ready" && liveBuildEntitled && activeMemberProduct === "live-builds" && (
         <LiveBuildMemberPanel accessToken={authSession.access_token} liveBuilds={memberData?.liveBuilds} />
       )}
-      {authSession && !futureMethodEntitled && (
+
+      {authSession && status === "ready" && !futureMethodEntitled && !liveBuildEntitled && (
         <section className="public-section unlock-section">
           <div>
             <span className="public-label">Unlock required</span>
@@ -2923,7 +3006,18 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </section>
       )}
-      {authSession && futureMethodEntitled && (
+
+      {authSession && status === "ready" && liveBuildEntitled && !futureMethodEntitled && (
+        <section className="member-add-product">
+          <div>
+            <BookOpenText size={20} aria-hidden="true" />
+            <span><strong>Add {productName}</strong><small>Unlock the complete course, proof tools, and resource library.</small></span>
+          </div>
+          <CheckoutButton authSession={authSession} authReady={authReady} />
+        </section>
+      )}
+
+      {authSession && status === "ready" && futureMethodEntitled && activeMemberProduct === "future-method" && (
         <MemberModules
           accessToken={authSession.access_token}
           activeModuleKey={activeModuleKey}
@@ -3073,53 +3167,111 @@ function PurchaseRecoveryCard({ state, onRefresh, onProfileRefresh }) {
 
 function AuthPanel() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState("signin");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
 
-  async function handleLogin(event) {
+  async function handlePasswordAuth(event) {
     event.preventDefault();
     const supabase = getSupabaseClient();
     if (!supabase) return;
 
     setStatus("loading");
     setMessage("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/members`,
-      },
-    });
 
-    if (error) {
+    try {
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        setStatus("success");
+        setMessage("Signed in. Loading your workspace...");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/members` },
+      });
+      if (error) throw error;
+      setStatus("success");
+      setMessage(data.session ? "Profile created. Loading your workspace..." : "Profile created. Check your email to confirm it.");
+    } catch (error) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(error.message || "Could not access your profile.");
+    }
+  }
+
+  async function handleMagicLink() {
+    const supabase = getSupabaseClient();
+    if (!supabase || !email) {
+      setStatus("error");
+      setMessage("Enter your email first.");
       return;
     }
 
-    setStatus("success");
-    setMessage("Magic link sent. Open it to access your profile.");
+    setStatus("loading");
+    setMessage("");
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/members` },
+      });
+      if (error) throw error;
+      setStatus("success");
+      setMessage("Secure sign-in link sent. Open it from your email.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || "Could not send the sign-in link.");
+    }
   }
 
   return (
-    <section className="public-section auth-section">
+    <section className="member-auth-shell">
       <div>
-        <span className="public-label">Member login</span>
-        <h2>Create your profile</h2>
-        <p>Use the same email you will use at checkout so the product unlocks cleanly.</p>
+        <span>Member access</span>
+        <h2>Continue to your workspace.</h2>
+        <p>Sign in with the profile connected to your purchase, or create one before checkout.</p>
       </div>
-      <form className="auth-form" onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        <button type="submit" disabled={status === "loading"}>
-          {status === "loading" ? "Sending..." : "Send magic link"}
-        </button>
-        {message && <p className={`form-message ${status}`}>{message}</p>}
-      </form>
+      <div className="member-auth-panel">
+        <div className="member-auth-modes" aria-label="Member access mode">
+          <button type="button" className={mode === "signin" ? "active" : ""} onClick={() => setMode("signin")}>Sign in</button>
+          <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => setMode("signup")}>Create account</button>
+        </div>
+        <form className="member-auth-form" onSubmit={handlePasswordAuth}>
+          <label>
+            <span>Email</span>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+          <label>
+            <span>Password</span>
+            <input
+              type="password"
+              placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              minLength={mode === "signup" ? 8 : undefined}
+              required
+            />
+          </label>
+          <button type="submit" disabled={status === "loading"}>
+            {status === "loading" ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}
+          </button>
+          <button type="button" className="member-magic-link" onClick={handleMagicLink} disabled={status === "loading"}>
+            Email me a secure sign-in link
+          </button>
+          {message && <p className={`form-message ${status}`} role="status">{message}</p>}
+        </form>
+      </div>
     </section>
   );
 }
@@ -3291,6 +3443,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     error: null,
   });
   const [taskSaving, setTaskSaving] = useState({});
+  const [resourceQuery, setResourceQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -3363,6 +3516,13 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const assetsByTitle = useMemo(() => {
     return new Map(assets.map((asset) => [asset.title.toLowerCase(), asset]));
   }, [assets]);
+  const filteredAssets = useMemo(() => {
+    const query = resourceQuery.trim().toLowerCase();
+    if (!query) return assets;
+    return assets.filter((asset) =>
+      [asset.title, asset.description, asset.kind].some((value) => String(value || "").toLowerCase().includes(query)),
+    );
+  }, [assets, resourceQuery]);
   const selectedProofModule = useMemo(() => {
     return productModules.find((module) => module.key === proofDraft.moduleKey) || productModules[0] || null;
   }, [proofDraft.moduleKey]);
@@ -3748,11 +3908,11 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   ]);
   const firstRun = progressState.summary.completed === 0;
   const memberWorkspaceTabs = [
-    { key: "today", label: "Today", body: "Next step only" },
-    { key: "course", label: "Course", body: `${progressState.summary.completed}/${progressState.summary.total} tasks` },
-    { key: "tools", label: "Tools", body: `${assets.length} downloads` },
-    { key: "proof", label: "Proof", body: "Receipt builder" },
-    { key: "finish", label: "Finish", body: `${completionAnswerCount}/${courseCompletion.finalReceiptSections.length} answers` },
+    { key: "today", label: "Home", body: "Your next move", icon: House },
+    { key: "course", label: "Course", body: `${progressState.summary.completed}/${progressState.summary.total} tasks`, icon: BookOpenText },
+    { key: "tools", label: "Library", body: `${assets.length} resources`, icon: FolderDown },
+    { key: "proof", label: "Proof", body: "Build a receipt", icon: FileCheck2 },
+    { key: "finish", label: "Finish", body: `${completionAnswerCount}/${courseCompletion.finalReceiptSections.length} drafted`, icon: Trophy },
   ];
   const [activeMemberTab, setActiveMemberTab] = useState(activeModuleKey ? "course" : "today");
 
@@ -3805,137 +3965,154 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
 
   return (
     <section className={`member-hub active-tab-${activeMemberTab}${activeModuleKey ? " has-active-module" : ""}`}>
-      <article className="member-welcome">
-        <div>
-          <span className="public-label">Unlocked hub</span>
-          <h2>Your operator kit is active.</h2>
-          <p>
-            {profile?.email || "Your profile"} now has access to the first version of {productName}.
-            Start with the Quickstart Map, then use the daily checklist and proof templates while the live build evolves.
-          </p>
+      <header className="member-workspace-header">
+        <div className="member-workspace-title">
+          <span><BookOpenText size={18} aria-hidden="true" /> Member course</span>
+          <h2>{productName}</h2>
+          <p>One task at a time. Every completed task should leave proof behind.</p>
         </div>
-        <a className="secondary-link" href="/60">
-          Open public scoreboard
-        </a>
-      </article>
-
-      {!activeModuleKey && (
-        <nav className="member-tab-nav" aria-label="Member workspace sections">
-          {memberWorkspaceTabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={activeMemberTab === tab.key ? "active" : ""}
-              onClick={() => setActiveMemberTab(tab.key)}
-              aria-current={activeMemberTab === tab.key ? "page" : undefined}
-            >
-              <strong>{tab.label}</strong>
-              <span>{tab.body}</span>
-            </button>
-          ))}
-        </nav>
-      )}
-
-      <article className="member-next-action member-tab-content tab-today">
-        <div>
-          <span className="public-label">Next action</span>
-          {nextMemberTask ? (
-            <>
-              <h2>{nextMemberTask.module.title.replace(/^Module \d+: /, "")}</h2>
-              <p>{nextMemberTask.todo.label}</p>
-              <em>{nextMemberTask.module.done}</em>
-              <ModuleOperatorBrief brief={nextMemberTask.module.operatorBrief} compact />
-            </>
-          ) : (
-            <>
-              <h2>Full path complete.</h2>
-              <p>Use the Proof To Offer Canvas to turn the strongest receipt into the next offer test.</p>
-              <em>Update the kit with what the sprint proves next.</em>
-            </>
-          )}
+        <div className="member-workspace-progress">
+          <div>
+            <span>Overall progress</span>
+            <strong>{progressState.summary.percent}%</strong>
+          </div>
+          <div className="member-progress-meter" aria-label={`${progressState.summary.percent}% complete`}>
+            <i style={{ width: `${progressState.summary.percent}%` }} />
+          </div>
+          <small>{progressState.summary.completed} of {progressState.summary.total} tasks complete</small>
         </div>
-        {nextMemberTask && (
-          <a className="secondary-link" href={`/members/module/${nextMemberTask.module.key}`}>
-            Open next module
-          </a>
+      </header>
+
+      <div className="member-workspace-shell">
+        {!activeModuleKey && (
+          <nav className="member-tab-nav" aria-label="Member workspace sections">
+            <span className="member-tab-nav-label">Workspace</span>
+            {memberWorkspaceTabs.map((tab) => {
+              const TabIcon = tab.icon;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={activeMemberTab === tab.key ? "active" : ""}
+                  onClick={() => setActiveMemberTab(tab.key)}
+                  aria-current={activeMemberTab === tab.key ? "page" : undefined}
+                >
+                  <TabIcon size={18} strokeWidth={2} aria-hidden="true" />
+                  <span><strong>{tab.label}</strong><small>{tab.body}</small></span>
+                </button>
+              );
+            })}
+            <a className="member-sidebar-link" href="/60">
+              <ExternalLink size={17} aria-hidden="true" />
+              <span>Public scoreboard</span>
+            </a>
+          </nav>
         )}
-        <div className="next-action-stat">
-          <strong>{progressState.summary.percent}%</strong>
-          <span>complete</span>
-        </div>
-      </article>
 
-      <div className="member-tab-content tab-finish">
-        <CourseCompletionPanel
-          summary={progressState.summary}
-          completedTasks={completedTasks}
-          completionDraft={completionDraft}
-          completionAnswerCount={completionAnswerCount}
-          completionReceiptMarkdown={completionReceiptMarkdown}
-          onCompletionDraftChange={updateCompletionDraft}
-          onDownload={handleDownloadCompletionReceipt}
-          onDownloadCertificate={handleDownloadCompletionCertificate}
-          onDownloadSharePack={handleDownloadCompletionSharePack}
-        />
-      </div>
+        <div className="member-workspace-content">
+          <section className="member-today-view member-tab-content tab-today">
+            <header className="member-view-heading">
+              <div>
+                <span>Today</span>
+                <h2>{firstRun ? "Start clean." : "Keep the proof loop moving."}</h2>
+              </div>
+              <p>{firstRun ? "The first setup is already sequenced for you." : "Open the next unfinished task and ignore the rest until it is done."}</p>
+            </header>
 
-      <section className={`member-onboarding member-tab-content tab-today ${firstRun ? "fresh" : ""}`}>
-        <div className="member-onboarding-copy">
-          <span className="public-label">{firstRun ? "Start here" : "Activation path"}</span>
-          <h2>{firstRun ? "Your first 20 minutes are already decided." : "Keep the setup path tight."}</h2>
-          <p>
-            Work this in order: download the two setup files, open Module 1, then mark the first task only after the folder exists.
-          </p>
-        </div>
-        <div className="onboarding-step-list">
-          {memberOnboardingSteps.map((step, index) => {
-            const asset = step.assetTitle ? assetsByTitle.get(step.assetTitle.toLowerCase()) : null;
-            const taskCompleted =
-              step.moduleKey && step.taskKey ? completedTasks.has(`${step.moduleKey}:${step.taskKey}`) : false;
-            const downloaded = asset ? downloadState[asset.key] === "success" : false;
-            const isDone = taskCompleted || downloaded;
-            const taskMatch = step.moduleKey && step.taskKey ? findModuleTask(step.moduleKey, step.taskKey) : null;
-
-            return (
-              <article key={step.key} className={isDone ? "done" : ""}>
-                <strong>{String(index + 1).padStart(2, "0")}</strong>
-                <div>
-                  <span>{step.title}</span>
-                  <p>{step.body}</p>
-                </div>
-                {asset && (
-                  <button type="button" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
-                    {downloadState[asset.key] === "loading" ? "Downloading" : downloaded ? "Downloaded" : "Download"}
-                  </button>
+            <article className="member-next-action">
+              <div className="member-next-action-copy">
+                <span>{nextMemberTask ? nextMemberTask.module.title : "Course complete"}</span>
+                {nextMemberTask ? (
+                  <>
+                    <h3>{nextMemberTask.todo.label}</h3>
+                    <p><strong>Proof required:</strong> {nextMemberTask.todo.proof}</p>
+                    <small>Done means: {nextMemberTask.module.done}</small>
+                  </>
+                ) : (
+                  <>
+                    <h3>Package your strongest result.</h3>
+                    <p>Turn the best receipt into a public recap and the next offer test.</p>
+                    <small>Your completed work is the credential.</small>
+                  </>
                 )}
-                {step.href && (
-                  <a className="secondary-link" href={step.href}>
-                    Open
+              </div>
+              <div className="member-next-action-cta">
+                <span>{progressState.summary.percent}% complete</span>
+                {nextMemberTask ? (
+                  <a href={`/members/module/${nextMemberTask.module.key}`}>
+                    Continue module <ArrowRight size={17} aria-hidden="true" />
                   </a>
-                )}
-                {taskMatch && (
-                  <button
-                    type="button"
-                    onClick={() => handleTaskToggle(taskMatch.module, taskMatch.todo, !taskCompleted)}
-                    disabled={taskSaving[`${taskMatch.module.key}:${taskMatch.todo.key}`] === "saving"}
-                  >
-                    {taskCompleted ? "Completed" : "Mark done"}
+                ) : (
+                  <button type="button" onClick={() => setActiveMemberTab("proof")}>
+                    Open proof builder <ArrowRight size={17} aria-hidden="true" />
                   </button>
                 )}
-              </article>
-            );
-          })}
-        </div>
-      </section>
+              </div>
+            </article>
 
-      <section className="member-start-path member-tab-content tab-today">
-        {memberStartPath.map((item) => (
-          <article key={item.title}>
-            <strong>{item.title}</strong>
-            <p>{item.body}</p>
-          </article>
-        ))}
-      </section>
+            {firstRun && (
+              <section className="member-onboarding fresh">
+                <div className="member-onboarding-copy">
+                  <span>First session</span>
+                  <h3>Your first 20 minutes are already decided.</h3>
+                  <p>Work these four steps in order. Do not mark the task complete until the output exists.</p>
+                </div>
+                <div className="onboarding-step-list">
+                  {memberOnboardingSteps.map((step, index) => {
+                    const asset = step.assetTitle ? assetsByTitle.get(step.assetTitle.toLowerCase()) : null;
+                    const taskCompleted =
+                      step.moduleKey && step.taskKey ? completedTasks.has(`${step.moduleKey}:${step.taskKey}`) : false;
+                    const downloaded = asset ? downloadState[asset.key] === "success" : false;
+                    const isDone = taskCompleted || downloaded;
+                    const taskMatch = step.moduleKey && step.taskKey ? findModuleTask(step.moduleKey, step.taskKey) : null;
+
+                    return (
+                      <article key={step.key} className={isDone ? "done" : ""}>
+                        <strong>{isDone ? <Check size={16} aria-hidden="true" /> : String(index + 1).padStart(2, "0")}</strong>
+                        <div>
+                          <span>{step.title}</span>
+                          <p>{step.body}</p>
+                        </div>
+                        {asset && (
+                          <button type="button" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
+                            {downloadState[asset.key] === "loading" ? "Downloading" : downloaded ? "Downloaded" : "Download"}
+                          </button>
+                        )}
+                        {step.href && <a href={step.href}>Open</a>}
+                        {taskMatch && (
+                          <button
+                            type="button"
+                            onClick={() => handleTaskToggle(taskMatch.module, taskMatch.todo, !taskCompleted)}
+                            disabled={taskSaving[`${taskMatch.module.key}:${taskMatch.todo.key}`] === "saving"}
+                          >
+                            {taskCompleted ? "Completed" : "Mark done"}
+                          </button>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            <div className="member-quick-actions" aria-label="Workspace shortcuts">
+              <button type="button" onClick={() => setActiveMemberTab("course")}>
+                <BookOpenText size={19} aria-hidden="true" />
+                <span><strong>Browse course</strong><small>See all five modules</small></span>
+                <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => setActiveMemberTab("tools")}>
+                <FolderDown size={19} aria-hidden="true" />
+                <span><strong>Open library</strong><small>{assets.length} member resources</small></span>
+                <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => setActiveMemberTab("proof")}>
+                <FileCheck2 size={19} aria-hidden="true" />
+                <span><strong>Build a receipt</strong><small>Package finished work</small></span>
+                <ArrowRight size={17} aria-hidden="true" />
+              </button>
+            </div>
+          </section>
 
       {activeModuleKey && (
         <section className="member-lesson-detail">
@@ -4149,137 +4326,137 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
               </label>
             </div>
           </div>
-          <pre className="proof-preview">{proofReceiptMarkdown}</pre>
+          <details className="proof-preview-shell">
+            <summary>Preview generated receipt</summary>
+            <pre className="proof-preview">{proofReceiptMarkdown}</pre>
+          </details>
         </div>
       </section>
 
-      <section className="member-workbench member-tab-content tab-course">
-        <div>
-          <span className="public-label">Module workbench</span>
-          <h2>Use each module like a live operating station.</h2>
-          <p>
-            Every module has a focus, an output, the assets to open, and a starter prompt for Claude Code, Codex, or your AI tool of choice.
-          </p>
-        </div>
-        <div className="workbench-list">
-          {productModules.map((module) => {
-            const moduleProgress = getModuleProgress(module);
-            return (
-              <article key={module.key}>
-                <div className="workbench-header">
-                  <span>{module.title}</span>
-                  <strong>{module.lesson.output}</strong>
-                  <small>{moduleProgress.completed}/{moduleProgress.total} tasks complete</small>
-                </div>
-                <p>{module.lesson.focus}</p>
-                <ModuleOperatorBrief brief={module.operatorBrief} compact />
-                <div className="workbench-assets">
-                  {module.lesson.useWith.map((asset) => (
-                    <em key={asset}>{asset}</em>
-                  ))}
-                </div>
-                <div className="workbench-prompt">
-                  <span>{module.lesson.starterPrompt}</span>
-                  <button type="button" onClick={() => handleCopyPrompt(module)}>
-                    {copiedPromptKey === module.key ? "Copied" : "Copy prompt"}
-                  </button>
-                </div>
-                <a className="text-link" href={`/members/module/${module.key}`}>
-                  Open module
-                </a>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="member-grid member-tab-content tab-tools">
-        {assets.map((asset) => (
-          <article key={asset.key} className="tool-card live">
-            <span>{asset.kind}</span>
-            <h2>{asset.title}</h2>
-            <p>{asset.description}</p>
-            <button
-              type="button"
-              className="asset-button"
-              onClick={() => handleDownload(asset)}
-              disabled={downloadState[asset.key] === "loading"}
-            >
-              {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
-            </button>
-            {downloadState[asset.key] === "success" && <strong className="module-status">Saved</strong>}
-            {downloadState[asset.key] === "error" && <strong className="module-status error">Retry</strong>}
-          </article>
-        ))}
-      </div>
-
-      <section className="member-roadmap member-tab-content tab-course">
-        <div>
-          <span className="public-label">Module path</span>
-          <h2>Build the proof loop in order.</h2>
-          <p className="member-progress-copy">
-            {progressState.summary.completed} of {progressState.summary.total} tasks complete.
-          </p>
-          <div className="member-progress-meter" aria-label={`${progressState.summary.percent}% complete`}>
-            <i style={{ width: `${progressState.summary.percent}%` }} />
-          </div>
-          {progressState.status === "loading" && <em className="module-status">Loading progress</em>}
-          {progressState.error && <em className="module-status error">{progressState.error}</em>}
-        </div>
-        <div className="roadmap-list">
-          {productModules.map((module, index) => {
-            const moduleProgress = getModuleProgress(module);
-            return (
-              <article key={module.key}>
-                <strong>{String(index + 1).padStart(2, "0")}</strong>
-                <div>
-                  <div className="roadmap-module-title">
-                    <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
-                    <span>{moduleProgress.percent}%</span>
-                  </div>
-                  <p>{module.body}</p>
-                  <ul className="module-todo-list compact trackable">
-                    {module.todos.map((todo) => (
-                      <li key={todo.key} className={completedTasks.has(`${module.key}:${todo.key}`) ? "complete" : ""}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={completedTasks.has(`${module.key}:${todo.key}`)}
-                            disabled={taskSaving[`${module.key}:${todo.key}`] === "saving"}
-                            onChange={(event) => handleTaskToggle(module, todo, event.target.checked)}
-                          />
-                          <ModuleTodoCopy todo={todo} />
-                        </label>
-                        {taskSaving[`${module.key}:${todo.key}`] === "saved" && <em>Saved</em>}
-                        {taskSaving[`${module.key}:${todo.key}`] === "error" && <em>Retry</em>}
-                      </li>
-                    ))}
-                  </ul>
-                  <em className="module-done">Done: {module.done}</em>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="member-roadmap compact member-tab-content tab-finish">
-        <div>
-          <span className="public-label">Live drop rhythm</span>
-          <h2>The kit grows with the sprint.</h2>
-        </div>
-        <div className="roadmap-list">
-          {["Day 0 setup", "First live build", "First buyer proof", "Week 1 recap"].map((item, index) => (
-            <article key={item}>
-              <strong>{`Drop ${index + 1}`}</strong>
+          <section className="member-course-browser member-tab-content tab-course">
+            <header className="member-view-heading">
               <div>
-                <h3>{item}</h3>
-                <p>New assets get added when the stream creates real proof worth keeping.</p>
+                <span>Course</span>
+                <h2>Your five-module proof path.</h2>
               </div>
-            </article>
-          ))}
+              <p>Open one module, complete its four output tasks, then move forward. Prompts, examples, and downloads live inside each module.</p>
+            </header>
+            {progressState.error && <p className="module-status error">{progressState.error}</p>}
+            <div className="member-course-list">
+              {productModules.map((module, index) => {
+                const moduleProgress = getModuleProgress(module);
+                const complete = moduleProgress.percent === 100;
+                const current = nextMemberTask?.module.key === module.key;
+                return (
+                  <article key={module.key} className={`${complete ? "complete" : ""} ${current ? "current" : ""}`}>
+                    <div className="member-module-index">
+                      {complete ? <Check size={20} aria-label="Complete" /> : String(index + 1).padStart(2, "0")}
+                    </div>
+                    <div className="member-module-copy">
+                      <div>
+                        <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
+                        <span>{moduleProgress.completed}/{moduleProgress.total} tasks</span>
+                      </div>
+                      <p>{module.body}</p>
+                      <dl>
+                        <div><dt>Output</dt><dd>{module.lesson.output}</dd></div>
+                        <div><dt>Work mode</dt><dd>{module.operatorBrief.mode}</dd></div>
+                      </dl>
+                      <div className="member-module-progress" aria-label={`${moduleProgress.percent}% complete`}>
+                        <i style={{ width: `${moduleProgress.percent}%` }} />
+                      </div>
+                    </div>
+                    <a href={`/members/module/${module.key}`}>
+                      {current ? "Continue" : complete ? "Review" : "Open"}
+                      <ArrowRight size={17} aria-hidden="true" />
+                    </a>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="member-resource-library member-tab-content tab-tools">
+            <header className="member-view-heading">
+              <div>
+                <span>Library</span>
+                <h2>Resources without the clutter.</h2>
+              </div>
+              <label className="member-resource-search">
+                <Search size={17} aria-hidden="true" />
+                <input
+                  type="search"
+                  value={resourceQuery}
+                  onChange={(event) => setResourceQuery(event.target.value)}
+                  placeholder="Search resources"
+                  aria-label="Search member resources"
+                />
+              </label>
+            </header>
+            <div className="member-resource-list">
+              {filteredAssets.map((asset) => (
+                <article key={asset.key}>
+                  <div className="member-resource-icon"><Download size={19} aria-hidden="true" /></div>
+                  <div>
+                    <span>{asset.kind}</span>
+                    <h3>{asset.title}</h3>
+                    <p>{asset.description}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDownload(asset)}
+                    disabled={downloadState[asset.key] === "loading"}
+                  >
+                    <Download size={16} aria-hidden="true" />
+                    {downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download"}
+                  </button>
+                  {downloadState[asset.key] === "error" && <em>Download failed. Try again.</em>}
+                </article>
+              ))}
+              {!filteredAssets.length && (
+                <div className="member-resource-empty">
+                  <Search size={22} aria-hidden="true" />
+                  <strong>No resources match “{resourceQuery}”.</strong>
+                  <button type="button" onClick={() => setResourceQuery("")}>Clear search</button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="member-finish-view member-tab-content tab-finish">
+            <header className="member-view-heading">
+              <div>
+                <span>Finish</span>
+                <h2>Turn the work into a credential.</h2>
+              </div>
+              <p>Complete every output, write the final receipt, then export the certificate and share pack.</p>
+            </header>
+            <CourseCompletionPanel
+              summary={progressState.summary}
+              completedTasks={completedTasks}
+              completionDraft={completionDraft}
+              completionAnswerCount={completionAnswerCount}
+              completionReceiptMarkdown={completionReceiptMarkdown}
+              onCompletionDraftChange={updateCompletionDraft}
+              onDownload={handleDownloadCompletionReceipt}
+              onDownloadCertificate={handleDownloadCompletionCertificate}
+              onDownloadSharePack={handleDownloadCompletionSharePack}
+            />
+            <details className="member-future-drops">
+              <summary>Future live-drop updates</summary>
+              <div>
+                {["Day 0 setup", "First live build", "First buyer proof", "Week 1 recap"].map((item, index) => (
+                  <article key={item}>
+                    <strong>{`Drop ${index + 1}`}</strong>
+                    <span>{item}</span>
+                    <p>New assets get added when the stream creates real proof worth keeping.</p>
+                  </article>
+                ))}
+              </div>
+            </details>
+          </section>
         </div>
-      </section>
+      </div>
     </section>
   );
 }

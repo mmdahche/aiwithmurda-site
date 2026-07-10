@@ -28,6 +28,7 @@
     "@supabase/supabase-js": "^2.89.0",
     "@vitejs/plugin-react": "^5.1.1",
     "express": "^5.2.1",
+    "lucide-react": "^1.24.0",
     "motion": "^12.42.2",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
