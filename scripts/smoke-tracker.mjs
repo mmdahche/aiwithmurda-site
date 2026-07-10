@@ -67,6 +67,7 @@ if (
   !socialStatus.response.ok ||
   socialStatus.data?.ok !== true ||
   !Array.isArray(socialStatus.data?.status?.providers) ||
+  (siteUrl.startsWith("https://") && socialStatus.data?.status?.encryptionReady !== true) ||
   !socialStatus.data.status.providers.some((provider) => provider.key === "twitch" && provider.oauthSupported) ||
   !socialStatus.data.status.providers.some((provider) => provider.key === "instagram" && provider.callbackUrl?.includes("/api/integrations/instagram/callback")) ||
   !socialStatus.data.status.providers.some((provider) => provider.key === "youtube" && provider.precision === "rounded")
