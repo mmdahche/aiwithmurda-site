@@ -30,6 +30,101 @@
   color: #f5fff7;
 }
 
+.public-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px clamp(22px, 6vw, 92px);
+  color: rgba(237, 252, 241, 0.62);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #030605;
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.public-footer nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.public-footer a {
+  color: rgba(237, 252, 241, 0.78);
+  text-decoration: none;
+}
+
+.public-footer a:hover,
+.public-footer a:focus-visible {
+  color: #73f47d;
+}
+
+.legal-page {
+  min-height: calc(100svh - 78px);
+  padding: clamp(54px, 8vw, 110px) clamp(22px, 6vw, 92px) clamp(72px, 9vw, 130px);
+  color: #edf9f0;
+  background:
+    linear-gradient(90deg, rgba(115, 244, 125, 0.05), transparent 36%),
+    #030605;
+}
+
+.legal-page-header,
+.legal-page-body {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+
+.legal-page-header {
+  padding-bottom: 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.legal-page-header span {
+  color: #73f47d;
+  font-size: 12px;
+  font-weight: 820;
+  text-transform: uppercase;
+}
+
+.legal-page-header h1 {
+  margin: 14px 0 8px;
+  font-size: clamp(42px, 7vw, 78px);
+  line-height: 0.96;
+}
+
+.legal-page-header p,
+.legal-page-body p {
+  color: #a9bcb0;
+}
+
+.legal-page-body {
+  display: grid;
+  gap: 0;
+}
+
+.legal-page-body section {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  gap: 34px;
+  padding: 30px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-page-body h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.legal-page-body p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.legal-page-body a {
+  color: #73f47d;
+}
+
 .experience-hero {
   position: relative;
   isolation: isolate;
@@ -11149,6 +11244,16 @@ button {
 }
 
 @media (max-width: 760px) {
+  .public-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .legal-page-body section {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
   .member-build-track-options {
     grid-template-columns: 1fr;
   }
