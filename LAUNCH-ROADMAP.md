@@ -1,5 +1,7 @@
 # aiwithmurda.com Launch Roadmap
 
+Social follower automation and account-connection details live in `SOCIAL-METRICS-RUNBOOK.md`.
+
 ## Brand Architecture
 
 Parent brand: `AI with Murda`

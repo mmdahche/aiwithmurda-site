@@ -39,11 +39,39 @@ const liveFollowers = await fetchJson(`${siteUrl}/api/followers/live`);
 if (
   !liveFollowers.response.ok ||
   liveFollowers.data?.ok !== true ||
-  liveFollowers.data?.mode !== "live-follower-ticker" ||
+  liveFollowers.data?.mode !== "verified-social-metrics" ||
   typeof liveFollowers.data?.total !== "number" ||
-  !Array.isArray(liveFollowers.data?.sources)
+  !Array.isArray(liveFollowers.data?.sources) ||
+  !["twitch", "tiktok", "instagram", "youtube", "x"].every((provider) =>
+    liveFollowers.data.sources.some((source) => source.key === provider),
+  ) ||
+  liveFollowers.data.sources.some((source) => source.status === "daily-log-fallback") ||
+  liveFollowers.data.total !== liveFollowers.data.sources
+    .filter((source) => source.connected)
+    .reduce((sum, source) => sum + Number(source.count || 0), 0)
 ) {
   throw new Error(`Public live followers failed: ${liveFollowers.response.status} ${JSON.stringify(liveFollowers.data)}`);
+}
+
+const socialStatusUnauthorized = await fetchJson(`${siteUrl}/api/admin/integrations/social/status`);
+if (socialStatusUnauthorized.response.status !== 401 || socialStatusUnauthorized.data?.error !== "invalid_admin_token") {
+  throw new Error(
+    `Social status guard failed: ${socialStatusUnauthorized.response.status} ${JSON.stringify(socialStatusUnauthorized.data)}`,
+  );
+}
+
+const socialStatus = await fetchJson(`${siteUrl}/api/admin/integrations/social/status`, {
+  headers: { Authorization: `Bearer ${adminToken}` },
+});
+if (
+  !socialStatus.response.ok ||
+  socialStatus.data?.ok !== true ||
+  !Array.isArray(socialStatus.data?.status?.providers) ||
+  !socialStatus.data.status.providers.some((provider) => provider.key === "twitch" && provider.oauthSupported) ||
+  !socialStatus.data.status.providers.some((provider) => provider.key === "instagram" && provider.callbackUrl?.includes("/api/integrations/instagram/callback")) ||
+  !socialStatus.data.status.providers.some((provider) => provider.key === "youtube" && provider.precision === "rounded")
+) {
+  throw new Error(`Social status failed: ${socialStatus.response.status} ${JSON.stringify(socialStatus.data)}`);
 }
 
 const twitchStatusUnauthorized = await fetchJson(`${siteUrl}/api/admin/integrations/twitch/status`);
@@ -85,14 +113,14 @@ for (let index = 0; index < 5 && followerStreamReader; index += 1) {
   const chunk = await followerStreamReader.read();
   if (chunk.done) break;
   followerStreamText += followerStreamDecoder.decode(chunk.value, { stream: true });
-  if (followerStreamText.includes("live-follower-ticker")) break;
+  if (followerStreamText.includes("verified-social-metrics")) break;
 }
 followerStreamController.abort();
 if (
   !followerStream.ok ||
   !followerStream.headers.get("content-type")?.includes("text/event-stream") ||
   !followerStreamText.includes("event: followers") ||
-  !followerStreamText.includes("live-follower-ticker")
+  !followerStreamText.includes("verified-social-metrics")
 ) {
   throw new Error(`Public live follower stream failed: ${followerStream.status} ${followerStreamText}`);
 }
@@ -188,13 +216,13 @@ if (!liveBundle.includes("Metrics Automation Hub")) {
 if (!liveBundle.includes("Automated Daily Snapshot")) {
   throw new Error("Client bundle missing Automated Daily Snapshot");
 }
-if (!liveBundle.includes("Live follower ticker")) {
-  throw new Error("Client bundle missing Live follower ticker");
+if (!liveBundle.includes("Combined audience")) {
+  throw new Error("Client bundle missing combined audience ticker");
 }
-if (!liveBundle.includes("Live follower counter")) {
-  throw new Error("Client bundle missing Live follower counter");
+if (!liveBundle.includes("Total followers")) {
+  throw new Error("Client bundle missing combined follower overlay");
 }
-if (!liveBundle.includes("Follower Ticker Control")) {
+if (!liveBundle.includes("Follower Ticker")) {
   throw new Error("Client bundle missing Follower Ticker Control");
 }
 if (!liveBundle.includes("/api/followers/stream")) {
@@ -203,13 +231,10 @@ if (!liveBundle.includes("/api/followers/stream")) {
 if (!liveBundle.includes("Clip Intake Webhook")) {
   throw new Error("Client bundle missing Clip Intake Webhook");
 }
-if (!liveBundle.includes("Follower Count Intake")) {
-  throw new Error("Client bundle missing Follower Count Intake");
+if (!liveBundle.includes("Social Accounts")) {
+  throw new Error("Client bundle missing Social Accounts control panel");
 }
-if (!liveBundle.includes("Twitch Live Connector")) {
-  throw new Error("Client bundle missing Twitch Live Connector");
-}
-if (!liveBundle.includes("Subscribe EventSub")) {
+if (!liveBundle.includes("Enable instant")) {
   throw new Error("Client bundle missing Twitch EventSub control");
 }
 
@@ -358,7 +383,7 @@ if (
   !metricsAutomation.data.summary.sources.some((source) => source.key === "email-subscribers" && source.status === "live") ||
   !metricsAutomation.data.summary.sources.some((source) => source.key === "twitch-followers") ||
   !Array.isArray(metricsAutomation.data?.summary?.nextBuilds) ||
-  !metricsAutomation.data.summary.nextBuilds.includes("Twitch OAuth + EventSub follow listener")
+  !metricsAutomation.data.summary.nextBuilds.includes("Authorize the Twitch channel and confirm EventSub delivery")
 ) {
   throw new Error(
     `Admin metrics automation summary failed: ${metricsAutomation.response.status} ${JSON.stringify(metricsAutomation.data)}`,
@@ -414,11 +439,13 @@ console.log(
         adminMetricsAutomationBundle: true,
         adminDailySnapshotBundle: true,
         adminClipIntakeBundle: true,
-        adminFollowerIntakeBundle: true,
-        adminTwitchConnectorBundle: true,
+        adminSocialAccountsBundle: true,
+        combinedFollowerOverlayBundle: true,
         adminMetricsAutomationApi: true,
         adminDailySnapshotApi: true,
         adminTwitchStatusApi: true,
+        adminSocialStatusApi: true,
+        socialSeedFallbackExcluded: true,
         kitRoute: true,
         membersRoute: true,
         memberModuleRoute: true,
@@ -432,6 +459,7 @@ console.log(
         adminFollowerIntakeBlockedWithoutToken: true,
         adminTwitchStatusBlockedWithoutToken: true,
         adminTwitchOAuthBlockedWithoutToken: true,
+        adminSocialStatusBlockedWithoutToken: true,
         adminSessionBlockedWithoutLogin: true,
         adminSystemStatusReadable: true,
         adminOfferSummaryReadable: true,

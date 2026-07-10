@@ -67,7 +67,7 @@ export function daysRemaining(config, latestDay) {
 
 export function buildProgressItems(config, latest, liveFollowers = null) {
   const liveFollowerTotal = Number(liveFollowers?.total);
-  const followers = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : totalFollowers(latest);
+  const followers = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : 0;
   return [
     {
       key: "revenue",

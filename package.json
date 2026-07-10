@@ -16,6 +16,7 @@
     "smoke:operator-subscription": "node scripts/smoke-operator-subscription.mjs",
     "smoke:operator-toolkit-ui": "node scripts/smoke-operator-toolkit-ui.mjs",
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
+    "smoke:social-ui": "node scripts/smoke-social-dashboard.mjs",
     "smoke:deck": "node scripts/smoke-deck.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
     "smoke:stream": "node scripts/smoke-stream-config.mjs",

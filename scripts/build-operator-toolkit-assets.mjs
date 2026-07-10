@@ -6,6 +6,7 @@ import { operatorSkills, operatorUpdateSkills } from "../src/data/operatorSkills
 
 const rootDir = path.resolve(import.meta.dirname, "..");
 const assetDir = path.join(rootDir, "server", "member-assets");
+const archiveEntryDate = new Date("2026-01-01T00:00:00.000Z");
 const forbiddenBuyerContent = [
   /\/Users\//i,
   /\\Users\\/i,
@@ -104,7 +105,7 @@ async function createZip({ fileName, title, skills, version, update = false, ext
   const outputPath = path.join(assetDir, fileName);
   await new Promise((resolve, reject) => {
     const output = fsSync.createWriteStream(outputPath);
-    const archive = new ZipArchive({ zlib: { level: 9 } });
+    const archive = new ZipArchive({ zlib: { level: 9 }, forceLocalTime: false });
 
     output.on("close", resolve);
     output.on("error", reject);
@@ -112,14 +113,14 @@ async function createZip({ fileName, title, skills, version, update = false, ext
     archive.on("error", reject);
     archive.pipe(output);
 
-    archive.append(renderReadme({ title, skills, version, update }), { name: "README.md" });
+    archive.append(renderReadme({ title, skills, version, update }), { name: "README.md", date: archiveEntryDate });
     for (const skill of skills) {
       const content = renderSkill(skill);
-      archive.append(content, { name: `claude/.claude/skills/${skill.slug}/SKILL.md` });
-      archive.append(content, { name: `codex/.agents/skills/${skill.slug}/SKILL.md` });
+      archive.append(content, { name: `claude/.claude/skills/${skill.slug}/SKILL.md`, date: archiveEntryDate });
+      archive.append(content, { name: `codex/.agents/skills/${skill.slug}/SKILL.md`, date: archiveEntryDate });
     }
     for (const extra of extras) {
-      archive.file(path.join(assetDir, extra.source), { name: extra.name });
+      archive.file(path.join(assetDir, extra.source), { name: extra.name, date: archiveEntryDate });
     }
     archive.finalize();
   });

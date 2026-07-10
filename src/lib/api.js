@@ -91,6 +91,41 @@ export function submitFollowerCountIntake(update, adminToken) {
   });
 }
 
+export function getSocialIntegrationStatus(adminToken) {
+  return apiRequest("/api/admin/integrations/social/status", {
+    token: adminToken,
+  });
+}
+
+export function startSocialOAuth(provider, adminToken) {
+  return apiRequest(`/api/admin/integrations/social/${encodeURIComponent(provider)}/oauth/start`, {
+    method: "POST",
+    token: adminToken,
+  });
+}
+
+export function syncSocialAccount(provider, adminToken) {
+  return apiRequest(`/api/admin/integrations/social/${encodeURIComponent(provider)}/sync`, {
+    method: "POST",
+    token: adminToken,
+  });
+}
+
+export function syncAllSocialAccounts(adminToken) {
+  return apiRequest("/api/admin/integrations/social/sync", {
+    method: "POST",
+    body: { force: true },
+    token: adminToken,
+  });
+}
+
+export function disconnectSocialAccount(provider, adminToken) {
+  return apiRequest(`/api/admin/integrations/social/${encodeURIComponent(provider)}`, {
+    method: "DELETE",
+    token: adminToken,
+  });
+}
+
 export function getTwitchIntegrationStatus(adminToken) {
   return apiRequest("/api/admin/integrations/twitch/status", {
     token: adminToken,

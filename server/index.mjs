@@ -41,6 +41,72 @@ const twitchProviderKey = "twitch";
 const twitchOAuthScopes = ["moderator:read:followers"];
 const twitchCallbackPath = "/api/integrations/twitch/callback";
 const twitchEventSubPath = "/api/integrations/twitch/eventsub";
+const socialCallbackPaths = {
+  twitch: twitchCallbackPath,
+  tiktok: "/api/integrations/tiktok/callback",
+  instagram: "/api/integrations/instagram/callback",
+  youtube: "/api/integrations/youtube/callback",
+};
+const socialProviderCatalog = [
+  {
+    key: "twitch",
+    label: "Twitch",
+    metricName: "followers",
+    precision: "exact",
+    mode: "EventSub + Helix",
+    cadence: "Instant follow events; 30 second reconciliation",
+    pollMs: 30_000,
+    eventDriven: true,
+  },
+  {
+    key: "tiktok",
+    label: "TikTok",
+    metricName: "followers",
+    precision: "exact",
+    mode: "TikTok Display API",
+    cadence: "Approximately every 60 seconds",
+    pollMs: 60_000,
+    eventDriven: false,
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    metricName: "followers",
+    precision: "exact",
+    mode: "Instagram Graph API",
+    cadence: "Approximately every 60 seconds",
+    pollMs: 60_000,
+    eventDriven: false,
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    metricName: "subscribers",
+    precision: "rounded",
+    mode: "YouTube Data API",
+    cadence: "Approximately every 60 seconds",
+    pollMs: 60_000,
+    eventDriven: false,
+  },
+  {
+    key: "x",
+    label: "X",
+    metricName: "followers",
+    precision: "exact",
+    mode: "X API public metrics",
+    cadence: "Approximately every 5 minutes",
+    pollMs: 300_000,
+    eventDriven: false,
+  },
+];
+const socialProviderByKey = new Map(socialProviderCatalog.map((provider) => [provider.key, provider]));
+const socialMetricHeartbeatMs = 15 * 60 * 1000;
+const followerTickerRefreshMs = Math.max(5_000, Number(process.env.FOLLOWER_TICKER_REFRESH_MS || 15_000));
+const followerStreamClients = new Set();
+const providerLastPollAt = new Map();
+let followerTickerCache = null;
+let followerRefreshPromise = null;
+let followerRefreshTimer = null;
 const streamLinkKeys = [
   ["twitch", "Twitch", "STREAM_TWITCH_URL"],
   ["kick", "Kick", "STREAM_KICK_URL"],
@@ -762,8 +828,8 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
       {
         key: "followers",
         label: "Follower ticker",
-        source: "Twitch EventSub first; TikTok/Instagram likely polling",
-        status: "connector-needed",
+        source: "Connected social accounts write directly to the current daily log",
+        status: "managed-separately",
       },
       {
         key: "clipsPosted",
@@ -779,14 +845,6 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
       },
     ],
   };
-}
-
-function getEnvNumber(...keys) {
-  for (const key of keys) {
-    const value = process.env[key];
-    if (value !== undefined && value !== "") return Number(value || 0);
-  }
-  return null;
 }
 
 function absoluteSiteUrl(pathname) {
@@ -815,6 +873,69 @@ function getTwitchConfig() {
   };
 }
 
+function getSocialOAuthStateSecret() {
+  return (
+    readPublicUrlEnv("SOCIAL_OAUTH_STATE_SECRET") ||
+    readPublicUrlEnv("TWITCH_OAUTH_STATE_SECRET") ||
+    readPublicUrlEnv("ADMIN_API_TOKEN")
+  );
+}
+
+function getTikTokConfig() {
+  const clientKey = readPublicUrlEnv("TIKTOK_CLIENT_KEY");
+  const clientSecret = readPublicUrlEnv("TIKTOK_CLIENT_SECRET");
+  return {
+    clientKey,
+    clientSecret,
+    redirectUri: readPublicUrlEnv("TIKTOK_REDIRECT_URI") || absoluteSiteUrl(socialCallbackPaths.tiktok),
+    configured: Boolean(clientKey && clientSecret),
+  };
+}
+
+function getInstagramConfig() {
+  const appId = readPublicUrlEnv("META_APP_ID");
+  const appSecret = readPublicUrlEnv("META_APP_SECRET");
+  const requestedVersion = readPublicUrlEnv("META_GRAPH_VERSION") || "v25.0";
+  const graphVersion = /^v\d+\.\d+$/.test(requestedVersion) ? requestedVersion : "v25.0";
+  return {
+    appId,
+    appSecret,
+    graphVersion,
+    redirectUri: readPublicUrlEnv("INSTAGRAM_REDIRECT_URI") || absoluteSiteUrl(socialCallbackPaths.instagram),
+    configured: Boolean(appId && appSecret),
+  };
+}
+
+function getYouTubeConfig() {
+  const clientId = readPublicUrlEnv("YOUTUBE_CLIENT_ID");
+  const clientSecret = readPublicUrlEnv("YOUTUBE_CLIENT_SECRET");
+  return {
+    clientId,
+    clientSecret,
+    redirectUri: readPublicUrlEnv("YOUTUBE_REDIRECT_URI") || absoluteSiteUrl(socialCallbackPaths.youtube),
+    configured: Boolean(clientId && clientSecret),
+  };
+}
+
+function getXConfig() {
+  const bearerToken = readPublicUrlEnv("X_BEARER_TOKEN");
+  const username = readPublicUrlEnv("X_USERNAME");
+  return {
+    bearerToken,
+    username,
+    configured: Boolean(bearerToken && username),
+  };
+}
+
+function getSocialProviderConfig(provider) {
+  if (provider === "twitch") return getTwitchConfig();
+  if (provider === "tiktok") return getTikTokConfig();
+  if (provider === "instagram") return getInstagramConfig();
+  if (provider === "youtube") return getYouTubeConfig();
+  if (provider === "x") return getXConfig();
+  return { configured: false };
+}
+
 function timingSafeEqualString(left, right) {
   const leftBuffer = Buffer.from(String(left || ""));
   const rightBuffer = Buffer.from(String(right || ""));
@@ -822,50 +943,67 @@ function timingSafeEqualString(left, right) {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
-function signTwitchOAuthState() {
-  const config = getTwitchConfig();
-  if (!config.stateSecret) {
-    const error = new Error("twitch_oauth_state_secret_missing");
+function signSocialOAuthState(provider) {
+  if (!socialProviderByKey.has(provider) || !socialCallbackPaths[provider]) {
+    const error = new Error("unsupported_social_provider");
+    error.status = 400;
+    throw error;
+  }
+
+  const stateSecret = getSocialOAuthStateSecret();
+  if (!stateSecret) {
+    const error = new Error("social_oauth_state_secret_missing");
     error.status = 503;
     throw error;
   }
 
   const payload = Buffer.from(
     JSON.stringify({
-      provider: twitchProviderKey,
+      provider,
       createdAt: Date.now(),
       nonce: crypto.randomUUID(),
     }),
   ).toString("base64url");
-  const signature = crypto.createHmac("sha256", config.stateSecret).update(payload).digest("base64url");
+  const signature = crypto.createHmac("sha256", stateSecret).update(payload).digest("base64url");
   return `${payload}.${signature}`;
 }
 
-function verifyTwitchOAuthState(state) {
-  const config = getTwitchConfig();
+function verifySocialOAuthState(state, expectedProvider) {
+  const stateSecret = getSocialOAuthStateSecret();
   const [payload, signature] = String(state || "").split(".");
-  if (!payload || !signature || !config.stateSecret) {
-    const error = new Error("invalid_twitch_oauth_state");
+  if (!payload || !signature || !stateSecret) {
+    const error = new Error("invalid_social_oauth_state");
     error.status = 400;
     throw error;
   }
 
-  const expected = crypto.createHmac("sha256", config.stateSecret).update(payload).digest("base64url");
+  const expected = crypto.createHmac("sha256", stateSecret).update(payload).digest("base64url");
   if (!timingSafeEqualString(signature, expected)) {
-    const error = new Error("invalid_twitch_oauth_state");
+    const error = new Error("invalid_social_oauth_state");
     error.status = 400;
     throw error;
   }
 
-  const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  let decoded;
+  try {
+    decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  } catch {
+    const error = new Error("invalid_social_oauth_state");
+    error.status = 400;
+    throw error;
+  }
   const ageMs = Date.now() - Number(decoded.createdAt || 0);
-  if (decoded.provider !== twitchProviderKey || ageMs < 0 || ageMs > 10 * 60 * 1000) {
-    const error = new Error("expired_twitch_oauth_state");
+  if (decoded.provider !== expectedProvider || ageMs < 0 || ageMs > 10 * 60 * 1000) {
+    const error = new Error("expired_social_oauth_state");
     error.status = 400;
     throw error;
   }
 
   return decoded;
+}
+
+function signTwitchOAuthState() {
+  return signSocialOAuthState(twitchProviderKey);
 }
 
 function isMissingIntegrationStorageError(error) {
@@ -879,6 +1017,77 @@ function normalizeTwitchScopes(scope) {
     .split(/[,\s]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function getSocialTokenEncryptionKey() {
+  const raw = readPublicUrlEnv("SOCIAL_TOKEN_ENCRYPTION_KEY");
+  if (!raw) return null;
+  if (/^[a-f0-9]{64}$/i.test(raw)) return Buffer.from(raw, "hex");
+
+  try {
+    const decoded = Buffer.from(raw, "base64");
+    return decoded.length === 32 ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+function encryptIntegrationSecret(value) {
+  if (value === null || value === undefined || value === "") return value || null;
+  const stringValue = String(value);
+  if (stringValue.startsWith("enc:v1:")) return stringValue;
+
+  const key = getSocialTokenEncryptionKey();
+  if (!key) {
+    const error = new Error("social_token_encryption_key_missing");
+    error.status = 503;
+    throw error;
+  }
+
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const encrypted = Buffer.concat([cipher.update(stringValue, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `enc:v1:${iv.toString("base64url")}:${tag.toString("base64url")}:${encrypted.toString("base64url")}`;
+}
+
+function decryptIntegrationSecret(value) {
+  if (!value || !String(value).startsWith("enc:v1:")) return value || null;
+  const key = getSocialTokenEncryptionKey();
+  if (!key) {
+    const error = new Error("social_token_encryption_key_missing");
+    error.status = 503;
+    throw error;
+  }
+
+  const [, version, ivValue, tagValue, encryptedValue] = String(value).split(":");
+  if (version !== "v1" || !ivValue || !tagValue || !encryptedValue) {
+    const error = new Error("invalid_encrypted_integration_token");
+    error.status = 500;
+    throw error;
+  }
+
+  try {
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(ivValue, "base64url"));
+    decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
+    return Buffer.concat([
+      decipher.update(Buffer.from(encryptedValue, "base64url")),
+      decipher.final(),
+    ]).toString("utf8");
+  } catch {
+    const error = new Error("integration_token_decryption_failed");
+    error.status = 500;
+    throw error;
+  }
+}
+
+function decryptIntegrationToken(token) {
+  if (!token) return null;
+  return {
+    ...token,
+    access_token: decryptIntegrationSecret(token.access_token),
+    refresh_token: decryptIntegrationSecret(token.refresh_token),
+  };
 }
 
 async function getStoredIntegrationToken(provider) {
@@ -895,7 +1104,23 @@ async function getStoredIntegrationToken(provider) {
     throw error;
   }
 
-  return { token: data || null, missingTable: false };
+  const token = decryptIntegrationToken(data || null);
+  if (
+    token &&
+    getSocialTokenEncryptionKey() &&
+    data.access_token &&
+    !String(data.access_token).startsWith("enc:v1:")
+  ) {
+    const { error: migrationError } = await supabaseAdmin
+      .from("integration_tokens")
+      .update({
+        access_token: encryptIntegrationSecret(token.access_token),
+        refresh_token: encryptIntegrationSecret(token.refresh_token),
+      })
+      .eq("provider", provider);
+    if (migrationError) throw migrationError;
+  }
+  return { token, missingTable: false };
 }
 
 async function storeIntegrationToken(provider, values) {
@@ -905,9 +1130,14 @@ async function storeIntegrationToken(provider, values) {
     throw error;
   }
 
+  const encryptedValues = {
+    ...values,
+    access_token: encryptIntegrationSecret(values.access_token),
+    refresh_token: encryptIntegrationSecret(values.refresh_token),
+  };
   const { data, error } = await supabaseAdmin
     .from("integration_tokens")
-    .upsert({ provider, ...values }, { onConflict: "provider" })
+    .upsert({ provider, ...encryptedValues }, { onConflict: "provider" })
     .select("*")
     .single();
 
@@ -920,7 +1150,7 @@ async function storeIntegrationToken(provider, values) {
     throw error;
   }
 
-  return data;
+  return decryptIntegrationToken(data);
 }
 
 async function updateStoredIntegrationMetadata(provider, updater) {
@@ -1034,6 +1264,267 @@ async function getUsableTwitchToken() {
     token: await refreshTwitchStoredTokenIfNeeded(stored.token),
     missingTable: false,
   };
+}
+
+async function exchangeTikTokCode(code) {
+  const config = getTikTokConfig();
+  if (!config.configured) {
+    const error = new Error("tiktok_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_key: config.clientKey,
+      client_secret: config.clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: config.redirectUri,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    const error = new Error(data.error_description || data.message || data.error || `tiktok_token_exchange_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+async function refreshTikTokStoredTokenIfNeeded(token) {
+  if (!token?.refresh_token) return token;
+  const expiresAt = token.expires_at ? new Date(token.expires_at).getTime() : 0;
+  if (expiresAt && expiresAt - Date.now() > 5 * 60 * 1000) return token;
+
+  const config = getTikTokConfig();
+  if (!config.configured) return token;
+  const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_key: config.clientKey,
+      client_secret: config.clientSecret,
+      grant_type: "refresh_token",
+      refresh_token: token.refresh_token,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    throw new Error(data.error_description || data.message || data.error || `tiktok_token_refresh_${response.status}`);
+  }
+
+  return storeIntegrationToken("tiktok", {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || token.refresh_token,
+    token_type: data.token_type || token.token_type || "bearer",
+    scope: normalizeTwitchScopes(data.scope || token.scope),
+    expires_at: data.expires_in ? new Date(Date.now() + Number(data.expires_in) * 1000).toISOString() : null,
+    provider_user_id: data.open_id || token.provider_user_id,
+    provider_user_login: token.provider_user_login,
+    provider_user_name: token.provider_user_name,
+    broadcaster_user_id: null,
+    metadata: {
+      ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
+      refreshExpiresIn: data.refresh_expires_in || token.metadata?.refreshExpiresIn || null,
+      refreshedAt: new Date().toISOString(),
+    },
+  });
+}
+
+async function exchangeYouTubeCode(code) {
+  const config = getYouTubeConfig();
+  if (!config.configured) {
+    const error = new Error("youtube_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: config.redirectUri,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    const error = new Error(data.error_description || data.error || `youtube_token_exchange_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+async function refreshYouTubeStoredTokenIfNeeded(token) {
+  if (!token?.refresh_token) return token;
+  const expiresAt = token.expires_at ? new Date(token.expires_at).getTime() : 0;
+  if (expiresAt && expiresAt - Date.now() > 5 * 60 * 1000) return token;
+
+  const config = getYouTubeConfig();
+  if (!config.configured) return token;
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "refresh_token",
+      refresh_token: token.refresh_token,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    throw new Error(data.error_description || data.error || `youtube_token_refresh_${response.status}`);
+  }
+
+  return storeIntegrationToken("youtube", {
+    access_token: data.access_token,
+    refresh_token: token.refresh_token,
+    token_type: data.token_type || token.token_type || "bearer",
+    scope: normalizeTwitchScopes(data.scope || token.scope),
+    expires_at: data.expires_in ? new Date(Date.now() + Number(data.expires_in) * 1000).toISOString() : null,
+    provider_user_id: token.provider_user_id,
+    provider_user_login: token.provider_user_login,
+    provider_user_name: token.provider_user_name,
+    broadcaster_user_id: null,
+    metadata: {
+      ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
+      refreshedAt: new Date().toISOString(),
+    },
+  });
+}
+
+async function exchangeInstagramCode(code) {
+  const config = getInstagramConfig();
+  if (!config.configured) {
+    const error = new Error("instagram_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+
+  const params = new URLSearchParams({
+    client_id: config.appId,
+    client_secret: config.appSecret,
+    redirect_uri: config.redirectUri,
+    code,
+  });
+  const response = await fetch(`https://graph.facebook.com/${config.graphVersion}/oauth/access_token?${params}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    const error = new Error(data.error?.message || `instagram_token_exchange_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+async function exchangeInstagramLongLivedToken(accessToken) {
+  const config = getInstagramConfig();
+  const params = new URLSearchParams({
+    grant_type: "fb_exchange_token",
+    client_id: config.appId,
+    client_secret: config.appSecret,
+    fb_exchange_token: accessToken,
+  });
+  const response = await fetch(`https://graph.facebook.com/${config.graphVersion}/oauth/access_token?${params}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) {
+    const error = new Error(data.error?.message || `instagram_long_token_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+async function resolveInstagramConnection(userAccessToken) {
+  const config = getInstagramConfig();
+  const fields = "id,name,access_token,tasks,instagram_business_account";
+  const response = await fetch(
+    `https://graph.facebook.com/${config.graphVersion}/me/accounts?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(userAccessToken)}`,
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error?.message || `instagram_pages_${response.status}`);
+    error.status = 502;
+    error.data = data;
+    throw error;
+  }
+
+  const page = (data.data || []).find((item) => item.instagram_business_account?.id && item.access_token);
+  if (!page) {
+    const error = new Error("instagram_professional_account_not_linked");
+    error.status = 409;
+    throw error;
+  }
+
+  const instagramUserId = page.instagram_business_account.id;
+  const profileResponse = await fetch(
+    `https://graph.facebook.com/${config.graphVersion}/${encodeURIComponent(instagramUserId)}?fields=id,username,name,followers_count,profile_picture_url&access_token=${encodeURIComponent(page.access_token)}`,
+  );
+  const profile = await profileResponse.json().catch(() => ({}));
+  if (!profileResponse.ok) {
+    const error = new Error(profile.error?.message || `instagram_profile_${profileResponse.status}`);
+    error.status = 502;
+    error.data = profile;
+    throw error;
+  }
+
+  return { page, profile };
+}
+
+async function refreshInstagramStoredTokenIfNeeded(token) {
+  if (!token?.refresh_token) return token;
+  const expiresAt = token.expires_at ? new Date(token.expires_at).getTime() : 0;
+  if (expiresAt && expiresAt - Date.now() > 7 * 24 * 60 * 60 * 1000) return token;
+
+  const longToken = await exchangeInstagramLongLivedToken(token.refresh_token);
+  const connection = await resolveInstagramConnection(longToken.access_token);
+  return storeIntegrationToken("instagram", {
+    access_token: connection.page.access_token,
+    refresh_token: longToken.access_token,
+    token_type: "bearer",
+    scope: token.scope,
+    expires_at: longToken.expires_in
+      ? new Date(Date.now() + Number(longToken.expires_in) * 1000).toISOString()
+      : token.expires_at,
+    provider_user_id: connection.profile.id,
+    provider_user_login: connection.profile.username || token.provider_user_login,
+    provider_user_name: connection.profile.name || connection.profile.username || token.provider_user_name,
+    broadcaster_user_id: null,
+    metadata: {
+      ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
+      pageId: connection.page.id,
+      pageName: connection.page.name,
+      refreshedAt: new Date().toISOString(),
+    },
+  });
+}
+
+async function getUsableSocialToken(provider) {
+  if (provider === "twitch") return getUsableTwitchToken();
+  const stored = await getStoredIntegrationToken(provider);
+  if (!stored.token) return stored;
+  if (provider === "tiktok") {
+    return { token: await refreshTikTokStoredTokenIfNeeded(stored.token), missingTable: false };
+  }
+  if (provider === "youtube") {
+    return { token: await refreshYouTubeStoredTokenIfNeeded(stored.token), missingTable: false };
+  }
+  if (provider === "instagram") {
+    return { token: await refreshInstagramStoredTokenIfNeeded(stored.token), missingTable: false };
+  }
+  return stored;
 }
 
 async function getTwitchAppAccessToken() {
@@ -1166,32 +1657,36 @@ async function recordIntegrationEvent({ provider, eventId, eventType, payload })
 }
 
 async function applyTwitchFollowEvent(event = {}) {
-  const sourceRow = await getDailyLogForSnapshot();
-  if (!sourceRow) return { applied: false, reason: "daily_log_not_found" };
-
-  const currentLog = toDailyLog(sourceRow);
-  const nextFollowers = {
-    ...(currentLog.followers || {}),
-    twitch: Number(currentLog.followers?.twitch || 0) + 1,
-  };
   const followerName = event.user_name || event.user_login || "new Twitch follower";
-  const updatedLog = {
-    ...currentLog,
-    followers: nextFollowers,
-    bestMoment: currentLog.bestMoment || `Twitch follow logged from ${followerName}.`,
-  };
-
-  if (!validateDailyLog(updatedLog)) {
-    const error = new Error("generated_daily_log_invalid");
-    error.status = 500;
+  const { account, missingTable } = await getSocialAccount(twitchProviderKey);
+  if (missingTable) {
+    const error = new Error("social_metrics_migration_required");
+    error.status = 503;
     throw error;
   }
 
-  const { error } = await supabaseAdmin
-    .from("daily_logs")
-    .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
-    .select("day");
-  if (error) throw error;
+  let updatedAccount;
+  if (Number.isFinite(Number(account?.follower_count))) {
+    updatedAccount = await writeSocialMetric(
+      twitchProviderKey,
+      {
+        followerCount: Number(account.follower_count) + 1,
+        providerUserId: account.provider_user_id,
+        username: account.username,
+        displayName: account.display_name,
+        profileUrl: account.profile_url,
+        precision: "exact",
+        snapshotMetadata: {
+          followerUserId: event.user_id || null,
+          followerLogin: event.user_login || null,
+          followerName,
+        },
+      },
+      { source: "twitch-eventsub" },
+    );
+  } else {
+    updatedAccount = await syncSocialProvider(twitchProviderKey, { force: true, source: "twitch-eventsub" });
+  }
 
   await updateStoredIntegrationMetadata(twitchProviderKey, (metadata) => ({
     ...metadata,
@@ -1201,12 +1696,24 @@ async function applyTwitchFollowEvent(event = {}) {
       userName: event.user_name || null,
       followedAt: event.followed_at || new Date().toISOString(),
       appliedAt: new Date().toISOString(),
-      day: updatedLog.day,
-      twitchFollowers: nextFollowers.twitch,
+      twitchFollowers: updatedAccount?.follower_count || null,
     },
   }));
 
-  return { applied: true, updatedLog };
+  const ticker = await readLiveFollowerTicker();
+  followerTickerCache = ticker;
+  broadcastFollowerTicker(ticker);
+  setTimeout(() => {
+    syncSocialProvider(twitchProviderKey, { force: true, source: "helix-reconciliation" })
+      .then(async () => {
+        const reconciledTicker = await readLiveFollowerTicker();
+        followerTickerCache = reconciledTicker;
+        broadcastFollowerTicker(reconciledTicker);
+      })
+      .catch((error) => console.error("[twitch-follow-reconciliation]", error.message));
+  }, 1500).unref?.();
+
+  return { applied: true, updatedAccount };
 }
 
 async function getTwitchIntegrationStatus() {
@@ -1255,6 +1762,310 @@ function buildTwitchAuthorizationUrl() {
   });
 
   return `https://id.twitch.tv/oauth2/authorize?${params.toString()}`;
+}
+
+function buildTikTokAuthorizationUrl() {
+  const config = getTikTokConfig();
+  if (!config.configured) {
+    const error = new Error("tiktok_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+  const params = new URLSearchParams({
+    client_key: config.clientKey,
+    response_type: "code",
+    scope: "user.info.basic,user.info.profile,user.info.stats",
+    redirect_uri: config.redirectUri,
+    state: signSocialOAuthState("tiktok"),
+  });
+  return `https://www.tiktok.com/v2/auth/authorize/?${params.toString()}`;
+}
+
+function buildInstagramAuthorizationUrl() {
+  const config = getInstagramConfig();
+  if (!config.configured) {
+    const error = new Error("instagram_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+  const params = new URLSearchParams({
+    client_id: config.appId,
+    redirect_uri: config.redirectUri,
+    response_type: "code",
+    scope: "pages_show_list,instagram_basic,pages_read_engagement",
+    state: signSocialOAuthState("instagram"),
+  });
+  return `https://www.facebook.com/${config.graphVersion}/dialog/oauth?${params.toString()}`;
+}
+
+function buildYouTubeAuthorizationUrl() {
+  const config = getYouTubeConfig();
+  if (!config.configured) {
+    const error = new Error("youtube_oauth_not_configured");
+    error.status = 503;
+    throw error;
+  }
+  const params = new URLSearchParams({
+    client_id: config.clientId,
+    redirect_uri: config.redirectUri,
+    response_type: "code",
+    scope: "https://www.googleapis.com/auth/youtube.readonly",
+    access_type: "offline",
+    include_granted_scopes: "true",
+    prompt: "consent",
+    state: signSocialOAuthState("youtube"),
+  });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+function buildSocialAuthorizationUrl(provider) {
+  if (provider === "twitch") return buildTwitchAuthorizationUrl();
+  if (provider === "tiktok") return buildTikTokAuthorizationUrl();
+  if (provider === "instagram") return buildInstagramAuthorizationUrl();
+  if (provider === "youtube") return buildYouTubeAuthorizationUrl();
+  const error = new Error(provider === "x" ? "x_uses_server_credentials" : "unsupported_social_provider");
+  error.status = 400;
+  throw error;
+}
+
+async function completeSocialOAuthConnection(provider, code) {
+  if (provider === "twitch") {
+    const token = await exchangeTwitchCode(code);
+    const validation = await validateTwitchAccessToken(token.access_token);
+    const scopes = normalizeTwitchScopes(token.scope || validation.scopes);
+    const missingScope = twitchOAuthScopes.find((scope) => !scopes.includes(scope));
+    if (missingScope) {
+      const error = new Error(`missing_twitch_scope_${missingScope}`);
+      error.status = 400;
+      throw error;
+    }
+    await storeIntegrationToken(provider, {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token || null,
+      token_type: token.token_type || "bearer",
+      scope: scopes,
+      expires_at: token.expires_in ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
+      provider_user_id: validation.user_id || null,
+      provider_user_login: validation.login || null,
+      provider_user_name: validation.login || null,
+      broadcaster_user_id: validation.user_id || null,
+      metadata: { connectedAt: new Date().toISOString(), validation },
+    });
+  } else if (provider === "tiktok") {
+    const token = await exchangeTikTokCode(code);
+    const stored = await storeIntegrationToken(provider, {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token || null,
+      token_type: token.token_type || "bearer",
+      scope: normalizeTwitchScopes(token.scope),
+      expires_at: token.expires_in ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
+      provider_user_id: token.open_id || null,
+      provider_user_login: null,
+      provider_user_name: null,
+      broadcaster_user_id: null,
+      metadata: {
+        connectedAt: new Date().toISOString(),
+        refreshExpiresIn: token.refresh_expires_in || null,
+      },
+    });
+    const metric = await fetchTikTokSocialMetric(stored);
+    await storeIntegrationToken(provider, {
+      ...stored,
+      provider_user_id: metric.providerUserId,
+      provider_user_login: metric.username,
+      provider_user_name: metric.displayName,
+    });
+  } else if (provider === "youtube") {
+    const token = await exchangeYouTubeCode(code);
+    const stored = await storeIntegrationToken(provider, {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token || null,
+      token_type: token.token_type || "bearer",
+      scope: normalizeTwitchScopes(token.scope || "https://www.googleapis.com/auth/youtube.readonly"),
+      expires_at: token.expires_in ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
+      provider_user_id: null,
+      provider_user_login: null,
+      provider_user_name: null,
+      broadcaster_user_id: null,
+      metadata: { connectedAt: new Date().toISOString() },
+    });
+    const metric = await fetchYouTubeSocialMetric(stored);
+    await storeIntegrationToken(provider, {
+      ...stored,
+      provider_user_id: metric.providerUserId,
+      provider_user_login: metric.username,
+      provider_user_name: metric.displayName,
+    });
+  } else if (provider === "instagram") {
+    const shortToken = await exchangeInstagramCode(code);
+    const longToken = await exchangeInstagramLongLivedToken(shortToken.access_token);
+    const connection = await resolveInstagramConnection(longToken.access_token);
+    await storeIntegrationToken(provider, {
+      access_token: connection.page.access_token,
+      refresh_token: longToken.access_token,
+      token_type: "bearer",
+      scope: ["pages_show_list", "instagram_basic", "pages_read_engagement"],
+      expires_at: longToken.expires_in
+        ? new Date(Date.now() + Number(longToken.expires_in) * 1000).toISOString()
+        : null,
+      provider_user_id: connection.profile.id,
+      provider_user_login: connection.profile.username || null,
+      provider_user_name: connection.profile.name || connection.profile.username || null,
+      broadcaster_user_id: null,
+      metadata: {
+        connectedAt: new Date().toISOString(),
+        pageId: connection.page.id,
+        pageName: connection.page.name,
+      },
+    });
+  } else {
+    const error = new Error("unsupported_social_provider");
+    error.status = 400;
+    throw error;
+  }
+
+  const account = await syncSocialProvider(provider, { force: true, source: "oauth-connect" });
+  if (provider === "twitch" && getTwitchConfig().webhookConfigured) {
+    createTwitchFollowSubscription().catch((error) => {
+      if (error.status !== 409) console.error("[twitch-eventsub-auto-subscribe]", error.message);
+    });
+  }
+  const ticker = await readLiveFollowerTicker();
+  followerTickerCache = ticker;
+  broadcastFollowerTicker(ticker);
+  return account;
+}
+
+function getSocialProviderSetup(provider) {
+  if (provider === "twitch") {
+    return {
+      oauthSupported: true,
+      callbackUrl: getTwitchConfig().redirectUri,
+      requiredScopes: twitchOAuthScopes,
+      envKeys: ["TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET", "TWITCH_EVENTSUB_SECRET"],
+    };
+  }
+  if (provider === "tiktok") {
+    return {
+      oauthSupported: true,
+      callbackUrl: getTikTokConfig().redirectUri,
+      requiredScopes: ["user.info.basic", "user.info.profile", "user.info.stats"],
+      envKeys: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"],
+    };
+  }
+  if (provider === "instagram") {
+    return {
+      oauthSupported: true,
+      callbackUrl: getInstagramConfig().redirectUri,
+      requiredScopes: ["pages_show_list", "instagram_basic", "pages_read_engagement"],
+      envKeys: ["META_APP_ID", "META_APP_SECRET", "META_GRAPH_VERSION"],
+    };
+  }
+  if (provider === "youtube") {
+    return {
+      oauthSupported: true,
+      callbackUrl: getYouTubeConfig().redirectUri,
+      requiredScopes: ["youtube.readonly"],
+      envKeys: ["YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET"],
+    };
+  }
+  return {
+    oauthSupported: false,
+    callbackUrl: null,
+    requiredScopes: [],
+    envKeys: ["X_BEARER_TOKEN", "X_USERNAME"],
+  };
+}
+
+async function getSocialIntegrationStatus() {
+  const { accounts, missingTable } = await getSocialAccounts();
+  const accountByProvider = new Map(accounts.map((account) => [account.provider, account]));
+  const tokenResults = await Promise.all(
+    socialProviderCatalog.map(async (definition) => {
+      if (definition.key === "x") return [definition.key, null];
+      try {
+        const stored = await getStoredIntegrationToken(definition.key);
+        return [definition.key, stored.token];
+      } catch (error) {
+        return [definition.key, { tokenError: error.message }];
+      }
+    }),
+  );
+  const tokenByProvider = new Map(tokenResults);
+
+  return {
+    storageReady: !missingTable,
+    encryptionReady: Boolean(getSocialTokenEncryptionKey()),
+    providers: socialProviderCatalog.map((definition) => {
+      const config = getSocialProviderConfig(definition.key);
+      const setup = getSocialProviderSetup(definition.key);
+      const account = accountByProvider.get(definition.key) || null;
+      const token = tokenByProvider.get(definition.key) || null;
+      const connected = definition.key === "x"
+        ? Boolean(config.configured && ["connected", "stale"].includes(account?.status))
+        : Boolean(token?.access_token && account?.status !== "disconnected");
+      return {
+        key: definition.key,
+        label: definition.label,
+        appConfigured: Boolean(config.configured),
+        connected,
+        status: account?.status || "disconnected",
+        count: Number.isFinite(Number(account?.follower_count)) ? Number(account.follower_count) : null,
+        username: account?.username || token?.provider_user_login || null,
+        displayName: account?.display_name || token?.provider_user_name || null,
+        profileUrl: account?.profile_url || null,
+        precision: account?.precision || definition.precision,
+        lastSyncedAt: account?.last_synced_at || null,
+        lastChangedAt: account?.last_changed_at || null,
+        lastError: account?.last_error || token?.tokenError || null,
+        expiresAt: token?.expires_at || null,
+        eventSub: definition.key === "twitch" ? token?.metadata?.eventSub || null : null,
+        mode: definition.mode,
+        cadence: definition.cadence,
+        ...setup,
+      };
+    }),
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+async function disconnectSocialProvider(provider) {
+  if (!socialProviderByKey.has(provider)) {
+    const error = new Error("unsupported_social_provider");
+    error.status = 400;
+    throw error;
+  }
+  if (provider !== "x") {
+    const { error: tokenError } = await supabaseAdmin.from("integration_tokens").delete().eq("provider", provider);
+    if (tokenError && !isMissingIntegrationStorageError(tokenError)) throw tokenError;
+  }
+  const definition = socialProviderByKey.get(provider);
+  const { error } = await supabaseAdmin.from("social_accounts").upsert(
+    {
+      provider,
+      status: "disconnected",
+      provider_user_id: null,
+      username: null,
+      display_name: null,
+      profile_url: null,
+      follower_count: null,
+      previous_follower_count: null,
+      delta: 0,
+      metric_name: definition.metricName,
+      precision: definition.precision,
+      connected_at: null,
+      last_synced_at: null,
+      last_changed_at: null,
+      last_error: null,
+      metadata: {},
+    },
+    { onConflict: "provider" },
+  );
+  if (error) throw error;
+  providerLastPollAt.delete(provider);
+  followerTickerCache = await readLiveFollowerTicker();
+  broadcastFollowerTicker(followerTickerCache);
+  return followerTickerCache;
 }
 
 function verifyTwitchEventSubSignature(req, rawBody) {
@@ -1317,156 +2128,466 @@ function renderTwitchCallbackHtml({ title, message, success = true }) {
 </html>`;
 }
 
-async function fetchTwitchFollowerCount() {
+function isMissingSocialMetricsStorageError(error) {
+  const message = String(error?.message || error?.details || "").toLowerCase();
+  return error?.code === "42P01" || message.includes("social_accounts") || message.includes("social_metric_snapshots");
+}
+
+async function getSocialAccounts() {
+  const { data, error } = await supabaseAdmin.from("social_accounts").select("*").order("provider");
+  if (error) {
+    if (isMissingSocialMetricsStorageError(error)) return { accounts: [], missingTable: true };
+    throw error;
+  }
+  return { accounts: data || [], missingTable: false };
+}
+
+async function getSocialAccount(provider) {
+  const { data, error } = await supabaseAdmin
+    .from("social_accounts")
+    .select("*")
+    .eq("provider", provider)
+    .maybeSingle();
+  if (error) {
+    if (isMissingSocialMetricsStorageError(error)) return { account: null, missingTable: true };
+    throw error;
+  }
+  return { account: data || null, missingTable: false };
+}
+
+async function syncLatestDailyLogFollower(provider, followerCount) {
+  const sourceRow = await getDailyLogForSnapshot();
+  if (!sourceRow) return null;
+  const currentFollowers = sourceRow.followers && typeof sourceRow.followers === "object" ? sourceRow.followers : {};
+  if (Number(currentFollowers[provider]) === Number(followerCount)) return sourceRow;
+
+  const followers = { ...currentFollowers, [provider]: Number(followerCount) };
+  const { data, error } = await supabaseAdmin
+    .from("daily_logs")
+    .update({ followers })
+    .eq("day", sourceRow.day)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function writeSocialMetric(provider, metric, { source = "api-poll" } = {}) {
+  const definition = socialProviderByKey.get(provider);
+  if (!definition) {
+    const error = new Error("unsupported_social_provider");
+    error.status = 400;
+    throw error;
+  }
+
+  const followerCount = Number(metric.followerCount);
+  if (!Number.isFinite(followerCount) || followerCount < 0) {
+    const error = new Error("invalid_social_follower_count");
+    error.status = 502;
+    throw error;
+  }
+
+  const { account: existing, missingTable } = await getSocialAccount(provider);
+  if (missingTable) {
+    const error = new Error("social_metrics_migration_required");
+    error.status = 503;
+    throw error;
+  }
+
+  const now = new Date().toISOString();
+  const previousCount = Number.isFinite(Number(existing?.follower_count)) ? Number(existing.follower_count) : null;
+  const delta = previousCount === null ? 0 : followerCount - previousCount;
+  const existingMetadata = existing?.metadata && typeof existing.metadata === "object" ? existing.metadata : {};
+  const lastSnapshotAt = existingMetadata.lastSnapshotAt ? new Date(existingMetadata.lastSnapshotAt).getTime() : 0;
+  const shouldSnapshot = previousCount === null || delta !== 0 || Date.now() - lastSnapshotAt >= socialMetricHeartbeatMs;
+  const metadata = {
+    ...existingMetadata,
+    ...(metric.metadata && typeof metric.metadata === "object" ? metric.metadata : {}),
+    lastSource: source,
+    lastSnapshotAt: shouldSnapshot ? now : existingMetadata.lastSnapshotAt || null,
+    lastChangeDelta: delta !== 0 ? delta : existingMetadata.lastChangeDelta || 0,
+  };
+
+  const row = {
+    provider,
+    status: "connected",
+    provider_user_id: metric.providerUserId || existing?.provider_user_id || null,
+    username: metric.username || existing?.username || null,
+    display_name: metric.displayName || metric.username || existing?.display_name || null,
+    profile_url: metric.profileUrl || existing?.profile_url || null,
+    follower_count: followerCount,
+    previous_follower_count: previousCount,
+    delta,
+    metric_name: definition.metricName,
+    precision: metric.precision || definition.precision,
+    connected_at: existing?.connected_at || now,
+    last_synced_at: now,
+    last_changed_at: delta !== 0 || previousCount === null ? now : existing?.last_changed_at || null,
+    last_error: null,
+    metadata,
+  };
+  const { data, error } = await supabaseAdmin
+    .from("social_accounts")
+    .upsert(row, { onConflict: "provider" })
+    .select("*")
+    .single();
+  if (error) throw error;
+
+  if (shouldSnapshot) {
+    const { error: snapshotError } = await supabaseAdmin.from("social_metric_snapshots").insert({
+      provider,
+      follower_count: followerCount,
+      delta,
+      observed_at: now,
+      source,
+      metadata: metric.snapshotMetadata || {},
+    });
+    if (snapshotError) throw snapshotError;
+  }
+
+  await syncLatestDailyLogFollower(provider, followerCount);
+  return data;
+}
+
+async function markSocialAccountError(provider, error) {
+  const { account, missingTable } = await getSocialAccount(provider);
+  if (missingTable) return null;
+  const hasLastKnownCount = Number.isFinite(Number(account?.follower_count));
+  const { data, error: updateError } = await supabaseAdmin
+    .from("social_accounts")
+    .upsert(
+      {
+        provider,
+        status: hasLastKnownCount ? "stale" : "error",
+        follower_count: hasLastKnownCount ? Number(account.follower_count) : null,
+        previous_follower_count: account?.previous_follower_count ?? null,
+        delta: 0,
+        metric_name: socialProviderByKey.get(provider)?.metricName || "followers",
+        precision: account?.precision || socialProviderByKey.get(provider)?.precision || "exact",
+        connected_at: account?.connected_at || null,
+        last_synced_at: account?.last_synced_at || null,
+        last_changed_at: account?.last_changed_at || null,
+        last_error: String(error?.message || error || "social_sync_failed").slice(0, 500),
+        metadata: account?.metadata || {},
+      },
+      { onConflict: "provider" },
+    )
+    .select("*")
+    .single();
+  if (updateError) throw updateError;
+  return data;
+}
+
+async function fetchTwitchSocialMetric(token) {
   const config = getTwitchConfig();
-  const { token } = await getUsableTwitchToken();
-  const clientId = config.clientId;
   const accessToken = token?.access_token || readPublicUrlEnv("TWITCH_ACCESS_TOKEN");
   const broadcasterId =
     token?.broadcaster_user_id || token?.provider_user_id || readPublicUrlEnv("TWITCH_BROADCASTER_ID");
-  if (!clientId || !accessToken || !broadcasterId) return null;
+  if (!config.clientId || !accessToken || !broadcasterId) throw new Error("twitch_account_not_connected");
 
   const response = await fetch(
     `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${encodeURIComponent(broadcasterId)}&first=1`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Client-Id": clientId,
-      },
-    },
+    { headers: { Authorization: `Bearer ${accessToken}`, "Client-Id": config.clientId } },
   );
-  if (!response.ok) throw new Error(`twitch_followers_${response.status}`);
-  const data = await response.json();
-  return Number(data.total || 0);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || `twitch_followers_${response.status}`);
+  const username = token?.provider_user_login || null;
+  return {
+    followerCount: Number(data.total || 0),
+    providerUserId: broadcasterId,
+    username,
+    displayName: token?.provider_user_name || username,
+    profileUrl: username ? `https://www.twitch.tv/${encodeURIComponent(username)}` : null,
+    precision: "exact",
+  };
 }
 
-async function fetchTikTokFollowerCount() {
-  const accessToken = readPublicUrlEnv("TIKTOK_ACCESS_TOKEN");
-  if (!accessToken) return null;
-
-  const response = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=follower_count,username", {
-    headers: { Authorization: `Bearer ${accessToken}` },
+async function fetchTikTokSocialMetric(token) {
+  if (!token?.access_token) throw new Error("tiktok_account_not_connected");
+  const fields = "open_id,union_id,avatar_url,display_name,username,profile_deep_link,follower_count";
+  const response = await fetch(`https://open.tiktokapis.com/v2/user/info/?fields=${encodeURIComponent(fields)}`, {
+    headers: { Authorization: `Bearer ${token.access_token}` },
   });
-  if (!response.ok) throw new Error(`tiktok_followers_${response.status}`);
-  const data = await response.json();
-  return Number(data?.data?.user?.follower_count || 0);
-}
-
-async function getFollowerConnectorCount(source) {
-  if (source.key === "twitch") return fetchTwitchFollowerCount();
-  if (source.key === "tiktok") return fetchTikTokFollowerCount();
-  return null;
-}
-
-async function buildLiveFollowerTicker() {
-  let twitchStoredToken = null;
-  try {
-    twitchStoredToken = (await getUsableTwitchToken()).token;
-  } catch (error) {
-    console.error("[twitch-token-fallback]", error.message);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data.error?.code && data.error.code !== "ok")) {
+    throw new Error(data.error?.message || `tiktok_followers_${response.status}`);
   }
-  const twitchEnvReady = Boolean(
-    process.env.TWITCH_CLIENT_ID && process.env.TWITCH_ACCESS_TOKEN && process.env.TWITCH_BROADCASTER_ID,
+  const user = data?.data?.user || {};
+  return {
+    followerCount: Number(user.follower_count || 0),
+    providerUserId: user.open_id || token.provider_user_id,
+    username: user.username || token.provider_user_login,
+    displayName: user.display_name || user.username || token.provider_user_name,
+    profileUrl: user.profile_deep_link || null,
+    precision: "exact",
+    metadata: { avatarUrl: user.avatar_url || null },
+  };
+}
+
+async function fetchInstagramSocialMetric(token) {
+  if (!token?.access_token || !token?.provider_user_id) throw new Error("instagram_account_not_connected");
+  const config = getInstagramConfig();
+  const fields = "id,username,name,followers_count,profile_picture_url";
+  const response = await fetch(
+    `https://graph.facebook.com/${config.graphVersion}/${encodeURIComponent(token.provider_user_id)}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(token.access_token)}`,
   );
-  const twitchStoredReady = Boolean(
-    getTwitchConfig().clientId &&
-      twitchStoredToken?.access_token &&
-      (twitchStoredToken.broadcaster_user_id || twitchStoredToken.provider_user_id),
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error?.message || `instagram_followers_${response.status}`);
+  return {
+    followerCount: Number(data.followers_count || 0),
+    providerUserId: data.id || token.provider_user_id,
+    username: data.username || token.provider_user_login,
+    displayName: data.name || data.username || token.provider_user_name,
+    profileUrl: data.username ? `https://www.instagram.com/${encodeURIComponent(data.username)}/` : null,
+    precision: "exact",
+    metadata: { profilePictureUrl: data.profile_picture_url || null },
+  };
+}
+
+async function fetchYouTubeSocialMetric(token) {
+  if (!token?.access_token) throw new Error("youtube_account_not_connected");
+  const response = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true", {
+    headers: { Authorization: `Bearer ${token.access_token}` },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error?.message || `youtube_subscribers_${response.status}`);
+  const channel = data.items?.[0];
+  if (!channel) throw new Error("youtube_channel_not_found");
+  if (channel.statistics?.hiddenSubscriberCount && channel.statistics?.subscriberCount === undefined) {
+    throw new Error("youtube_subscriber_count_hidden");
+  }
+  return {
+    followerCount: Number(channel.statistics?.subscriberCount || 0),
+    providerUserId: channel.id,
+    username: channel.snippet?.customUrl || token.provider_user_login,
+    displayName: channel.snippet?.title || token.provider_user_name,
+    profileUrl: `https://www.youtube.com/channel/${encodeURIComponent(channel.id)}`,
+    precision: "rounded",
+    metadata: {
+      hiddenSubscriberCount: Boolean(channel.statistics?.hiddenSubscriberCount),
+      thumbnailUrl: channel.snippet?.thumbnails?.default?.url || null,
+    },
+  };
+}
+
+async function fetchXSocialMetric() {
+  const config = getXConfig();
+  if (!config.configured) throw new Error("x_api_not_configured");
+  const response = await fetch(
+    `https://api.x.com/2/users/by/username/${encodeURIComponent(config.username)}?user.fields=id,name,username,profile_image_url,public_metrics`,
+    { headers: { Authorization: `Bearer ${config.bearerToken}` } },
   );
-  const { data, error } = await supabaseAdmin
-    .from("daily_logs")
-    .select("day,followers,updated_at")
-    .order("day", { ascending: false })
-    .limit(1);
-  if (error) throw error;
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.data) throw new Error(data.detail || data.title || `x_followers_${response.status}`);
+  return {
+    followerCount: Number(data.data.public_metrics?.followers_count || 0),
+    providerUserId: data.data.id,
+    username: data.data.username,
+    displayName: data.data.name || data.data.username,
+    profileUrl: `https://x.com/${encodeURIComponent(data.data.username)}`,
+    precision: "exact",
+    metadata: { profileImageUrl: data.data.profile_image_url || null },
+  };
+}
 
-  const latestLog = data?.[0] || null;
-  const fallbackFollowers = latestLog?.followers || {};
-  const sources = [
-    {
-      key: "twitch",
-      label: "Twitch",
-      platformMetric: "followers",
-      mode: "EventSub + Helix reconciliation",
-      cadence: "instant after OAuth; API fallback on refresh",
-      configured: twitchEnvReady || twitchStoredReady,
-      eventDriven: true,
-    },
-    {
-      key: "tiktok",
-      label: "TikTok",
-      platformMetric: "followers",
-      mode: "Display API polling",
-      cadence: "polling after app approval",
-      configured: Boolean(process.env.TIKTOK_ACCESS_TOKEN),
-      eventDriven: false,
-    },
-    {
-      key: "instagram",
-      label: "Instagram",
-      platformMetric: "followers",
-      mode: "Meta Graph API polling",
-      cadence: "polling after Meta app approval",
-      configured: Boolean(process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_USER_ID),
-      eventDriven: false,
-    },
-    {
-      key: "youtube",
-      label: "YouTube",
-      platformMetric: "subscribers",
-      mode: "YouTube Data API polling",
-      cadence: "polling after live access opens",
-      configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
-      eventDriven: false,
-    },
-  ];
+async function fetchSocialProviderMetric(provider, token) {
+  if (provider === "twitch") return fetchTwitchSocialMetric(token);
+  if (provider === "tiktok") return fetchTikTokSocialMetric(token);
+  if (provider === "instagram") return fetchInstagramSocialMetric(token);
+  if (provider === "youtube") return fetchYouTubeSocialMetric(token);
+  if (provider === "x") return fetchXSocialMetric();
+  throw new Error("unsupported_social_provider");
+}
 
-  const resolvedSources = await Promise.all(
-    sources.map(async (source) => {
-      const manualEnvCount = getEnvNumber(
-        `FOLLOWER_${source.key.toUpperCase()}_COUNT`,
-        `${source.key.toUpperCase()}_FOLLOWER_COUNT`,
-      );
-      const fallbackCount = Number(manualEnvCount ?? fallbackFollowers[source.key] ?? 0);
-      let count = fallbackCount;
-      let status = source.configured ? "connector-ready" : "daily-log-fallback";
-      let detail = source.configured
-        ? "Connector credentials are present; live count can replace the daily log fallback."
-        : "Using the latest approved daily log until platform access is connected.";
+async function syncSocialProvider(provider, { force = false, source = "api-poll" } = {}) {
+  const definition = socialProviderByKey.get(provider);
+  if (!definition) {
+    const error = new Error("unsupported_social_provider");
+    error.status = 400;
+    throw error;
+  }
+  const config = getSocialProviderConfig(provider);
+  if (!config.configured) {
+    const error = new Error(`${provider}_oauth_not_configured`);
+    error.status = 503;
+    throw error;
+  }
 
-      if (source.configured && ["twitch", "tiktok"].includes(source.key)) {
-        try {
-          const connectorCount = await getFollowerConnectorCount(source);
-          if (Number.isFinite(connectorCount)) {
-            count = connectorCount;
-            status = "live";
-            detail = "Live connector count returned successfully.";
-          }
-        } catch (error) {
-          status = "connector-error";
-          detail = `Connector needs attention: ${error.message}`;
-        }
+  const lastPollAt = providerLastPollAt.get(provider) || 0;
+  if (!force && Date.now() - lastPollAt < definition.pollMs) return null;
+  providerLastPollAt.set(provider, Date.now());
+
+  try {
+    let token = null;
+    if (provider !== "x") {
+      const stored = await getUsableSocialToken(provider);
+      if (stored.missingTable) {
+        const error = new Error("integration_tokens_migration_required");
+        error.status = 503;
+        throw error;
       }
+      token = stored.token;
+      if (!token?.access_token) {
+        if (!force) return null;
+        const error = new Error(`${provider}_account_not_connected`);
+        error.status = 409;
+        throw error;
+      }
+    }
 
-      return {
-        ...source,
-        count,
-        status,
-        detail,
-        lastUpdatedAt: status === "live" ? new Date().toISOString() : latestLog?.updated_at || null,
-      };
-    }),
+    const metric = await fetchSocialProviderMetric(provider, token);
+    return await writeSocialMetric(provider, metric, { source });
+  } catch (error) {
+    if (!String(error.message || "").endsWith("_account_not_connected")) {
+      await markSocialAccountError(provider, error).catch(() => null);
+    }
+    throw error;
+  }
+}
+
+function formatSocialSource(definition, account, missingTable) {
+  const config = getSocialProviderConfig(definition.key);
+  const hasCount = Number.isFinite(Number(account?.follower_count));
+  const connected = Boolean(account && ["connected", "stale"].includes(account.status) && hasCount);
+  let status = "not-connected";
+  let detail = "This account is not connected and is excluded from the total.";
+
+  if (missingTable) {
+    status = "migration-required";
+    detail = "The social metrics migration must be applied before this account can connect.";
+  } else if (account?.status === "connected" && hasCount) {
+    status = "live";
+    detail = definition.eventDriven ? "Event feed active with API reconciliation." : "Official API count is connected.";
+  } else if (account?.status === "stale" && hasCount) {
+    status = "stale";
+    detail = `Showing the last verified count. ${account.last_error || "The latest refresh failed."}`;
+  } else if (account?.status === "error") {
+    status = "connector-error";
+    detail = account.last_error || "The connector needs attention.";
+  } else if (config.configured) {
+    status = "ready-to-connect";
+    detail = "App credentials are ready. Authorize this account in Admin settings.";
+  }
+
+  return {
+    key: definition.key,
+    label: definition.label,
+    platformMetric: definition.metricName,
+    mode: definition.mode,
+    cadence: definition.cadence,
+    configured: Boolean(config.configured),
+    connected,
+    eventDriven: definition.eventDriven,
+    count: connected ? Number(account.follower_count) : null,
+    previousCount: connected && account.previous_follower_count !== null ? Number(account.previous_follower_count) : null,
+    delta: connected ? Number(account.delta || 0) : 0,
+    lastChangeDelta: connected ? Number(account.metadata?.lastChangeDelta || 0) : 0,
+    status,
+    detail,
+    precision: account?.precision || definition.precision,
+    username: account?.username || null,
+    displayName: account?.display_name || account?.username || null,
+    profileUrl: account?.profile_url || null,
+    lastUpdatedAt: account?.last_synced_at || null,
+    lastChangedAt: account?.last_changed_at || null,
+  };
+}
+
+async function readLiveFollowerTicker() {
+  const { accounts, missingTable } = await getSocialAccounts();
+  const accountByProvider = new Map(accounts.map((account) => [account.provider, account]));
+  const sources = socialProviderCatalog.map((definition) =>
+    formatSocialSource(definition, accountByProvider.get(definition.key) || null, missingTable),
   );
+  const connectedSources = sources.filter((source) => source.connected && Number.isFinite(source.count));
+  const lastChangedSource = [...connectedSources]
+    .filter((source) => source.lastChangedAt)
+    .sort((left, right) => new Date(right.lastChangedAt) - new Date(left.lastChangedAt))[0];
 
   return {
     ok: true,
-    mode: "live-follower-ticker",
-    total: resolvedSources.reduce((sum, source) => sum + Number(source.count || 0), 0),
-    sources: resolvedSources,
-    sourceDay: latestLog?.day || null,
-    refreshMs: Number(process.env.FOLLOWER_TICKER_REFRESH_MS || 15000),
+    mode: "verified-social-metrics",
+    total: connectedSources.reduce((sum, source) => sum + source.count, 0),
+    connectedSourceCount: connectedSources.length,
+    sources,
+    storageReady: !missingTable,
+    lastChange: lastChangedSource
+      ? {
+          provider: lastChangedSource.key,
+          label: lastChangedSource.label,
+          delta: lastChangedSource.lastChangeDelta,
+          observedAt: lastChangedSource.lastChangedAt,
+        }
+      : null,
+    refreshMs: followerTickerRefreshMs,
     checkedAt: new Date().toISOString(),
   };
+}
+
+function sendFollowerTickerFrame(res, ticker) {
+  res.write("event: followers\n");
+  res.write(`data: ${JSON.stringify(ticker)}\n\n`);
+}
+
+function broadcastFollowerTicker(ticker) {
+  for (const client of followerStreamClients) {
+    try {
+      sendFollowerTickerFrame(client, ticker);
+    } catch {
+      followerStreamClients.delete(client);
+    }
+  }
+}
+
+async function refreshDueSocialMetrics({ force = false, providers = null } = {}) {
+  if (followerRefreshPromise) return followerRefreshPromise;
+  followerRefreshPromise = (async () => {
+    const selectedProviders = (providers || socialProviderCatalog.map((provider) => provider.key)).filter((provider) =>
+      socialProviderByKey.has(provider),
+    );
+    const results = await Promise.allSettled(
+      selectedProviders.map((provider) => syncSocialProvider(provider, { force })),
+    );
+    const ticker = await readLiveFollowerTicker();
+    followerTickerCache = ticker;
+    broadcastFollowerTicker(ticker);
+    return {
+      ticker,
+      results: results.map((result, index) => ({
+        provider: selectedProviders[index],
+        ok: result.status === "fulfilled",
+        skipped: result.status === "fulfilled" && result.value === null,
+        error: result.status === "rejected" ? result.reason?.message || "social_sync_failed" : null,
+      })),
+    };
+  })();
+
+  try {
+    return await followerRefreshPromise;
+  } finally {
+    followerRefreshPromise = null;
+  }
+}
+
+function ensureFollowerRefreshLoop() {
+  if (followerRefreshTimer) return;
+  followerRefreshTimer = setInterval(() => {
+    refreshDueSocialMetrics().catch((error) => console.error("[social-refresh-loop]", error.message));
+  }, followerTickerRefreshMs);
+  followerRefreshTimer.unref?.();
+}
+
+async function buildLiveFollowerTicker({ refreshDue = true } = {}) {
+  if (refreshDue) {
+    try {
+      return (await refreshDueSocialMetrics()).ticker;
+    } catch (error) {
+      console.error("[social-refresh]", error.message);
+    }
+  }
+  if (followerTickerCache) return { ...followerTickerCache, checkedAt: new Date().toISOString() };
+  followerTickerCache = await readLiveFollowerTicker();
+  return followerTickerCache;
 }
 
 function normalizeClipSubmission(body = {}) {
@@ -1920,11 +3041,6 @@ async function getOfferOpsSummary() {
   };
 }
 
-function automationStatus({ configured, live = false, pendingLabel = "Waiting" }) {
-  if (live) return "live";
-  return configured ? "configured" : pendingLabel;
-}
-
 async function getMetricsAutomationSummary() {
   const now = Date.now();
   const since24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
@@ -1939,6 +3055,7 @@ async function getMetricsAutomationSummary() {
     latestPurchases,
     latestEntitlements,
     latestLogs,
+    liveFollowerTicker,
   ] = await Promise.all([
     countSubscribersSince(),
     countSubscribersSince(since24h),
@@ -1967,6 +3084,7 @@ async function getMetricsAutomationSummary() {
       .select("day,date,email_subscribers,revenue_collected,products_sold,clips_posted,hours_streamed,updated_at")
       .order("day", { ascending: false })
       .limit(1),
+    buildLiveFollowerTicker({ refreshDue: false }),
   ]);
 
   for (const result of [latestSubscribers, latestPurchases, latestEntitlements, latestLogs]) {
@@ -1974,6 +3092,15 @@ async function getMetricsAutomationSummary() {
   }
 
   const latestLog = latestLogs.data?.[0] || null;
+  const socialAutomationSources = (liveFollowerTicker.sources || []).map((source) => ({
+    key: `${source.key}-${source.platformMetric}`,
+    label: `${source.label} ${source.platformMetric}`,
+    status: source.status,
+    mode: source.mode,
+    metric: source.count === null ? "Not connected" : formatNumberForApi(source.count),
+    detail: source.detail,
+    next: source.connected ? `Last verified ${source.lastUpdatedAt || "just now"}.` : "Connect the account in Social Accounts.",
+  }));
   const liveSources = [
     {
       key: "email-subscribers",
@@ -2011,54 +3138,7 @@ async function getMetricsAutomationSummary() {
       detail: latestLog ? `${latestLog.date} · ${formatNumberForApi(latestLog.clips_posted)} clips logged` : "Waiting for Day 1 baseline",
       next: "Snapshot writer can apply Stripe, email, and member metrics into daily_logs.",
     },
-    {
-      key: "twitch-followers",
-      label: "Twitch followers",
-      status: automationStatus({
-        configured: Boolean(process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET),
-        pendingLabel: "needs-oauth",
-      }),
-      mode: "EventSub + API reconciliation",
-      metric: "Not connected",
-      detail: "Real-time follow events after Twitch app OAuth is connected.",
-      next: "Create Twitch app, authorize channel, then subscribe to channel.follow.",
-    },
-    {
-      key: "youtube-subscribers",
-      label: "YouTube subscribers",
-      status: automationStatus({
-        configured: Boolean(process.env.YOUTUBE_CLIENT_ID && process.env.YOUTUBE_CLIENT_SECRET),
-        pendingLabel: "waiting-access",
-      }),
-      mode: "YouTube Data API polling",
-      metric: "Pending",
-      detail: "Live access unlocks about 24 hours after YouTube approval request.",
-      next: "After access opens, connect OAuth and poll channel statistics.",
-    },
-    {
-      key: "tiktok-followers",
-      label: "TikTok followers",
-      status: automationStatus({
-        configured: Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET),
-        pendingLabel: "needs-app-review",
-      }),
-      mode: "TikTok Display API polling",
-      metric: "Pending",
-      detail: "Follower count is available through user.info.stats after OAuth approval.",
-      next: "Create TikTok developer app, request user.info.stats, then poll follower_count.",
-    },
-    {
-      key: "instagram-followers",
-      label: "Instagram followers",
-      status: automationStatus({
-        configured: Boolean(process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET),
-        pendingLabel: "needs-meta-app",
-      }),
-      mode: "Meta Graph API polling",
-      metric: "Pending",
-      detail: "Follower total should be reconciled on a schedule; follower-by-follower webhooks are not the safe assumption.",
-      next: "Connect a professional Instagram account through a Meta app and poll account insights.",
-    },
+    ...socialAutomationSources,
     {
       key: "clip-pipeline",
       label: "Clips posted",
@@ -2110,10 +3190,10 @@ async function getMetricsAutomationSummary() {
     sources: liveSources,
     events,
     nextBuilds: [
-      "Twitch OAuth + EventSub follow listener",
-      "TikTok Display API follower_count poller",
-      "Instagram Graph API follower-count poller",
-      "YouTube OAuth + statistics poller",
+      "Authorize the Twitch channel and confirm EventSub delivery",
+      "Authorize TikTok with user.info.stats",
+      "Connect the professional Instagram account through Meta",
+      "Authorize the YouTube channel and verify rounded subscriber precision",
       "Clip submission webhook for n8n/short-form pipeline",
     ],
     checkedAt: new Date().toISOString(),
@@ -2698,7 +3778,8 @@ app.get("/api/followers/live", async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 
   try {
-    res.json(await buildLiveFollowerTicker());
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await buildLiveFollowerTicker({ refreshDue: true }));
   } catch (error) {
     console.error("[followers-live]", error);
     res.status(500).json({ error: "followers_live_lookup_failed" });
@@ -2711,32 +3792,83 @@ app.get("/api/followers/stream", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders?.();
-
-  let closed = false;
-  let timer = null;
-
-  async function sendTicker() {
-    if (closed) return;
-    try {
-      const ticker = await buildLiveFollowerTicker();
-      res.write(`event: followers\n`);
-      res.write(`data: ${JSON.stringify(ticker)}\n\n`);
-      const refreshMs = Math.max(5000, Number(ticker.refreshMs || 15000));
-      timer = setTimeout(sendTicker, refreshMs);
-    } catch (error) {
-      res.write(`event: ticker-error\n`);
-      res.write(`data: ${JSON.stringify({ error: "followers_stream_tick_failed", message: error.message })}\n\n`);
-      timer = setTimeout(sendTicker, 30000);
-    }
-  }
+  followerStreamClients.add(res);
+  ensureFollowerRefreshLoop();
+  const heartbeat = setInterval(() => res.write(": keepalive\n\n"), 25_000);
+  heartbeat.unref?.();
 
   req.on("close", () => {
-    closed = true;
-    if (timer) clearTimeout(timer);
+    clearInterval(heartbeat);
+    followerStreamClients.delete(res);
   });
 
-  await sendTicker();
+  try {
+    sendFollowerTickerFrame(res, await buildLiveFollowerTicker({ refreshDue: true }));
+  } catch (error) {
+    res.write("event: ticker-error\n");
+    res.write(`data: ${JSON.stringify({ error: "followers_stream_tick_failed", message: error.message })}\n\n`);
+  }
+});
+
+app.get("/api/admin/integrations/social/status", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  try {
+    res.json({ ok: true, status: await getSocialIntegrationStatus() });
+  } catch (error) {
+    console.error("[admin-social-status]", error);
+    res.status(error.status || 500).json({ error: error.message || "social_status_failed" });
+  }
+});
+
+app.post("/api/admin/integrations/social/sync", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  try {
+    const result = await refreshDueSocialMetrics({ force: req.body?.force === true });
+    res.json({ ok: true, ...result, status: await getSocialIntegrationStatus() });
+  } catch (error) {
+    console.error("[admin-social-sync-all]", error);
+    res.status(error.status || 500).json({ error: error.message || "social_sync_failed" });
+  }
+});
+
+app.post("/api/admin/integrations/social/:provider/oauth/start", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const provider = String(req.params.provider || "").toLowerCase();
+  try {
+    res.json({ ok: true, provider, url: buildSocialAuthorizationUrl(provider) });
+  } catch (error) {
+    console.error("[admin-social-oauth-start]", provider, error.message);
+    res.status(error.status || 500).json({ error: error.message || "social_oauth_start_failed" });
+  }
+});
+
+app.post("/api/admin/integrations/social/:provider/sync", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const provider = String(req.params.provider || "").toLowerCase();
+  try {
+    const account = await syncSocialProvider(provider, { force: true, source: "admin-sync" });
+    const ticker = await readLiveFollowerTicker();
+    followerTickerCache = ticker;
+    broadcastFollowerTicker(ticker);
+    res.json({ ok: true, provider, account, ticker, status: await getSocialIntegrationStatus() });
+  } catch (error) {
+    console.error("[admin-social-sync]", provider, error.message);
+    res.status(error.status || 500).json({ error: error.message || "social_sync_failed" });
+  }
+});
+
+app.delete("/api/admin/integrations/social/:provider", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const provider = String(req.params.provider || "").toLowerCase();
+  try {
+    const ticker = await disconnectSocialProvider(provider);
+    res.json({ ok: true, provider, ticker, status: await getSocialIntegrationStatus() });
+  } catch (error) {
+    console.error("[admin-social-disconnect]", provider, error.message);
+    res.status(error.status || 500).json({ error: error.message || "social_disconnect_failed" });
+  }
 });
 
 app.get("/api/admin/integrations/twitch/status", requireAdmin, async (req, res) => {
@@ -2787,8 +3919,10 @@ app.post("/api/admin/integrations/twitch/eventsub/subscribe", requireAdmin, asyn
   }
 });
 
-app.get(twitchCallbackPath, async (req, res) => {
+async function handleSocialOAuthCallback(req, res, provider) {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const definition = socialProviderByKey.get(provider);
+  const providerLabel = definition?.label || provider;
 
   if (req.query.error) {
     res
@@ -2796,8 +3930,10 @@ app.get(twitchCallbackPath, async (req, res) => {
       .send(
         renderTwitchCallbackHtml({
           success: false,
-          title: "Twitch was not connected",
-          message: String(req.query.error_description || req.query.error || "Twitch returned an authorization error."),
+          title: `${providerLabel} was not connected`,
+          message: String(
+            req.query.error_description || req.query.error_message || req.query.error || `${providerLabel} returned an authorization error.`,
+          ),
         }),
       );
     return;
@@ -2809,59 +3945,39 @@ app.get(twitchCallbackPath, async (req, res) => {
     res.status(400).send(
       renderTwitchCallbackHtml({
         success: false,
-        title: "Missing Twitch callback data",
-        message: "Twitch did not return the code and state needed to finish this connection.",
+        title: `Missing ${providerLabel} callback data`,
+        message: `${providerLabel} did not return the code and state needed to finish this connection.`,
       }),
     );
     return;
   }
 
   try {
-    verifyTwitchOAuthState(state);
-    const token = await exchangeTwitchCode(code);
-    const validation = await validateTwitchAccessToken(token.access_token);
-    const scopes = normalizeTwitchScopes(token.scope || validation.scopes);
-    const missingScope = twitchOAuthScopes.find((scope) => !scopes.includes(scope));
-    if (missingScope) {
-      const error = new Error(`missing_twitch_scope_${missingScope}`);
-      error.status = 400;
-      throw error;
-    }
-
-    await storeIntegrationToken(twitchProviderKey, {
-      access_token: token.access_token,
-      refresh_token: token.refresh_token || null,
-      token_type: token.token_type || "bearer",
-      scope: scopes,
-      expires_at: token.expires_in ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
-      provider_user_id: validation.user_id || null,
-      provider_user_login: validation.login || null,
-      provider_user_name: validation.login || null,
-      broadcaster_user_id: validation.user_id || null,
-      metadata: {
-        connectedAt: new Date().toISOString(),
-        validation,
-      },
-    });
+    verifySocialOAuthState(state, provider);
+    const account = await completeSocialOAuthConnection(provider, code);
 
     res.send(
       renderTwitchCallbackHtml({
-        title: "Twitch connected",
-        message:
-          "The channel authorization is saved server-side. Return to Settings and press Subscribe EventSub to turn on instant follow events.",
+        title: `${providerLabel} connected`,
+        message: `${account?.display_name || account?.username || providerLabel} is now feeding verified ${definition?.metricName || "follower"} data into the dashboard and combined OBS total.`,
       }),
     );
   } catch (error) {
-    console.error("[twitch-oauth-callback]", error);
+    console.error("[social-oauth-callback]", provider, error);
     res.status(error.status || 500).send(
       renderTwitchCallbackHtml({
         success: false,
-        title: "Twitch connection failed",
-        message: error.message || "The Twitch OAuth callback could not be completed.",
+        title: `${providerLabel} connection failed`,
+        message: error.message || `The ${providerLabel} OAuth callback could not be completed.`,
       }),
     );
   }
-});
+}
+
+app.get(twitchCallbackPath, (req, res) => handleSocialOAuthCallback(req, res, twitchProviderKey));
+app.get(socialCallbackPaths.tiktok, (req, res) => handleSocialOAuthCallback(req, res, "tiktok"));
+app.get(socialCallbackPaths.instagram, (req, res) => handleSocialOAuthCallback(req, res, "instagram"));
+app.get(socialCallbackPaths.youtube, (req, res) => handleSocialOAuthCallback(req, res, "youtube"));
 
 app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
@@ -3590,6 +4706,13 @@ app.get(/.*/, (req, res) => {
 
 const port = Number(process.env.PORT || 8787);
 const host = process.env.HOST || "0.0.0.0";
-app.listen(port, host, () => {
+const server = app.listen(port, host);
+server.on("listening", () => {
   console.log(`AI with Murda server listening on ${host}:${port}`);
+  ensureFollowerRefreshLoop();
+  refreshDueSocialMetrics().catch((error) => console.error("[social-startup-refresh]", error.message));
+});
+server.on("error", (error) => {
+  console.error("[server-listen]", error);
+  process.exitCode = 1;
 });

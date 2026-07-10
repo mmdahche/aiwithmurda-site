@@ -2267,6 +2267,7 @@ button {
 }
 
 .follower-overlay {
+  position: relative;
   display: grid;
   width: min(920px, 100%);
   gap: 16px;
@@ -2279,6 +2280,15 @@ button {
     rgba(4, 10, 8, 0.9);
   background-size: 22px 22px;
   box-shadow: inset 0 0 60px rgba(97, 227, 109, 0.06);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.follower-overlay.is-gaining {
+  border-color: rgba(97, 227, 109, 0.92);
+  box-shadow:
+    inset 0 0 80px rgba(97, 227, 109, 0.13),
+    0 0 42px rgba(97, 227, 109, 0.2);
+  animation: follower-total-pulse 700ms ease both;
 }
 
 .follower-overlay-header {
@@ -2313,39 +2323,30 @@ button {
   letter-spacing: 0;
 }
 
-.follower-overlay-sources {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+.follower-gain-signal {
+  width: max-content;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 9px 12px;
+  color: #061008;
+  border: 1px solid var(--green);
+  background: var(--green);
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.follower-overlay-sources div {
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(97, 227, 109, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+.follower-gain-signal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.follower-overlay-sources div.live {
-  border-color: rgba(97, 227, 109, 0.52);
-  background: rgba(97, 227, 109, 0.09);
-}
-
-.follower-overlay-sources span,
-.follower-overlay-sources b {
-  display: block;
-}
-
-.follower-overlay-sources span {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-}
-
-.follower-overlay-sources b {
-  margin-top: 6px;
-  overflow-wrap: anywhere;
-  font-size: 22px;
+@keyframes follower-total-pulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.018); }
+  100% { transform: scale(1); }
 }
 
 .corner {
@@ -2537,6 +2538,195 @@ button {
   display: grid;
   grid-column: span 2;
   gap: 14px;
+}
+
+.social-accounts-panel {
+  display: grid;
+  grid-column: span 2;
+  gap: 14px;
+}
+
+.social-accounts-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(97, 227, 109, 0.22);
+  border-radius: 8px;
+  background: rgba(97, 227, 109, 0.055);
+}
+
+.social-accounts-summary strong,
+.social-accounts-summary p {
+  display: block;
+  margin: 0;
+}
+
+.social-accounts-summary strong {
+  margin-top: 6px;
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.social-accounts-summary p {
+  max-width: 760px;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.social-system-state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.social-system-state span {
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.social-system-state span.ready {
+  color: var(--green);
+  border-color: rgba(97, 227, 109, 0.34);
+}
+
+.social-system-state span.blocked {
+  color: var(--amber);
+  border-color: rgba(245, 190, 64, 0.38);
+}
+
+.social-account-list {
+  display: grid;
+  gap: 8px;
+}
+
+.social-account-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 150px minmax(260px, auto);
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.social-account-row.connected {
+  border-color: rgba(97, 227, 109, 0.34);
+  background: rgba(97, 227, 109, 0.05);
+}
+
+.social-account-row.stale,
+.social-account-row.error {
+  border-color: rgba(245, 190, 64, 0.4);
+}
+
+.social-account-identity span,
+.social-account-identity strong,
+.social-account-identity p,
+.social-account-metric span,
+.social-account-metric strong,
+.social-account-metric em {
+  display: block;
+}
+
+.social-account-identity span,
+.social-account-metric span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.social-account-identity strong {
+  margin-top: 5px;
+  font-size: 19px;
+}
+
+.social-account-identity p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.social-account-metric strong {
+  margin-top: 5px;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.social-account-metric em {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.social-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.social-account-actions button {
+  min-height: 38px;
+  padding: 9px 11px;
+  white-space: nowrap;
+}
+
+.danger-action {
+  color: #ff7770;
+  border-color: rgba(255, 105, 97, 0.34);
+}
+
+.social-account-details {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.social-account-details summary {
+  width: max-content;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.social-account-details dl {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.social-account-details dl div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.social-account-details dt,
+.social-account-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.social-account-details dt {
+  color: #d7e5dc;
+  font-weight: 800;
 }
 
 .twitch-connector-panel {
@@ -5020,30 +5210,42 @@ button {
 
 .follower-source-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
   gap: 8px;
 }
 
-.follower-source-strip article {
+.follower-source-strip article,
+.follower-source-strip a {
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
-.follower-source-strip article.live {
+.follower-source-strip article.live,
+.follower-source-strip a.live {
   border-color: rgba(97, 227, 109, 0.44);
   background: rgba(97, 227, 109, 0.08);
 }
 
-.follower-source-strip article.connector-error {
+.follower-source-strip a:hover {
+  border-color: rgba(97, 227, 109, 0.7);
+  transform: translateY(-2px);
+}
+
+.follower-source-strip article.connector-error,
+.follower-source-strip a.connector-error {
   border-color: rgba(255, 85, 85, 0.42);
 }
 
 .follower-source-strip span,
 .follower-source-strip strong,
-.follower-source-strip em {
+.follower-source-strip em,
+.follower-source-strip small {
   display: block;
 }
 
@@ -5066,6 +5268,15 @@ button {
   margin-top: 10px;
   font-style: normal;
   line-height: 1.25;
+}
+
+.follower-source-strip small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .public-metrics {
@@ -7877,6 +8088,7 @@ button {
 
   .metrics-automation-panel,
   .follower-ticker-control-panel,
+  .social-accounts-panel,
   .twitch-connector-panel,
   .follower-intake-panel,
   .clip-intake-panel,
@@ -7886,6 +8098,8 @@ button {
 
   .automation-hero,
   .ticker-control-hero,
+  .social-accounts-summary,
+  .social-account-row,
   .twitch-connector-hero,
   .follower-intake-hero,
   .clip-intake-hero,
@@ -7898,6 +8112,10 @@ button {
 
   .twitch-connector-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .social-account-actions {
+    justify-content: flex-start;
   }
 
   .connector-url-list div {
@@ -8032,7 +8250,6 @@ button {
   .ticker-setup-list,
   .clip-intake-form,
   .follower-intake-form,
-  .follower-overlay-sources,
   .follower-source-strip,
   .premium-framework-grid,
   .premium-workshop-grid,
@@ -8052,6 +8269,19 @@ button {
   .form-row.three,
   .form-row.five {
     grid-template-columns: 1fr;
+  }
+
+  .social-account-actions {
+    flex-wrap: wrap;
+  }
+
+  .social-account-actions button:not(.icon-action) {
+    flex: 1 1 120px;
+  }
+
+  .social-account-details dl div {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 
   .top-header,
@@ -10564,8 +10794,14 @@ button {
 
   .experience-primary-action,
   .experience-secondary-action,
+  .follower-overlay,
+  .follower-gain-signal,
   .proofline-track button > i {
     transition-duration: 0.01ms;
+  }
+
+  .follower-overlay.is-gaining {
+    animation: none;
   }
 }
 

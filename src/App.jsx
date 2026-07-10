@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpenText,
@@ -63,6 +63,7 @@ import {
   createOperatorBundleCheckout,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
+  disconnectSocialAccount,
   downloadOperatorBundleAsset,
   downloadOperatorToolkitAsset,
   downloadOperatorUpdateAsset,
@@ -76,12 +77,14 @@ import {
   getSubscriberSummary,
   getStreamConfig,
   getSystemStatus,
-  getTwitchIntegrationStatus,
+  getSocialIntegrationStatus,
   previewDailySnapshot,
-  startTwitchOAuth,
+  startSocialOAuth,
   submitClipIntake,
   submitFollowerCountIntake,
   subscribeTwitchEventSub,
+  syncAllSocialAccounts,
+  syncSocialAccount,
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
@@ -890,9 +893,9 @@ function App() {
   const [systemStatus, setSystemStatus] = useState(null);
   const [systemStatusState, setSystemStatusState] = useState("idle");
   const [systemStatusMessage, setSystemStatusMessage] = useState("");
-  const [twitchIntegrationStatus, setTwitchIntegrationStatus] = useState(null);
-  const [twitchIntegrationState, setTwitchIntegrationState] = useState("idle");
-  const [twitchIntegrationMessage, setTwitchIntegrationMessage] = useState("");
+  const [socialIntegrationStatus, setSocialIntegrationStatus] = useState(null);
+  const [socialIntegrationState, setSocialIntegrationState] = useState("idle");
+  const [socialIntegrationMessage, setSocialIntegrationMessage] = useState("");
   const [streamConfig, setStreamConfig] = useState(fallbackStreamConfig);
   const [streamConfigStatus, setStreamConfigStatus] = useState("idle");
   const [activeView, setActiveView] = useState(() => {
@@ -1195,32 +1198,32 @@ function App() {
     }
   }, [activeView, adminToken, refreshSystemStatus, systemStatusState]);
 
-  const refreshTwitchIntegrationStatus = useCallback(async () => {
+  const refreshSocialIntegrationStatus = useCallback(async () => {
     if (!adminToken.trim()) {
-      setTwitchIntegrationState("error");
-      setTwitchIntegrationMessage("Add the admin token before checking Twitch.");
+      setSocialIntegrationState("error");
+      setSocialIntegrationMessage("Add the admin token before checking social accounts.");
       return null;
     }
 
-    setTwitchIntegrationState("loading");
-    setTwitchIntegrationMessage("");
+    setSocialIntegrationState("loading");
+    setSocialIntegrationMessage("");
     try {
-      const data = await getTwitchIntegrationStatus(adminToken.trim());
-      setTwitchIntegrationStatus(data.status || null);
-      setTwitchIntegrationState("success");
+      const data = await getSocialIntegrationStatus(adminToken.trim());
+      setSocialIntegrationStatus(data.status || null);
+      setSocialIntegrationState("success");
       return data.status || null;
     } catch (error) {
-      setTwitchIntegrationState("error");
-      setTwitchIntegrationMessage(error.message || "Could not load Twitch connector status.");
+      setSocialIntegrationState("error");
+      setSocialIntegrationMessage(error.message || "Could not load social account status.");
       return null;
     }
   }, [adminToken]);
 
   useEffect(() => {
-    if (activeView === "settings" && adminToken.trim() && twitchIntegrationState === "idle") {
-      refreshTwitchIntegrationStatus();
+    if (activeView === "settings" && adminToken.trim() && socialIntegrationState === "idle") {
+      refreshSocialIntegrationStatus();
     }
-  }, [activeView, adminToken, refreshTwitchIntegrationStatus, twitchIntegrationState]);
+  }, [activeView, adminToken, refreshSocialIntegrationStatus, socialIntegrationState]);
 
   async function syncLogsToPublic(targetLogs, label) {
     if (!adminToken.trim()) {
@@ -1448,9 +1451,9 @@ function App() {
               systemStatus={systemStatus}
               systemStatusState={systemStatusState}
               systemStatusMessage={systemStatusMessage}
-              twitchIntegrationStatus={twitchIntegrationStatus}
-              twitchIntegrationState={twitchIntegrationState}
-              twitchIntegrationMessage={twitchIntegrationMessage}
+              socialIntegrationStatus={socialIntegrationStatus}
+              socialIntegrationState={socialIntegrationState}
+              socialIntegrationMessage={socialIntegrationMessage}
               streamConfig={streamConfig}
               streamConfigStatus={streamConfigStatus}
               updateAdminToken={updateAdminToken}
@@ -1459,7 +1462,7 @@ function App() {
               refreshMetricsAutomationSummary={refreshMetricsAutomationSummary}
               refreshLiveFollowers={refreshLiveFollowers}
               refreshSystemStatus={refreshSystemStatus}
-              refreshTwitchIntegrationStatus={refreshTwitchIntegrationStatus}
+              refreshSocialIntegrationStatus={refreshSocialIntegrationStatus}
               syncLogsToPublic={syncLogsToPublic}
               onSnapshotApplied={handleSnapshotApplied}
               restoreSeedData={restoreSeedData}
@@ -1753,7 +1756,7 @@ function PublicNav({ activeRoute }) {
 function PublicHome({ config, logs, latest, liveFollowers }) {
   const mode = getPublicDataMode(config);
   const liveFollowerTotal = Number(liveFollowers?.total);
-  const followerTotal = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : totalFollowers(latest);
+  const followerTotal = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : 0;
   const operatorLoop = [
     { step: "01", title: "Build", body: "Turn one real problem into a working AI-assisted product." },
     { step: "02", title: "Prove", body: "Capture the before, the failure, the working state, and the receipt." },
@@ -1886,14 +1889,14 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
         ))}
       </section>
 
+      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
+
       <InteractiveProofline
         logs={logs}
         latest={latest}
         totalDays={config.totalDays}
         preview={isPrelaunch(config)}
       />
-
-      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
 
       <section className="public-dashboard-grid">
         <article className="panel public-sprint-card">
@@ -1933,40 +1936,56 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
 
 function PublicFollowerTicker({ liveFollowers, latest }) {
   const sources = liveFollowers?.sources || [];
-  const liveSourceCount = sources.filter((source) => source.status === "live").length;
-  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : totalFollowers(latest);
+  const liveSourceCount = sources.filter((source) => source.connected).length;
+  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : 0;
 
   return (
     <section className="public-follower-ticker">
       <div>
-        <span className="public-label">Live follower ticker</span>
+        <span className="public-label">Combined audience</span>
         <strong>{formatNumber(total)}</strong>
         <p>
-          Follower counts run as their own live counter. Revenue, clips, notes, and proof receipts stay
-          admin-approved before they hit the public log.
+          One verified total across every connected account. Open a platform below for its individual
+          count, connection health, and latest change.
         </p>
       </div>
       <div className="follower-source-strip">
         {sources.length ? (
-          sources.map((source) => (
-            <article key={source.key} className={source.status}>
-              <span>{source.label}</span>
-              <strong>{formatNumber(source.count)}</strong>
-              <em>{source.status.replaceAll("-", " ")}</em>
-            </article>
-          ))
+          sources.map((source) => {
+            const content = (
+              <>
+                <div>
+                  <span>{source.label}</span>
+                  {source.username ? <small>@{source.username.replace(/^@/, "")}</small> : null}
+                </div>
+                <strong>{source.count === null ? "--" : formatNumber(source.count)}</strong>
+                <em>
+                  {source.connected
+                    ? `${source.precision === "rounded" ? "Rounded" : "Verified"}${source.lastChangeDelta > 0 ? ` · +${formatNumber(source.lastChangeDelta)}` : ""}`
+                    : "Not connected"}
+                </em>
+              </>
+            );
+            return source.profileUrl ? (
+              <a key={source.key} className={source.status} href={source.profileUrl} target="_blank" rel="noreferrer">
+                {content}
+              </a>
+            ) : (
+              <article key={source.key} className={source.status}>{content}</article>
+            );
+          })
         ) : (
-          <article className="daily-log-fallback">
-            <span>Daily log</span>
-            <strong>{formatNumber(totalFollowers(latest))}</strong>
-            <em>loading ticker</em>
+          <article className="loading">
+            <span>Social metrics</span>
+            <strong>--</strong>
+            <em>Connecting live feed</em>
           </article>
         )}
       </div>
       <small>
         {liveSourceCount
-          ? `${liveSourceCount} live source${liveSourceCount === 1 ? "" : "s"} connected`
-          : "Using approved daily-log counts until platform OAuth is connected"}
+          ? `${liveSourceCount} verified source${liveSourceCount === 1 ? "" : "s"} included in the total`
+          : "No social accounts connected yet. Demo counts are excluded."}
         {liveFollowers?.checkedAt ? ` · Checked ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : ""}
       </small>
     </section>
@@ -6035,74 +6054,12 @@ function DailySnapshotPanel({ latest, adminToken, onApplied, onRefreshAutomation
   );
 }
 
-const followerConnectorSteps = [
-  {
-    key: "twitch",
-    title: "Twitch",
-    steps: [
-      "Create or open the Twitch developer app.",
-      "Authorize the channel with follower read scopes.",
-      "Save TWITCH_CLIENT_ID, TWITCH_ACCESS_TOKEN, and TWITCH_BROADCASTER_ID in Render.",
-      "Next loop: create EventSub channel.follow subscription for true instant updates.",
-    ],
-  },
-  {
-    key: "tiktok",
-    title: "TikTok",
-    steps: [
-      "Create a TikTok developer app.",
-      "Request user.info.stats access.",
-      "Authorize the account and save TIKTOK_ACCESS_TOKEN in Render.",
-      "Ticker will poll follower_count until TikTok provides a better event path.",
-    ],
-  },
-  {
-    key: "instagram",
-    title: "Instagram",
-    steps: [
-      "Confirm the Instagram account is professional, creator, or business.",
-      "Connect it through a Meta app and linked Facebook page when required.",
-      "Save INSTAGRAM_ACCESS_TOKEN and INSTAGRAM_USER_ID in Render.",
-      "Ticker will poll the Meta/Instagram count on a schedule.",
-    ],
-  },
-  {
-    key: "youtube",
-    title: "YouTube",
-    steps: [
-      "Wait for live streaming/API access to fully unlock.",
-      "Create or connect a Google Cloud OAuth client.",
-      "Save YouTube client credentials in Render.",
-      "Ticker will poll public channel statistics on a schedule.",
-    ],
-  },
-];
-
-function formatFollowerTickerRunbook(liveFollowers) {
-  const sourceByKey = new Map((liveFollowers?.sources || []).map((source) => [source.key, source]));
-  return followerConnectorSteps
-    .map((connector) => {
-      const source = sourceByKey.get(connector.key);
-      return [
-        `# ${connector.title}`,
-        `Current status: ${source?.status || "not loaded"}`,
-        `Current count: ${formatNumber(source?.count || 0)}`,
-        `Mode: ${source?.mode || "pending"}`,
-        "",
-        ...connector.steps.map((step, index) => `${index + 1}. ${step}`),
-      ].join("\n");
-    })
-    .join("\n\n");
-}
-
 function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
-  const [copyStatus, setCopyStatus] = useState("idle");
   const sources = liveFollowers?.sources || [];
-  const liveCount = sources.filter((source) => source.status === "live").length;
-  const connectorReadyCount = sources.filter((source) => ["live", "connector-ready"].includes(source.status)).length;
-  const fallbackCount = sources.filter((source) => source.status === "daily-log-fallback").length;
+  const liveCount = sources.filter((source) => ["live", "stale"].includes(source.status)).length;
+  const disconnectedCount = sources.length - liveCount;
 
   async function handleRefresh() {
     setStatus("loading");
@@ -6117,40 +6074,29 @@ function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
     }
   }
 
-  async function copyRunbook() {
-    if (await copyPlainText(formatFollowerTickerRunbook(liveFollowers))) {
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } else {
-      setCopyStatus("manual");
-    }
-  }
-
   return (
     <article className="panel follower-ticker-control-panel">
-      <PanelTitle icon="monitor" title="Follower Ticker Control" right={`${liveCount}/${sources.length || 4} live`} />
+      <PanelTitle icon="monitor" title="Follower Ticker" right={`${liveCount}/${sources.length || 5} connected`} />
       <div className="ticker-control-hero">
         <div>
-          <span className="panel-kicker">OBS-ready counter</span>
+          <span className="panel-kicker">Combined OBS total</span>
           <strong>{formatNumber(liveFollowers?.total || 0)}</strong>
           <p>
-            This is the stream-facing count. It updates through the live stream endpoint now and can
-            upgrade source-by-source when your platform accounts are connected.
+            The overlay shows this number only. Individual account counts stay on the web dashboard,
+            and disconnected accounts never add demo data to the total.
           </p>
         </div>
         <div className="ticker-control-actions">
           <button type="button" className="primary-action" onClick={handleRefresh} disabled={status === "loading"}>
             {status === "loading" ? "Refreshing..." : "Refresh ticker"}
           </button>
-          <button type="button" className="secondary-action" onClick={copyRunbook}>
-            {copyStatus === "copied" ? "Copied runbook" : copyStatus === "manual" ? "Manual copy ready" : "Copy setup runbook"}
-          </button>
+          <a className="secondary-action" href="/obs/followers" target="_blank" rel="noreferrer">Open OBS overlay</a>
         </div>
       </div>
       <div className="ticker-control-grid">
         <KeyValue label="Stream endpoint" value="/api/followers/stream" positive />
-        <KeyValue label="Ready sources" value={formatNumber(connectorReadyCount)} />
-        <KeyValue label="Fallback sources" value={formatNumber(fallbackCount)} />
+        <KeyValue label="Connected" value={formatNumber(liveCount)} positive={liveCount > 0} />
+        <KeyValue label="Not connected" value={formatNumber(disconnectedCount)} />
         <KeyValue label="Refresh" value={`${formatNumber((liveFollowers?.refreshMs || 15000) / 1000)}s`} />
       </div>
       <div className="ticker-source-list">
@@ -6158,7 +6104,7 @@ function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
           <article key={source.key} className={source.status}>
             <div>
               <span>{source.label}</span>
-              <strong>{formatNumber(source.count)}</strong>
+              <strong>{source.count === null ? "Not connected" : formatNumber(source.count)}</strong>
               <p>{source.detail}</p>
             </div>
             <div>
@@ -6168,170 +6114,197 @@ function FollowerTickerControlPanel({ liveFollowers, onRefresh }) {
           </article>
         ))}
       </div>
-      <div className="ticker-setup-list">
-        {followerConnectorSteps.map((connector) => (
-          <article key={connector.key}>
-            <span>{connector.title}</span>
-            <ol>
-              {connector.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </article>
-        ))}
-      </div>
       {liveFollowers?.checkedAt && <p className="panel-note">Checked {new Date(liveFollowers.checkedAt).toLocaleString()}</p>}
       {message && <p className={`form-message ${status}`}>{message}</p>}
     </article>
   );
 }
 
-function TwitchLiveConnectorPanel({
+function SocialAccountsPanel({
   adminToken,
-  twitchStatus,
+  socialStatus,
   statusState,
   statusMessage,
   onRefresh,
   onTickerRefresh,
 }) {
+  const [activeAction, setActiveAction] = useState("");
   const [actionState, setActionState] = useState("idle");
   const [actionMessage, setActionMessage] = useState("");
-  const [copyState, setCopyState] = useState("idle");
-  const connection = twitchStatus?.connection || {};
-  const eventSub = twitchStatus?.eventSub || null;
-  const connected = Boolean(connection.connected);
-  const eventSubActive = Boolean(eventSub?.subscriptionId);
+  const providers = socialStatus?.providers || [];
+  const connectedCount = providers.filter((provider) => provider.connected).length;
 
-  function formatTwitchSetup() {
-    return [
-      "Twitch connector setup",
-      "",
-      "Render env vars:",
-      "TWITCH_CLIENT_ID=<from Twitch developer app>",
-      "TWITCH_CLIENT_SECRET=<from Twitch developer app>",
-      "TWITCH_EVENTSUB_SECRET=<random private webhook secret>",
-      `TWITCH_REDIRECT_URI=${twitchStatus?.callbackUrl || "https://aiwithmurda.com/api/integrations/twitch/callback"}`,
-      `TWITCH_EVENTSUB_CALLBACK_URL=${twitchStatus?.eventSubCallbackUrl || "https://aiwithmurda.com/api/integrations/twitch/eventsub"}`,
-      "",
-      "Twitch developer app callback URL:",
-      twitchStatus?.callbackUrl || "https://aiwithmurda.com/api/integrations/twitch/callback",
-      "",
-      "Required scope:",
-      (twitchStatus?.requiredScopes || ["moderator:read:followers"]).join(" "),
-    ].join("\n");
+  async function finishAction(message) {
+    await Promise.all([onRefresh(), onTickerRefresh()]);
+    setActionState("success");
+    setActionMessage(message);
+    setActiveAction("");
   }
 
-  async function handleRefresh() {
-    setActionState("loading");
-    setActionMessage("");
-    await onRefresh();
-    setActionState("idle");
-  }
-
-  async function handleConnect() {
+  async function handleConnect(provider) {
     if (!adminToken.trim()) {
       setActionState("error");
-      setActionMessage("Add the admin token before connecting Twitch.");
+      setActionMessage("Add the admin token before connecting an account.");
       return;
     }
-
+    setActiveAction(`${provider.key}:connect`);
     setActionState("loading");
     setActionMessage("");
     try {
-      const data = await startTwitchOAuth(adminToken.trim());
+      const data = await startSocialOAuth(provider.key, adminToken.trim());
       window.location.assign(data.url);
     } catch (error) {
+      setActiveAction("");
       setActionState("error");
-      setActionMessage(error.message || "Could not start Twitch OAuth.");
+      setActionMessage(error.message || `Could not connect ${provider.label}.`);
     }
   }
 
-  async function handleSubscribe() {
-    if (!adminToken.trim()) {
+  async function handleSync(provider) {
+    setActiveAction(`${provider.key}:sync`);
+    setActionState("loading");
+    setActionMessage("");
+    try {
+      await syncSocialAccount(provider.key, adminToken.trim());
+      await finishAction(`${provider.label} is synced to the dashboard.`);
+    } catch (error) {
+      setActiveAction("");
       setActionState("error");
-      setActionMessage("Add the admin token before subscribing to Twitch EventSub.");
-      return;
+      setActionMessage(error.message || `Could not sync ${provider.label}.`);
     }
+  }
 
+  async function handleSyncAll() {
+    setActiveAction("all:sync");
+    setActionState("loading");
+    setActionMessage("");
+    try {
+      await syncAllSocialAccounts(adminToken.trim());
+      await finishAction("Every connected social account was checked.");
+    } catch (error) {
+      setActiveAction("");
+      setActionState("error");
+      setActionMessage(error.message || "Could not sync social accounts.");
+    }
+  }
+
+  async function handleDisconnect(provider) {
+    if (!window.confirm(`Disconnect ${provider.label} from the live dashboard?`)) return;
+    setActiveAction(`${provider.key}:disconnect`);
+    setActionState("loading");
+    setActionMessage("");
+    try {
+      await disconnectSocialAccount(provider.key, adminToken.trim());
+      await finishAction(`${provider.label} was disconnected and removed from the combined total.`);
+    } catch (error) {
+      setActiveAction("");
+      setActionState("error");
+      setActionMessage(error.message || `Could not disconnect ${provider.label}.`);
+    }
+  }
+
+  async function handleTwitchEventSub(provider) {
+    setActiveAction("twitch:eventsub");
     setActionState("loading");
     setActionMessage("");
     try {
       await subscribeTwitchEventSub(adminToken.trim());
-      await onRefresh();
-      await onTickerRefresh();
-      setActionState("success");
-      setActionMessage("Twitch EventSub follow subscription is queued.");
+      await finishAction("Twitch instant follow events are subscribed.");
     } catch (error) {
+      setActiveAction("");
       setActionState("error");
-      setActionMessage(error.message || "Could not subscribe Twitch EventSub.");
-    }
-  }
-
-  async function copySetup() {
-    if (await copyPlainText(formatTwitchSetup())) {
-      setCopyState("copied");
-      window.setTimeout(() => setCopyState("idle"), 1800);
-    } else {
-      setCopyState("manual");
+      setActionMessage(error.message || "Could not enable Twitch instant follows.");
     }
   }
 
   return (
-    <article className="panel twitch-connector-panel">
-      <PanelTitle icon="followers" title="Twitch Live Connector" right={connected ? "OAuth saved" : "OAuth needed"} />
-      <div className="twitch-connector-hero">
+    <article className="panel social-accounts-panel">
+      <PanelTitle icon="followers" title="Social Accounts" right={`${connectedCount}/${providers.length || 5} connected`} />
+      <div className="social-accounts-summary">
         <div>
-          <span className="panel-kicker">Instant follow events</span>
-          <strong>{connected ? connection.displayName || connection.login || "Connected" : "Connect Twitch"}</strong>
+          <span className="panel-kicker">Verified follower sources</span>
+          <strong>Connect once. The dashboard keeps count.</strong>
           <p>
-            This upgrades the follower ticker from daily-log fallback to Twitch OAuth, Helix reconciliation,
-            and EventSub webhooks for real follow events.
+            Only official account data enters the combined total. Twitch pushes follow events instantly;
+            Instagram, TikTok, YouTube, and X refresh on a controlled schedule.
           </p>
         </div>
-        <div className="twitch-connector-actions">
-          <button type="button" className="primary-action" onClick={handleConnect} disabled={actionState === "loading"}>
-            {connected ? "Reconnect Twitch" : "Connect Twitch"}
-          </button>
-          <button
-            type="button"
-            className="secondary-action"
-            onClick={handleSubscribe}
-            disabled={actionState === "loading" || !connected}
-          >
-            Subscribe EventSub
-          </button>
-          <button type="button" className="secondary-action" onClick={copySetup}>
-            {copyState === "copied" ? "Copied setup" : copyState === "manual" ? "Manual copy ready" : "Copy setup"}
-          </button>
-        </div>
+        <button type="button" className="primary-action" onClick={handleSyncAll} disabled={actionState === "loading" || !connectedCount}>
+          {activeAction === "all:sync" ? "Syncing..." : "Sync all"}
+        </button>
       </div>
-      <div className="twitch-connector-grid">
-        <KeyValue label="OAuth env" value={twitchStatus?.configured ? "Ready" : "Missing"} positive={twitchStatus?.configured} />
-        <KeyValue label="Token storage" value={connection.missingTable ? "Migration needed" : "Ready"} positive={!connection.missingTable} />
-        <KeyValue label="Connection" value={connected ? "Connected" : "Not connected"} positive={connected} />
-        <KeyValue label="EventSub" value={eventSubActive ? eventSub.status || "Subscribed" : twitchStatus?.webhookConfigured ? "Ready" : "Missing secret"} positive={eventSubActive} />
+      <div className="social-system-state" aria-label="Social metric system status">
+        <span className={socialStatus?.storageReady ? "ready" : "blocked"}>
+          Metric storage {socialStatus?.storageReady ? "ready" : "needs migration"}
+        </span>
+        <span className={socialStatus?.encryptionReady ? "ready" : "blocked"}>
+          Token encryption {socialStatus?.encryptionReady ? "ready" : "needs secret"}
+        </span>
       </div>
-      <div className="connector-url-list">
-        <div>
-          <span>OAuth callback</span>
-          <code>{twitchStatus?.callbackUrl || "Waiting for server status"}</code>
-        </div>
-        <div>
-          <span>Webhook callback</span>
-          <code>{twitchStatus?.eventSubCallbackUrl || "Waiting for server status"}</code>
-        </div>
-        {connection.expiresAt && (
-          <div>
-            <span>Token refresh window</span>
-            <code>{new Date(connection.expiresAt).toLocaleString()}</code>
-          </div>
-        )}
-        {twitchStatus?.lastFollowEvent && (
-          <div>
-            <span>Last follow event</span>
-            <code>{twitchStatus.lastFollowEvent.userName || twitchStatus.lastFollowEvent.userLogin || "Twitch follower"}</code>
-          </div>
-        )}
+      <div className="social-account-list">
+        {providers.map((provider) => {
+          const isBusy = activeAction.startsWith(`${provider.key}:`);
+          const eventSubActive = Boolean(provider.eventSub?.subscriptionId);
+          return (
+            <article className={`social-account-row ${provider.status}`} key={provider.key}>
+              <div className="social-account-identity">
+                <span>{provider.label}</span>
+                <strong>{provider.connected ? provider.displayName || provider.username || "Connected" : "Not connected"}</strong>
+                <p>
+                  {provider.connected
+                    ? `${provider.precision === "rounded" ? "Rounded public count" : "Exact public count"} · ${provider.cadence}`
+                    : provider.appConfigured
+                      ? "App credentials ready. Authorize the account next."
+                      : `Add ${provider.envKeys.join(" and ")} in Render first.`}
+                </p>
+              </div>
+              <div className="social-account-metric">
+                <span>{provider.key === "youtube" ? "Subscribers" : "Followers"}</span>
+                <strong>{provider.count === null ? "--" : formatNumber(provider.count)}</strong>
+                <em>{provider.status.replaceAll("-", " ")}</em>
+              </div>
+              <div className="social-account-actions">
+                {provider.oauthSupported ? (
+                  <button
+                    type="button"
+                    className={provider.connected ? "secondary-action" : "primary-action"}
+                    onClick={() => handleConnect(provider)}
+                    disabled={isBusy || !provider.appConfigured || !socialStatus?.encryptionReady}
+                  >
+                    {activeAction === `${provider.key}:connect` ? "Opening..." : provider.connected ? "Reconnect" : "Connect"}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="secondary-action"
+                  onClick={() => handleSync(provider)}
+                  disabled={isBusy || (!provider.connected && provider.key !== "x") || !provider.appConfigured}
+                >
+                  {activeAction === `${provider.key}:sync` ? "Syncing..." : "Sync now"}
+                </button>
+                {provider.key === "twitch" && provider.connected && !eventSubActive ? (
+                  <button type="button" className="secondary-action" onClick={() => handleTwitchEventSub(provider)} disabled={isBusy}>
+                    {activeAction === "twitch:eventsub" ? "Enabling..." : "Enable instant"}
+                  </button>
+                ) : null}
+                {provider.connected && provider.key !== "x" ? (
+                  <button type="button" className="icon-action danger-action" onClick={() => handleDisconnect(provider)} disabled={isBusy} aria-label={`Disconnect ${provider.label}`} title={`Disconnect ${provider.label}`}>
+                    <X size={16} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+              <details className="social-account-details">
+                <summary>Connection details</summary>
+                <dl>
+                  <div><dt>Callback</dt><dd>{provider.callbackUrl || "Server credential connection"}</dd></div>
+                  <div><dt>Scopes</dt><dd>{provider.requiredScopes.length ? provider.requiredScopes.join(", ") : "Public metrics"}</dd></div>
+                  <div><dt>Last sync</dt><dd>{provider.lastSyncedAt ? new Date(provider.lastSyncedAt).toLocaleString() : "Never"}</dd></div>
+                  {provider.lastError ? <div><dt>Last error</dt><dd>{provider.lastError}</dd></div> : null}
+                </dl>
+              </details>
+            </article>
+          );
+        })}
       </div>
       {statusMessage && <p className={`form-message ${statusState}`}>{statusMessage}</p>}
       {actionMessage && <p className={`form-message ${actionState}`}>{actionMessage}</p>}
@@ -6587,9 +6560,9 @@ function SettingsView({
   systemStatus,
   systemStatusState,
   systemStatusMessage,
-  twitchIntegrationStatus,
-  twitchIntegrationState,
-  twitchIntegrationMessage,
+  socialIntegrationStatus,
+  socialIntegrationState,
+  socialIntegrationMessage,
   streamConfig,
   streamConfigStatus,
   updateAdminToken,
@@ -6598,7 +6571,7 @@ function SettingsView({
   refreshMetricsAutomationSummary,
   refreshLiveFollowers,
   refreshSystemStatus,
-  refreshTwitchIntegrationStatus,
+  refreshSocialIntegrationStatus,
   syncLogsToPublic,
   onSnapshotApplied,
   restoreSeedData,
@@ -6826,19 +6799,13 @@ function SettingsView({
           onRefresh={refreshMetricsAutomationSummary}
         />
         <FollowerTickerControlPanel liveFollowers={liveFollowers} onRefresh={refreshLiveFollowers} />
-        <TwitchLiveConnectorPanel
+        <SocialAccountsPanel
           adminToken={adminToken}
-          twitchStatus={twitchIntegrationStatus}
-          statusState={twitchIntegrationState}
-          statusMessage={twitchIntegrationMessage}
-          onRefresh={refreshTwitchIntegrationStatus}
+          socialStatus={socialIntegrationStatus}
+          statusState={socialIntegrationState}
+          statusMessage={socialIntegrationMessage}
+          onRefresh={refreshSocialIntegrationStatus}
           onTickerRefresh={refreshLiveFollowers}
-        />
-        <FollowerCountIntakePanel
-          latest={latest}
-          adminToken={adminToken}
-          onApplied={onSnapshotApplied}
-          onRefreshFollowers={refreshLiveFollowers}
         />
         <DailySnapshotPanel
           latest={latest}
@@ -7316,26 +7283,45 @@ function CommandOverlay({ config, latest, logs, compact = false, preview = false
 
 function FollowerOverlay({ liveFollowers, latest }) {
   const sources = liveFollowers?.sources || [];
-  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : totalFollowers(latest);
-  const liveCount = sources.filter((source) => source.status === "live").length;
+  const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : 0;
+  const liveCount = sources.filter((source) => source.connected).length;
+  const previousChangeKey = useRef(null);
+  const [gain, setGain] = useState(0);
+  const [isPulsing, setIsPulsing] = useState(false);
+
+  useEffect(() => {
+    const lastChange = liveFollowers?.lastChange;
+    if (!lastChange?.observedAt) return undefined;
+    const changeKey = `${lastChange.provider}:${lastChange.observedAt}:${lastChange.delta}`;
+    if (previousChangeKey.current === null) {
+      previousChangeKey.current = changeKey;
+      return undefined;
+    }
+    if (previousChangeKey.current === changeKey) return undefined;
+    previousChangeKey.current = changeKey;
+    const change = Number(lastChange.delta || 0);
+    if (change <= 0) return undefined;
+    setGain(change);
+    setIsPulsing(true);
+    const timer = window.setTimeout(() => setIsPulsing(false), 2800);
+    return () => window.clearTimeout(timer);
+  }, [liveFollowers?.lastChange]);
 
   return (
-    <div className="follower-overlay">
+    <div className={`follower-overlay ${isPulsing ? "is-gaining" : ""}`}>
       <div className="follower-overlay-header">
-        <span>Live follower counter</span>
-        <em>{liveCount ? `${liveCount} live` : "fallback live"}</em>
+        <span>Total followers</span>
+        <em>{liveCount ? `${liveCount} connected` : "waiting for accounts"}</em>
       </div>
       <strong>{formatNumber(total)}</strong>
-      <div className="follower-overlay-sources">
-        {(sources.length ? sources : [{ key: "fallback", label: "Daily log", count: total, status: "fallback" }]).map((source) => (
-          <div key={source.key} className={source.status}>
-            <span>{source.label}</span>
-            <b>{formatNumber(source.count)}</b>
-          </div>
-        ))}
+      <div className={`follower-gain-signal ${isPulsing ? "visible" : ""}`} aria-live="polite">
+        +{formatNumber(gain)} NEW FOLLOWER{gain === 1 ? "" : "S"}
       </div>
       <small>
-        {liveFollowers?.checkedAt ? `Checked ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : "Connecting ticker"}
+        {liveCount
+          ? `Across ${liveCount} verified account${liveCount === 1 ? "" : "s"}`
+          : "Connect accounts in Admin to begin"}
+        {liveFollowers?.checkedAt ? ` · ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : ""}
       </small>
     </div>
   );
