@@ -21,6 +21,7 @@ import {
   liveBuildsProduct,
   liveBuildSessionFlow,
 } from "./data/liveBuilds.js";
+import { MetricBoard, ProofStrip, ReceiptPreview, RouteHero } from "./components/public/ControlRoom.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -1698,34 +1699,32 @@ function PublicNav({ activeRoute }) {
 
 function PublicHome({ config, latest, liveFollowers }) {
   const mode = getPublicDataMode(config);
+  const liveFollowerTotal = Number(liveFollowers?.total);
+  const followerTotal = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : totalFollowers(latest);
+  const statusItems = [
+    { label: "Room", value: isPrelaunch(config) ? "Prelaunch" : "Live", note: isPrelaunch(config) ? config.startDate : `Day ${latest.day}` },
+    { label: "Target", value: config.publicGoalLabel, note: "Public bet" },
+    { label: "Latest receipt", value: `Day ${latest.day}`, note: latest.status },
+  ];
+  const proofItems = [
+    { label: "Revenue", value: formatCurrency(latest.revenueCollected), note: "collected", tone: "money" },
+    { label: "Followers", value: formatNumber(followerTotal), note: liveFollowers?.checkedAt ? "live ticker" : "daily log" },
+    { label: "Email list", value: formatNumber(latest.emailSubscribers), note: "subscribers" },
+    { label: "Builds", value: formatNumber(latest.buildsShipped), note: "shipped" },
+    { label: "Clips", value: formatNumber(latest.clipsPosted), note: "posted" },
+  ];
 
   return (
-    <main className="public-page">
-      <section className="public-hero">
-        <div className="hero-copy">
-          <span className="public-label">Launches July 28, 2026</span>
-          <h1>Watch me turn 60 quiet days into an AI money show.</h1>
-          <p>
-            My family is overseas for two months. I am using that window to stream the grind:
-            builds, numbers, wins, crashes, product drops, and the scoreboard that keeps the whole
-            thing honest.
-          </p>
-          <div className="hero-actions">
-            <a className="primary-link" href="/60">
-              Open dashboard
-            </a>
-            <a className="secondary-link" href="/kit">
-              See the first drop
-            </a>
-          </div>
-          {isPrelaunch(config) && (
-            <div className="prelaunch-inline">
-              <strong>{mode.label}</strong>
-              <span>{mode.body}</span>
-            </div>
-          )}
-        </div>
-        <div className="hero-command-card">
+    <main className="public-page control-room-page">
+      <RouteHero
+        label="Launches July 28, 2026"
+        title="60 days. One public AI operator sprint."
+        body="My family is overseas for two months. I am using that window to stream the grind: builds, numbers, wins, crashes, product drops, and the scoreboard that keeps the whole thing honest."
+        primaryAction={{ href: "/live", label: "Open live room" }}
+        secondaryAction={{ href: "/60", label: "View scoreboard" }}
+        statusItems={statusItems}
+      >
+        <div className="proof-monitor">
           <div className="hero-card-top">
             <span>{isPrelaunch(config) ? "Command Center Preview" : "Command Center"}</span>
             <strong>{isPrelaunch(config) ? `Preview Day ${latest.day}` : `Day ${latest.day} / ${config.totalDays}`}</strong>
@@ -1738,13 +1737,16 @@ function PublicHome({ config, latest, liveFollowers }) {
             liveFollowers={liveFollowers}
           />
         </div>
-      </section>
+      </RouteHero>
 
-      <section className="public-band">
-        <PublicProofCard title="The public bet" value="$100K or 100K followers" />
-        <PublicProofCard title="The show" value="Builds, clips, drops, chaos, receipts" />
-        <PublicProofCard title="The proof" value="Dashboard, daily log, Day 60 recap deck" />
-      </section>
+      {isPrelaunch(config) && (
+        <div className="prelaunch-inline control-prelaunch-note">
+          <strong>{mode.label}</strong>
+          <span>{mode.body}</span>
+        </div>
+      )}
+
+      <ProofStrip items={proofItems} />
 
       <section className="public-section two-col">
         <div>
@@ -1766,34 +1768,40 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
   const spike = detectSpike(logs, latest);
   const currentWeek = weeks.at(-1);
   const mode = getPublicDataMode(config);
+  const metricBoardItems = progressItems.slice(0, 6).map((item) => ({
+    label: item.label,
+    value: item.display,
+    progress: percent(item.value, item.goal),
+    note: item.accent === "blue" ? "output signal" : "goal track",
+  }));
+  const statusItems = [
+    { label: "Status", value: isPrelaunch(config) ? "Prelaunch" : "Live", note: mode.label },
+    { label: "Logged day", value: `Day ${latest.day}`, note: `${config.totalDays} day sprint` },
+    { label: "Main bet", value: config.publicGoalLabel, note: "scoreboard pressure" },
+  ];
 
   return (
-    <main className="public-page">
-      <section className="public-score-header">
-        <div>
-          <span className="public-label">Public Command Center</span>
-          <h1>Every number has to survive the scoreboard.</h1>
-          <p>
-            Preview data is loaded until the sprint begins. On Day 1, this becomes the public record
-            for the 60-day AI operator sprint.
-          </p>
-        </div>
+    <main className="public-page control-room-page">
+      <RouteHero
+        label="Public Command Center"
+        title="Every number has to survive the scoreboard."
+        body="Preview data is loaded until the sprint begins. On Day 1, this becomes the public record for the 60-day AI operator sprint."
+        primaryAction={{ href: `/day/${latest.day}`, label: "Open latest receipt" }}
+        secondaryAction={{ href: "/live", label: "Open live room" }}
+        statusItems={statusItems}
+      >
         <div className="score-day">
           <span>{isPrelaunch(config) ? "Preview Day" : "Day"}</span>
           <strong>{latest.day}</strong>
           <em>{isPrelaunch(config) ? `Live starts ${config.startDate}` : `/ ${config.totalDays}`}</em>
         </div>
-      </section>
+      </RouteHero>
 
       {isPrelaunch(config) && <PrelaunchBanner mode={mode} />}
 
       <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
 
-      <section className="public-metrics">
-        {progressItems.slice(0, 6).map((item) => (
-          <ProgressCard key={item.key} item={item} />
-        ))}
-      </section>
+      <MetricBoard items={metricBoardItems} />
 
       <section className="public-dashboard-grid">
         <article className="panel public-sprint-card">
@@ -1805,6 +1813,12 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
             Open day receipt
           </a>
         </article>
+        <ReceiptPreview
+          label="Latest proof"
+          title={latest.shippedItems?.[0] || "Receipt pending"}
+          body={latest.proofAssets?.[0] || latest.bestMoment || "The next public proof item will attach to this day receipt."}
+          href={`/day/${latest.day}`}
+        />
         <article className={`panel spike-panel ${spike.isSpike ? "hot" : ""}`}>
           <PanelTitle icon="alert" title="Spike Detector" right="Latest" />
           <h2>{spike.isSpike ? "Spike detected" : "No major spike"}</h2>
