@@ -7,6 +7,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 - [`memory/2026-07-10_public-broadcast-system.md`](memory/2026-07-10_public-broadcast-system.md) - Deployed public design system, protected production boundaries, and verification state.
 - [`memory/2026-07-10_member-operator-workspace.md`](memory/2026-07-10_member-operator-workspace.md) - Paid-member information architecture, authentication, and preserved functionality.
 - [`memory/2026-07-10_course-product-rebuild.md`](memory/2026-07-10_course-product-rebuild.md) - Locked Claude Code and Codex curriculum, product ladder, gated assets, Stripe setup, and verification state.
+- [`memory/2026-07-10_operator-toolkit-subscription-tier.md`](memory/2026-07-10_operator-toolkit-subscription-tier.md) - Locked `$297` permanent toolkit, `$30/month` updates, mixed billing, lifecycle access, and production verification.
 
 ## Current Project
 
@@ -15,3 +16,4 @@ Long-term project decisions and verified implementation state for the AI with Mu
 - Hosting: Render service `aiwithmurda-web`
 - Primary launch date: July 28, 2026
 - Current course and member rebuild commit: `4e3bca3`
+- Current Operator Toolkit release commit: `40d5e0a` (QA follow-up `1d48f94`)
