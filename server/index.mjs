@@ -15,7 +15,8 @@ import {
   productPriceCents,
   productSubtitle,
 } from "../src/data/product.js";
-import { liveBuildAccessPlan, liveBuildMemberAssets, liveBuildsProduct } from "../src/data/liveBuilds.js";
+import { coreMemberAssets, operatorBundleAssets } from "../src/data/memberAssets.js";
+import { operatorBundleAccessPlan, operatorBundleProduct } from "../src/data/operatorBundle.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -159,126 +160,7 @@ const streamPrivacyGuard = {
   ],
   proof: "Fake stream recording shows the privacy scene switch works before opening any sensitive admin or payment screen.",
 };
-const memberAssets = [
-  {
-    key: "quickstart",
-    title: "Quickstart Map",
-    kind: "Setup",
-    description: "The first 60 minutes: folders, accounts, tracker, prompt capture, and proof habits.",
-    fileName: "future-proof-method-quickstart.md",
-    downloadName: "future-proof-method-quickstart.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "daily-operator-checklist",
-    title: "Daily Operator Checklist",
-    kind: "Workflow",
-    description: "A repeatable morning, live-build, clip, recap, and shutdown checklist.",
-    fileName: "daily-operator-checklist.md",
-    downloadName: "daily-operator-checklist.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "launch-day-runbook",
-    title: "Launch Day Runbook",
-    kind: "Launch",
-    description: "Day 0 and Day 1 checklist for baseline cutover, OBS, commands, receipts, and shutdown.",
-    fileName: "launch-day-runbook.md",
-    downloadName: "future-proof-method-launch-day-runbook.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "launch-copy-pack",
-    title: "Launch Copy Pack",
-    kind: "Copy",
-    description: "Pinned chat commands, stream scripts, kit CTAs, recap captions, email copy, and buyer follow-up language.",
-    fileName: "launch-copy-pack.md",
-    downloadName: "future-proof-method-launch-copy-pack.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "day-0-7-stream-run-sheet",
-    title: "Day 0-7 Stream Run Sheet",
-    kind: "Content",
-    description: "First-week show loop, daily proof targets, clip hooks, CTAs, and shutdown checklist.",
-    fileName: "day-0-7-stream-run-sheet.md",
-    downloadName: "future-proof-method-day-0-7-stream-run-sheet.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "prompt-workflows",
-    title: "Prompt Workflow Pack",
-    kind: "Prompts",
-    description: "Prompts for finding business problems, mapping workflows, building offers, and QA.",
-    fileName: "prompt-workflows.md",
-    downloadName: "prompt-workflows.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "proof-receipts-template",
-    title: "Proof Receipts Template",
-    kind: "Proof",
-    description: "Daily receipt format for before/after proof, failures, lessons, and Day 60 recap slides.",
-    fileName: "proof-receipts-template.md",
-    downloadName: "proof-receipts-template.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "module-roadmap",
-    title: "Module Roadmap",
-    kind: "Modules",
-    description: "Five-module path with to-do lists, done criteria, and proof outputs for the $47 kit.",
-    fileName: "module-roadmap.md",
-    downloadName: "future-proof-method-module-roadmap.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "module-field-guide",
-    title: "Module Field Guide",
-    kind: "Lessons",
-    description: "Module-by-module worksheets with operating questions, prompts, proof receipts, and exit criteria.",
-    fileName: "module-field-guide.md",
-    downloadName: "future-proof-method-module-field-guide.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "premium-course-workbook",
-    title: "Premium Course Workbook",
-    kind: "Lessons",
-    description: "Full five-module course body with frameworks, teaching notes, workshops, examples, scripts, and quality bars.",
-    fileName: "premium-course-workbook.md",
-    downloadName: "future-proof-method-premium-course-workbook.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "lesson-scripts",
-    title: "Lesson Scripts",
-    kind: "Scripts",
-    description: "Talking points for stream segments, recorded lessons, buyer onboarding videos, and workshop sessions.",
-    fileName: "lesson-scripts.md",
-    downloadName: "future-proof-method-lesson-scripts.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "course-completion-kit",
-    title: "Course Completion Kit",
-    kind: "Capstone",
-    description:
-      "Final proof sprint, completion criteria, certificate language, and Day 60 receipt prompts.",
-    fileName: "course-completion-kit.md",
-    downloadName: "future-proof-method-course-completion-kit.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-  {
-    key: "proof-to-offer-canvas",
-    title: "Proof To Offer Canvas",
-    kind: "Offer",
-    description: "Worksheet for turning one build receipt into a clear buyer, promise, CTA, objection bank, and follow-up list.",
-    fileName: "proof-to-offer-canvas.md",
-    downloadName: "future-proof-method-proof-to-offer-canvas.md",
-    mimeType: "text/markdown; charset=utf-8",
-  },
-];
+const memberAssets = coreMemberAssets;
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -307,10 +189,10 @@ const checkoutProducts = new Map(
       cancelPath: "/kit",
     },
     {
-      key: liveBuildsProduct.key,
-      name: liveBuildsProduct.name,
-      subtitle: liveBuildsProduct.subtitle,
-      priceCents: liveBuildsProduct.priceCents,
+      key: operatorBundleProduct.key,
+      name: operatorBundleProduct.name,
+      subtitle: operatorBundleProduct.subtitle,
+      priceCents: operatorBundleProduct.priceCents,
       priceEnvKey: "STRIPE_LIVE_BUILDS_PRICE_ID",
       successPath: "/live-builds",
       cancelPath: "/live-builds",
@@ -369,9 +251,9 @@ function buildStreamConfig() {
       { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true, external: false },
       {
         key: "live-builds",
-        name: "New Wave Live Builds",
+        name: operatorBundleProduct.name,
         href: "/live-builds",
-        status: "Founding waitlist",
+        status: operatorBundleProduct.status,
         configured: true,
         external: false,
       },
@@ -385,7 +267,7 @@ function buildStreamConfig() {
       { command: "!overlay", label: "OBS overlay", href: "/overlay" },
       { command: "!start", label: "Build log signup", href: "/start" },
       { command: "!kit", label: "Founding product", href: "/kit" },
-      { command: "!builds", label: "New Wave Live Builds", href: "/live-builds" },
+      { command: "!builds", label: operatorBundleProduct.name, href: "/live-builds" },
       { command: "!members", label: "Member login", href: "/members" },
       { command: "!runbook", label: "Launch runbook", href: "/members" },
     ],
@@ -556,7 +438,9 @@ async function getMemberTaskProgress(userId) {
 
   if (error) throw error;
 
-  const items = (data || []).map(toTaskProgress);
+  const items = (data || [])
+    .map(toTaskProgress)
+    .filter((item) => findProductTask(item.moduleKey, item.taskKey));
   return { items, summary: summarizeTaskProgress(items) };
 }
 
@@ -593,14 +477,14 @@ async function getMemberAccess(user) {
       onboardingEmails: buyerOnboardingEmails,
       courseCompletion,
     },
-    liveBuilds: {
-      key: liveBuildsProduct.key,
-      name: liveBuildsProduct.name,
-      subtitle: liveBuildsProduct.subtitle,
-      status: liveBuildsProduct.status,
-      price_cents: liveBuildsProduct.priceCents,
-      accessPlan: liveBuildAccessPlan,
-      assets: liveBuildMemberAssets.map(publicAsset),
+    operatorBundle: {
+      key: operatorBundleProduct.key,
+      name: operatorBundleProduct.name,
+      subtitle: operatorBundleProduct.subtitle,
+      status: operatorBundleProduct.status,
+      price_cents: operatorBundleProduct.priceCents,
+      accessPlan: operatorBundleAccessPlan,
+      assets: operatorBundleAssets.map(publicAsset),
     },
   };
 }
@@ -619,7 +503,11 @@ async function hasActiveProductEntitlement(userId, entitlementProductKey) {
 }
 
 async function hasActiveEntitlement(userId) {
-  return hasActiveProductEntitlement(userId, productKey);
+  const [starterAccess, bundleAccess] = await Promise.all([
+    hasActiveProductEntitlement(userId, productKey),
+    hasActiveProductEntitlement(userId, operatorBundleProduct.key),
+  ]);
+  return starterAccess || bundleAccess;
 }
 
 function toDailyLog(row) {
@@ -1660,32 +1548,32 @@ function buildWelcomeEmail() {
 }
 
 function buildAccessEmail(productConfig = checkoutProducts.get(productKey)) {
-  if (productConfig?.key === liveBuildsProduct.key) {
+  if (productConfig?.key === operatorBundleProduct.key) {
     return {
-      subject: "Your New Wave Live Builds ticket is confirmed",
+      subject: "Your New Wave Operator Bundle is ready",
       text: [
-        "Your founding ticket is confirmed.",
+        "Your Operator Bundle is unlocked.",
         "",
-        `Open the live-build page: ${siteUrl}/live-builds`,
-        "What happens next:",
-        "- Watch for the room topic, date, and access notes.",
-        "- Bring one workflow you want to understand better.",
-        "- After the session, use the replay, prompts, proof receipt, and implementation checklist.",
-        `Open the public dashboard: ${siteUrl}/60`,
+        `Open your member workspace: ${siteUrl}/members`,
+        "Start in this order:",
+        "- Complete the core setup path if this is your first AI-assisted build.",
+        "- Choose one repeated workflow before installing an advanced skill.",
+        "- Use the dual-agent review loop on your next real change.",
+        `Open the bundle overview: ${siteUrl}/live-builds`,
       ].join("\n"),
       html: baseEmailTemplate({
-        preheader: "Your New Wave Live Builds ticket is confirmed.",
-        title: "Your live-build ticket is confirmed.",
+        preheader: "Your New Wave Operator Bundle is unlocked.",
+        title: "Your advanced operator vault is ready.",
         intro:
-          "Your profile now has a New Wave Live Builds founding ticket. This is the paid room where the AI operator loop happens live on a real workflow.",
+          "Your profile now has the complete Future Proof Method plus the advanced skill, script, review, debug, deployment, and blueprint vault.",
         bullets: [
-          "The room topic, date, and access notes can be assigned from the launch plan.",
-          "The session ends with replay access, prompts, a proof receipt, and implementation notes.",
-          "Use the $47 kit first if you want the operating system before the live room.",
+          "Finish the beginner foundation before adding advanced automation.",
+          "Install skills only when they solve a repeated workflow.",
+          "Use one agent to build and the other to review the proof.",
         ],
-        primaryUrl: `${siteUrl}/live-builds`,
-        primaryLabel: "Open live-build page",
-        footer: `This confirmation was sent by AI with Murda after Stripe confirmed ${liveBuildsProduct.name}.`,
+        primaryUrl: `${siteUrl}/members`,
+        primaryLabel: "Open member workspace",
+        footer: `This confirmation was sent by AI with Murda after Stripe confirmed ${operatorBundleProduct.name}.`,
       }),
     };
   }
@@ -1766,8 +1654,9 @@ async function getOfferOpsSummary() {
   if (purchasesError) throw purchasesError;
   if (progressError) throw progressError;
 
-  const progressUsers = new Set((progressRows || []).map((row) => row.user_id));
-  const completedKeys = new Set((progressRows || []).map((row) => `${row.module_key}:${row.task_key}:${row.user_id}`));
+  const validProgressRows = (progressRows || []).filter((row) => findProductTask(row.module_key, row.task_key));
+  const progressUsers = new Set(validProgressRows.map((row) => row.user_id));
+  const completedKeys = new Set(validProgressRows.map((row) => `${row.module_key}:${row.task_key}:${row.user_id}`));
   const revenueCents = (purchases || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0);
   const memberUserIds = [...new Set((entitlements || []).map((row) => row.user_id).filter(Boolean))];
   const activeMembers = new Set(memberUserIds).size;
@@ -1791,13 +1680,13 @@ async function getOfferOpsSummary() {
     }
   }
   const progressByUserId = new Map();
-  for (const row of progressRows || []) {
+  for (const row of validProgressRows) {
     const current = progressByUserId.get(row.user_id) || [];
     current.push(row);
     progressByUserId.set(row.user_id, current);
   }
   const moduleSummaries = productModules.map((module) => {
-    const moduleRows = (progressRows || []).filter((row) => row.module_key === module.key);
+    const moduleRows = validProgressRows.filter((row) => row.module_key === module.key);
     return {
       key: module.key,
       title: module.title,
@@ -1821,7 +1710,7 @@ async function getOfferOpsSummary() {
       paidPurchases: productPurchases.length,
       revenueCents: productRevenueCents,
       currency: productPurchases[0]?.currency || "usd",
-      assets: productConfig.key === liveBuildsProduct.key ? liveBuildMemberAssets.length : memberAssets.length,
+      assets: productConfig.key === operatorBundleProduct.key ? operatorBundleAssets.length : memberAssets.length,
       tasks: productConfig.key === productKey ? productTaskTotal : 0,
     };
   });
@@ -1830,14 +1719,14 @@ async function getOfferOpsSummary() {
     const purchase = purchasesByUserId.get(`${entitlement.user_id}:${entitlement.product_key}`);
     const userProgressRows = progressByUserId.get(entitlement.user_id) || [];
     const completedTaskKeys = new Set(userProgressRows.map((row) => `${row.module_key}:${row.task_key}`));
-    const isFutureMethod = entitlement.product_key === productKey;
-    const currentModule = isFutureMethod
+    const includesStarterCourse = [productKey, operatorBundleProduct.key].includes(entitlement.product_key);
+    const currentModule = includesStarterCourse
       ? completedTaskKeys.size >= productTaskTotal
         ? null
         : productModules.find((module) => module.todos.some((todo) => !completedTaskKeys.has(`${module.key}:${todo.key}`)))
       : {
-          key: "new-wave-room-001",
-          title: "Live-build ticket active",
+          key: "operator-vault",
+          title: "Operator vault unlocked",
         };
     const lastProgressAt = userProgressRows
       .map((row) => row.completed_at || row.updated_at)
@@ -1856,9 +1745,10 @@ async function getOfferOpsSummary() {
       purchasedAt: purchase?.purchased_at || null,
       amountTotal: Number(purchase?.amount_total || 0),
       currency: purchase?.currency || "usd",
-      completedTasks: isFutureMethod ? completedTaskKeys.size : 0,
-      totalTasks: isFutureMethod ? productTaskTotal : 0,
-      progressPercent: isFutureMethod && productTaskTotal ? Math.round((completedTaskKeys.size / productTaskTotal) * 100) : 0,
+      completedTasks: includesStarterCourse ? completedTaskKeys.size : 0,
+      totalTasks: includesStarterCourse ? productTaskTotal : 0,
+      progressPercent:
+        includesStarterCourse && productTaskTotal ? Math.round((completedTaskKeys.size / productTaskTotal) * 100) : 0,
       currentModule: currentModule
         ? {
             key: currentModule.key,
@@ -2977,7 +2867,7 @@ app.post("/api/checkout/live-builds", requireUser, async (req, res) => {
   try {
     const session = await createCheckoutSessionForProduct({
       req,
-      productConfig: checkoutProducts.get(liveBuildsProduct.key),
+      productConfig: checkoutProducts.get(operatorBundleProduct.key),
     });
 
     res.json({ url: session.url, session_id: session.id });
@@ -3103,13 +2993,13 @@ app.get("/api/member-assets/future-proof-method/:assetKey", requireUser, async (
 
 app.get("/api/member-assets/new-wave-live-builds/:assetKey", requireUser, async (req, res) => {
   try {
-    const asset = liveBuildMemberAssets.find((item) => item.key === req.params.assetKey);
+    const asset = operatorBundleAssets.find((item) => item.key === req.params.assetKey);
     if (!asset) {
       res.status(404).json({ error: "asset_not_found" });
       return;
     }
 
-    if (!(await hasActiveProductEntitlement(req.user.id, liveBuildsProduct.key))) {
+    if (!(await hasActiveProductEntitlement(req.user.id, operatorBundleProduct.key))) {
       res.status(403).json({ error: "entitlement_required" });
       return;
     }
@@ -3132,6 +3022,7 @@ app.get(/.*/, (req, res) => {
 });
 
 const port = Number(process.env.PORT || 8787);
-app.listen(port, () => {
-  console.log(`AI with Murda server listening on ${port}`);
+const host = process.env.HOST || "0.0.0.0";
+app.listen(port, host, () => {
+  console.log(`AI with Murda server listening on ${host}:${port}`);
 });

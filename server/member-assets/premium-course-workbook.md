@@ -1,493 +1,506 @@
-# The Future Proof Method - Premium Course Workbook
+# The Future Proof Method - Course Workbook
 
-This workbook is the full paid lesson body for the five-module path. Use the member portal checklist to track completion, and use this file when you want the deeper teaching notes, workshop steps, examples, scripts, and quality bars.
+This workbook contains the deeper teaching behind the five-module path. Use the member portal for the next task and progress tracking; open this file when you need the framework, workshop, example, or quality bar.
 
-# Module 1 - Command Setup
+# Module 1 - Set Up Both AI Builders
 
-Premium lesson:
+Install, sign in, and safely verify Claude Code and Codex inside one practice project.
 
-Build the operating room before you build the app.
+## Deep lesson
 
-Promise: By the end of this module, the student has one trusted place for prompts, proof, content, offers, decisions, and daily numbers.
+### Remove setup uncertainty before it becomes build anxiety.
 
-Estimated time: 60-90 minutes
+Promise: By the end of this module, you can open one safe project in Claude Code and Codex, understand what each tool can access, and complete a read-only first session.
 
-Core framework:
-- Surface: Create the visible workspace: tracker, folders, member links, stream links, and proof folders.
-- Sequence: Put the work in the order it will happen: baseline, build, proof, clip, offer, shutdown.
-- Receipts: Decide what counts as evidence before the first live session starts.
+Estimated time: 30-60 minutes
+
+Framework:
+- Choose: Pick the surfaces and account path you will actually use instead of installing every option.
+- Verify: Confirm versions, authentication, project location, and Git before asking for edits.
+- Bound: Keep the agent inside one project and keep credentials outside chat and source control.
 
 Teaching notes:
-### Why setup is the first product feature
+### One project is the safest classroom
 
-Most builders lose momentum because every day starts with searching. They search for the last prompt, the right repo, the latest number, the proof screenshot, or the next action. A premium operator removes that tax before the public sprint starts.
+Beginners often launch an agent from a broad folder and then approve access without understanding the boundary. A dedicated practice project makes every file visible, disposable, and easy to inspect.
 
-- The folder structure is not admin work; it is the delivery system for the sprint.
-- The tracker is not a spreadsheet; it is the public scoreboard and private decision log.
-- The proof folder is not storage; it is the raw material for clips, emails, sales pages, and the Day 60 review.
+- Create a folder for the course instead of starting from your home directory.
+- Put a short README inside so the agent has an obvious purpose to explain.
+- Use read-only questions before asking either agent to edit anything.
 
-### The command center rule
+### Permissions are part of the workflow
 
-If another AI partner, teammate, or future version of you cannot resume the work in 10 minutes, the setup is not done. Every sprint day needs a source of truth for what matters now, what shipped, what broke, and what should happen next.
+Permission prompts are not interruptions to click through. They are the moment you confirm what command will run, where it will run, and whether the action matches the task.
 
-- One folder for prompts and agent handoffs.
-- One folder for proof assets and screenshots.
-- One folder for content drafts and published links.
-- One folder for offers, objections, pricing notes, and buyer language.
+- Read commands before approval and ask the agent to explain unfamiliar ones.
+- Do not enable broad bypass modes during beginner setup.
+- Keep production dashboards, payment systems, and secret files outside the practice project.
 
-### The private boundary
+### The first win is an explanation
 
-A public build does not mean a public life. The setup must protect secrets, customer data, family details, payment data, and unfinished sensitive work. The stream can show the operating system without exposing the private engine room.
+A good first session proves that the agent can find files, understand context, and wait for direction. You do not need to generate an app on the first prompt.
 
-- Keep API keys, environment files, customer exports, and private family context off screen.
-- Prepare safe demo accounts or seeded data before stream day.
-- Create a quick cover-screen or OBS scene before opening dashboards live.
+- Ask what the project does and where the entry point would be.
+- Compare how Claude Code and Codex explain the same folder.
+- Save what confused you so the troubleshooting guide can solve the real issue.
 
 Workshop:
-### Create the operating tree
+### Verify the machine
 
-1. Create folders for prompts, proof, content, offers, assets, handoffs, and archive.
-2. Add a README inside each folder that says what belongs there.
-3. Pin the command center, public dashboard, member hub, and tracker links.
+1. Open the Install + Verify Pack for your operating system.
+2. Confirm Git and the two agent surfaces are available.
+3. Record versions without pasting tokens or account secrets.
 
-### Set the Day 0 baseline
+### Create the practice project
 
-1. Write the starting follower counts, email count, revenue, pipeline, products sold, clips posted, and builds shipped.
-2. Add one sentence naming the main 60-day promise.
-3. Add one sentence naming the first offer you will try to validate.
+1. Create one dedicated folder and a one-paragraph README.
+2. Open the folder in each agent separately.
+3. Confirm the working directory before continuing.
 
-### Run the 10-minute resume test
+### Run the read-only comparison
 
-1. Close the project for five minutes.
-2. Reopen it and try to find the next action, latest proof, and active offer without searching chat history.
-3. Fix the setup until the next move is obvious.
+1. Use the starter prompt in Claude Code.
+2. Use the same prompt in Codex.
+3. Save one sentence about which explanation was clearer and why.
 
 Example:
-- Before: Everything lives in downloads, chat history, desktop screenshots, and unnamed notes.
-- After: The project has `/prompts`, `/proof`, `/content`, `/offers`, `/assets`, and `/handoffs`, each with a README and one starter file.
-- Breakdown:
-  - The prompt folder stores reusable AI prompts and the best failed prompts.
-  - The proof folder stores before/after evidence, not random screenshots.
-  - The offers folder stores buyer language, objections, CTA tests, and pricing notes.
+- Before: Open the terminal in my home folder and build me an app.
+- After: Open a dedicated practice project, verify the working directory, ask the agent to explain the files, and approve no edits yet.
+- Why it works:
+  - The file boundary is understandable.
+  - The task proves access and context before code generation.
+  - Any mistake is contained inside a disposable project.
 
-Swipe script:
-> Before I build anything, I need the operating room clean.
+Copy-ready script:
+> Do not edit anything yet.
 
-> Every prompt, proof screenshot, offer note, and daily number needs a home.
+> Tell me what files you can see and what this project appears to do.
 
-> If this works, by Day 60 I do not have a pile of effort. I have receipts.
+> Name the safest first task for a beginner and wait for my approval.
 
 Quality bar:
-- A stranger can understand the folder tree.
-- The baseline numbers are visible and dated.
-- The first offer lane is named before the first build.
+- Both tools can open the intended project.
+- The working directory and permission boundary are understood.
+- No secret, private file, or unrelated folder was exposed.
 
 
-Implementation assignment:
-- [ ] Create the command folder structure.
-  - Proof: Screenshot or file tree showing prompts, proof, content, offers, assets, and handoffs separated.
-- [ ] Open the tracker and set today's baseline.
-  - Proof: Baseline row filled with follower, email, revenue, pipeline, shipped-build, and stream status numbers.
-- [ ] Pick one offer to prove first.
-  - Proof: One sentence naming the buyer, promise, price path, and why this offer is the first test.
-- [ ] Create folders for prompts, proof, content, and offers.
-  - Proof: Four folders exist and each has a starter note explaining what belongs inside.
+## Implementation assignment
 
-Exit receipt:
-- Module output: Command folder screenshot and first baseline entry.
-- Done criteria: You can start a build day without searching for files, links, or the next action.
-- Proof checkpoint: Folder tree screenshot plus one baseline tracker row.
+- [ ] Choose your Claude Code and Codex surfaces.
+  - Evidence: A note names the terminal, desktop, or IDE surfaces you will use and the account attached to each.
+- [ ] Install and verify Claude Code, Codex, and Git.
+  - Evidence: Version output or a screenshot confirms all three tools are available.
+- [ ] Create and open a dedicated practice project.
+  - Evidence: The project has its own folder and a short README describing what it is for.
+- [ ] Run the first read-only inspection in both agents.
+  - Evidence: Claude Code and Codex each explain the project without editing a file.
+
+## Exit receipt
+
+- Output: A toolchain receipt showing Claude Code, Codex, and Git can open the same practice project.
+- Verification: Save the three version results and one screenshot or note showing both agents can read the project.
+- Done: Both agents can enter one safe project, explain it, and wait for a scoped task.
 
 ---
 
-# Module 2 - Problem To Proof
+# Module 2 - Make the Project AI-Ready
 
-Premium lesson:
+Give both agents the same brief, durable rules, commands, safety boundaries, and definition of done.
 
-Pick problems that can create receipts, not just apps.
+## Deep lesson
 
-Promise: By the end of this module, the student has one painful workflow, one buyer, one before-state, and one proof metric.
+### Make the project carry the context.
 
-Estimated time: 75-120 minutes
+Promise: By the end of this module, either agent can enter the repository, understand the goal, find verified commands, respect safety boundaries, and know what completion means.
 
-Core framework:
-- Pain: Choose a workflow with a real drag: time, money, trust, speed, clarity, or missed opportunity.
-- Proof: Define the smallest visible measurement that would show the workflow improved.
-- Path: Connect that proof to a buyer, audience, or offer path before building.
+Estimated time: 45-90 minutes
+
+Framework:
+- Brief: Define the user, problem, first outcome, non-goals, and success check in one page.
+- Guide: Store durable, concise instructions where each agent discovers them.
+- Checkpoint: Protect secrets and create a clean baseline before feature work begins.
 
 Teaching notes:
-### Why big ideas lose on stream
+### A prompt is not a project brief
 
-A giant idea sounds impressive but gives the viewer nothing to measure. The audience needs a before-state they understand and an after-state they can see. Buyers need the same thing. This module turns vague ambition into a proof target.
+A prompt asks for a task now. A project brief preserves the decisions every future task needs: who the user is, what problem matters, what the current version includes, and what stays out.
 
-- A bad problem sounds like: build an AI business platform.
-- A better problem sounds like: reduce the time it takes to turn a product photo into a product listing.
-- The smallest provable workflow wins because it can produce a receipt today.
+- Write one primary user and one primary problem.
+- Name the first useful outcome in observable language.
+- Create a non-goal list before the agent invents scope for you.
 
-### The viewer clarity test
+### Use the right instruction layer
 
-If a viewer needs a 10-minute backstory to understand why the build matters, the problem is not ready. Strong public builds explain themselves quickly: here is the annoying before, here is the visible after, here is why that matters.
+Durable project facts belong in AGENTS.md or CLAUDE.md. Long procedures belong in skills. One-time requests stay in the conversation. Mixing these layers creates bloated context and contradictory rules.
 
-- The pain should be concrete enough to show on screen.
-- The buyer should be specific enough to imagine.
-- The proof should be measurable without a complicated dashboard.
+- Keep project guidance short and specific.
+- Add verified build, test, and formatting commands.
+- Move repeated multi-step workflows into skills later.
 
-### The money path filter
+### Git is the confidence layer
 
-Attention alone is fragile. The chosen workflow should point toward revenue, pipeline, leads, trust, saved time, or a stronger product. Even if the first proof is small, it should make the offer easier to believe.
+A baseline checkpoint lets you compare changes, review generated work, and return to a known state. It turns experimentation into a controlled process instead of a memory test.
 
-- Does this help someone make money, save time, avoid pain, or move faster?
-- Can this become a paid template, service, tool, kit, or consultation?
-- Can the proof become a sentence on a sales page?
+- Ignore environment files and generated output before the first commit.
+- Review the staged files instead of blindly adding everything.
+- Use descriptive checkpoints around working outcomes.
 
 Workshop:
-### Build the 10-problem list
+### Write the brief
 
-1. List problems from your own business, client work, creator workflow, and daily operations.
-2. Write who feels each problem and what it currently costs them.
-3. Delete ideas that cannot be shown or measured in a short window.
+1. Complete the purpose, user, problem, first outcome, and non-goals.
+2. Add the exact success state a person can observe.
+3. Remove any requirement that belongs after the first working slice.
 
-### Score the top three
+### Create shared guidance
 
-1. Score each idea 1-5 for buyer pain, proof speed, viewer clarity, and money path.
-2. Pick the highest total only if it can be scoped into one screen or one workflow.
-3. Write the before-state in plain language.
+1. Ask one agent to inspect the project and propose concise guidance.
+2. Verify every command against package scripts or project documentation.
+3. Create the Claude Code file by importing or mirroring shared project facts without contradiction.
 
-### Lock the proof metric
+### Protect and checkpoint
 
-1. Choose one metric: time saved, steps removed, error reduced, lead captured, reply earned, or revenue generated.
-2. Write how the metric will be captured.
-3. Add the metric to the next daily receipt before coding.
+1. Review .gitignore and scan for environment files.
+2. Inspect the diff and staged file list.
+3. Create the baseline checkpoint and ask the second agent to review it.
 
 Example:
-- Before: I want to build an AI CRM for small businesses.
-- After: I will build a tool that turns missed-call notes into follow-up messages and measure replies booked this week.
-- Breakdown:
-  - The buyer is visible: a local service business missing follow-up.
-  - The proof is measurable: replies, calls booked, or time saved.
-  - The build can start as a narrow workflow instead of a giant CRM.
+- Before: Always make good code and make the design look professional.
+- After: Run npm test and npm run build before completion. Keep cards at 8px radius or less. Do not edit .env files. Verify the signup path in a browser after UI changes.
+- Why it works:
+  - The rules are observable and testable.
+  - Commands and protected files are explicit.
+  - The guidance is tied to this project rather than generic taste.
 
-Swipe script:
-> The problem I am choosing today is not the biggest idea. It is the one I can prove fastest.
+Copy-ready script:
+> Separate permanent project facts from one-time task instructions.
 
-> The before-state is simple: this workflow wastes time and loses follow-up.
+> Verify every build and test command before writing it into guidance.
 
-> The proof I need is one visible improvement, not a finished empire.
+> Flag any rule that is vague, duplicated, contradictory, or machine-specific.
 
 Quality bar:
-- The problem can be explained in one sentence.
-- The before-state is captured before coding.
-- The proof metric is visible within one session or one day.
+- The project brief fits on one page.
+- A fresh agent can locate verified commands and safety rules.
+- The baseline contains no credentials or unrelated generated files.
 
 
-Implementation assignment:
-- [ ] List 10 painful workflows or bottlenecks.
-  - Proof: A ranked list of 10 workflows with the person, business, or audience who feels each pain.
-- [ ] Score each by speed to proof and money path.
-  - Proof: Top three scored from 1 to 5 for proof speed, buyer pain, viewer clarity, and money path.
-- [ ] Pick the smallest workflow worth showing.
-  - Proof: One selected workflow with a scope small enough to demo in one screen, clip, or receipt.
-- [ ] Write the before state in one sentence.
-  - Proof: Before sentence includes the current pain, current tool/process, and the measurable drag.
+## Implementation assignment
 
-Exit receipt:
-- Module output: One before-state receipt with pain, buyer, and proof metric.
-- Done criteria: You know exactly what problem the build solves and what proof would make a viewer care.
-- Proof checkpoint: A scored top-three table and one before-state sentence.
+- [ ] Write the one-page project brief.
+  - Evidence: The brief names the user, pain, first outcome, non-goals, and success check.
+- [ ] Create AGENTS.md and CLAUDE.md guidance.
+  - Evidence: Both files contain verified commands, key paths, conventions, safety rules, and definition of done.
+- [ ] Protect secrets and local-only files.
+  - Evidence: .gitignore covers environment files and the repository scan shows no pasted credentials.
+- [ ] Create the baseline Git checkpoint.
+  - Evidence: A descriptive commit or equivalent saved checkpoint exists before feature work begins.
+
+## Exit receipt
+
+- Output: An AI-ready project packet with a brief, AGENTS.md, CLAUDE.md, .gitignore, and first Git checkpoint.
+- Verification: A clean repository contains the project packet and no secrets.
+- Done: Either agent can enter the project, find the rules, and explain how work will be verified.
 
 ---
 
-# Module 3 - AI Build Loop
+# Module 3 - Run the Operator Loop
 
-Premium lesson:
+Use the repeatable inspect, plan, build, verify, and checkpoint loop on one narrow change.
 
-Use AI like an operator, not a slot machine.
+## Deep lesson
 
-Promise: By the end of this module, the student can scope, prompt, test, and save one working AI-assisted build slice.
+### Direct the work. Verify the result.
 
-Estimated time: 90-150 minutes
+Promise: By the end of this module, you can move one real user path through inspect, plan, build, verify, and checkpoint without losing control of scope.
 
-Core framework:
-- Inspect: Make the AI read the project, user path, and risks before changing files.
-- Slice: Define one useful outcome that can be tested today.
-- Verify: Run the user path and save a clean version before expanding scope.
+Estimated time: 60-150 minutes
+
+Framework:
+- Inspect: Ground the task in the actual files, behavior, risks, and user path before edits.
+- Build: Implement one vertical slice with explicit non-goals and a stop condition.
+- Verify: Run the real path, review the diff, and checkpoint the working result.
 
 Teaching notes:
-### The build loop is a conversation with constraints
+### Outcome beats feature list
 
-AI can move fast enough to make bad scope feel productive. The operator's job is to keep the work narrow, visible, and testable. A good build loop starts with inspection and ends with proof, not vibes.
+The agent needs a user-visible outcome more than a long feature list. One person should be able to perform one action and see one success state when the loop ends.
 
-- Ask for file/context inspection before implementation.
-- Name the exact user path that must work.
-- Define a stop condition so the session does not become endless refactoring.
+- Name the current behavior before requesting the new behavior.
+- List non-goals so the agent cannot quietly broaden the task.
+- Define the stop condition before implementation starts.
 
-### The three prompts every builder needs
+### Inspection prevents confident guessing
 
-Most failed AI build sessions skip one of three prompts: inspect, implement, verify. If the AI jumps straight to code, it may solve the wrong problem. If it skips verification, it may ship code that only looks right.
+Agents can produce convincing plans from incomplete context. Require the plan to cite files, explain the current path, and name risks before you trust it.
 
-- Inspect prompt: read the code and explain the path before edits.
-- Implementation prompt: make the smallest change that satisfies the path.
-- Verification prompt: run the test, browser path, or smoke check and report proof.
+- Ask for relevant files and request flow.
+- Correct a wrong assumption before any edits.
+- Use the second agent as a reviewer when the change is risky or unfamiliar.
 
-### The messy middle is content
+### Verification is part of building
 
-A public AI build does not need to pretend everything worked immediately. The stuck point, wrong assumption, failed test, and correction are often the best teaching material. Capture them without letting them derail the build.
+A clean compile is useful, but the user path is the product. Completion should include the appropriate tests, build command, browser path, and diff review for the change.
 
-- Narrate what failed in practical language.
-- Save the prompt or test that exposed the issue.
-- Turn the fix into a repeatable rule for the next session.
+- Run narrow checks during the edit loop and broad checks before completion.
+- Capture the command or browser evidence that proves the path.
+- Checkpoint before asking for polish or additional features.
 
 Workshop:
 ### Write the build brief
 
-1. Name the screen, endpoint, workflow, or asset being improved.
-2. Name the files likely involved, or ask AI to find them.
-3. Name the exact thing that proves the slice works.
+1. Choose one user path and capture its starting state.
+2. Write the expected success state and non-goals.
+3. Name the verification path and stop condition.
 
-### Run inspect-implement-verify
+### Run inspect and build
 
-1. Ask AI to inspect and propose a plan.
-2. Approve the smallest useful change.
-3. Run the real user path and capture the result.
+1. Ask the agent to inspect and propose a small plan.
+2. Review assumptions and approve only the scoped path.
+3. Implement in checkpoints and keep unrelated changes out.
 
-### Create the save point
+### Verify and review
 
-1. Commit, export, save, or write a handoff when the slice works.
-2. Write one sentence explaining the before and after.
-3. Stop expanding until the proof is packaged.
+1. Run project-specific checks and the real user path.
+2. Ask the second agent to review the diff for regressions and missing tests.
+3. Save the checkpoint and handoff while the context is fresh.
 
 Example:
-- Before: Make the member area better.
-- After: Add a module lesson page that shows the focus, output, action kit, downloadable assets, and trackable tasks; verify `/members/module/command-setup` renders.
-- Breakdown:
-  - The improved prompt names the exact page.
-  - The output is visible to a member.
-  - The verification path is clear before code changes.
+- Before: Make my member area easier to use.
+- After: Inspect the member dashboard. Make the first unfinished lesson the only primary action on mobile, keep existing auth and progress behavior, and verify the authenticated path at 390px and 1440px.
+- Why it works:
+  - The exact surface and user problem are named.
+  - Preserved behavior and viewport checks constrain the work.
+  - The requested outcome can be inspected after implementation.
 
-Swipe script:
-> Inspect the codebase first and tell me the smallest safe path.
+Copy-ready script:
+> Inspect the current path and cite the relevant files before editing.
 
-> Do not broaden scope unless the current user path works.
+> Implement the smallest change that satisfies the agreed success state.
 
-> After edits, run the real path and tell me what proof passed.
+> Run the real verification path, review the diff, and stop when the scoped result passes.
 
 Quality bar:
-- The AI inspected before editing.
-- One user path was tested after the change.
-- A saved version or handoff exists before the next build.
+- The plan is grounded in the current code and user path.
+- The implementation stays inside explicit non-goals.
+- Verification evidence and a checkpoint exist before expansion.
 
 
-Implementation assignment:
-- [ ] Ask AI to inspect before changing anything.
-  - Proof: The first AI response names the relevant files, user path, and risk before proposing edits.
-- [ ] Scope one build slice that can be shown today.
-  - Proof: A short build brief lists the exact screen, endpoint, or workflow that must work by shutdown.
-- [ ] Run the user path after every meaningful change.
-  - Proof: A terminal, browser, or screenshot receipt shows the real path was tested after the change.
-- [ ] Commit or save the working version when the slice works.
-  - Proof: Commit hash, handoff, export, or saved artifact exists before moving to the next build.
+## Implementation assignment
 
-Exit receipt:
-- Module output: A working slice with before/after proof and a short explanation.
-- Done criteria: A real thing works better than it did before, and the change can be explained in under 30 seconds.
-- Proof checkpoint: Working slice plus test receipt, commit hash, or handoff.
+- [ ] Write one narrow build brief.
+  - Evidence: The brief names the user path, outcome, non-goals, risks, and stop condition.
+- [ ] Make the agent inspect before it plans.
+  - Evidence: The plan cites relevant files and current behavior before proposing edits.
+- [ ] Implement the smallest useful slice.
+  - Evidence: The requested behavior works without unrelated features or refactors.
+- [ ] Verify the user path and save a checkpoint.
+  - Evidence: A test, browser check, or command receipt and a commit or handoff both exist.
+
+## Exit receipt
+
+- Output: One working change with an inspection note, approved plan, verification receipt, and checkpoint.
+- Verification: The project-specific verification path passes and the before/after can be explained in one sentence.
+- Done: One real user path works better, the result is verified, and another agent can review or resume it.
 
 ---
 
-# Module 4 - Proof And Content
+# Module 4 - Install Your Starter Skills
 
-Premium lesson:
+Turn your best repeated instructions into reusable skills that work with Claude Code and Codex.
 
-Receipts turn work into trust.
+## Deep lesson
 
-Promise: By the end of this module, the student can turn a build session into a proof receipt, clip hook, recap, and next-day promise.
+### Turn repeated instructions into tools your agents remember.
+
+Promise: By the end of this module, you can install, test, and customize reusable skills without bloating project instructions or trusting unknown automation blindly.
 
 Estimated time: 45-90 minutes
 
-Core framework:
-- Capture: Save before/after evidence while the moment is still fresh.
-- Translate: Turn the evidence into a plain-language story: before, after, failure, lesson, next move.
-- Distribute: Publish one asset that points back to the sprint, offer, member hub, or next live build.
+Framework:
+- Place: Choose personal or project scope based on who and what should receive the workflow.
+- Trigger: Write a precise description so the right task loads the skill and unrelated tasks do not.
+- Prove: Invoke the skill on a real project, inspect its behavior, and customize from evidence.
 
 Teaching notes:
-### Proof is the product surface
+### Guidance and skills solve different problems
 
-People do not follow a build because code exists. They follow because they can see movement. Receipts make movement legible: the number moved, the workflow improved, the page shipped, the offer got sharper, or the failure taught something useful.
+Always-needed project facts belong in agent guidance. A skill is best for a repeatable procedure that should load only when relevant, such as mapping a project, scoping a slice, or verifying completion.
 
-- A proof receipt should make sense to someone who missed the stream.
-- The best proof shows a change, not just effort.
-- The strongest content often comes from the failure that made the lesson believable.
+- Keep build commands and conventions in project guidance.
+- Keep multi-step workflows in skills.
+- Keep one-time implementation details in the task prompt.
 
-### The receipt format
+### A skill needs a clear contract
 
-A premium proof habit uses the same structure every day so the audience learns how to read the sprint. The repeated format also makes the Day 60 recap easier because the raw material is already organized.
+The skill description should name the trigger, and the body should define inputs, steps, output, safety boundaries, and stop conditions. More words do not make a better skill.
 
-- Before: what was broken, slow, unclear, or missing.
-- After: what changed and how it was verified.
-- Lesson: what this changed about the next decision.
-- Promise: what tomorrow's public work will attempt.
+- Use a specific name and description.
+- Define what the skill must not change or assume.
+- Make the expected output easy to review.
 
-### Clip from tension, not chronology
+### Inspect before installing
 
-Do not clip the whole story just because it happened in that order. Clip the moment with tension: the mistake, the breakthrough, the before/after, the surprising AI behavior, the number moving, or the offer getting clearer.
+A skill can contain scripts, tool permissions, and external references. Read the entire folder before installing it and avoid any package that asks for secrets or broad destructive access without a clear reason.
 
-- Hook the transformation first.
-- Keep the context short.
-- End with the next live build, dashboard, or member asset.
+- Read SKILL.md and supporting scripts.
+- Check paths, commands, and network calls.
+- Test in a practice project before using it on important work.
 
 Workshop:
-### Build the receipt
+### Install the pack
 
-1. Add before evidence, after evidence, failure, lesson, and tomorrow promise.
-2. Name the proof metric that moved or did not move.
-3. Save links or screenshots in the proof folder.
+1. Choose project or personal locations for each agent.
+2. Create the skill folders and add the provided SKILL.md files.
+3. Restart only if your current surface does not detect the new directory.
 
-### Write three hooks
+### Test the triggers
 
-1. Write one mistake hook.
-2. Write one transformation hook.
-3. Write one curiosity hook tied to the next build.
+1. Invoke each skill explicitly once.
+2. Try one natural-language request that should match the description.
+3. Record unexpected behavior before editing the skill.
 
-### Publish or schedule
+### Customize one workflow
 
-1. Choose the strongest hook.
-2. Pair it with the before/after proof.
-3. Post, schedule, or save it in the content folder with the intended platform.
+1. Pick the skill that removed the most repeated prompting.
+2. Add the project's actual commands and quality bar.
+3. Run it again and compare the output with the original.
 
 Example:
-- Before: The public dashboard showed only manual follower counts.
-- After: The dashboard has a live follower ticker endpoint, OBS overlay, Twitch connector setup, and automation intake for other platforms.
-- Breakdown:
-  - The proof is visible at the public URL.
-  - The clip can show the counter updating.
-  - The offer can say buyers get the same operating logic inside the kit.
+- Before: Helps with coding.
+- After: Maps an unfamiliar repository before implementation. Use when the user asks where a feature lives, how a request flows, or what files a change should touch.
+- Why it works:
+  - The workflow is specific.
+  - The trigger phrases are observable.
+  - The description does not claim unrelated capabilities.
 
-Swipe script:
-> Today started with this broken or missing thing.
+Copy-ready script:
+> Explain when this skill should and should not run.
 
-> Here is what shipped and here is how I verified it.
+> List every command, file path, tool permission, and network action it can trigger.
 
-> The lesson is simple: proof needs a system, not a memory.
-
-> Tomorrow I am using this receipt to make the next offer or build sharper.
+> Recommend the smallest edit that makes its output safer and easier to verify.
 
 Quality bar:
-- The receipt includes before and after.
-- The content asset points somewhere useful.
-- The next-day promise is specific enough to test.
+- Every installed skill has a clear trigger and reviewable output.
+- No skill contains private paths, secrets, or unexplained broad permissions.
+- At least one skill is customized and proven on the member's project.
 
 
-Implementation assignment:
-- [ ] Capture before and after proof.
-  - Proof: Before and after screenshots, clips, logs, or numbers are saved in the proof folder.
-- [ ] Log best moment, biggest failure, lesson, and tomorrow's promise.
-  - Proof: Daily receipt includes one win, one failure, one lesson, and one clear next-day promise.
-- [ ] Write one clip hook from the proof.
-  - Proof: Hook names the transformation, tension, or mistake without needing extra context.
-- [ ] Post or schedule one public asset.
-  - Proof: A live or scheduled post, short, email, or community update points back to the sprint or kit.
+## Implementation assignment
 
-Exit receipt:
-- Module output: One day receipt plus one public asset.
-- Done criteria: The day produced a receipt page and at least one asset that points back to the sprint.
-- Proof checkpoint: Receipt page plus one clip, post, email, or community update.
+- [ ] Choose personal versus project skill locations.
+  - Evidence: A note explains which skills should travel with this project and which should follow you everywhere.
+- [ ] Install the three-skill starter pack.
+  - Evidence: Three SKILL.md files exist in the intended Claude Code and/or Codex locations.
+- [ ] Invoke and test every starter skill.
+  - Evidence: Saved outputs show Project Map, Build One Slice, and Verify Before Done behaved as intended.
+- [ ] Customize one skill for your project.
+  - Evidence: The edited skill names a real trigger, command, output, and quality bar from the project.
+
+## Exit receipt
+
+- Output: Three tested starter skills plus one project-specific customization.
+- Verification: Each agent can discover or explicitly run at least one installed skill.
+- Done: Your agents can reuse three proven workflows without you pasting the same instructions again.
 
 ---
 
-# Module 5 - Offer And Follow-Up
+# Module 5 - Ship Your First Useful Build
 
-Premium lesson:
+Choose a beginner-safe build track, ship one vertical slice, and package the result for the next session.
 
-Proof is wasted unless it changes the ask.
+## Deep lesson
 
-Promise: By the end of this module, the student can turn one proof receipt into a clearer CTA, objection answer, and follow-up message.
+### Finish one useful path before chasing a full product.
 
-Estimated time: 60-120 minutes
+Promise: By the end of this module, you can reproduce one working user outcome, explain how it was verified, and hand the project to your next AI session without losing context.
 
-Core framework:
-- Select: Pick the strongest proof, not the newest proof.
-- Shape: Turn the proof into a buyer promise, objection answer, and CTA.
-- Send: Follow up with a specific person or segment and log the result.
+Estimated time: 2-4 hours
+
+Framework:
+- Select: Choose one beginner-safe track and reduce it to one user, one action, and one success state.
+- Ship: Build the complete vertical slice and move every extra feature into a later list.
+- Handoff: Run clean-start QA, update the README, and name the next smallest improvement.
 
 Teaching notes:
-### The money path is a habit
+### A vertical slice teaches the whole system
 
-A public sprint can create attention without creating revenue. The difference is follow-up. Every strong receipt should ask: what does this make easier to sell, who needs to see it, and what is the next ask?
+A small path that reaches from user action to visible result teaches more than several disconnected screens. It forces you to make scope, state, error, and verification decisions without requiring a giant app.
 
-- Proof should improve the offer page, not just the content feed.
-- A CTA should be clear enough that a warm lead knows the next step.
-- A no-response still counts as data if the objection is logged.
+- One user performs one primary action.
+- The application shows one clear success state.
+- An error or empty state is handled without crashing the path.
 
-### Turn proof into buyer language
+### Clean-start QA catches hidden assumptions
 
-The builder sees features. The buyer sees risk removed. Translate the receipt from what shipped into what the buyer can now believe. This is where proof becomes a conversion asset.
+A build can work only because your terminal, browser, or local files are already prepared. Restart the path from a clean state so your README and handoff describe reality.
 
-- Feature language: I built an automation dashboard.
-- Buyer language: You can see what is working without manually updating five numbers.
-- Offer language: Get the tracker and daily proof workflow inside the kit.
+- Start from the documented project directory.
+- Run install, start, test, and build commands where they apply.
+- Verify the same action a user will perform.
 
-### Follow-up without sounding desperate
+### The handoff protects momentum
 
-Warm follow-up works when it is specific, contextual, and tied to proof. The message should not beg. It should point to something real, name why it matters, and offer a clear next step.
+A useful handoff records what changed, how to verify it, what remains risky, and what should happen next. It prevents the next session from reopening solved decisions or guessing at unfinished work.
 
-- Lead with context, not a pitch.
-- Show the proof in one sentence or link.
-- Ask for a small next step: reply, call, buy, test, or share the pain point.
+- Name the shipped path and evidence.
+- List known limits without hiding them.
+- Choose one next task and explain why it comes next.
 
 Workshop:
-### Choose the proof
+### Choose the track
 
-1. Review the week's receipts.
-2. Pick the proof that removes the most buyer doubt.
-3. Write the buyer promise in one sentence.
+1. Pick new tool, existing-project improvement, or workflow automation.
+2. Write one user, one action, one result, and three non-goals.
+3. Confirm the result can be verified today.
 
-### Upgrade the offer surface
+### Run the complete loop
 
-1. Rewrite one CTA using the proof.
-2. Add one objection answer.
-3. Add or improve one checkout, pinned message, email, or page section.
+1. Use the build brief and make the agent inspect first.
+2. Implement the vertical slice and handle one failure state.
+3. Run the real path and stop when the agreed result passes.
 
-### Send the follow-up
+### Package the result
 
-1. Pick one warm lead or segment.
-2. Send a proof-backed message.
-3. Log the reply, purchase, call, objection, or no-response lesson.
+1. Run clean-start verification and save the receipt.
+2. Update the README with real commands and current behavior.
+3. Write the handoff and create the final checkpoint.
 
 Example:
-- Before: Buy my AI course.
-- After: Get the exact tracker, proof workflow, and member checklist I am using to build a public AI business sprint from Day 1 to Day 60.
-- Breakdown:
-  - The new CTA names the assets and the public proof.
-  - The promise is tied to an operating workflow, not vague AI hype.
-  - The follow-up can point to a specific shipped receipt.
+- Before: Build a complete client portal with auth, billing, chat, uploads, and AI.
+- After: Build one client request page that validates a form, saves a local or test record, and shows a confirmation state. Defer accounts, payments, chat, and production storage.
+- Why it works:
+  - The user and action are clear.
+  - The success state can be tested in one session.
+  - Large infrastructure decisions are explicit non-goals.
 
-Swipe script:
-> I built this because I kept seeing the same workflow break.
+Copy-ready script:
+> Keep this to one user, one action, and one visible success state.
 
-> Here is the before/after proof from the sprint.
+> Move every extra feature into a next-build list instead of implementing it now.
 
-> If this is a problem you deal with too, the kit now includes the tracker, prompts, and checklist I used.
-
-> Want me to send you the link or show you the workflow?
+> Before completion, reproduce the result from a clean start and write the handoff.
 
 Quality bar:
-- The CTA became clearer because of proof.
-- One buyer objection was answered visibly.
-- One commercial result was logged, even if it was a no-response.
+- The promised user path works from start to success.
+- The verification can be repeated from documented commands.
+- README, known limits, checkpoint, and next-build handoff exist.
 
 
-Implementation assignment:
-- [ ] Improve one CTA or checkout promise.
-  - Proof: The page, post, checkout, or pinned message has one clearer buyer promise than yesterday.
-- [ ] Answer one buyer objection on the page.
-  - Proof: One visible FAQ, reply, caption, or email answers a reason someone would hesitate.
-- [ ] Follow up with one warm lead.
-  - Proof: Message sent to a specific person with context, proof, and a clear next step.
-- [ ] Log revenue, pipeline, products sold, or calls booked.
-  - Proof: Tracker row updated with purchase, lead, booked call, reply, objection, or no-response lesson.
+## Implementation assignment
 
-Exit receipt:
-- Module output: One improved offer surface and one logged result.
-- Done criteria: The day's proof moved someone closer to buying, joining, booking, or replying.
-- Proof checkpoint: Updated CTA or objection answer plus one logged commercial result.
+- [ ] Choose one first-build track.
+  - Evidence: The Build Lab records one user, one action, one success state, and explicit non-goals.
+- [ ] Ship one complete vertical slice.
+  - Evidence: The real user can start, perform the core action, and see the success state.
+- [ ] Run the clean-start verification path.
+  - Evidence: Install, start, test, and build checks are recorded from a fresh session where applicable.
+- [ ] Update the README and write the next-build handoff.
+  - Evidence: The repository explains how to run the project, what shipped, known limits, and the next safe task.
 
+## Exit receipt
+
+- Output: A locally verified or deployed first build with a README, verification receipt, and next-build handoff.
+- Verification: A fresh browser or terminal session can reproduce the promised result.
+- Done: You have one useful build, a repeatable verification path, and a clean handoff for the next session.

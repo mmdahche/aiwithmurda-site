@@ -1,257 +1,229 @@
 export const premiumModuleContent = {
-  "command-setup": {
-    headline: "Build the operating room before you build the app.",
+  "setup-both-builders": {
+    headline: "Remove setup uncertainty before it becomes build anxiety.",
     promise:
-      "By the end of this module, the student has one trusted place for prompts, proof, content, offers, decisions, and daily numbers.",
-    estimatedTime: "60-90 minutes",
+      "By the end of this module, you can open one safe project in Claude Code and Codex, understand what each tool can access, and complete a read-only first session.",
+    estimatedTime: "30-60 minutes",
     framework: [
-      {
-        name: "Surface",
-        body: "Create the visible workspace: tracker, folders, member links, stream links, and proof folders.",
-      },
-      {
-        name: "Sequence",
-        body: "Put the work in the order it will happen: baseline, build, proof, clip, offer, shutdown.",
-      },
-      {
-        name: "Receipts",
-        body: "Decide what counts as evidence before the first live session starts.",
-      },
+      { name: "Choose", body: "Pick the surfaces and account path you will actually use instead of installing every option." },
+      { name: "Verify", body: "Confirm versions, authentication, project location, and Git before asking for edits." },
+      { name: "Bound", body: "Keep the agent inside one project and keep credentials outside chat and source control." },
     ],
     lessonBlocks: [
       {
-        title: "Why setup is the first product feature",
+        title: "One project is the safest classroom",
         body:
-          "Most builders lose momentum because every day starts with searching. They search for the last prompt, the right repo, the latest number, the proof screenshot, or the next action. A premium operator removes that tax before the public sprint starts.",
+          "Beginners often launch an agent from a broad folder and then approve access without understanding the boundary. A dedicated practice project makes every file visible, disposable, and easy to inspect.",
         bullets: [
-          "The folder structure is not admin work; it is the delivery system for the sprint.",
-          "The tracker is not a spreadsheet; it is the public scoreboard and private decision log.",
-          "The proof folder is not storage; it is the raw material for clips, emails, sales pages, and the Day 60 review.",
+          "Create a folder for the course instead of starting from your home directory.",
+          "Put a short README inside so the agent has an obvious purpose to explain.",
+          "Use read-only questions before asking either agent to edit anything.",
         ],
       },
       {
-        title: "The command center rule",
+        title: "Permissions are part of the workflow",
         body:
-          "If another AI partner, teammate, or future version of you cannot resume the work in 10 minutes, the setup is not done. Every sprint day needs a source of truth for what matters now, what shipped, what broke, and what should happen next.",
+          "Permission prompts are not interruptions to click through. They are the moment you confirm what command will run, where it will run, and whether the action matches the task.",
         bullets: [
-          "One folder for prompts and agent handoffs.",
-          "One folder for proof assets and screenshots.",
-          "One folder for content drafts and published links.",
-          "One folder for offers, objections, pricing notes, and buyer language.",
+          "Read commands before approval and ask the agent to explain unfamiliar ones.",
+          "Do not enable broad bypass modes during beginner setup.",
+          "Keep production dashboards, payment systems, and secret files outside the practice project.",
         ],
       },
       {
-        title: "The private boundary",
+        title: "The first win is an explanation",
         body:
-          "A public build does not mean a public life. The setup must protect secrets, customer data, family details, payment data, and unfinished sensitive work. The stream can show the operating system without exposing the private engine room.",
+          "A good first session proves that the agent can find files, understand context, and wait for direction. You do not need to generate an app on the first prompt.",
         bullets: [
-          "Keep API keys, environment files, customer exports, and private family context off screen.",
-          "Prepare safe demo accounts or seeded data before stream day.",
-          "Create a quick cover-screen or OBS scene before opening dashboards live.",
+          "Ask what the project does and where the entry point would be.",
+          "Compare how Claude Code and Codex explain the same folder.",
+          "Save what confused you so the troubleshooting guide can solve the real issue.",
         ],
       },
     ],
     workshop: [
       {
-        title: "Create the operating tree",
+        title: "Verify the machine",
         steps: [
-          "Create folders for prompts, proof, content, offers, assets, handoffs, and archive.",
-          "Add a README inside each folder that says what belongs there.",
-          "Pin the command center, public dashboard, member hub, and tracker links.",
+          "Open the Install + Verify Pack for your operating system.",
+          "Confirm Git and the two agent surfaces are available.",
+          "Record versions without pasting tokens or account secrets.",
         ],
       },
       {
-        title: "Set the Day 0 baseline",
+        title: "Create the practice project",
         steps: [
-          "Write the starting follower counts, email count, revenue, pipeline, products sold, clips posted, and builds shipped.",
-          "Add one sentence naming the main 60-day promise.",
-          "Add one sentence naming the first offer you will try to validate.",
+          "Create one dedicated folder and a one-paragraph README.",
+          "Open the folder in each agent separately.",
+          "Confirm the working directory before continuing.",
         ],
       },
       {
-        title: "Run the 10-minute resume test",
+        title: "Run the read-only comparison",
         steps: [
-          "Close the project for five minutes.",
-          "Reopen it and try to find the next action, latest proof, and active offer without searching chat history.",
-          "Fix the setup until the next move is obvious.",
+          "Use the starter prompt in Claude Code.",
+          "Use the same prompt in Codex.",
+          "Save one sentence about which explanation was clearer and why.",
         ],
       },
     ],
     example: {
-      title: "Example command folder",
-      before: "Everything lives in downloads, chat history, desktop screenshots, and unnamed notes.",
+      title: "Safe first session",
+      before: "Open the terminal in my home folder and build me an app.",
       after:
-        "The project has `/prompts`, `/proof`, `/content`, `/offers`, `/assets`, and `/handoffs`, each with a README and one starter file.",
+        "Open a dedicated practice project, verify the working directory, ask the agent to explain the files, and approve no edits yet.",
       breakdown: [
-        "The prompt folder stores reusable AI prompts and the best failed prompts.",
-        "The proof folder stores before/after evidence, not random screenshots.",
-        "The offers folder stores buyer language, objections, CTA tests, and pricing notes.",
+        "The file boundary is understandable.",
+        "The task proves access and context before code generation.",
+        "Any mistake is contained inside a disposable project.",
       ],
     },
     swipe: {
-      title: "Setup narration script",
+      title: "First-session script",
       lines: [
-        "Before I build anything, I need the operating room clean.",
-        "Every prompt, proof screenshot, offer note, and daily number needs a home.",
-        "If this works, by Day 60 I do not have a pile of effort. I have receipts.",
+        "Do not edit anything yet.",
+        "Tell me what files you can see and what this project appears to do.",
+        "Name the safest first task for a beginner and wait for my approval.",
       ],
     },
     qualityBar: [
-      "A stranger can understand the folder tree.",
-      "The baseline numbers are visible and dated.",
-      "The first offer lane is named before the first build.",
+      "Both tools can open the intended project.",
+      "The working directory and permission boundary are understood.",
+      "No secret, private file, or unrelated folder was exposed.",
     ],
   },
-  "problem-to-proof": {
-    headline: "Pick problems that can create receipts, not just apps.",
+  "ai-ready-project": {
+    headline: "Make the project carry the context.",
     promise:
-      "By the end of this module, the student has one painful workflow, one buyer, one before-state, and one proof metric.",
-    estimatedTime: "75-120 minutes",
+      "By the end of this module, either agent can enter the repository, understand the goal, find verified commands, respect safety boundaries, and know what completion means.",
+    estimatedTime: "45-90 minutes",
     framework: [
-      {
-        name: "Pain",
-        body: "Choose a workflow with a real drag: time, money, trust, speed, clarity, or missed opportunity.",
-      },
-      {
-        name: "Proof",
-        body: "Define the smallest visible measurement that would show the workflow improved.",
-      },
-      {
-        name: "Path",
-        body: "Connect that proof to a buyer, audience, or offer path before building.",
-      },
+      { name: "Brief", body: "Define the user, problem, first outcome, non-goals, and success check in one page." },
+      { name: "Guide", body: "Store durable, concise instructions where each agent discovers them." },
+      { name: "Checkpoint", body: "Protect secrets and create a clean baseline before feature work begins." },
     ],
     lessonBlocks: [
       {
-        title: "Why big ideas lose on stream",
+        title: "A prompt is not a project brief",
         body:
-          "A giant idea sounds impressive but gives the viewer nothing to measure. The audience needs a before-state they understand and an after-state they can see. Buyers need the same thing. This module turns vague ambition into a proof target.",
+          "A prompt asks for a task now. A project brief preserves the decisions every future task needs: who the user is, what problem matters, what the current version includes, and what stays out.",
         bullets: [
-          "A bad problem sounds like: build an AI business platform.",
-          "A better problem sounds like: reduce the time it takes to turn a product photo into a product listing.",
-          "The smallest provable workflow wins because it can produce a receipt today.",
+          "Write one primary user and one primary problem.",
+          "Name the first useful outcome in observable language.",
+          "Create a non-goal list before the agent invents scope for you.",
         ],
       },
       {
-        title: "The viewer clarity test",
+        title: "Use the right instruction layer",
         body:
-          "If a viewer needs a 10-minute backstory to understand why the build matters, the problem is not ready. Strong public builds explain themselves quickly: here is the annoying before, here is the visible after, here is why that matters.",
+          "Durable project facts belong in AGENTS.md or CLAUDE.md. Long procedures belong in skills. One-time requests stay in the conversation. Mixing these layers creates bloated context and contradictory rules.",
         bullets: [
-          "The pain should be concrete enough to show on screen.",
-          "The buyer should be specific enough to imagine.",
-          "The proof should be measurable without a complicated dashboard.",
+          "Keep project guidance short and specific.",
+          "Add verified build, test, and formatting commands.",
+          "Move repeated multi-step workflows into skills later.",
         ],
       },
       {
-        title: "The money path filter",
+        title: "Git is the confidence layer",
         body:
-          "Attention alone is fragile. The chosen workflow should point toward revenue, pipeline, leads, trust, saved time, or a stronger product. Even if the first proof is small, it should make the offer easier to believe.",
+          "A baseline checkpoint lets you compare changes, review generated work, and return to a known state. It turns experimentation into a controlled process instead of a memory test.",
         bullets: [
-          "Does this help someone make money, save time, avoid pain, or move faster?",
-          "Can this become a paid template, service, tool, kit, or consultation?",
-          "Can the proof become a sentence on a sales page?",
+          "Ignore environment files and generated output before the first commit.",
+          "Review the staged files instead of blindly adding everything.",
+          "Use descriptive checkpoints around working outcomes.",
         ],
       },
     ],
     workshop: [
       {
-        title: "Build the 10-problem list",
+        title: "Write the brief",
         steps: [
-          "List problems from your own business, client work, creator workflow, and daily operations.",
-          "Write who feels each problem and what it currently costs them.",
-          "Delete ideas that cannot be shown or measured in a short window.",
+          "Complete the purpose, user, problem, first outcome, and non-goals.",
+          "Add the exact success state a person can observe.",
+          "Remove any requirement that belongs after the first working slice.",
         ],
       },
       {
-        title: "Score the top three",
+        title: "Create shared guidance",
         steps: [
-          "Score each idea 1-5 for buyer pain, proof speed, viewer clarity, and money path.",
-          "Pick the highest total only if it can be scoped into one screen or one workflow.",
-          "Write the before-state in plain language.",
+          "Ask one agent to inspect the project and propose concise guidance.",
+          "Verify every command against package scripts or project documentation.",
+          "Create the Claude Code file by importing or mirroring shared project facts without contradiction.",
         ],
       },
       {
-        title: "Lock the proof metric",
+        title: "Protect and checkpoint",
         steps: [
-          "Choose one metric: time saved, steps removed, error reduced, lead captured, reply earned, or revenue generated.",
-          "Write how the metric will be captured.",
-          "Add the metric to the next daily receipt before coding.",
+          "Review .gitignore and scan for environment files.",
+          "Inspect the diff and staged file list.",
+          "Create the baseline checkpoint and ask the second agent to review it.",
         ],
       },
     ],
     example: {
-      title: "Problem selection example",
-      before: "I want to build an AI CRM for small businesses.",
+      title: "Project guidance example",
+      before: "Always make good code and make the design look professional.",
       after:
-        "I will build a tool that turns missed-call notes into follow-up messages and measure replies booked this week.",
+        "Run npm test and npm run build before completion. Keep cards at 8px radius or less. Do not edit .env files. Verify the signup path in a browser after UI changes.",
       breakdown: [
-        "The buyer is visible: a local service business missing follow-up.",
-        "The proof is measurable: replies, calls booked, or time saved.",
-        "The build can start as a narrow workflow instead of a giant CRM.",
+        "The rules are observable and testable.",
+        "Commands and protected files are explicit.",
+        "The guidance is tied to this project rather than generic taste.",
       ],
     },
     swipe: {
-      title: "Problem pitch script",
+      title: "Instruction audit script",
       lines: [
-        "The problem I am choosing today is not the biggest idea. It is the one I can prove fastest.",
-        "The before-state is simple: this workflow wastes time and loses follow-up.",
-        "The proof I need is one visible improvement, not a finished empire.",
+        "Separate permanent project facts from one-time task instructions.",
+        "Verify every build and test command before writing it into guidance.",
+        "Flag any rule that is vague, duplicated, contradictory, or machine-specific.",
       ],
     },
     qualityBar: [
-      "The problem can be explained in one sentence.",
-      "The before-state is captured before coding.",
-      "The proof metric is visible within one session or one day.",
+      "The project brief fits on one page.",
+      "A fresh agent can locate verified commands and safety rules.",
+      "The baseline contains no credentials or unrelated generated files.",
     ],
   },
-  "ai-build-loop": {
-    headline: "Use AI like an operator, not a slot machine.",
+  "operator-loop": {
+    headline: "Direct the work. Verify the result.",
     promise:
-      "By the end of this module, the student can scope, prompt, test, and save one working AI-assisted build slice.",
-    estimatedTime: "90-150 minutes",
+      "By the end of this module, you can move one real user path through inspect, plan, build, verify, and checkpoint without losing control of scope.",
+    estimatedTime: "60-150 minutes",
     framework: [
-      {
-        name: "Inspect",
-        body: "Make the AI read the project, user path, and risks before changing files.",
-      },
-      {
-        name: "Slice",
-        body: "Define one useful outcome that can be tested today.",
-      },
-      {
-        name: "Verify",
-        body: "Run the user path and save a clean version before expanding scope.",
-      },
+      { name: "Inspect", body: "Ground the task in the actual files, behavior, risks, and user path before edits." },
+      { name: "Build", body: "Implement one vertical slice with explicit non-goals and a stop condition." },
+      { name: "Verify", body: "Run the real path, review the diff, and checkpoint the working result." },
     ],
     lessonBlocks: [
       {
-        title: "The build loop is a conversation with constraints",
+        title: "Outcome beats feature list",
         body:
-          "AI can move fast enough to make bad scope feel productive. The operator's job is to keep the work narrow, visible, and testable. A good build loop starts with inspection and ends with proof, not vibes.",
+          "The agent needs a user-visible outcome more than a long feature list. One person should be able to perform one action and see one success state when the loop ends.",
         bullets: [
-          "Ask for file/context inspection before implementation.",
-          "Name the exact user path that must work.",
-          "Define a stop condition so the session does not become endless refactoring.",
+          "Name the current behavior before requesting the new behavior.",
+          "List non-goals so the agent cannot quietly broaden the task.",
+          "Define the stop condition before implementation starts.",
         ],
       },
       {
-        title: "The three prompts every builder needs",
+        title: "Inspection prevents confident guessing",
         body:
-          "Most failed AI build sessions skip one of three prompts: inspect, implement, verify. If the AI jumps straight to code, it may solve the wrong problem. If it skips verification, it may ship code that only looks right.",
+          "Agents can produce convincing plans from incomplete context. Require the plan to cite files, explain the current path, and name risks before you trust it.",
         bullets: [
-          "Inspect prompt: read the code and explain the path before edits.",
-          "Implementation prompt: make the smallest change that satisfies the path.",
-          "Verification prompt: run the test, browser path, or smoke check and report proof.",
+          "Ask for relevant files and request flow.",
+          "Correct a wrong assumption before any edits.",
+          "Use the second agent as a reviewer when the change is risky or unfamiliar.",
         ],
       },
       {
-        title: "The messy middle is content",
+        title: "Verification is part of building",
         body:
-          "A public AI build does not need to pretend everything worked immediately. The stuck point, wrong assumption, failed test, and correction are often the best teaching material. Capture them without letting them derail the build.",
+          "A clean compile is useful, but the user path is the product. Completion should include the appropriate tests, build command, browser path, and diff review for the change.",
         bullets: [
-          "Narrate what failed in practical language.",
-          "Save the prompt or test that exposed the issue.",
-          "Turn the fix into a repeatable rule for the next session.",
+          "Run narrow checks during the edit loop and broad checks before completion.",
+          "Capture the command or browser evidence that proves the path.",
+          "Checkpoint before asking for polish or additional features.",
         ],
       },
     ],
@@ -259,258 +231,237 @@ export const premiumModuleContent = {
       {
         title: "Write the build brief",
         steps: [
-          "Name the screen, endpoint, workflow, or asset being improved.",
-          "Name the files likely involved, or ask AI to find them.",
-          "Name the exact thing that proves the slice works.",
+          "Choose one user path and capture its starting state.",
+          "Write the expected success state and non-goals.",
+          "Name the verification path and stop condition.",
         ],
       },
       {
-        title: "Run inspect-implement-verify",
+        title: "Run inspect and build",
         steps: [
-          "Ask AI to inspect and propose a plan.",
-          "Approve the smallest useful change.",
-          "Run the real user path and capture the result.",
+          "Ask the agent to inspect and propose a small plan.",
+          "Review assumptions and approve only the scoped path.",
+          "Implement in checkpoints and keep unrelated changes out.",
         ],
       },
       {
-        title: "Create the save point",
+        title: "Verify and review",
         steps: [
-          "Commit, export, save, or write a handoff when the slice works.",
-          "Write one sentence explaining the before and after.",
-          "Stop expanding until the proof is packaged.",
+          "Run project-specific checks and the real user path.",
+          "Ask the second agent to review the diff for regressions and missing tests.",
+          "Save the checkpoint and handoff while the context is fresh.",
         ],
       },
     ],
     example: {
-      title: "Build-loop example",
-      before: "Make the member area better.",
+      title: "Scoped build request",
+      before: "Make my member area easier to use.",
       after:
-        "Add a module lesson page that shows the focus, output, action kit, downloadable assets, and trackable tasks; verify `/members/module/command-setup` renders.",
+        "Inspect the member dashboard. Make the first unfinished lesson the only primary action on mobile, keep existing auth and progress behavior, and verify the authenticated path at 390px and 1440px.",
       breakdown: [
-        "The improved prompt names the exact page.",
-        "The output is visible to a member.",
-        "The verification path is clear before code changes.",
+        "The exact surface and user problem are named.",
+        "Preserved behavior and viewport checks constrain the work.",
+        "The requested outcome can be inspected after implementation.",
       ],
     },
     swipe: {
-      title: "AI operator prompt",
+      title: "Operator-loop script",
       lines: [
-        "Inspect the codebase first and tell me the smallest safe path.",
-        "Do not broaden scope unless the current user path works.",
-        "After edits, run the real path and tell me what proof passed.",
+        "Inspect the current path and cite the relevant files before editing.",
+        "Implement the smallest change that satisfies the agreed success state.",
+        "Run the real verification path, review the diff, and stop when the scoped result passes.",
       ],
     },
     qualityBar: [
-      "The AI inspected before editing.",
-      "One user path was tested after the change.",
-      "A saved version or handoff exists before the next build.",
+      "The plan is grounded in the current code and user path.",
+      "The implementation stays inside explicit non-goals.",
+      "Verification evidence and a checkpoint exist before expansion.",
     ],
   },
-  "proof-and-content": {
-    headline: "Receipts turn work into trust.",
+  "starter-skills": {
+    headline: "Turn repeated instructions into tools your agents remember.",
     promise:
-      "By the end of this module, the student can turn a build session into a proof receipt, clip hook, recap, and next-day promise.",
+      "By the end of this module, you can install, test, and customize reusable skills without bloating project instructions or trusting unknown automation blindly.",
     estimatedTime: "45-90 minutes",
     framework: [
-      {
-        name: "Capture",
-        body: "Save before/after evidence while the moment is still fresh.",
-      },
-      {
-        name: "Translate",
-        body: "Turn the evidence into a plain-language story: before, after, failure, lesson, next move.",
-      },
-      {
-        name: "Distribute",
-        body: "Publish one asset that points back to the sprint, offer, member hub, or next live build.",
-      },
+      { name: "Place", body: "Choose personal or project scope based on who and what should receive the workflow." },
+      { name: "Trigger", body: "Write a precise description so the right task loads the skill and unrelated tasks do not." },
+      { name: "Prove", body: "Invoke the skill on a real project, inspect its behavior, and customize from evidence." },
     ],
     lessonBlocks: [
       {
-        title: "Proof is the product surface",
+        title: "Guidance and skills solve different problems",
         body:
-          "People do not follow a build because code exists. They follow because they can see movement. Receipts make movement legible: the number moved, the workflow improved, the page shipped, the offer got sharper, or the failure taught something useful.",
+          "Always-needed project facts belong in agent guidance. A skill is best for a repeatable procedure that should load only when relevant, such as mapping a project, scoping a slice, or verifying completion.",
         bullets: [
-          "A proof receipt should make sense to someone who missed the stream.",
-          "The best proof shows a change, not just effort.",
-          "The strongest content often comes from the failure that made the lesson believable.",
+          "Keep build commands and conventions in project guidance.",
+          "Keep multi-step workflows in skills.",
+          "Keep one-time implementation details in the task prompt.",
         ],
       },
       {
-        title: "The receipt format",
+        title: "A skill needs a clear contract",
         body:
-          "A premium proof habit uses the same structure every day so the audience learns how to read the sprint. The repeated format also makes the Day 60 recap easier because the raw material is already organized.",
+          "The skill description should name the trigger, and the body should define inputs, steps, output, safety boundaries, and stop conditions. More words do not make a better skill.",
         bullets: [
-          "Before: what was broken, slow, unclear, or missing.",
-          "After: what changed and how it was verified.",
-          "Lesson: what this changed about the next decision.",
-          "Promise: what tomorrow's public work will attempt.",
+          "Use a specific name and description.",
+          "Define what the skill must not change or assume.",
+          "Make the expected output easy to review.",
         ],
       },
       {
-        title: "Clip from tension, not chronology",
+        title: "Inspect before installing",
         body:
-          "Do not clip the whole story just because it happened in that order. Clip the moment with tension: the mistake, the breakthrough, the before/after, the surprising AI behavior, the number moving, or the offer getting clearer.",
+          "A skill can contain scripts, tool permissions, and external references. Read the entire folder before installing it and avoid any package that asks for secrets or broad destructive access without a clear reason.",
         bullets: [
-          "Hook the transformation first.",
-          "Keep the context short.",
-          "End with the next live build, dashboard, or member asset.",
+          "Read SKILL.md and supporting scripts.",
+          "Check paths, commands, and network calls.",
+          "Test in a practice project before using it on important work.",
         ],
       },
     ],
     workshop: [
       {
-        title: "Build the receipt",
+        title: "Install the pack",
         steps: [
-          "Add before evidence, after evidence, failure, lesson, and tomorrow promise.",
-          "Name the proof metric that moved or did not move.",
-          "Save links or screenshots in the proof folder.",
+          "Choose project or personal locations for each agent.",
+          "Create the skill folders and add the provided SKILL.md files.",
+          "Restart only if your current surface does not detect the new directory.",
         ],
       },
       {
-        title: "Write three hooks",
+        title: "Test the triggers",
         steps: [
-          "Write one mistake hook.",
-          "Write one transformation hook.",
-          "Write one curiosity hook tied to the next build.",
+          "Invoke each skill explicitly once.",
+          "Try one natural-language request that should match the description.",
+          "Record unexpected behavior before editing the skill.",
         ],
       },
       {
-        title: "Publish or schedule",
+        title: "Customize one workflow",
         steps: [
-          "Choose the strongest hook.",
-          "Pair it with the before/after proof.",
-          "Post, schedule, or save it in the content folder with the intended platform.",
+          "Pick the skill that removed the most repeated prompting.",
+          "Add the project's actual commands and quality bar.",
+          "Run it again and compare the output with the original.",
         ],
       },
     ],
     example: {
-      title: "Receipt example",
-      before: "The public dashboard showed only manual follower counts.",
+      title: "Skill description",
+      before: "Helps with coding.",
       after:
-        "The dashboard has a live follower ticker endpoint, OBS overlay, Twitch connector setup, and automation intake for other platforms.",
+        "Maps an unfamiliar repository before implementation. Use when the user asks where a feature lives, how a request flows, or what files a change should touch.",
       breakdown: [
-        "The proof is visible at the public URL.",
-        "The clip can show the counter updating.",
-        "The offer can say buyers get the same operating logic inside the kit.",
+        "The workflow is specific.",
+        "The trigger phrases are observable.",
+        "The description does not claim unrelated capabilities.",
       ],
     },
     swipe: {
-      title: "Daily receipt script",
+      title: "Skill audit script",
       lines: [
-        "Today started with this broken or missing thing.",
-        "Here is what shipped and here is how I verified it.",
-        "The lesson is simple: proof needs a system, not a memory.",
-        "Tomorrow I am using this receipt to make the next offer or build sharper.",
+        "Explain when this skill should and should not run.",
+        "List every command, file path, tool permission, and network action it can trigger.",
+        "Recommend the smallest edit that makes its output safer and easier to verify.",
       ],
     },
     qualityBar: [
-      "The receipt includes before and after.",
-      "The content asset points somewhere useful.",
-      "The next-day promise is specific enough to test.",
+      "Every installed skill has a clear trigger and reviewable output.",
+      "No skill contains private paths, secrets, or unexplained broad permissions.",
+      "At least one skill is customized and proven on the member's project.",
     ],
   },
-  "offer-follow-up": {
-    headline: "Proof is wasted unless it changes the ask.",
+  "first-useful-build": {
+    headline: "Finish one useful path before chasing a full product.",
     promise:
-      "By the end of this module, the student can turn one proof receipt into a clearer CTA, objection answer, and follow-up message.",
-    estimatedTime: "60-120 minutes",
+      "By the end of this module, you can reproduce one working user outcome, explain how it was verified, and hand the project to your next AI session without losing context.",
+    estimatedTime: "2-4 hours",
     framework: [
-      {
-        name: "Select",
-        body: "Pick the strongest proof, not the newest proof.",
-      },
-      {
-        name: "Shape",
-        body: "Turn the proof into a buyer promise, objection answer, and CTA.",
-      },
-      {
-        name: "Send",
-        body: "Follow up with a specific person or segment and log the result.",
-      },
+      { name: "Select", body: "Choose one beginner-safe track and reduce it to one user, one action, and one success state." },
+      { name: "Ship", body: "Build the complete vertical slice and move every extra feature into a later list." },
+      { name: "Handoff", body: "Run clean-start QA, update the README, and name the next smallest improvement." },
     ],
     lessonBlocks: [
       {
-        title: "The money path is a habit",
+        title: "A vertical slice teaches the whole system",
         body:
-          "A public sprint can create attention without creating revenue. The difference is follow-up. Every strong receipt should ask: what does this make easier to sell, who needs to see it, and what is the next ask?",
+          "A small path that reaches from user action to visible result teaches more than several disconnected screens. It forces you to make scope, state, error, and verification decisions without requiring a giant app.",
         bullets: [
-          "Proof should improve the offer page, not just the content feed.",
-          "A CTA should be clear enough that a warm lead knows the next step.",
-          "A no-response still counts as data if the objection is logged.",
+          "One user performs one primary action.",
+          "The application shows one clear success state.",
+          "An error or empty state is handled without crashing the path.",
         ],
       },
       {
-        title: "Turn proof into buyer language",
+        title: "Clean-start QA catches hidden assumptions",
         body:
-          "The builder sees features. The buyer sees risk removed. Translate the receipt from what shipped into what the buyer can now believe. This is where proof becomes a conversion asset.",
+          "A build can work only because your terminal, browser, or local files are already prepared. Restart the path from a clean state so your README and handoff describe reality.",
         bullets: [
-          "Feature language: I built an automation dashboard.",
-          "Buyer language: You can see what is working without manually updating five numbers.",
-          "Offer language: Get the tracker and daily proof workflow inside the kit.",
+          "Start from the documented project directory.",
+          "Run install, start, test, and build commands where they apply.",
+          "Verify the same action a user will perform.",
         ],
       },
       {
-        title: "Follow-up without sounding desperate",
+        title: "The handoff protects momentum",
         body:
-          "Warm follow-up works when it is specific, contextual, and tied to proof. The message should not beg. It should point to something real, name why it matters, and offer a clear next step.",
+          "A useful handoff records what changed, how to verify it, what remains risky, and what should happen next. It prevents the next session from reopening solved decisions or guessing at unfinished work.",
         bullets: [
-          "Lead with context, not a pitch.",
-          "Show the proof in one sentence or link.",
-          "Ask for a small next step: reply, call, buy, test, or share the pain point.",
+          "Name the shipped path and evidence.",
+          "List known limits without hiding them.",
+          "Choose one next task and explain why it comes next.",
         ],
       },
     ],
     workshop: [
       {
-        title: "Choose the proof",
+        title: "Choose the track",
         steps: [
-          "Review the week's receipts.",
-          "Pick the proof that removes the most buyer doubt.",
-          "Write the buyer promise in one sentence.",
+          "Pick new tool, existing-project improvement, or workflow automation.",
+          "Write one user, one action, one result, and three non-goals.",
+          "Confirm the result can be verified today.",
         ],
       },
       {
-        title: "Upgrade the offer surface",
+        title: "Run the complete loop",
         steps: [
-          "Rewrite one CTA using the proof.",
-          "Add one objection answer.",
-          "Add or improve one checkout, pinned message, email, or page section.",
+          "Use the build brief and make the agent inspect first.",
+          "Implement the vertical slice and handle one failure state.",
+          "Run the real path and stop when the agreed result passes.",
         ],
       },
       {
-        title: "Send the follow-up",
+        title: "Package the result",
         steps: [
-          "Pick one warm lead or segment.",
-          "Send a proof-backed message.",
-          "Log the reply, purchase, call, objection, or no-response lesson.",
+          "Run clean-start verification and save the receipt.",
+          "Update the README with real commands and current behavior.",
+          "Write the handoff and create the final checkpoint.",
         ],
       },
     ],
     example: {
-      title: "Offer improvement example",
-      before: "Buy my AI course.",
+      title: "First-build scope",
+      before: "Build a complete client portal with auth, billing, chat, uploads, and AI.",
       after:
-        "Get the exact tracker, proof workflow, and member checklist I am using to build a public AI business sprint from Day 1 to Day 60.",
+        "Build one client request page that validates a form, saves a local or test record, and shows a confirmation state. Defer accounts, payments, chat, and production storage.",
       breakdown: [
-        "The new CTA names the assets and the public proof.",
-        "The promise is tied to an operating workflow, not vague AI hype.",
-        "The follow-up can point to a specific shipped receipt.",
+        "The user and action are clear.",
+        "The success state can be tested in one session.",
+        "Large infrastructure decisions are explicit non-goals.",
       ],
     },
     swipe: {
-      title: "Warm follow-up script",
+      title: "First-ship script",
       lines: [
-        "I built this because I kept seeing the same workflow break.",
-        "Here is the before/after proof from the sprint.",
-        "If this is a problem you deal with too, the kit now includes the tracker, prompts, and checklist I used.",
-        "Want me to send you the link or show you the workflow?",
+        "Keep this to one user, one action, and one visible success state.",
+        "Move every extra feature into a next-build list instead of implementing it now.",
+        "Before completion, reproduce the result from a clean start and write the handoff.",
       ],
     },
     qualityBar: [
-      "The CTA became clearer because of proof.",
-      "One buyer objection was answered visibly.",
-      "One commercial result was logged, even if it was a no-response.",
+      "The promised user path works from start to success.",
+      "The verification can be repeated from documented commands.",
+      "README, known limits, checkpoint, and next-build handoff exist.",
     ],
   },
 };

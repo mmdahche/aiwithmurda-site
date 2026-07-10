@@ -63,22 +63,22 @@ Why:
 1. Resend signup capture, durable Supabase subscriber list, branded welcome email.
 2. Supabase Auth profiles and entitlements.
 3. Stripe Checkout Session endpoint for the $47 first paid drop: The Future Proof Method.
-4. Member hub shell with Start Here, Operator Workspace, Prompt Workflows, and Build Receipts.
-5. Starter Kit content assets served through gated member downloads.
+4. Member build lab with Start, Build Path, Script Vault, Build Log, and Ship views.
+5. Claude Code + Codex starter assets served through gated member downloads.
 6. Live hub shell and stream command links.
 7. Admin operator workflows for daily run sheets, clip packets, proof deck review, and manual launch gates.
-8. Workshop/live-build event page after the starter kit checkout proves conversion.
+8. Operator Bundle page for the advanced skill, script, review, debug, deployment, and blueprint vault.
 9. Cohort and sprint pages after the first paid/drop path is testable end to end.
 
 Current second product state:
 
-- `New Wave Live Builds` page is live-ready at `/live-builds`.
+- `New Wave Operator Bundle` uses the compatibility route `/live-builds`.
 - Public chat command target is `!builds`.
-- V1 capture uses the existing `/api/subscribe` endpoint with source `live-builds`.
+- V1 capture uses the existing `/api/subscribe` endpoint with source `operator-bundle`.
 - Checkout is wired through `POST /api/checkout/live-builds`.
-- Entitlement grants use product key `new_wave_live_builds`, separate from the Future Proof Method.
-- Active buyers see a live-build ticket hub in `/members` with first-room plan, buyer prep, candidate builds, and gated prep-pack downloads.
-- Room 001 queue is visible on `/live-builds` with follower ticker, clip-to-proof pipeline, and mini-offer checkout candidates.
+- Entitlement grants keep compatibility key `new_wave_live_builds`; bundle access also unlocks the Future Proof Method starter course.
+- Active buyers see a product switcher between the starter build path and advanced Operator Vault.
+- The bundle page presents Plan + Review, Debug + Quality, and Ship + Handoff collections.
 - `STRIPE_LIVE_BUILDS_PRICE_ID` is optional; fallback Checkout `price_data` is `$97`.
 
 ## Render Web Service Settings
@@ -119,12 +119,12 @@ Cloudflare SSL/TLS:
 - Supabase durable subscriber list: done
 - Admin audience summary: done
 - Starter Kit checkout endpoint: done; real purchase/access test still required before public sales push
-- New Wave Live Builds waitlist + paid checkout: done; live event date/topic pending
-- New Wave Live Builds member delivery: done; prep pack, first-room plan, ticket hub, and gated downloads are wired
-- New Wave Live Builds Room 001 queue: done; first build candidates are visible on the offer page
+- New Wave Operator Bundle update list + paid checkout: done; live Stripe display name needs final confirmation
+- New Wave Operator Bundle member delivery: done; starter-course inclusion and seven advanced downloads are wired
+- Operator Bundle collections: done; Plan + Review, Debug + Quality, and Ship + Handoff are visible
 - Member area delivery live: done
-- Member module lessons, generated roadmap/field guide assets, module action kits, and proof receipt builder: done
-- Admin Offer Ops multi-product breakdown: done; Future Proof and New Wave sales/member counts are separated
+- Member module lessons, generated roadmap/field guide assets, module run kits, build log, and first-build handoff: done
+- Admin Offer Ops multi-product breakdown: done; Future Proof and Operator Bundle sales/member counts are separated
 - Social share metadata and OG card: done
 - Livestream hub shell: done
 - Stream config endpoint and admin stream-link visibility: done
@@ -132,7 +132,7 @@ Cloudflare SSL/TLS:
 - Fake stream rehearsal runbook: done; Settings has a copyable 35-45 minute dry run for `/live`, `/obs`, command clicks, dashboard sync, and test checkout
 - Stream platform setup deck: done; Settings shows Twitch, YouTube, Kick, and main-room env steps with proof targets
 - Stream privacy guard: done; Settings has a copyable preflight for OBS scene discipline, secret screens, clean browser profile, payment blackout, and family boundaries
-- First-week content run sheet: done; Day 0-7 proof beats, clip hooks, and CTAs are in the member assets
+- First-week public content run sheet: retained in admin stream operations, separated from paid member assets
 - Admin daily run sheets: done; each selected day has stream beat, proof target, CTA, shutdown checklist, and copy/manual-copy output
 - Admin daily clip packets: done; each selected day generates three hooks, recap caption, follow-up line, and copy/manual-copy output
 - Manual gate runbook: done; Settings distills live links, OBS rehearsal, and real purchase test into copyable launch steps

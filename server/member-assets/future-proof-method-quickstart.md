@@ -1,103 +1,94 @@
-# The Future Proof Method - Quickstart Map
+# The Future Proof Method - 60-Minute Quickstart
 
-Use this in the first 60 minutes. The goal is not to become organized forever. The goal is to create enough structure that you can build, capture proof, and ship without losing the thread.
+Goal: finish one safe first session with Claude Code and Codex. Do not build a full app in this hour.
 
-## 1. Create Your Command Folder
+## Minute 0-10 - Choose your surfaces
 
-Make one folder for the project you are building in public.
+- [ ] Choose where you will use Claude Code: terminal, desktop, or IDE.
+- [ ] Choose where you will use Codex: terminal, desktop, or IDE.
+- [ ] Confirm you can sign in to both accounts.
+- [ ] Open the Install + Verify Pack for current official setup links.
+
+Use one surface per tool for the course. Extra installations create extra confusion.
+
+## Minute 10-25 - Verify the toolchain
+
+Run only the checks that match your setup:
+
+```text
+git --version
+claude --version
+codex --version
+```
+
+Save the output in a setup note. If a command is unavailable, stop and use the troubleshooting guide instead of trying random fixes.
+
+## Minute 25-35 - Create the practice project
+
+Create a dedicated folder. Do not start in your home directory, Downloads folder, or an important company repository.
 
 Recommended structure:
 
 ```text
-project-name/
-  00-inbox/
-  01-ideas/
-  02-prompts/
-  03-builds/
-  04-proof/
-  05-content/
-  06-offers/
-  07-recaps/
+future-proof-practice/
+  README.md
+  notes/
+    setup-receipt.md
 ```
 
-Rule: if you do not know where something goes, drop it in `00-inbox` and sort it during shutdown.
+Put this in `README.md`:
 
-## 2. Open Your Daily Log
+```markdown
+# Future Proof Practice
 
-Every day needs one record.
+This is a disposable practice project for learning Claude Code and Codex.
 
-Track:
+First outcome: both agents can inspect this folder, explain it, and wait for a scoped task.
+```
 
-- Main goal
-- Revenue collected
-- Revenue pipeline
-- Email subscribers
-- Followers by platform
-- Hours streamed or worked
-- Clips posted
-- Builds shipped
-- Best moment
-- Biggest failure
-- Lesson learned
-- Tomorrow's promise
+## Minute 35-50 - Run the same read-only prompt twice
 
-The scoreboard is not for ego. It is how you stop lying to yourself.
-
-## 3. Start With One Money Path
-
-Pick one offer before you overbuild.
-
-Offer format:
+Open the practice folder in Claude Code and run:
 
 ```text
-I help [person] get [outcome] without [pain] by using [new mechanism].
+Do not edit anything yet. Tell me what files you can see, what this project appears to be for, and the safest first task for a beginner. Wait for my approval before changing anything.
 ```
 
-Example:
+Run the same prompt in Codex.
 
-```text
-I help local business owners turn messy daily work into AI-powered workflows without hiring a full dev team by using live workflow builds.
+Record:
+
+- Which explanation was clearer?
+- Did either tool make an incorrect assumption?
+- Did either tool ask for a permission you did not expect?
+- Which working directory did each tool report?
+
+## Minute 50-60 - Save the setup receipt
+
+```markdown
+# Setup Receipt
+
+Date:
+Operating system:
+Claude Code surface:
+Codex surface:
+Git check:
+Claude Code check:
+Codex check:
+Practice project path:
+First Claude Code result:
+First Codex result:
+Issue solved:
+Next task: Open Module 1 and complete the remaining setup checks.
 ```
 
-## 4. Capture Proof While Building
+## Safety rules
 
-Do not wait until the project is done.
+- Never paste passwords, API keys, recovery codes, or private customer data into chat.
+- Keep `.env` and secret files out of source control.
+- Read a command before approving it.
+- Ask the agent to explain unfamiliar commands in plain language.
+- Do not use broad permission-bypass modes while learning.
+- Keep production payment, hosting, DNS, and customer systems outside the practice project.
 
-Capture:
-
-- Before screenshot
-- Broken state
-- Build prompt
-- Working state
-- Time saved
-- Money path
-- Lesson
-
-Proof beats explanation.
-
-## 5. Ship One Small Public Asset
-
-Before the day ends, ship one of these:
-
-- Clip
-- Screenshot thread
-- Loom
-- Landing page section
-- Email
-- Tool update
-- Offer draft
-- Recap post
-
-The future-proof operator does not hide in planning mode.
-
-## 6. Shutdown Ritual
-
-Before you stop:
-
-- Log today's numbers
-- Save the best proof asset
-- Write tomorrow's promise
-- Move loose files out of `00-inbox`
-- Pick the next first action
-
-You are not trying to feel done. You are trying to make tomorrow easy to start.
+Done means both agents can enter one safe project, explain it, and wait for direction.

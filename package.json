@@ -12,6 +12,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "start": "node server/index.mjs",
     "smoke:funnel": "node scripts/smoke-funnel.mjs",
+    "smoke:member-ui": "node scripts/smoke-member-ui.mjs",
     "smoke:tracker": "node scripts/smoke-tracker.mjs",
     "smoke:deck": "node scripts/smoke-deck.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
@@ -20,7 +21,8 @@
     "assets:member": "node scripts/build-member-assets.mjs",
     "sync:seed-logs": "node scripts/sync-seed-logs.mjs",
     "baseline:launch": "node scripts/sync-launch-baseline.mjs",
-    "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push"
+    "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push",
+    "stripe:operator-bundle": "node scripts/setup-operator-bundle-stripe.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",

@@ -71,6 +71,18 @@ try {
   ) {
     throw new Error(`Live build checkout session shape failed: ${JSON.stringify(liveBuildCheckoutSession)}`);
   }
+  const operatorBundleLineItems = await stripe.checkout.sessions.listLineItems(liveBuildCheckoutSessionId, {
+    limit: 1,
+    expand: ["data.price.product"],
+  });
+  const operatorBundleStripeProduct = operatorBundleLineItems.data[0]?.price?.product;
+  if (
+    !operatorBundleStripeProduct ||
+    typeof operatorBundleStripeProduct === "string" ||
+    operatorBundleStripeProduct.name !== "New Wave Operator Bundle"
+  ) {
+    throw new Error(`Operator Bundle Stripe display failed: ${JSON.stringify(operatorBundleLineItems.data[0])}`);
+  }
 
   const testCheckout = await fetchJson(`${siteUrl}/api/checkout/test-purchase`, {
     method: "POST",
@@ -113,44 +125,44 @@ try {
   if (!productAssets.some((asset) => asset.key === "module-field-guide")) {
     throw new Error(`Module field guide asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  if (!productAssets.some((asset) => asset.key === "launch-day-runbook")) {
-    throw new Error(`Launch day runbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  if (!productAssets.some((asset) => asset.key === "install-verify-pack")) {
+    throw new Error(`Install and verify asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  if (!productAssets.some((asset) => asset.key === "launch-copy-pack")) {
-    throw new Error(`Launch copy pack asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  if (!productAssets.some((asset) => asset.key === "dual-agent-project-starter")) {
+    throw new Error(`Dual-agent project starter was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  if (!productAssets.some((asset) => asset.key === "day-0-7-stream-run-sheet")) {
-    throw new Error(`Day 0-7 stream run sheet asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  if (!productAssets.some((asset) => asset.key === "core-prompt-scripts")) {
+    throw new Error(`Core prompt scripts were not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  if (!productAssets.some((asset) => asset.key === "proof-to-offer-canvas")) {
-    throw new Error(`Proof to offer canvas asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  if (!productAssets.some((asset) => asset.key === "starter-skill-pack")) {
+    throw new Error(`Starter skill pack was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   if (!productAssets.some((asset) => asset.key === "premium-course-workbook")) {
-    throw new Error(`Premium course workbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+    throw new Error(`Course workbook asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  if (!productAssets.some((asset) => asset.key === "lesson-scripts")) {
-    throw new Error(`Lesson scripts asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  if (!productAssets.some((asset) => asset.key === "first-build-lab")) {
+    throw new Error(`First Build Lab was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
   if (!productAssets.some((asset) => asset.key === "course-completion-kit")) {
     throw new Error(`Course completion kit asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
-  const liveBuilds = profile.data?.liveBuilds;
+  const operatorBundle = profile.data?.operatorBundle;
   if (
-    liveBuilds?.key !== "new_wave_live_builds" ||
-    liveBuilds?.price_cents !== 9700 ||
-    !liveBuilds?.accessPlan?.firstRoomPromise ||
-    !Array.isArray(liveBuilds?.accessPlan?.candidateBuilds) ||
-    liveBuilds.accessPlan.candidateBuilds.length < 3 ||
-    !Array.isArray(liveBuilds?.assets) ||
-    liveBuilds.assets.length < 4
+    operatorBundle?.key !== "new_wave_live_builds" ||
+    operatorBundle?.price_cents !== 9700 ||
+    !operatorBundle?.accessPlan?.activationPromise ||
+    !Array.isArray(operatorBundle?.accessPlan?.setupChecklist) ||
+    operatorBundle.accessPlan.setupChecklist.length < 4 ||
+    !Array.isArray(operatorBundle?.assets) ||
+    operatorBundle.assets.length < 7
   ) {
-    throw new Error(`Live-build member package was not exposed on profile: ${JSON.stringify(liveBuilds)}`);
+    throw new Error(`Operator Bundle was not exposed on profile: ${JSON.stringify(operatorBundle)}`);
   }
-  if (!liveBuilds.assets.some((asset) => asset.key === "session-build-brief")) {
-    throw new Error(`Live-build session brief asset missing: ${JSON.stringify(liveBuilds.assets)}`);
+  if (!operatorBundle.assets.some((asset) => asset.key === "operator-skill-vault")) {
+    throw new Error(`Operator skill vault missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
-  if (!liveBuilds.assets.some((asset) => asset.key === "replay-proof-kit")) {
-    throw new Error(`Live-build replay proof kit asset missing: ${JSON.stringify(liveBuilds.assets)}`);
+  if (!operatorBundle.assets.some((asset) => asset.key === "deployment-runbook")) {
+    throw new Error(`Deployment runbook missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
@@ -184,12 +196,12 @@ try {
       !module.operatorBrief?.window ||
       !module.operatorBrief?.mode ||
       !module.operatorBrief?.proof ||
-      !module.operatorBrief?.streamBeat ||
+      !module.operatorBrief?.why ||
       !module.actionKit?.timebox ||
       !module.actionKit?.todayMove ||
-      !module.actionKit?.streamMove ||
+      !module.actionKit?.runCommand ||
       !module.actionKit?.proofCheckpoint ||
-      !module.actionKit?.shutdown ||
+      !module.actionKit?.stopRule ||
       !module.premium?.headline ||
       !module.premium?.promise ||
       !Array.isArray(module.premium?.framework) ||
@@ -218,12 +230,12 @@ try {
       `Expected asset entitlement guard, got ${blockedAsset.response.status}: ${JSON.stringify(blockedAsset.data)}`,
     );
   }
-  const blockedLiveBuildAsset = await fetchJson(`${siteUrl}/api/member-assets/new-wave-live-builds/session-build-brief`, {
+  const blockedBundleAsset = await fetchJson(`${siteUrl}/api/member-assets/new-wave-live-builds/operator-skill-vault`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (blockedLiveBuildAsset.response.status !== 403 || blockedLiveBuildAsset.data?.error !== "entitlement_required") {
+  if (blockedBundleAsset.response.status !== 403 || blockedBundleAsset.data?.error !== "entitlement_required") {
     throw new Error(
-      `Expected live-build asset entitlement guard, got ${blockedLiveBuildAsset.response.status}: ${JSON.stringify(blockedLiveBuildAsset.data)}`,
+      `Expected bundle asset entitlement guard, got ${blockedBundleAsset.response.status}: ${JSON.stringify(blockedBundleAsset.data)}`,
     );
   }
 
@@ -244,7 +256,7 @@ try {
     throw entitlement.error || new Error("Failed to grant smoke entitlement");
   }
 
-  const liveBuildEntitlement = await admin
+  const operatorBundleEntitlement = await admin
     .from("entitlements")
     .upsert(
       {
@@ -257,41 +269,41 @@ try {
     )
     .select("id")
     .single();
-  if (liveBuildEntitlement.error || !liveBuildEntitlement.data?.id) {
-    throw liveBuildEntitlement.error || new Error("Failed to grant live-build smoke entitlement");
+  if (operatorBundleEntitlement.error || !operatorBundleEntitlement.data?.id) {
+    throw operatorBundleEntitlement.error || new Error("Failed to grant Operator Bundle smoke entitlement");
   }
 
   const assetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/quickstart`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const assetText = await assetResponse.text();
-  if (!assetResponse.ok || !assetText.includes("The Future Proof Method - Quickstart Map")) {
+  if (!assetResponse.ok || !assetText.includes("The Future Proof Method - 60-Minute Quickstart")) {
     throw new Error(`Asset download failed: ${assetResponse.status} ${assetText.slice(0, 120)}`);
   }
-  const liveBuildBriefResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/session-build-brief`, {
+  const operatorVaultResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/operator-skill-vault`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const liveBuildBriefText = await liveBuildBriefResponse.text();
+  const operatorVaultText = await operatorVaultResponse.text();
   if (
-    !liveBuildBriefResponse.ok ||
-    !liveBuildBriefText.includes("New Wave Live Builds - Session Build Brief") ||
-    !liveBuildBriefText.includes("Room 001 Selection Score")
+    !operatorVaultResponse.ok ||
+    !operatorVaultText.includes("New Wave Operator Skill Vault") ||
+    !operatorVaultText.includes("## 2. Debug Loop")
   ) {
     throw new Error(
-      `Live-build brief download failed: ${liveBuildBriefResponse.status} ${liveBuildBriefText.slice(0, 160)}`,
+      `Operator skill vault download failed: ${operatorVaultResponse.status} ${operatorVaultText.slice(0, 160)}`,
     );
   }
-  const liveBuildReplayResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/replay-proof-kit`, {
+  const blueprintsResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/project-blueprints`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const liveBuildReplayText = await liveBuildReplayResponse.text();
+  const blueprintsText = await blueprintsResponse.text();
   if (
-    !liveBuildReplayResponse.ok ||
-    !liveBuildReplayText.includes("New Wave Live Builds - Replay Proof Kit") ||
-    !liveBuildReplayText.includes("Seven-Day Implementation Plan")
+    !blueprintsResponse.ok ||
+    !blueprintsText.includes("Reusable Project Blueprints") ||
+    !blueprintsText.includes("Blueprint 7 - Daily report generator")
   ) {
     throw new Error(
-      `Live-build replay proof kit download failed: ${liveBuildReplayResponse.status} ${liveBuildReplayText.slice(0, 160)}`,
+      `Project blueprints download failed: ${blueprintsResponse.status} ${blueprintsText.slice(0, 160)}`,
     );
   }
   const fieldGuideResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/module-field-guide`, {
@@ -302,11 +314,11 @@ try {
     throw new Error(`Module field guide download failed: ${fieldGuideResponse.status} ${fieldGuideText.slice(0, 120)}`);
   }
   if (
-    !fieldGuideText.includes("Module deliverables:") ||
-    !fieldGuideText.includes("Proof questions:") ||
-    !fieldGuideText.includes("Operator brief:") ||
+    !fieldGuideText.includes("Operating question:") ||
+    !fieldGuideText.includes("Questions before completion:") ||
+    !fieldGuideText.includes("Evidence to capture:") ||
     !fieldGuideText.includes("Traps to avoid:") ||
-    !fieldGuideText.includes("Premium lesson:")
+    !fieldGuideText.includes("Stop rule:")
   ) {
     throw new Error("Module field guide is missing generated lesson depth sections");
   }
@@ -316,26 +328,25 @@ try {
   const premiumWorkbookText = await premiumWorkbookResponse.text();
   if (
     !premiumWorkbookResponse.ok ||
-    !premiumWorkbookText.includes("The Future Proof Method - Premium Course Workbook") ||
-    !premiumWorkbookText.includes("Premium lesson:") ||
-    !premiumWorkbookText.includes("Core framework:") ||
+    !premiumWorkbookText.includes("The Future Proof Method - Course Workbook") ||
+    !premiumWorkbookText.includes("## Deep lesson") ||
+    !premiumWorkbookText.includes("Framework:") ||
     !premiumWorkbookText.includes("Quality bar:")
   ) {
     throw new Error(
       `Premium workbook download failed: ${premiumWorkbookResponse.status} ${premiumWorkbookText.slice(0, 160)}`,
     );
   }
-  const lessonScriptsResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/lesson-scripts`, {
+  const promptScriptsResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/core-prompt-scripts`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const lessonScriptsText = await lessonScriptsResponse.text();
+  const promptScriptsText = await promptScriptsResponse.text();
   if (
-    !lessonScriptsResponse.ok ||
-    !lessonScriptsText.includes("The Future Proof Method - Lesson Scripts") ||
-    !lessonScriptsText.includes("Live demo:") ||
-    !lessonScriptsText.includes("Close:")
+    !promptScriptsResponse.ok ||
+    !promptScriptsText.includes("Core Prompt Scripts") ||
+    !promptScriptsText.includes("Script 5 - Second-agent review")
   ) {
-    throw new Error(`Lesson scripts download failed: ${lessonScriptsResponse.status} ${lessonScriptsText.slice(0, 160)}`);
+    throw new Error(`Core prompt scripts download failed: ${promptScriptsResponse.status} ${promptScriptsText.slice(0, 160)}`);
   }
   const completionKitResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/course-completion-kit`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -343,42 +354,60 @@ try {
   const completionKitText = await completionKitResponse.text();
   if (
     !completionKitResponse.ok ||
-    !completionKitText.includes("The Future Proof Method - Course Completion Kit") ||
+    !completionKitText.includes("The Future Proof Method - Completion Kit") ||
     !completionKitText.includes("Completion criteria") ||
-    !completionKitText.includes("Final receipt")
+    !completionKitText.includes("First-build handoff")
   ) {
     throw new Error(
       `Course completion kit download failed: ${completionKitResponse.status} ${completionKitText.slice(0, 160)}`,
     );
   }
-  const runbookResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-day-runbook`, {
+  const installPackResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/install-verify-pack`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const runbookText = await runbookResponse.text();
-  if (!runbookResponse.ok || !runbookText.includes("The Future Proof Method - Launch Day Runbook")) {
-    throw new Error(`Launch day runbook download failed: ${runbookResponse.status} ${runbookText.slice(0, 120)}`);
+  const installPackText = await installPackResponse.text();
+  if (!installPackResponse.ok || !installPackText.includes("Install + Verify Pack")) {
+    throw new Error(`Install pack download failed: ${installPackResponse.status} ${installPackText.slice(0, 120)}`);
   }
-  const copyPackResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/launch-copy-pack`, {
+  const skillPackResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/starter-skill-pack`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const copyPackText = await copyPackResponse.text();
-  if (!copyPackResponse.ok || !copyPackText.includes("The Future Proof Method - Launch Copy Pack")) {
-    throw new Error(`Launch copy pack download failed: ${copyPackResponse.status} ${copyPackText.slice(0, 120)}`);
+  const skillPackText = await skillPackResponse.text();
+  if (!skillPackResponse.ok || !skillPackText.includes("Starter Skill Pack") || !skillPackText.includes("Skill 3 - Verify Before Done")) {
+    throw new Error(`Starter skill pack download failed: ${skillPackResponse.status} ${skillPackText.slice(0, 120)}`);
   }
-  const streamRunSheetResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/day-0-7-stream-run-sheet`, {
+  const firstBuildLabResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/first-build-lab`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const streamRunSheetText = await streamRunSheetResponse.text();
-  if (!streamRunSheetResponse.ok || !streamRunSheetText.includes("The Future Proof Method - Day 0-7 Stream Run Sheet")) {
+  const firstBuildLabText = await firstBuildLabResponse.text();
+  if (!firstBuildLabResponse.ok || !firstBuildLabText.includes("First Build Lab") || !firstBuildLabText.includes("Track C - Automate a workflow")) {
     throw new Error(
-      `Day 0-7 stream run sheet download failed: ${streamRunSheetResponse.status} ${streamRunSheetText.slice(0, 120)}`,
+      `First Build Lab download failed: ${firstBuildLabResponse.status} ${firstBuildLabText.slice(0, 120)}`,
     );
   }
+
+  const staleProgress = await admin.from("member_task_progress").upsert(
+    {
+      user_id: userId,
+      product_key: "future_proof_method",
+      module_key: "command-setup",
+      task_key: "command-folders",
+      completed: true,
+      completed_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,product_key,module_key,task_key" },
+  );
+  if (staleProgress.error) throw staleProgress.error;
 
   const progress = await fetchJson(`${siteUrl}/api/member-progress/future-proof-method`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!progress.response.ok || progress.data?.progress?.summary?.total < 20) {
+  if (
+    !progress.response.ok ||
+    progress.data?.progress?.summary?.total !== 20 ||
+    progress.data?.progress?.summary?.completed !== 0 ||
+    progress.data?.progress?.items?.some((item) => item.moduleKey === "command-setup")
+  ) {
     throw new Error(`Progress lookup failed: ${JSON.stringify(progress.data)}`);
   }
 
@@ -386,12 +415,17 @@ try {
     method: "PUT",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      moduleKey: "command-setup",
-      taskKey: "command-folders",
+      moduleKey: "setup-both-builders",
+      taskKey: "choose-surfaces",
       completed: true,
     }),
   });
-  if (!taskUpdate.response.ok || taskUpdate.data?.item?.completed !== true) {
+  if (
+    !taskUpdate.response.ok ||
+    taskUpdate.data?.item?.completed !== true ||
+    taskUpdate.data?.progress?.summary?.completed !== 1 ||
+    taskUpdate.data?.progress?.summary?.percent !== 5
+  ) {
     throw new Error(`Progress update failed: ${JSON.stringify(taskUpdate.data)}`);
   }
 
@@ -403,8 +437,9 @@ try {
         checks: {
           authProfileCreated: true,
           checkoutSessionCreated: true,
-          liveBuildCheckoutSessionCreated: true,
-          liveBuildCheckoutAmountVerified: true,
+          operatorBundleCheckoutSessionCreated: true,
+          operatorBundleCheckoutAmountVerified: true,
+          operatorBundleStripeDisplayVerified: true,
           testCheckoutSessionCreated: true,
           testCheckoutAmountVerified: true,
           unpaidAccessGuard: true,
@@ -416,32 +451,33 @@ try {
           premiumModuleDepthExposed: true,
           buyerOnboardingEmailsExposed: true,
           courseCompletionExposed: true,
-          liveBuildPackageExposed: true,
-          liveBuildAccessPlanExposed: true,
-          liveBuildAssetsExposed: true,
+          operatorBundleExposed: true,
+          operatorBundleAccessPlanExposed: true,
+          operatorBundleAssetsExposed: true,
           moduleRoadmapExposed: true,
           moduleFieldGuideExposed: true,
           premiumWorkbookExposed: true,
-          lessonScriptsExposed: true,
+          corePromptScriptsExposed: true,
           courseCompletionKitExposed: true,
-          launchDayRunbookExposed: true,
-          launchCopyPackExposed: true,
-          streamRunSheetExposed: true,
+          installVerifyPackExposed: true,
+          starterSkillPackExposed: true,
+          firstBuildLabExposed: true,
           generatedFieldGuideDepth: true,
           generatedOperatorBriefs: true,
           lockedAssetsBlocked: true,
-          lockedLiveBuildAssetsBlocked: true,
+          lockedOperatorBundleAssetsBlocked: true,
           entitledAssetDownload: true,
-          entitledLiveBuildBriefDownload: true,
-          entitledLiveBuildReplayKitDownload: true,
+          entitledOperatorVaultDownload: true,
+          entitledProjectBlueprintsDownload: true,
           entitledFieldGuideDownload: true,
           entitledPremiumWorkbookDownload: true,
-          entitledLessonScriptsDownload: true,
+          entitledCorePromptScriptsDownload: true,
           entitledCompletionKitDownload: true,
-          entitledRunbookDownload: true,
-          entitledCopyPackDownload: true,
-          entitledStreamRunSheetDownload: true,
+          entitledInstallPackDownload: true,
+          entitledStarterSkillPackDownload: true,
+          entitledFirstBuildLabDownload: true,
           memberProgressLookup: true,
+          staleProgressIgnored: true,
           memberProgressUpdate: true,
         },
       },

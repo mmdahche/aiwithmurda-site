@@ -25,6 +25,8 @@ services:
         sync: false
       - key: STRIPE_FUTURE_METHOD_PRICE_ID
         sync: false
+      - key: STRIPE_LIVE_BUILDS_PRICE_ID
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM

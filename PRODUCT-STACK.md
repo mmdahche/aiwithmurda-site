@@ -1,12 +1,12 @@
 # AI with Murda Product Stack
 
-Last updated: 2026-06-30
+Last updated: 2026-07-10
 
 ## Locked Direction
 
 Build the product funnel on `aiwithmurda.com` first.
 
-This keeps the show, the scoreboard, checkout, and member delivery in one branded place. Kajabi and Skool stay in the parking lot until the first paid offer and first live-build event prove demand.
+This keeps the show, the scoreboard, checkout, and member delivery in one branded place. The public 60-day show remains separate from the paid Claude Code and Codex curriculum.
 
 ## Current Decisions
 
@@ -14,12 +14,12 @@ This keeps the show, the scoreboard, checkout, and member delivery in one brande
 - Checkout: Stripe on our own site, under the Backbone Solutions Stripe account.
 - First paid floor price: $47.
 - Product name: `The Future Proof Method`.
-- Product subtitle: `New Wave Operator Kit`.
-- Second product: `New Wave Live Builds`.
+- Product subtitle: `Claude Code + Codex Starter System`.
+- Second product: `New Wave Operator Bundle`.
 - Second product route: `/live-builds`.
 - Second product CTA command: `!builds`.
-- Second product price: `$97` founding ticket.
-- Second product V1 state: checkout-enabled ticket plus waitlist through the existing subscriber endpoint with source `live-builds`.
+- Second product price: `$97` one-time bundle.
+- Second product V1 state: checkout-enabled advanced skill, script, review, debug, deployment, and blueprint vault.
 - Delivery feel: premium Supabase-gated member hub, not a loose Google Drive folder.
 - Stream angle: entertainment-first, streamer-style show; education happens through live proof, not classroom framing.
 - Deadline: all core funnel pieces live before July 28, 2026.
@@ -47,7 +47,7 @@ Reason:
 Use Stripe Checkout Sessions for:
 
 - $47 first paid drop.
-- Future workshop/live-build event tickets.
+- $97 New Wave Operator Bundle.
 - Later cohort applications or deposits.
 
 Reason:
@@ -71,14 +71,14 @@ V1:
 - Stripe checkout requires an active Supabase profile.
 - Successful checkout grants a product entitlement to the authenticated profile.
 - Modules and downloadable assets served from the site.
-- Module action kits give each module a timebox, today's move, stream move, proof checkpoint, and shutdown instruction.
-- The proof receipt builder turns finished module work into downloadable markdown receipts without adding another database dependency.
+- Module run kits give each module a timebox, next move, commands or script, verification checkpoint, and stop rule.
+- The build log turns finished module work into downloadable implementation receipts without adding another database dependency.
 
 V2:
 
 - Account settings page.
 - Entitlement audit/history.
-- Replay library and cohort access groups.
+- Update library and cohort access groups.
 
 ### Kajabi
 
@@ -107,7 +107,7 @@ Locked working name:
 
 Subtitle:
 
-- `New Wave Operator Kit`
+- `Claude Code + Codex Starter System`
 
 Other names to keep as alternates:
 
@@ -128,7 +128,7 @@ Environment variables:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_FUTURE_METHOD_PRICE_ID`
-- `STRIPE_LIVE_BUILDS_PRICE_ID` optional; the server falls back to inline `$97` Checkout `price_data`
+- `STRIPE_LIVE_BUILDS_PRICE_ID` configured to the persistent Backbone live `$97` Operator Bundle price; inline Checkout `price_data` remains a development fallback
 - `SITE_URL=https://aiwithmurda.com`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -146,7 +146,7 @@ API endpoints:
 Access flow:
 
 1. Visitor joins `/start`.
-2. Visitor signs into `/members` with Supabase magic link.
+2. Visitor signs into `/members` with Supabase email and password; magic link remains a backup.
 3. Visitor buys from `/kit` or `/members`.
 4. Stripe redirects to `/members?session_id={CHECKOUT_SESSION_ID}`.
 5. Server verifies paid Checkout Session.
@@ -157,12 +157,12 @@ Access flow:
 Second product flow:
 
 1. Viewer lands on `/live-builds` from nav, `/kit`, `/tools`, or chat command `!builds`.
-2. Viewer joins the founding live-build list through `/api/subscribe` with source `live-builds`.
-3. Page explains the paid room: problem pick, AI build block, proof check, offer move.
+2. The compatibility route presents the New Wave Operator Bundle and can capture update-list interest through `/api/subscribe` with source `operator-bundle`.
+3. Page explains the bundle: complete starter course, eight advanced skills, scripts, dual-agent review, debugging, deployment, blueprints, and client workflows.
 4. Logged-in viewer can open Backbone Stripe checkout through `POST /api/checkout/live-builds`.
-5. Stripe metadata uses product key `new_wave_live_builds`; access verification grants that entitlement separately from `future_proof_method`.
-6. `STRIPE_LIVE_BUILDS_PRICE_ID` can be added later; until then the server uses Stripe Checkout `price_data` at 9700 cents.
-7. Active `new_wave_live_builds` buyers see a live-build ticket hub inside `/members` with the first-room plan, prep checklist, candidate builds, buyer path, and gated prep-pack downloads.
+5. Stripe metadata keeps compatibility product key `new_wave_live_builds`; that entitlement also grants effective access to the starter course.
+6. `STRIPE_LIVE_BUILDS_PRICE_ID` remains the compatibility environment variable; without it the server uses Stripe Checkout `price_data` at 9700 cents.
+7. Active bundle buyers can switch between the guided starter course and the advanced Operator Vault inside `/members`.
 
 Subscriber capture:
 
@@ -179,14 +179,14 @@ Recovery rule:
 Gated assets:
 
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
-- The endpoint requires a valid Supabase session and an active `future_proof_method` entitlement.
-- Current assets: Quickstart Map, Daily Operator Checklist, Launch Day Runbook, Launch Copy Pack, Day 0-7 Stream Run Sheet, Prompt Workflow Pack, Proof Receipts Template, Module Roadmap, Module Field Guide, and Proof To Offer Canvas.
-- New Wave Live Builds assets are served through `GET /api/member-assets/new-wave-live-builds/:assetKey`.
-- The live-build endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
-- Current live-build assets: Session Build Brief, Buyer Prep Checklist, Live Prompt Stack, and Replay Proof Kit.
+- The endpoint requires a valid Supabase session and either an active `future_proof_method` or bundle entitlement.
+- Current assets: 60-Minute Quickstart, Install + Verify Pack, Dual-Agent Project Starter, Core Prompt Scripts, Starter Skill Pack, First Build Lab, Verification + Handoff Checklist, Troubleshooting Guide, Module Roadmap, Module Field Guide, Course Workbook, and Completion Kit.
+- New Wave Operator Bundle assets use the compatibility endpoint `GET /api/member-assets/new-wave-live-builds/:assetKey`.
+- The bundle endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
+- Current bundle assets: Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.
 - `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, action kits, and task lists do not drift.
 - Member checklist progress is stored in Supabase `member_task_progress` and updated through `/api/member-progress/future-proof-method`.
-- The member hub includes a local proof receipt builder. It follows the active module route, includes module progress and completed task names, previews the markdown, and downloads the receipt without adding a new database dependency.
+- The member hub includes a local build-log receipt builder. It follows the active module route, includes progress and completed steps, previews the markdown, and downloads the receipt without adding another database dependency.
 
 Admin operator workflows:
 
@@ -201,13 +201,14 @@ Admin operator workflows:
 Smoke test:
 
 - Run `npm run smoke:launch` for the full prelaunch verification pass. It runs tracker, stream config, signup, and paid funnel checks in order.
+- Run `npm run smoke:member-ui` against a local or deployed URL for the password-login, dual-entitlement, 20-step curriculum, personalization, lesson, vault-search, Operator Bundle, desktop, and mobile browser journey.
 - `npm run smoke:tracker` verifies `/live-builds` loads and the client bundle includes the second-product offer copy.
 - `npm run smoke:stream` verifies the stream config includes `!builds` and the `/live-builds` destination.
 - `npm run smoke:stream` also verifies the Fake Stream Rehearsal plan is exposed with OBS steps.
 - `npm run smoke:stream` verifies the platform setup deck includes Twitch, YouTube, and main-room env mappings.
 - `npm run smoke:stream` verifies the privacy guard includes secret-screen and payment-blackout rules.
 - `npm run smoke:funnel` verifies `/api/checkout/live-builds` creates a `$97` Checkout Session with product key `new_wave_live_builds`.
-- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates Stripe Checkout Sessions, confirms unpaid sessions return the retryable recovery guard, verifies Future Proof and New Wave Live Builds assets are blocked before entitlement, verifies module action kits, grants temporary entitlements, downloads gated assets, then expires sessions and deletes the test user.
+- Run `npm run smoke:funnel` after deploying checkout or member-delivery changes. It creates a temporary Supabase user, creates Stripe Checkout Sessions, confirms unpaid sessions return the retryable recovery guard, verifies starter and Operator Bundle assets are blocked before entitlement, verifies module run kits, grants temporary entitlements, downloads gated assets, then expires sessions and deletes the test user.
 - Run `npm run smoke:tracker` after deploying dashboard/tracker changes. It verifies public logs are readable, admin writes are blocked without the admin token, admin system status is readable with the token, and the deployed client bundle contains the admin run sheet, clip packet, and manual gate runbook.
 - Run `npm run smoke:subscribe` after deploying signup changes. It posts a reserved test email to `/api/subscribe`, verifies the Supabase subscriber row, verifies the admin subscriber summary, then deletes the test row.
 - Run `npm run sync:seed-logs` only for prelaunch/demo data. It pushes the bundled preview daily logs through the production admin endpoint.
@@ -225,7 +226,7 @@ Dashboard phase:
 - Welcome email sends.
 - `/kit` sells The Future Proof Method through Stripe test and live mode.
 - `/members` requires Supabase login and unlocks after payment.
-- Member modules include checklists, outputs, deliverables, proof questions, traps, action kits, gated downloads, and proof receipt export.
+- Member modules include checklists, outputs, verification questions, traps, run kits, gated downloads, a build log, and first-build handoff export.
 - Purchase email sends with access link.
 - Live hub has stream embeds or direct watch links.
 - Dashboard, overlay, admin daily run sheets, admin clip packets, manual gate runbook, and Day 0 baseline are ready.

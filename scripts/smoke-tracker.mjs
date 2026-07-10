@@ -224,18 +224,18 @@ const liveBuildsHtml = await liveBuildsResponse.text();
 if (!liveBuildsResponse.ok || !liveBuildsHtml.includes("root")) {
   throw new Error(`Live builds route failed: ${liveBuildsResponse.status}`);
 }
-const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Live builds route", siteUrl);
-if (!liveBuildsBundle.includes("New Wave Live Builds") || !liveBuildsBundle.includes("Reserve founding ticket")) {
-  throw new Error("Live builds route client bundle missing second-product offer copy");
+const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Operator Bundle route", siteUrl);
+if (!liveBuildsBundle.includes("New Wave Operator Bundle") || !liveBuildsBundle.includes("Unlock the Operator Bundle")) {
+  throw new Error("Operator Bundle route client bundle missing second-product offer copy");
 }
 if (
-  !liveBuildsBundle.includes("Your live-build ticket is active.") ||
-  !liveBuildsBundle.includes("Prep pack unlocked now.")
+  !liveBuildsBundle.includes("Your advanced operator vault is active.") ||
+  !liveBuildsBundle.includes("The advanced vault is ready.")
 ) {
-  throw new Error("Client bundle missing live-build member delivery copy");
+  throw new Error("Client bundle missing Operator Bundle member delivery copy");
 }
-if (!liveBuildsBundle.includes("Room 001 queue") || !liveBuildsBundle.includes("Mini offer checkout")) {
-  throw new Error("Client bundle missing live-build room queue copy");
+if (!liveBuildsBundle.includes("Operator collections") || !liveBuildsBundle.includes("Debug + Quality")) {
+  throw new Error("Client bundle missing Operator Bundle collection copy");
 }
 
 const membersResponse = await fetch(`${siteUrl}/members/`);
@@ -246,14 +246,14 @@ if (!membersResponse.ok || !membersHtml.includes("root")) {
 const membersBundle = await fetchClientBundle(membersHtml, "Members route", siteUrl);
 if (
   !membersBundle.includes("Capstone builder") ||
-  !membersBundle.includes("Download capstone receipt") ||
+  !membersBundle.includes("Download first-build handoff") ||
   !membersBundle.includes("Download certificate") ||
   !membersBundle.includes("Download share pack")
 ) {
   throw new Error("Members route client bundle missing course capstone builder");
 }
 
-const memberModuleResponse = await fetch(`${siteUrl}/members/module/command-setup/`);
+const memberModuleResponse = await fetch(`${siteUrl}/members/module/setup-both-builders/`);
 const memberModuleHtml = await memberModuleResponse.text();
 if (!memberModuleResponse.ok || !memberModuleHtml.includes("root")) {
   throw new Error(`Member module route failed: ${memberModuleResponse.status}`);

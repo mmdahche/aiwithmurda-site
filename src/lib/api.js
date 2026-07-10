@@ -148,7 +148,7 @@ export function createFutureMethodCheckout(token) {
   });
 }
 
-export function createLiveBuildCheckout(token) {
+export function createOperatorBundleCheckout(token) {
   return apiRequest("/api/checkout/live-builds", {
     method: "POST",
     token,
@@ -184,7 +184,7 @@ export async function downloadMemberAsset(assetKey, token) {
   return response.blob();
 }
 
-export async function downloadLiveBuildAsset(assetKey, token) {
+export async function downloadOperatorBundleAsset(assetKey, token) {
   const response = await fetch(`/api/member-assets/new-wave-live-builds/${encodeURIComponent(assetKey)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

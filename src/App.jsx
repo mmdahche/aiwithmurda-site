@@ -9,13 +9,16 @@ import {
   FolderDown,
   House,
   LogOut,
+  Menu,
   RadioTower,
   Search,
   Trophy,
+  X,
 } from "lucide-react";
 import {
   buyerOnboardingEmails,
   courseCompletion,
+  firstBuildTracks,
   memberOnboardingSteps,
   productAssetHighlights,
   productFaqItems,
@@ -26,24 +29,24 @@ import {
   productTaskCount,
 } from "./data/product.js";
 import {
-  liveBuildAccessPlan,
-  liveBuildDeliverables,
-  liveBuildFaq,
-  liveBuildOutcomes,
-  liveBuildRoomQueue,
-  liveBuildsProduct,
-  liveBuildSessionFlow,
-} from "./data/liveBuilds.js";
+  operatorBundleAccessPlan,
+  operatorBundleCollections,
+  operatorBundleDeliverables,
+  operatorBundleFaq,
+  operatorBundleOutcomes,
+  operatorBundlePath,
+  operatorBundleProduct,
+} from "./data/operatorBundle.js";
 import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
-  createLiveBuildCheckout,
+  createOperatorBundleCheckout,
   createTestPurchaseCheckout,
   createFutureMethodCheckout,
-  downloadLiveBuildAsset,
+  downloadOperatorBundleAsset,
   downloadMemberAsset,
   getDailyLogs,
   getLiveFollowers,
@@ -178,14 +181,14 @@ const offerStack = [
   {
     title: productName,
     price: "$47",
-    status: "Build first",
-    description: "The paid setup: new-wave workspace, prompts, daily checklist, proof templates, and stream-tested workflows.",
+    status: "Starter course",
+    description: "Set up Claude Code and Codex, install three starter skills, and ship one verified first build.",
   },
   {
-    title: liveBuildsProduct.name,
-    price: liveBuildsProduct.priceLabel,
-    status: liveBuildsProduct.status,
-    description: liveBuildsProduct.promise,
+    title: operatorBundleProduct.name,
+    price: operatorBundleProduct.priceLabel,
+    status: operatorBundleProduct.status,
+    description: operatorBundleProduct.promise,
     href: "/live-builds",
   },
   {
@@ -439,7 +442,7 @@ const fallbackStreamConfig = {
     { key: "youtube", name: "YouTube", href: null, status: "Waiting for link", configured: false },
     { key: "scoreboard", name: "Public scoreboard", href: "/60", status: "Live now", configured: true },
     { key: "kit", name: "First paid drop", href: "/kit", status: "Founding product", configured: true },
-    { key: "live-builds", name: liveBuildsProduct.name, href: "/live-builds", status: liveBuildsProduct.status, configured: true },
+    { key: "live-builds", name: operatorBundleProduct.name, href: "/live-builds", status: operatorBundleProduct.status, configured: true },
   ],
   commands: [
     { command: "!scoreboard", label: "Public scoreboard", href: "/60" },
@@ -450,7 +453,7 @@ const fallbackStreamConfig = {
     { command: "!overlay", label: "OBS overlay", href: "/overlay" },
     { command: "!start", label: "Build log signup", href: "/start" },
     { command: "!kit", label: "Founding product", href: "/kit" },
-    { command: "!builds", label: liveBuildsProduct.name, href: "/live-builds" },
+    { command: "!builds", label: operatorBundleProduct.name, href: "/live-builds" },
     { command: "!members", label: "Member login", href: "/members" },
     { command: "!runbook", label: "Launch runbook", href: "/members" },
   ],
@@ -653,18 +656,18 @@ const launchChecklistItems = [
     body: "Viewers can reach the scoreboard, live hub, daily receipts, overlay, kit, and member hub from public command links.",
   },
   {
-    title: "Launch copy pack",
+    title: "Core prompt scripts",
     status: "done",
     owner: "System",
-    signal: "Pinned chat + CTAs",
-    body: "Members get stream scripts, pinned commands, daily receipt captions, email copy, objections, and follow-up language.",
+    signal: "10 guided scripts",
+    body: "Members get copy-ready inspect, plan, build, verify, review, debug, recovery, and handoff scripts.",
   },
   {
-    title: "Day 0-7 stream run sheet",
+    title: "Starter skill pack",
     status: "done",
     owner: "System",
-    signal: "First-week content loop",
-    body: "The member kit includes daily live beats, proof targets, clip hooks, CTAs, and shutdown rhythm for the first week.",
+    signal: "3 dual-agent skills",
+    body: "The starter course includes Project Map, Build One Slice, and Verify Before Done skills for Claude Code and Codex.",
   },
   {
     title: "OBS browser routes",
@@ -1673,7 +1676,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/live-builds" && <LiveBuildsPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/live-builds" && <OperatorBundlePage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -1682,12 +1685,13 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
 }
 
 function PublicNav({ activeRoute }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const links = [
     { href: "/", label: "Home" },
     { href: "/60", label: "Dashboard" },
     { href: "/live", label: "Live" },
     { href: "/kit", label: "Kit" },
-    { href: "/live-builds", label: "Live Builds" },
+    { href: "/live-builds", label: "Operator Bundle" },
     { href: "/tools", label: "Tools" },
     { href: "/start", label: "Start" },
   ];
@@ -1700,7 +1704,18 @@ function PublicNav({ activeRoute }) {
         </span>
         <strong>AI with Murda</strong>
       </a>
-      <nav aria-label="Public navigation">
+      <button
+        type="button"
+        className="public-nav-toggle"
+        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={menuOpen}
+        aria-controls="public-navigation-links"
+        title={menuOpen ? "Close navigation" : "Open navigation"}
+        onClick={() => setMenuOpen((current) => !current)}
+      >
+        {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+      </button>
+      <nav id="public-navigation-links" className={menuOpen ? "open" : ""} aria-label="Public navigation">
         {links.map((link) => (
           <a key={link.href} className={activeRoute === link.href ? "active" : ""} href={link.href}>
             {link.label}
@@ -2182,8 +2197,8 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
           <span className="public-label">Week 1 stream arc</span>
           <h2>The first week is already mapped.</h2>
           <p>
-            The public show moves from setup proof to a weekly verdict. Members get the full Day 0-7
-            run sheet with beat-by-beat hooks, CTAs, and shutdown checks.
+            The public show moves from setup proof to a weekly verdict. The paid course does not ask buyers
+            to copy the stream; it teaches the Claude Code and Codex workflow behind the builds.
           </p>
           <a className="secondary-link" href="/kit">
             Open the kit
@@ -2245,7 +2260,7 @@ function ToolsPage({ latest }) {
     { command: "!live", title: "Live hub", href: "/live", body: "Stream room, pinned commands, run of show, and mode guardrails." },
     { command: "!overlay", title: "Overlay route", href: "/overlay", body: "Clean browser-source URL for the scoreboard overlay." },
     { command: "!kit", title: productName, href: "/kit", body: "The first paid drop and member-product path." },
-    { command: "!builds", title: liveBuildsProduct.name, href: "/live-builds", body: "Second product waitlist for paid live-build rooms and replays." },
+    { command: "!builds", title: operatorBundleProduct.name, href: "/live-builds", body: "The advanced skill, script, and blueprint bundle." },
     { command: "!start", title: "Build log", href: "/start", body: "Email capture for launch updates and daily receipts." },
     { command: "!members", title: "Member hub", href: "/members", body: "Supabase login, checkout recovery, and gated assets." },
     { command: "!runbook", title: "Launch runbook", href: "/members", body: "Members can download the Day 0 and Day 1 operating checklist from the hub." },
@@ -2411,11 +2426,11 @@ function StarterKitPage({ authSession, authReady }) {
     <main className="public-page">
       <section className="public-section product-hero">
         <div>
-          <span className="public-label">First paid drop · $47 minimum</span>
+          <span className="public-label">Claude Code + Codex starter course · $47</span>
           <h1>{productName}</h1>
           <p>
-            {productSubtitle} for the next internet boom: the workspace, prompts, checklists, daily
-            log, proof templates, and operating rhythm Murad is using live.
+            {productSubtitle}: go from uncertain at the terminal to an AI-ready project, three reusable
+            starter skills, and one useful build you can verify and continue.
           </p>
           {checkoutState === "cancel" && (
             <p className="form-message">
@@ -2428,9 +2443,9 @@ function StarterKitPage({ authSession, authReady }) {
           </div>
         </div>
         <aside className="price-card">
-          <span>Founding price</span>
+          <span>Starter tier</span>
           <strong>$47</strong>
-          <p>Stripe checkout on aiwithmurda.com. Real Supabase profile access from day one.</p>
+          <p>Five guided modules, core prompt scripts, three starter skills, project templates, and a real member profile.</p>
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </aside>
       </section>
@@ -2454,7 +2469,7 @@ function StarterKitPage({ authSession, authReady }) {
       <section className="public-section two-col kit-proof-section">
         <div>
           <span className="public-label">What you get</span>
-          <h2>A working kit, not a folder of random prompts.</h2>
+          <h2>A first-build path, not a pile of AI tutorials.</h2>
         </div>
         <div className="kit-module-list">
           {productModules.map((module) => (
@@ -2483,10 +2498,10 @@ function StarterKitPage({ authSession, authReady }) {
       <section className="public-section kit-assets-section">
         <div>
           <span className="public-label">Member assets</span>
-          <h2>The files behind the build.</h2>
+          <h2>The scripts and skills behind the workflow.</h2>
           <p>
-            The member hub unlocks these assets with your profile, plus the trackable module checklist
-            so the kit turns into action instead of another unread folder.
+            The portal reveals the exact download tied to the current module. The full library stays available,
+            but it no longer competes with the next action.
           </p>
         </div>
         <div className="kit-asset-list">
@@ -2502,10 +2517,10 @@ function StarterKitPage({ authSession, authReady }) {
       <section className="public-section kit-onboarding-section">
         <div>
           <span className="public-label">After you buy</span>
-          <h2>The first week has rails.</h2>
+          <h2>Your first build has rails.</h2>
           <p>
-            The member hub and onboarding emails point you through setup, proof, and offer improvement
-            instead of dropping you into a random file library.
+            The member hub and onboarding emails take you through tool setup, project context, the operator loop,
+            starter skills, and a verified first ship.
           </p>
         </div>
         <div className="kit-onboarding-list">
@@ -2522,10 +2537,10 @@ function StarterKitPage({ authSession, authReady }) {
       <section className="public-section kit-faq-section">
         <div>
           <span className="public-label">Before you buy</span>
-          <h2>Clear answers, no fantasy math.</h2>
+          <h2>Know exactly what this teaches.</h2>
           <p>
-            The kit is built around visible work: choose a problem, build a useful slice, capture proof,
-            turn it into content, and connect it to an offer.
+            The public 60-day challenge is Murad's content series. The paid course teaches you how to use
+            Claude Code and Codex to complete your own useful builds.
           </p>
         </div>
         <div className="kit-faq-list">
@@ -2537,7 +2552,7 @@ function StarterKitPage({ authSession, authReady }) {
           ))}
         </div>
         <div className="kit-final-cta">
-          <strong>Ready to build with receipts?</strong>
+          <strong>Ready to ship your first verified build?</strong>
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </div>
       </section>
@@ -2545,7 +2560,7 @@ function StarterKitPage({ authSession, authReady }) {
   );
 }
 
-function LiveBuildsPage({ authSession, authReady }) {
+function OperatorBundlePage({ authSession, authReady }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
@@ -2563,8 +2578,8 @@ function LiveBuildsPage({ authSession, authReady }) {
     let cancelled = false;
     setAccessCheck({
       status: "checking",
-      title: "Checking your live-build ticket",
-      body: "Confirming Stripe payment and attaching the ticket to your profile.",
+      title: "Checking your Operator Bundle",
+      body: "Confirming Stripe payment and attaching the advanced vault to your profile.",
     });
 
     verifyCheckoutSession(sessionId, authSession.access_token)
@@ -2573,10 +2588,10 @@ function LiveBuildsPage({ authSession, authReady }) {
         window.history.replaceState({}, "", "/live-builds?checkout=success");
         setAccessCheck({
           status: "success",
-          title: "Ticket confirmed",
+          title: "Bundle confirmed",
           body:
-            result.entitlement?.product_key === liveBuildsProduct.key
-              ? "Your New Wave Live Builds ticket is attached to this profile."
+            result.entitlement?.product_key === operatorBundleProduct.key
+              ? "Your New Wave Operator Bundle is attached to this profile."
               : "Stripe confirmed the payment and your profile was updated.",
         });
       })
@@ -2585,10 +2600,10 @@ function LiveBuildsPage({ authSession, authReady }) {
         const pending = error.data?.error === "checkout_not_paid";
         setAccessCheck({
           status: pending ? "pending" : "error",
-          title: pending ? "Payment is not marked paid yet" : "Ticket check needs attention",
+          title: pending ? "Payment is not marked paid yet" : "Bundle check needs attention",
           body: pending
             ? "Stripe has the session, but it is not marked paid yet. Refresh in a moment if you completed payment."
-            : error.message || "Could not verify the live-build ticket yet.",
+            : error.message || "Could not verify the Operator Bundle yet.",
         });
       });
 
@@ -2603,9 +2618,9 @@ function LiveBuildsPage({ authSession, authReady }) {
     setMessage("");
 
     try {
-      await subscribeBuildLog({ email, name, source: "live-builds" });
+      await subscribeBuildLog({ email, name, source: "operator-bundle" });
       setStatus("success");
-      setMessage("You are on the New Wave Live Builds list. I will use this list when the first paid room opens.");
+      setMessage("You are on the Operator Bundle update list.");
       setEmail("");
       setName("");
     } catch (error) {
@@ -2618,34 +2633,34 @@ function LiveBuildsPage({ authSession, authReady }) {
     <main className="public-page">
       <section className="public-section live-builds-hero">
         <div>
-          <span className="public-label">Second product · {liveBuildsProduct.status}</span>
-          <h1>{liveBuildsProduct.name}</h1>
-          <p>{liveBuildsProduct.promise}</p>
+          <span className="public-label">Complete bundle · {operatorBundleProduct.status}</span>
+          <h1>{operatorBundleProduct.name}</h1>
+          <p>{operatorBundleProduct.promise}</p>
           <div className="live-builds-positioning">
-            <strong>{liveBuildsProduct.subtitle}</strong>
-            <span>{liveBuildsProduct.positioning}</span>
+            <strong>{operatorBundleProduct.subtitle}</strong>
+            <span>{operatorBundleProduct.positioning}</span>
           </div>
           <div className="hero-actions">
-            <a className="primary-link" href="#live-builds-list">
-              {liveBuildsProduct.primaryCta}
+            <a className="primary-link" href="#operator-bundle-details">
+              {operatorBundleProduct.primaryCta}
             </a>
             <a className="secondary-link" href="/kit">
-              {liveBuildsProduct.secondaryCta}
+              {operatorBundleProduct.secondaryCta}
             </a>
           </div>
         </div>
         <aside className="live-builds-ticket">
-          <span>Founding ticket</span>
-          <strong>{liveBuildsProduct.priceLabel}</strong>
-          <p>Backbone Stripe checkout. The room topic and date can be assigned after the first buyer signal.</p>
-          <LiveBuildCheckoutButton authSession={authSession} authReady={authReady} />
+          <span>One-time bundle access</span>
+          <strong>{operatorBundleProduct.priceLabel}</strong>
+          <p>Includes the complete $47 course plus the advanced skill, script, review, debug, deployment, and blueprint vault.</p>
+          <OperatorBundleCheckoutButton authSession={authSession} authReady={authReady} />
           {accessCheck.status !== "idle" && (
             <div className={`live-builds-access ${accessCheck.status}`}>
               <strong>{accessCheck.title}</strong>
               <p>{accessCheck.body}</p>
             </div>
           )}
-          <form id="live-builds-list" className="start-form" onSubmit={handleSubscribe}>
+          <form id="operator-bundle-list" className="start-form" onSubmit={handleSubscribe}>
             <input
               type="text"
               placeholder="First name"
@@ -2662,7 +2677,7 @@ function LiveBuildsPage({ authSession, authReady }) {
               required
             />
             <button type="submit" disabled={status === "loading"}>
-              {status === "loading" ? "Joining..." : "Join the list"}
+              {status === "loading" ? "Joining..." : "Get bundle updates"}
             </button>
           </form>
           {message && <p className={`form-message ${status}`}>{message}</p>}
@@ -2670,7 +2685,7 @@ function LiveBuildsPage({ authSession, authReady }) {
       </section>
 
       <section className="live-builds-outcomes">
-        {liveBuildOutcomes.map((outcome) => (
+        {operatorBundleOutcomes.map((outcome) => (
           <article key={outcome.title}>
             <span>{outcome.title}</span>
             <p>{outcome.body}</p>
@@ -2678,17 +2693,17 @@ function LiveBuildsPage({ authSession, authReady }) {
         ))}
       </section>
 
-      <section className="public-section live-builds-flow-section">
+      <section id="operator-bundle-details" className="public-section live-builds-flow-section">
         <div>
-          <span className="public-label">Room format</span>
-          <h2>A paid build room with receipts.</h2>
+          <span className="public-label">How to use the bundle</span>
+          <h2>Foundation first. Advanced tools second.</h2>
           <p>
-            The point is not a polished webinar. The point is seeing the operator loop happen under time pressure:
-            pick the problem, build the slice, prove the change, and turn the proof into a money-path move.
+            The larger vault should not become a larger distraction. Finish the core setup, install only the skills tied to a
+            repeated need, add a second-agent review pass, then use one blueprint for the next build.
           </p>
         </div>
         <div className="live-builds-flow">
-          {liveBuildSessionFlow.map((phase) => (
+          {operatorBundlePath.map((phase) => (
             <article key={phase.phase}>
               <strong>{phase.phase}</strong>
               <div>
@@ -2703,21 +2718,21 @@ function LiveBuildsPage({ authSession, authReady }) {
 
       <section className="public-section live-build-room-queue-section">
         <div>
-          <span className="public-label">Room 001 queue</span>
-          <h2>The first paid room already has candidates.</h2>
+          <span className="public-label">Operator collections</span>
+          <h2>Install by workflow, not by hype.</h2>
           <p>
-            The topic should lock around the strongest proof signal, not around a generic webinar calendar.
-            These are the first builds worth testing in public.
+            Each collection solves a specific stage of the build lifecycle. Start with the collection that removes a real
+            repeated problem from your current work.
           </p>
         </div>
         <div className="live-build-room-queue">
-          {liveBuildRoomQueue.map((room) => (
-            <article key={room.key}>
-              <span>{room.room}</span>
-              <h3>{room.title}</h3>
-              <strong>{room.status} · {room.buildWindow}</strong>
-              <p>{room.buyerOutcome}</p>
-              <em>{room.proofTarget}</em>
+          {operatorBundleCollections.map((collection) => (
+            <article key={collection.key}>
+              <span>{collection.label}</span>
+              <h3>{collection.title}</h3>
+              <strong>{collection.status} · {collection.estimatedTime}</strong>
+              <p>{collection.outcome}</p>
+              <em>{collection.proofTarget}</em>
             </article>
           ))}
         </div>
@@ -2725,14 +2740,15 @@ function LiveBuildsPage({ authSession, authReady }) {
 
       <section className="public-section live-builds-deliverables">
         <div>
-          <span className="public-label">What buyers leave with</span>
-          <h2>The replay is only one part.</h2>
+          <span className="public-label">What is included</span>
+          <h2>The repeatable systems behind the next build.</h2>
           <p>
-            Each paid room should create a reusable asset pack so buyers can repeat the build loop after the session ends.
+            These are customer-safe versions of the workflows Murad uses. Private infrastructure, credentials, and company-only
+            automation are deliberately excluded.
           </p>
         </div>
         <ul>
-          {liveBuildDeliverables.map((deliverable) => (
+          {operatorBundleDeliverables.map((deliverable) => (
             <li key={deliverable}>{deliverable}</li>
           ))}
         </ul>
@@ -2740,11 +2756,11 @@ function LiveBuildsPage({ authSession, authReady }) {
 
       <section className="public-section live-builds-faq-section">
         <div>
-          <span className="public-label">Offer notes</span>
-          <h2>Clear enough to test live.</h2>
+          <span className="public-label">Before you upgrade</span>
+          <h2>Buy the larger vault for a larger workflow.</h2>
         </div>
         <div className="kit-faq-list">
-          {liveBuildFaq.map((item) => (
+          {operatorBundleFaq.map((item) => (
             <article key={item.question}>
               <strong>{item.question}</strong>
               <p>{item.answer}</p>
@@ -2752,15 +2768,15 @@ function LiveBuildsPage({ authSession, authReady }) {
           ))}
         </div>
         <div className="kit-final-cta">
-          <strong>Want the first paid room?</strong>
-          <LiveBuildCheckoutButton authSession={authSession} authReady={authReady} compact />
+          <strong>Ready for the full operator system?</strong>
+          <OperatorBundleCheckoutButton authSession={authSession} authReady={authReady} compact />
         </div>
       </section>
     </main>
   );
 }
 
-function LiveBuildCheckoutButton({ authSession, authReady, compact = false }) {
+function OperatorBundleCheckoutButton({ authSession, authReady, compact = false }) {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
 
@@ -2773,11 +2789,11 @@ function LiveBuildCheckoutButton({ authSession, authReady, compact = false }) {
     setStatus("loading");
     setMessage("");
     try {
-      const data = await createLiveBuildCheckout(authSession.access_token);
+      const data = await createOperatorBundleCheckout(authSession.access_token);
       window.location.href = data.url;
     } catch (error) {
       setStatus("error");
-      setMessage(error.message || "Could not open the live-build checkout.");
+      setMessage(error.message || "Could not open the Operator Bundle checkout.");
     }
   }
 
@@ -2787,8 +2803,8 @@ function LiveBuildCheckoutButton({ authSession, authReady, compact = false }) {
         {authSession
           ? status === "loading"
             ? "Opening Stripe..."
-            : `Reserve for ${liveBuildsProduct.priceLabel}`
-          : "Create profile to reserve"}
+            : `Unlock for ${operatorBundleProduct.priceLabel}`
+          : "Create profile to unlock"}
       </button>
       {message && <p className="form-message error">{message}</p>}
     </div>
@@ -2802,15 +2818,16 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [accessCheck, setAccessCheck] = useState({ status: "idle" });
   const [activeMemberProduct, setActiveMemberProduct] = useState("future-method");
   const accessToken = authSession?.access_token;
-  const futureMethodEntitled = Boolean(
+  const futureMethodPurchased = Boolean(
     memberData?.entitlements?.some((entitlement) => entitlement.product_key === productKey && entitlement.status === "active"),
   );
-  const liveBuildEntitled = Boolean(
+  const operatorBundleEntitled = Boolean(
     memberData?.entitlements?.some(
-      (entitlement) => entitlement.product_key === liveBuildsProduct.key && entitlement.status === "active",
+      (entitlement) => entitlement.product_key === operatorBundleProduct.key && entitlement.status === "active",
     ),
   );
-  const hasAnyPaidAccess = futureMethodEntitled || liveBuildEntitled;
+  const futureMethodEntitled = futureMethodPurchased || operatorBundleEntitled;
+  const hasAnyPaidAccess = futureMethodEntitled || operatorBundleEntitled;
 
   useEffect(() => {
     if (activeModuleKey && futureMethodEntitled) {
@@ -2818,13 +2835,13 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       return;
     }
     if (activeMemberProduct === "future-method" && futureMethodEntitled) return;
-    if (activeMemberProduct === "live-builds" && liveBuildEntitled) return;
+    if (activeMemberProduct === "operator-bundle" && operatorBundleEntitled) return;
     if (futureMethodEntitled) {
       setActiveMemberProduct("future-method");
-    } else if (liveBuildEntitled) {
-      setActiveMemberProduct("live-builds");
+    } else if (operatorBundleEntitled) {
+      setActiveMemberProduct("operator-bundle");
     }
-  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, liveBuildEntitled]);
+  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled]);
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2915,12 +2932,12 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     <main className={`public-page members-page ${hasAnyPaidAccess ? "has-access" : ""}`}>
       <section className={`member-entry-header ${hasAnyPaidAccess ? "paid" : ""}`}>
         <div>
-          <span className="member-entry-kicker">{hasAnyPaidAccess ? "Member workspace" : "Future Proof Method"}</span>
-          <h1>{hasAnyPaidAccess ? "Your operator desk." : "Build proof. Keep the receipts."}</h1>
+          <span className="member-entry-kicker">{hasAnyPaidAccess ? "Member build lab" : "Future Proof Method"}</span>
+          <h1>{hasAnyPaidAccess ? "Pick up where you stopped." : "Set up. Build. Verify."}</h1>
           <p>
             {hasAnyPaidAccess
-              ? "Pick up the next task, open the exact tool you need, and leave everything else out of the way."
-              : `Sign in to access ${productName}, your progress, downloads, proof receipts, and live-build purchases.`}
+              ? "The workspace keeps one next action in front of you and the deeper course, scripts, and skills one click away."
+              : `Sign in to access ${productName}, your progress, build scripts, starter skills, and first-build lab.`}
           </p>
           {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
         </div>
@@ -2930,7 +2947,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             <span>{hasAnyPaidAccess ? "Access active" : status === "loading" ? "Checking access" : authSession ? "Profile active" : "Secure login"}</span>
           </div>
           <strong>{authSession?.user?.email || "Your member profile"}</strong>
-          <p>{hasAnyPaidAccess ? "Progress syncs to this account." : "Use the same email at login and checkout."}</p>
+          <p>{hasAnyPaidAccess ? "Progress syncs to this account." : "Use the same email for login and checkout."}</p>
           <div className="member-account-actions">
             {authSession && (
               <button type="button" onClick={handleMemberSignOut}>
@@ -2966,7 +2983,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <MemberStateCard title="Loading your workspace" body="Checking products, progress, and member assets." />
       )}
 
-      {authSession && status === "ready" && futureMethodEntitled && liveBuildEntitled && !activeModuleKey && (
+      {authSession && status === "ready" && futureMethodEntitled && operatorBundleEntitled && !activeModuleKey && (
         <nav className="member-product-switcher" aria-label="Your products">
           <button
             type="button"
@@ -2974,44 +2991,34 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             onClick={() => setActiveMemberProduct("future-method")}
           >
             <BookOpenText size={19} aria-hidden="true" />
-            <span><strong>The Future Proof Method</strong><small>Course and operator tools</small></span>
+            <span><strong>The Future Proof Method</strong><small>Starter course and core skills</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
           <button
             type="button"
-            className={activeMemberProduct === "live-builds" ? "active" : ""}
-            onClick={() => setActiveMemberProduct("live-builds")}
+            className={activeMemberProduct === "operator-bundle" ? "active" : ""}
+            onClick={() => setActiveMemberProduct("operator-bundle")}
           >
             <RadioTower size={19} aria-hidden="true" />
-            <span><strong>New Wave Live Builds</strong><small>Ticket and room assets</small></span>
+            <span><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
         </nav>
       )}
 
-      {authSession && status === "ready" && liveBuildEntitled && activeMemberProduct === "live-builds" && (
-        <LiveBuildMemberPanel accessToken={authSession.access_token} liveBuilds={memberData?.liveBuilds} />
+      {authSession && status === "ready" && operatorBundleEntitled && activeMemberProduct === "operator-bundle" && (
+        <OperatorBundleMemberPanel accessToken={authSession.access_token} bundle={memberData?.operatorBundle} />
       )}
 
-      {authSession && status === "ready" && !futureMethodEntitled && !liveBuildEntitled && (
+      {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && (
         <section className="public-section unlock-section">
           <div>
             <span className="public-label">Unlock required</span>
             <h2>{productName}</h2>
             <p>
-              Your profile is active. Buy the $47 founding drop to unlock the operator kit, modules,
-              workbooks, and proof receipts.
+              Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules,
+              core prompt scripts, starter skills, and the first-build lab.
             </p>
-          </div>
-          <CheckoutButton authSession={authSession} authReady={authReady} />
-        </section>
-      )}
-
-      {authSession && status === "ready" && liveBuildEntitled && !futureMethodEntitled && (
-        <section className="member-add-product">
-          <div>
-            <BookOpenText size={20} aria-hidden="true" />
-            <span><strong>Add {productName}</strong><small>Unlock the complete course, proof tools, and resource library.</small></span>
           </div>
           <CheckoutButton authSession={authSession} authReady={authReady} />
         </section>
@@ -3029,17 +3036,17 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   );
 }
 
-function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
+function OperatorBundleMemberPanel({ accessToken, bundle }) {
   const [downloadState, setDownloadState] = useState({});
-  const accessPlan = liveBuilds?.accessPlan || liveBuildAccessPlan;
-  const assets = liveBuilds?.assets || [];
+  const accessPlan = bundle?.accessPlan || operatorBundleAccessPlan;
+  const assets = bundle?.assets || [];
 
   async function handleDownload(asset) {
     if (!asset?.key) return;
 
     setDownloadState((current) => ({ ...current, [asset.key]: "loading" }));
     try {
-      const blob = await downloadLiveBuildAsset(asset.key, accessToken);
+      const blob = await downloadOperatorBundleAsset(asset.key, accessToken);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -3059,22 +3066,22 @@ function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
       <article className="live-build-member-hero">
         <div>
           <span className="public-label">{accessPlan.label}</span>
-          <h2>Your live-build ticket is active.</h2>
+          <h2>Your advanced operator vault is active.</h2>
           <p>{accessPlan.accessNote}</p>
         </div>
         <div className="live-build-ticket-strip">
-          <strong>{accessPlan.room}</strong>
+          <strong>{accessPlan.tier}</strong>
           <span>{accessPlan.status}</span>
           <a className="secondary-link" href="/live-builds">
-            Open offer page
+            Open bundle page
           </a>
         </div>
       </article>
 
       <div className="live-build-member-grid">
         <article className="live-build-room-plan">
-          <span>First room promise</span>
-          <p>{accessPlan.firstRoomPromise}</p>
+          <span>Activation outcome</span>
+          <p>{accessPlan.activationPromise}</p>
           <div className="live-build-buyer-path">
             {accessPlan.buyerPath.map((step, index) => (
               <div key={step}>
@@ -3086,9 +3093,9 @@ function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
         </article>
 
         <article className="live-build-prep-list">
-          <span>Buyer prep</span>
+          <span>Install discipline</span>
           <ul>
-            {accessPlan.prepChecklist.map((item) => (
+            {accessPlan.setupChecklist.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -3097,15 +3104,15 @@ function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
 
       <section className="live-build-candidates">
         <div>
-          <span className="public-label">Candidate first builds</span>
-          <h2>The first room can lock around the strongest signal.</h2>
+          <span className="public-label">Skill collections</span>
+          <h2>Choose the workflow you need now.</h2>
         </div>
         <div className="live-build-candidate-list">
-          {liveBuildRoomQueue.map((candidate) => (
-            <article key={candidate.key}>
-              <strong>{candidate.title}</strong>
-              <p>{candidate.buyerOutcome}</p>
-              <em>{candidate.reuseMove}</em>
+          {operatorBundleCollections.map((collection) => (
+            <article key={collection.key}>
+              <strong>{collection.title}</strong>
+              <p>{collection.outcome}</p>
+              <em>{collection.reuseMove}</em>
             </article>
           ))}
         </div>
@@ -3113,9 +3120,9 @@ function LiveBuildMemberPanel({ accessToken, liveBuilds }) {
 
       <section className="live-build-asset-section">
         <div>
-          <span className="public-label">Buyer assets</span>
-          <h2>Prep pack unlocked now.</h2>
-          <p>These files are gated to the New Wave Live Builds ticket and will grow after each paid room.</p>
+          <span className="public-label">Operator assets</span>
+          <h2>The advanced vault is ready.</h2>
+          <p>Download only the collection tied to your current project so the larger bundle stays useful instead of noisy.</p>
         </div>
         <div className="live-build-asset-list">
           {assets.map((asset) => (
@@ -3444,6 +3451,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   });
   const [taskSaving, setTaskSaving] = useState({});
   const [resourceQuery, setResourceQuery] = useState("");
+  const [buildTrackKey, setBuildTrackKey] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -3485,6 +3493,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     const owner = profile?.email || "";
     setCompletionDraft(loadCompletionDraft(owner));
     setCompletionDraftOwner(owner);
+    if (typeof window !== "undefined") {
+      setBuildTrackKey(window.localStorage.getItem(`future-proof-build-track:${owner || "member"}`) || "");
+    }
   }, [profile?.email]);
 
   useEffect(() => {
@@ -3492,6 +3503,11 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
     if (completionDraftOwner !== (profile?.email || "")) return;
     window.localStorage.setItem(getCompletionDraftStorageKey(completionDraftOwner), JSON.stringify(completionDraft));
   }, [completionDraft, completionDraftOwner, profile?.email]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !buildTrackKey) return;
+    window.localStorage.setItem(`future-proof-build-track:${profile?.email || "member"}`, buildTrackKey);
+  }, [buildTrackKey, profile?.email]);
 
   const completedTasks = useMemo(() => {
     return new Set(
@@ -3526,6 +3542,9 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
   const selectedProofModule = useMemo(() => {
     return productModules.find((module) => module.key === proofDraft.moduleKey) || productModules[0] || null;
   }, [proofDraft.moduleKey]);
+  const selectedBuildTrack = useMemo(() => {
+    return firstBuildTracks.find((track) => track.key === buildTrackKey) || null;
+  }, [buildTrackKey]);
 
   function mergeTaskProgress(items, nextItem) {
     const withoutItem = items.filter(
@@ -3660,7 +3679,7 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
         .map((todo) => `- ${todo.label}`) || [];
 
     return [
-      "# Future Proof Method Receipt",
+      "# Future Proof Method Build Receipt",
       "",
       `Date: ${receiptDate}`,
       `Operator: ${profile?.email || "member"}`,
@@ -3670,13 +3689,13 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       "## Completed tasks",
       completedModuleTasks.length ? completedModuleTasks.join("\n") : "-",
       "",
-      "## Before",
+      "## Starting state",
       fallback(proofDraft.before),
       "",
-      "## After",
+      "## Working result",
       fallback(proofDraft.after),
       "",
-      "## Proof link or file",
+      "## Verification link or file",
       fallback(proofDraft.proofLink),
       "",
       "## Friction",
@@ -3685,10 +3704,10 @@ function MemberModules({ accessToken, activeModuleKey, assets, profile }) {
       "## Lesson",
       fallback(proofDraft.lesson),
       "",
-      "## Share copy",
+      "## Reusable script or note",
       fallback(proofDraft.cta),
       "",
-      "## Tomorrow",
+      "## Next build",
       fallback(proofDraft.tomorrow),
       "",
     ].join("\n");
@@ -3860,42 +3879,38 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
     const receiptDate = new Date().toISOString().slice(0, 10);
     const answerFor = (title) => completionDraft[title]?.trim() || "[add proof]";
     return [
-      "# Future Proof Method Completion Share Pack",
+      "# Future Proof Method First-Build Share Pack",
       "",
       `Date: ${receiptDate}`,
       `Operator: ${profile?.email || "member"}`,
       `Progress: ${progressState.summary.completed}/${progressState.summary.total} tasks (${progressState.summary.percent}%)`,
       `Receipt sections drafted: ${completionAnswerCount}/${courseCompletion.finalReceiptSections.length}`,
       "",
-      "## Public recap post",
+      "## Portfolio summary",
       "",
-      `I finished ${productName} by turning a messy starting point into a proof-backed operating system.`,
+      `I completed ${productName} by setting up Claude Code and Codex, preparing an AI-ready project, and shipping one verified build.`,
       "",
-      `Before: ${answerFor("Before")}`,
+      `Setup: ${answerFor("Setup receipt")}`,
       "",
-      `What shipped: ${answerFor("Build shipped")}`,
+      `Project: ${answerFor("Project packet")}`,
       "",
-      `Proof packaged: ${answerFor("Proof packaged")}`,
+      `What works: ${answerFor("Working result")}`,
       "",
-      `Offer moved: ${answerFor("Offer moved")}`,
+      `How it was verified: ${answerFor("Verification")}`,
       "",
-      `Next seven days: ${answerFor("Next seven days")}`,
+      `Next build: ${answerFor("Next build")}`,
       "",
-      "## Short clip hook",
+      "## Short completion note",
       "",
-      `I did not finish this by watching lessons. I finished it by shipping proof: ${answerFor("Build shipped")}`,
+      `I did not finish this by watching lessons. I finished it by shipping and verifying: ${answerFor("Working result")}`,
       "",
-      "## Buyer proof blurb",
+      "## Verification blurb",
       "",
-      `${productName} is built around a simple standard: if the output does not exist, the lesson is not complete. My completion proof includes command setup, problem selection, one shipped AI-assisted slice, proof packaging, and an offer/follow-up move.`,
+      `${productName} is built around a simple standard: if the user path and verification do not exist, the lesson is not complete. My completion includes both-agent setup, an AI-ready project, three starter skills, and one reproducible build.`,
       "",
-      "## Next-seven-days commitment",
+      "## Next-build commitment",
       "",
-      `For the next seven days I am doubling down on: ${answerFor("Next seven days")}`,
-      "",
-      "## Stream close",
-      "",
-      "This is why the system matters: the course is not a playlist. It is a proof loop. The output is the credential.",
+      `My next smallest useful build is: ${answerFor("Next build")}`,
       "",
     ].join("\n");
   }, [
@@ -3908,11 +3923,11 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   ]);
   const firstRun = progressState.summary.completed === 0;
   const memberWorkspaceTabs = [
-    { key: "today", label: "Home", body: "Your next move", icon: House },
-    { key: "course", label: "Course", body: `${progressState.summary.completed}/${progressState.summary.total} tasks`, icon: BookOpenText },
-    { key: "tools", label: "Library", body: `${assets.length} resources`, icon: FolderDown },
-    { key: "proof", label: "Proof", body: "Build a receipt", icon: FileCheck2 },
-    { key: "finish", label: "Finish", body: `${completionAnswerCount}/${courseCompletion.finalReceiptSections.length} drafted`, icon: Trophy },
+    { key: "today", label: "Start", body: "One next move", icon: House },
+    { key: "course", label: "Build path", body: `${progressState.summary.completed}/${progressState.summary.total} steps`, icon: BookOpenText },
+    { key: "tools", label: "Script vault", body: `${assets.length} resources`, icon: FolderDown },
+    { key: "proof", label: "Build log", body: "Save evidence", icon: FileCheck2 },
+    { key: "finish", label: "Ship", body: `${completionAnswerCount}/${courseCompletion.finalReceiptSections.length} drafted`, icon: Trophy },
   ];
   const [activeMemberTab, setActiveMemberTab] = useState(activeModuleKey ? "course" : "today");
 
@@ -3967,9 +3982,9 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
     <section className={`member-hub active-tab-${activeMemberTab}${activeModuleKey ? " has-active-module" : ""}`}>
       <header className="member-workspace-header">
         <div className="member-workspace-title">
-          <span><BookOpenText size={18} aria-hidden="true" /> Member course</span>
+          <span><BookOpenText size={18} aria-hidden="true" /> Guided build workspace</span>
           <h2>{productName}</h2>
-          <p>One task at a time. Every completed task should leave proof behind.</p>
+          <p>Set up both agents, follow one next step, and finish with a verified first build.</p>
         </div>
         <div className="member-workspace-progress">
           <div>
@@ -3979,7 +3994,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
           <div className="member-progress-meter" aria-label={`${progressState.summary.percent}% complete`}>
             <i style={{ width: `${progressState.summary.percent}%` }} />
           </div>
-          <small>{progressState.summary.completed} of {progressState.summary.total} tasks complete</small>
+          <small>{progressState.summary.completed} of {progressState.summary.total} implementation steps complete</small>
         </div>
       </header>
 
@@ -4013,10 +4028,10 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
           <section className="member-today-view member-tab-content tab-today">
             <header className="member-view-heading">
               <div>
-                <span>Today</span>
-                <h2>{firstRun ? "Start clean." : "Keep the proof loop moving."}</h2>
+                <span>Start here</span>
+                <h2>{firstRun ? "Get both builders working." : "Continue the next verified step."}</h2>
               </div>
-              <p>{firstRun ? "The first setup is already sequenced for you." : "Open the next unfinished task and ignore the rest until it is done."}</p>
+              <p>{firstRun ? "Your first session is already sequenced." : "Ignore the rest of the library until this step is complete."}</p>
             </header>
 
             <article className="member-next-action">
@@ -4025,14 +4040,14 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                 {nextMemberTask ? (
                   <>
                     <h3>{nextMemberTask.todo.label}</h3>
-                    <p><strong>Proof required:</strong> {nextMemberTask.todo.proof}</p>
+                    <p><strong>Evidence required:</strong> {nextMemberTask.todo.proof}</p>
                     <small>Done means: {nextMemberTask.module.done}</small>
                   </>
                 ) : (
                   <>
-                    <h3>Package your strongest result.</h3>
-                    <p>Turn the best receipt into a public recap and the next offer test.</p>
-                    <small>Your completed work is the credential.</small>
+                    <h3>Package the first-build handoff.</h3>
+                    <p>Record the working path, verification, known limits, and next smallest build.</p>
+                    <small>The reproducible result is the credential.</small>
                   </>
                 )}
               </div>
@@ -4044,7 +4059,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                   </a>
                 ) : (
                   <button type="button" onClick={() => setActiveMemberTab("proof")}>
-                    Open proof builder <ArrowRight size={17} aria-hidden="true" />
+                    Open build log <ArrowRight size={17} aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -4054,8 +4069,8 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
               <section className="member-onboarding fresh">
                 <div className="member-onboarding-copy">
                   <span>First session</span>
-                  <h3>Your first 20 minutes are already decided.</h3>
-                  <p>Work these four steps in order. Do not mark the task complete until the output exists.</p>
+                  <h3>Your setup path is already decided.</h3>
+                  <p>Work these four steps in order. Do not install extra skills or start a real build yet.</p>
                 </div>
                 <div className="onboarding-step-list">
                   {memberOnboardingSteps.map((step, index) => {
@@ -4095,20 +4110,53 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
               </section>
             )}
 
+            <section className="member-build-track-picker">
+              <div className="member-build-track-copy">
+                <span>First-build direction</span>
+                <h3>{selectedBuildTrack ? selectedBuildTrack.title : "Choose the kind of result you want to ship."}</h3>
+                <p>
+                  {selectedBuildTrack
+                    ? selectedBuildTrack.body
+                    : "This choice personalizes the Build Lab. It does not lock you into a stack or a giant project."}
+                </p>
+              </div>
+              <div className="member-build-track-options" role="group" aria-label="Choose first-build direction">
+                {firstBuildTracks.map((track) => (
+                  <button
+                    key={track.key}
+                    type="button"
+                    className={buildTrackKey === track.key ? "active" : ""}
+                    onClick={() => setBuildTrackKey(track.key)}
+                  >
+                    <span>{buildTrackKey === track.key && <Check size={15} aria-hidden="true" />}{track.label}</span>
+                    <strong>{track.title}</strong>
+                    <small>{track.firstMove}</small>
+                  </button>
+                ))}
+              </div>
+              {selectedBuildTrack && (
+                <div className="member-build-track-script">
+                  <span>Starter script</span>
+                  <p>{selectedBuildTrack.starterPrompt}</p>
+                  <button type="button" onClick={() => copyPlainText(selectedBuildTrack.starterPrompt)}>Copy script</button>
+                </div>
+              )}
+            </section>
+
             <div className="member-quick-actions" aria-label="Workspace shortcuts">
               <button type="button" onClick={() => setActiveMemberTab("course")}>
                 <BookOpenText size={19} aria-hidden="true" />
-                <span><strong>Browse course</strong><small>See all five modules</small></span>
+                <span><strong>Open build path</strong><small>See the five implementation modules</small></span>
                 <ArrowRight size={17} aria-hidden="true" />
               </button>
               <button type="button" onClick={() => setActiveMemberTab("tools")}>
                 <FolderDown size={19} aria-hidden="true" />
-                <span><strong>Open library</strong><small>{assets.length} member resources</small></span>
+                <span><strong>Open script vault</strong><small>{assets.length} guided resources</small></span>
                 <ArrowRight size={17} aria-hidden="true" />
               </button>
               <button type="button" onClick={() => setActiveMemberTab("proof")}>
                 <FileCheck2 size={19} aria-hidden="true" />
-                <span><strong>Build a receipt</strong><small>Package finished work</small></span>
+                <span><strong>Open build log</strong><small>Save verification and lessons</small></span>
                 <ArrowRight size={17} aria-hidden="true" />
               </button>
             </div>
@@ -4125,7 +4173,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                 <span className="public-label">Module lesson</span>
                 <h2>{activeModule.title}</h2>
                 <p className="lesson-progress-copy">
-                  {activeModuleProgress.completed} of {activeModuleProgress.total} module tasks complete.
+                  {activeModuleProgress.completed} of {activeModuleProgress.total} module steps complete.
                 </p>
                 <p>{activeModule.body}</p>
                 <div className="lesson-output-grid">
@@ -4138,51 +4186,57 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                     <strong>{activeModule.lesson.output}</strong>
                   </article>
                 </div>
-                <ModuleOperatorBrief brief={activeModule.operatorBrief} />
                 <ModuleActionKit
                   kit={activeModule.actionKit}
                   copied={copiedActionKitKey === activeModule.key}
                   onCopy={() => handleCopyActionKit(activeModule)}
                 />
-                <div className="lesson-depth-grid">
-                  <article>
-                    <span>Deliverables</span>
-                    <ul>
-                      {activeModule.lesson.deliverables.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                  <article>
-                    <span>Proof questions</span>
-                    <ul>
-                      {activeModule.lesson.proofQuestions.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                  <article>
-                    <span>Traps to avoid</span>
-                    <ul>
-                      {activeModule.lesson.failureTraps.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                </div>
-                <PremiumLessonContent premium={activeModule.premium} />
+                <details className="member-lesson-deep-dive">
+                  <summary>
+                    <span>Open the full lesson</span>
+                    <small>Framework, examples, workshop, questions, and common mistakes</small>
+                  </summary>
+                  <ModuleOperatorBrief brief={activeModule.operatorBrief} />
+                  <div className="lesson-depth-grid">
+                    <article>
+                      <span>Deliverables</span>
+                      <ul>
+                        {activeModule.lesson.deliverables.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </article>
+                    <article>
+                      <span>Questions before completion</span>
+                      <ul>
+                        {activeModule.lesson.proofQuestions.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </article>
+                    <article>
+                      <span>Traps to avoid</span>
+                      <ul>
+                        {activeModule.lesson.failureTraps.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  </div>
+                  <PremiumLessonContent premium={activeModule.premium} />
+                </details>
                 <em className="module-done">Done: {activeModule.done}</em>
               </div>
               <div className="lesson-action-stack">
                 <article className="lesson-prompt-card">
-                  <span>Starter prompt</span>
+                  <span>Copy this into your agent</span>
                   <p>{activeModule.lesson.starterPrompt}</p>
                   <button type="button" onClick={() => handleCopyPrompt(activeModule)}>
                     {copiedPromptKey === activeModule.key ? "Copied" : "Copy prompt"}
                   </button>
                 </article>
                 <article className="lesson-task-card">
-                  <span>Lesson checklist</span>
+                  <span>Complete these four steps</span>
                   <ul className="module-todo-list compact trackable">
                     {activeModule.todos.map((todo) => (
                       <li key={todo.key} className={completedTasks.has(`${activeModule.key}:${todo.key}`) ? "complete" : ""}>
@@ -4202,7 +4256,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                   </ul>
                 </article>
                 <article className="lesson-assets-card">
-                  <span>Open with</span>
+                  <span>Use only these resources</span>
                   <div className="lesson-download-list">
                     {activeModule.lesson.useWith.map((assetTitle) => {
                       const asset = assetsByTitle.get(assetTitle.toLowerCase());
@@ -4232,7 +4286,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
               </a>
               <span className="public-label">Module lesson</span>
               <h2>Module not found.</h2>
-              <p>Use the member hub to open one of the active Future Proof Method modules.</p>
+              <p>Use the member workspace to open one of the active build modules.</p>
             </div>
           )}
         </section>
@@ -4240,14 +4294,14 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
 
       <section className="member-proof-builder member-tab-content tab-proof">
         <div className="proof-builder-copy">
-          <span className="public-label">Proof receipt</span>
-          <h2>Turn one finished task into a receipt.</h2>
+          <span className="public-label">Build log</span>
+          <h2>Save what changed before context disappears.</h2>
           <p>
-            Capture the before, after, friction, lesson, and next move while the work is still fresh enough to become content,
-            testimonial fuel, or tomorrow's stream beat.
+            Capture the starting state, working result, verification, friction, reusable lesson, and next build. This log becomes
+            the handoff for your next Claude Code or Codex session.
           </p>
           <button type="button" className="primary-action" onClick={handleDownloadProofReceipt}>
-            Download receipt
+            Download build receipt
           </button>
         </div>
         <div className="proof-builder-panel">
@@ -4264,29 +4318,29 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
             </label>
             <div className="form-row two">
               <label className="field">
-                <span>Before</span>
+                <span>Starting state</span>
                 <textarea
                   value={proofDraft.before}
                   onChange={(event) => updateProofDraft("before", event.target.value)}
-                  placeholder="What was messy before the task?"
+                  placeholder="What was missing, broken, manual, or unclear?"
                 />
               </label>
               <label className="field">
-                <span>After</span>
+                <span>Working result</span>
                 <textarea
                   value={proofDraft.after}
                   onChange={(event) => updateProofDraft("after", event.target.value)}
-                  placeholder="What changed after the task?"
+                  placeholder="What can the user do now?"
                 />
               </label>
             </div>
             <label className="field">
-              <span>Proof link or file</span>
+              <span>Verification link or file</span>
               <input
                 type="text"
                 value={proofDraft.proofLink}
                 onChange={(event) => updateProofDraft("proofLink", event.target.value)}
-                placeholder="Screenshot, commit, page, post, recording, or folder"
+                placeholder="Test output, browser check, screenshot, commit, or build URL"
               />
             </label>
             <div className="form-row two">
@@ -4309,25 +4363,25 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
             </div>
             <div className="form-row two">
               <label className="field">
-                <span>Share copy</span>
+                <span>Reusable script or note</span>
                 <textarea
                   value={proofDraft.cta}
                   onChange={(event) => updateProofDraft("cta", event.target.value)}
-                  placeholder="One post or clip caption this proves"
+                  placeholder="A prompt, rule, or workflow worth reusing"
                 />
               </label>
               <label className="field">
-                <span>Tomorrow</span>
+                <span>Next build</span>
                 <textarea
                   value={proofDraft.tomorrow}
                   onChange={(event) => updateProofDraft("tomorrow", event.target.value)}
-                  placeholder="The next proof task"
+                  placeholder="The next smallest useful improvement"
                 />
               </label>
             </div>
           </div>
           <details className="proof-preview-shell">
-            <summary>Preview generated receipt</summary>
+            <summary>Preview build receipt</summary>
             <pre className="proof-preview">{proofReceiptMarkdown}</pre>
           </details>
         </div>
@@ -4336,10 +4390,10 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
           <section className="member-course-browser member-tab-content tab-course">
             <header className="member-view-heading">
               <div>
-                <span>Course</span>
-                <h2>Your five-module proof path.</h2>
+                <span>Build path</span>
+                <h2>Five modules from setup to first ship.</h2>
               </div>
-              <p>Open one module, complete its four output tasks, then move forward. Prompts, examples, and downloads live inside each module.</p>
+              <p>Open the current module, complete its four implementation steps, and move forward only when the output exists.</p>
             </header>
             {progressState.error && <p className="module-status error">{progressState.error}</p>}
             <div className="member-course-list">
@@ -4355,7 +4409,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                     <div className="member-module-copy">
                       <div>
                         <h3>{module.title.replace(/^Module \d+: /, "")}</h3>
-                        <span>{moduleProgress.completed}/{moduleProgress.total} tasks</span>
+                        <span>{moduleProgress.completed}/{moduleProgress.total} steps</span>
                       </div>
                       <p>{module.body}</p>
                       <dl>
@@ -4379,8 +4433,8 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
           <section className="member-resource-library member-tab-content tab-tools">
             <header className="member-view-heading">
               <div>
-                <span>Library</span>
-                <h2>Resources without the clutter.</h2>
+                <span>Script vault</span>
+                <h2>Open the tool tied to the current step.</h2>
               </div>
               <label className="member-resource-search">
                 <Search size={17} aria-hidden="true" />
@@ -4388,8 +4442,8 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
                   type="search"
                   value={resourceQuery}
                   onChange={(event) => setResourceQuery(event.target.value)}
-                  placeholder="Search resources"
-                  aria-label="Search member resources"
+                  placeholder="Search scripts and skills"
+                  aria-label="Search member scripts and skills"
                 />
               </label>
             </header>
@@ -4426,10 +4480,10 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
           <section className="member-finish-view member-tab-content tab-finish">
             <header className="member-view-heading">
               <div>
-                <span>Finish</span>
-                <h2>Turn the work into a credential.</h2>
+                <span>Ship</span>
+                <h2>Turn the first build into a reproducible handoff.</h2>
               </div>
-              <p>Complete every output, write the final receipt, then export the certificate and share pack.</p>
+              <p>Complete every module output, document the working path, then export the handoff, certificate, and share pack.</p>
             </header>
             <CourseCompletionPanel
               summary={progressState.summary}
@@ -4442,18 +4496,6 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
               onDownloadCertificate={handleDownloadCompletionCertificate}
               onDownloadSharePack={handleDownloadCompletionSharePack}
             />
-            <details className="member-future-drops">
-              <summary>Future live-drop updates</summary>
-              <div>
-                {["Day 0 setup", "First live build", "First buyer proof", "Week 1 recap"].map((item, index) => (
-                  <article key={item}>
-                    <strong>{`Drop ${index + 1}`}</strong>
-                    <span>{item}</span>
-                    <p>New assets get added when the stream creates real proof worth keeping.</p>
-                  </article>
-                ))}
-              </div>
-            </details>
           </section>
         </div>
       </div>
@@ -4491,15 +4533,15 @@ function CourseCompletionPanel({
       <div className="completion-control">
         <div className="completion-meter-card">
           <strong>{summary.percent}%</strong>
-          <span>{summary.completed}/{summary.total} tasks complete</span>
+          <span>{summary.completed}/{summary.total} steps complete</span>
           <p>
             {complete
-              ? "Every module output is ready for the final receipt."
-              : `${remaining} proof tasks left before the receipt is complete.`}
+              ? "Every module output is ready for the final handoff."
+              : `${remaining} implementation steps left before the handoff is complete.`}
           </p>
           <p>{completionAnswerCount}/{receiptSectionTotal} receipt sections drafted.</p>
           <button type="button" className="primary-action" onClick={onDownload}>
-            Download capstone receipt
+            Download first-build handoff
           </button>
           <button type="button" className="secondary-action" onClick={onDownloadCertificate}>
             Download certificate
@@ -4527,10 +4569,10 @@ function CourseCompletionPanel({
       <div className="completion-builder">
         <div className="completion-builder-copy">
           <span className="public-label">Capstone builder</span>
-          <h3>Write the proof packet while the evidence is still fresh.</h3>
+          <h3>Write the build handoff while the evidence is still fresh.</h3>
           <p>
-            These answers save in this browser and export inside the final receipt. Use links, screenshots, posts,
-            checkout notes, and lessons that prove the method was completed through work.
+            These answers save in this browser and export inside the final handoff. Use test output, screenshots,
+            commits, URLs, and notes that let another person reproduce the result.
           </p>
         </div>
         <div className="completion-section-grid">
@@ -4567,8 +4609,8 @@ function ModuleOperatorBrief({ brief, compact = false }) {
   const items = [
     ["Window", brief.window],
     ["Mode", brief.mode],
-    ["Proof", brief.proof],
-    ["Stream beat", brief.streamBeat],
+    ["Evidence", brief.proof],
+    ["Why it matters", brief.why],
   ];
 
   return (
@@ -4588,18 +4630,18 @@ function ModuleActionKit({ kit, copied, onCopy }) {
 
   const items = [
     ["Timebox", kit.timebox],
-    ["Today's move", kit.todayMove],
-    ["Stream move", kit.streamMove],
-    ["Proof checkpoint", kit.proofCheckpoint],
-    ["Shutdown", kit.shutdown],
+    ["Next move", kit.todayMove],
+    ["Commands or script", kit.runCommand],
+    ["Verification", kit.proofCheckpoint],
+    ["Stop rule", kit.stopRule],
   ];
 
   return (
     <div className="module-action-kit">
       <div className="module-action-kit-header">
-        <span>Today kit</span>
+        <span>Run kit</span>
         <button type="button" onClick={onCopy}>
-          {copied ? "Copied action kit" : "Copy action kit"}
+          {copied ? "Copied run kit" : "Copy run kit"}
         </button>
       </div>
       <div className="module-action-kit-grid">
@@ -7069,13 +7111,13 @@ function formatModuleActionKit(module) {
   const kit = module.actionKit;
 
   return [
-    `${module.title} - Today Kit`,
+    `${module.title} - Run Kit`,
     "",
     `Timebox: ${kit.timebox}`,
-    `Today's move: ${kit.todayMove}`,
-    `Stream move: ${kit.streamMove}`,
-    `Proof checkpoint: ${kit.proofCheckpoint}`,
-    `Shutdown: ${kit.shutdown}`,
+    `Next move: ${kit.todayMove}`,
+    `Commands or script: ${kit.runCommand}`,
+    `Verification: ${kit.proofCheckpoint}`,
+    `Stop rule: ${kit.stopRule}`,
     "",
     `Starter prompt: ${module.lesson.starterPrompt}`,
   ].join("\n");
