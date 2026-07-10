@@ -14,13 +14,14 @@ The member area is a focused product workspace, not another brand spectacle. It 
 
 ## Information Architecture
 
-- Paid products never stack into one long page. Members with multiple entitlements switch between The Future Proof Method and New Wave Live Builds.
-- The Future Proof Method uses five explicit areas: Home, Course, Library, Proof, and Finish.
-- Home shows one next unfinished task. First-session onboarding appears only before the first task is complete.
-- Course has one five-module path. The former workbench and roadmap duplication was removed from the overview; full prompts, examples, checklists, and downloads remain inside each module.
-- Library is a searchable resource list rather than a dense card grid.
-- Proof keeps the receipt builder, with the generated receipt preview collapsed until requested.
-- Finish keeps completion criteria, capstone receipt, certificate, share pack, and future live-drop information.
+- Paid products never stack into one long page. Members with multiple entitlements switch between The Future Proof Method and New Wave Operator Bundle.
+- The Future Proof Method uses five explicit areas: Start, Build path, Script vault, Build log, and Ship.
+- Start shows one next unfinished task, a four-step first session, and one of three first-build tracks.
+- Build path has one five-module, 20-step implementation sequence. Full frameworks, examples, workshops, questions, and traps remain collapsed until requested inside each lesson.
+- Script vault is a searchable resource list rather than a dense card grid.
+- Build log keeps the implementation receipt builder, with the generated receipt preview collapsed until requested.
+- Ship keeps completion criteria, first-build handoff, certificate, and share pack.
+- Mobile shows all five workspace destinations at once; the global site navigation uses an explicit menu button.
 
 ## Authentication
 
