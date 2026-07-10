@@ -21,7 +21,9 @@ import {
   liveBuildsProduct,
   liveBuildSessionFlow,
 } from "./data/liveBuilds.js";
-import { MetricBoard, ProofStrip, ReceiptPreview, RouteHero } from "./components/public/ControlRoom.jsx";
+import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
+import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
+import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -1642,7 +1644,9 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
   return (
     <div className="public-site">
       <PublicNav activeRoute={knownRoute} />
-      {knownRoute === "/" && <PublicHome config={config} latest={latest} liveFollowers={liveFollowers} />}
+      {knownRoute === "/" && (
+        <PublicHome config={config} logs={logs} latest={latest} liveFollowers={liveFollowers} />
+      )}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
       {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
       {knownRoute === "/live" && (
@@ -1697,67 +1701,80 @@ function PublicNav({ activeRoute }) {
   );
 }
 
-function PublicHome({ config, latest, liveFollowers }) {
+function PublicHome({ config, logs, latest, liveFollowers }) {
   const mode = getPublicDataMode(config);
   const liveFollowerTotal = Number(liveFollowers?.total);
   const followerTotal = Number.isFinite(liveFollowerTotal) ? liveFollowerTotal : totalFollowers(latest);
-  const statusItems = [
-    { label: "Room", value: isPrelaunch(config) ? "Prelaunch" : "Live", note: isPrelaunch(config) ? config.startDate : `Day ${latest.day}` },
-    { label: "Target", value: config.publicGoalLabel, note: "Public bet" },
-    { label: "Latest receipt", value: `Day ${latest.day}`, note: latest.status },
-  ];
-  const proofItems = [
-    { label: "Revenue", value: formatCurrency(latest.revenueCollected), note: "collected", tone: "money" },
-    { label: "Followers", value: formatNumber(followerTotal), note: liveFollowers?.checkedAt ? "live ticker" : "daily log" },
-    { label: "Email list", value: formatNumber(latest.emailSubscribers), note: "subscribers" },
-    { label: "Builds", value: formatNumber(latest.buildsShipped), note: "shipped" },
-    { label: "Clips", value: formatNumber(latest.clipsPosted), note: "posted" },
+  const operatorLoop = [
+    { step: "01", title: "Build", body: "Turn one real problem into a working AI-assisted product." },
+    { step: "02", title: "Prove", body: "Capture the before, the failure, the working state, and the receipt." },
+    { step: "03", title: "Broadcast", body: "Turn the work into streams, clips, daily recaps, and public pressure." },
+    { step: "04", title: "Monetize", body: "Move the proof into an offer and let the scoreboard judge the result." },
   ];
 
   return (
-    <main className="public-page control-room-page">
-      <RouteHero
-        label="Launches July 28, 2026"
-        title="60 days. One public AI operator sprint."
-        body="My family is overseas for two months. I am using that window to stream the grind: builds, numbers, wins, crashes, product drops, and the scoreboard that keeps the whole thing honest."
-        primaryAction={{ href: "/live", label: "Open live room" }}
-        secondaryAction={{ href: "/60", label: "View scoreboard" }}
-        statusItems={statusItems}
-      >
-        <div className="proof-monitor">
-          <div className="hero-card-top">
-            <span>{isPrelaunch(config) ? "Command Center Preview" : "Command Center"}</span>
-            <strong>{isPrelaunch(config) ? `Preview Day ${latest.day}` : `Day ${latest.day} / ${config.totalDays}`}</strong>
-          </div>
-          <CommandOverlay
-            config={config}
-            latest={latest}
-            logs={seedLogs}
-            preview={isPrelaunch(config)}
-            liveFollowers={liveFollowers}
-          />
+    <main className="experience-page">
+      <ExperienceHero
+        activeDay={latest.day}
+        totalDays={config.totalDays}
+        phaseLabel={isPrelaunch(config) ? "Prelaunch" : "Live now"}
+        dateLabel={isPrelaunch(config) ? `Live ${config.startDate}` : `Day ${latest.day} transmitting`}
+        goalLabel={config.publicGoalLabel}
+        followerLabel={formatNumber(followerTotal)}
+        revenueLabel={formatCurrency(latest.revenueCollected)}
+        primaryAction={{ href: "/live", label: isPrelaunch(config) ? "Enter the live room" : "Watch live" }}
+        secondaryAction={{ href: "/60", label: "Inspect the scoreboard" }}
+      />
+
+      <InteractiveProofline
+        logs={logs}
+        latest={latest}
+        totalDays={config.totalDays}
+        preview={isPrelaunch(config)}
+      />
+
+      <section className="broadcast-manifesto">
+        <div className="broadcast-manifesto-number" aria-hidden="true">
+          <strong>60</strong>
+          <span>DAYS<br />ON THE CLOCK</span>
         </div>
-      </RouteHero>
-
-      {isPrelaunch(config) && (
-        <div className="prelaunch-inline control-prelaunch-note">
-          <strong>{mode.label}</strong>
-          <span>{mode.body}</span>
+        <div className="broadcast-manifesto-copy">
+          <span>The premise</span>
+          <h2>My family gets the summer. I get sixty days to change the trajectory.</h2>
+          <p>
+            From the airport drop-off until they return, the work stays visible: the code, the ideas, the
+            mistakes, the products, the sales, and the numbers that decide whether any of it mattered.
+          </p>
+          <blockquote>
+            "The scoreboard is not here for motivation. It is here so the story cannot lie."
+          </blockquote>
         </div>
-      )}
+      </section>
 
-      <ProofStrip items={proofItems} />
+      <section className="operator-loop-section" aria-labelledby="operator-loop-title">
+        <header>
+          <span>THE ENGINE</span>
+          <h2 id="operator-loop-title">Every day runs the same unforgiving loop.</h2>
+          <p>{mode.body}</p>
+        </header>
+        <div className="operator-loop-track">
+          {operatorLoop.map((item) => (
+            <article key={item.step}>
+              <span>{item.step}</span>
+              <strong>{item.title}</strong>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-      <section className="public-section two-col">
+      <section className="experience-final-call">
+        <span>THE NEXT INTERNET BOOM IS ALREADY MOVING</span>
+        <h2>Do not watch from the sidelines.</h2>
         <div>
-          <span className="public-label">Why this is different</span>
-          <h2>The scoreboard is the main character.</h2>
+          <a className="experience-primary-action" href="/start">Join the build log <span aria-hidden="true">↗</span></a>
+          <a className="experience-secondary-action" href="/kit">Open The Future Proof Method</a>
         </div>
-        <p>
-          Every day gets logged: revenue, followers, email list growth, hours streamed, clips posted,
-          builds shipped, best moment, biggest failure, lesson learned, and tomorrow's promise.
-          The final Day 60 recap will already be built because the proof deck grows one day at a time.
-        </p>
       </section>
     </main>
   );
@@ -1774,34 +1791,60 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
     progress: percent(item.value, item.goal),
     note: item.accent === "blue" ? "output signal" : "goal track",
   }));
-  const statusItems = [
-    { label: "Status", value: isPrelaunch(config) ? "Prelaunch" : "Live", note: mode.label },
-    { label: "Logged day", value: `Day ${latest.day}`, note: `${config.totalDays} day sprint` },
-    { label: "Main bet", value: config.publicGoalLabel, note: "scoreboard pressure" },
-  ];
 
   return (
-    <main className="public-page control-room-page">
-      <RouteHero
-        label="Public Command Center"
-        title="Every number has to survive the scoreboard."
-        body="Preview data is loaded until the sprint begins. On Day 1, this becomes the public record for the 60-day AI operator sprint."
-        primaryAction={{ href: `/day/${latest.day}`, label: "Open latest receipt" }}
-        secondaryAction={{ href: "/live", label: "Open live room" }}
-        statusItems={statusItems}
-      >
-        <div className="score-day">
-          <span>{isPrelaunch(config) ? "Preview Day" : "Day"}</span>
-          <strong>{latest.day}</strong>
-          <em>{isPrelaunch(config) ? `Live starts ${config.startDate}` : `/ ${config.totalDays}`}</em>
+    <main className="public-page control-room-page scoreboard-experience-page">
+      <section className="scoreboard-arena">
+        <div className="broadcast-ident">
+          <span className="broadcast-live-state"><i />{isPrelaunch(config) ? "Prelaunch board" : "Live board"}</span>
+          <span>{mode.label}</span>
+          <span>Last receipt: Day {latest.day}</span>
         </div>
-      </RouteHero>
+        <div className="scoreboard-arena-layout">
+          <div>
+            <span className="scoreboard-kicker">Public command center</span>
+            <h1>The scoreboard has no mercy.</h1>
+            <p>
+              Every number, spike, failure, and shipped build stays attached to a daily receipt. The
+              public record gets the final word.
+            </p>
+            <div className="experience-actions">
+              <a className="experience-primary-action" href={`/day/${latest.day}`}>Open latest receipt <span aria-hidden="true">↗</span></a>
+              <a className="experience-secondary-action" href="/live">Enter the live room</a>
+            </div>
+          </div>
+          <div className="scoreboard-day-monument">
+            <span>{isPrelaunch(config) ? "Preview day" : "Current day"}</span>
+            <strong>{String(latest.day).padStart(2, "0")}</strong>
+            <em>/ {String(config.totalDays).padStart(2, "0")}</em>
+            <p>{config.publicGoalLabel}</p>
+          </div>
+        </div>
+      </section>
 
       {isPrelaunch(config) && <PrelaunchBanner mode={mode} />}
 
-      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
+      <section className="broadcast-metric-board" aria-label="Sprint metrics">
+        {metricBoardItems.map((item) => (
+          <article key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <div aria-label={`${item.progress}% complete`}>
+              <i style={{ width: `${Math.max(0, Math.min(100, item.progress))}%` }} />
+            </div>
+            <em>{item.note}</em>
+          </article>
+        ))}
+      </section>
 
-      <MetricBoard items={metricBoardItems} />
+      <InteractiveProofline
+        logs={logs}
+        latest={latest}
+        totalDays={config.totalDays}
+        preview={isPrelaunch(config)}
+      />
+
+      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
 
       <section className="public-dashboard-grid">
         <article className="panel public-sprint-card">
@@ -2037,27 +2080,35 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
   const primaryLabel = streamConfig?.primary?.configured ? "Open live room" : "Join build log";
 
   return (
-    <main className="public-page">
-      <section className="live-hero">
-        <div>
-          <span className="public-label">Live hub</span>
-          <h1>This is the stream, not a webinar.</h1>
+    <main className="public-page live-experience-page">
+      <section className="live-broadcast-stage">
+        <div className="live-broadcast-copy">
+          <div className="broadcast-ident">
+            <span className="broadcast-live-state"><i />{streamConfig?.statusLabel || "Prelaunch room"}</span>
+            <span>Day {latest.day} transmission</span>
+            <span>YouTube + Twitch</span>
+          </div>
+          <span className="scoreboard-kicker">Live hub</span>
+          <h1>The stream is the show.</h1>
           <p>
-            The main live link drops here before Day 1. Until then, this page defines the show:
-            scoreboard pressure, AI-assisted builds, product drops, clip pulls, and honest resets when
-            something breaks.
+            Not a webinar. Not a polished workshop. This is the live operating room: scoreboard pressure,
+            AI-assisted builds, product drops, clip pulls, and honest resets when something breaks.
           </p>
-          <div className="hero-actions">
-            <a className="primary-link" href={primaryHref} target={streamConfig?.primary?.external ? "_blank" : undefined} rel="noreferrer">
+          <div className="experience-actions">
+            <a className="experience-primary-action" href={primaryHref} target={streamConfig?.primary?.external ? "_blank" : undefined} rel="noreferrer">
               {primaryLabel}
+              <span aria-hidden="true">↗</span>
             </a>
-            <a className="secondary-link" href="/60">
-              Open scoreboard
+            <a className="experience-secondary-action" href="/60">
+              Inspect the scoreboard
             </a>
           </div>
         </div>
-        <aside className="live-signal-panel">
-          <span>Stream status</span>
+        <aside className="live-control-tower">
+          <div>
+            <span>Signal status</span>
+            <em>{streamConfigStatus === "local" ? "Fallback source" : "Primary source"}</em>
+          </div>
           <strong>{streamConfig?.statusLabel || "Prelaunch room"}</strong>
           <p>{streamConfig?.message || fallbackStreamConfig.message}</p>
           {streamConfigStatus === "local" && <p className="panel-note">Local stream fallback is showing.</p>}
@@ -2067,9 +2118,27 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
             ))}
           </div>
         </aside>
+        <BroadcastTicker items={["LIVE BUILD", "CHAT PICKS THE PRESSURE", "EVERY RESULT GETS A RECEIPT", "NO GURU EDITS"]} />
       </section>
 
       <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
+
+      <section className="live-mission-board" aria-label={`Day ${latest.day} live mission`}>
+        <div>
+          <span>Day</span>
+          <strong>{String(latest.day).padStart(2, "0")}</strong>
+        </div>
+        <article>
+          <span>Current build target</span>
+          <strong>{latest.mainGoal}</strong>
+          <p>{latest.tomorrowPromise}</p>
+        </article>
+        <article>
+          <span>Receipt to capture</span>
+          <strong>{latest.proofAssets?.[0] || "Working-state proof"}</strong>
+          <a href={`/day/${latest.day}`}>Open today's receipt <span aria-hidden="true">↗</span></a>
+        </article>
+      </section>
 
       <section className="public-section stream-command-section">
         <div>

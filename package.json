@@ -23,14 +23,20 @@
     "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push"
   },
   "dependencies": {
+    "@fontsource-variable/archivo": "^5.2.8",
+    "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.89.0",
     "@vitejs/plugin-react": "^5.1.1",
     "express": "^5.2.1",
-    "vite": "^7.2.7",
+    "motion": "^12.42.2",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "resend": "^6.6.0",
-    "stripe": "^22.2.0"
+    "stripe": "^22.2.0",
+    "three": "^0.185.1",
+    "vite": "^7.2.7"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
 }

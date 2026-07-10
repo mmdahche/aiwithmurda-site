@@ -9,7 +9,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react")) return "react";
+          if (id.includes("@react-three/fiber") || id.includes("/three/")) return "three";
+          if (id.includes("/react/") || id.includes("/react-dom/") || id.includes("/scheduler/")) return "react";
           if (id.includes("@supabase")) return "supabase";
           return "vendor";
         },
