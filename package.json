@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:api": "PORT=8787 node --watch server/index.mjs",
-    "prebuild": "npm run assets:member && npm run assets:toolkit",
+    "prebuild": "npm run assets:member && npm run assets:toolkit && npm run assets:store",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview --host 127.0.0.1",
@@ -23,6 +23,8 @@
     "smoke:launch": "node scripts/smoke-launch.mjs",
     "assets:member": "node scripts/build-member-assets.mjs",
     "assets:toolkit": "node scripts/build-operator-toolkit-assets.mjs",
+    "assets:store": "node scripts/build-store-product-assets.mjs",
+    "verify:products": "node scripts/verify-product-folder.mjs products/council-decision-engine products/skill-authoring-kit",
     "sync:seed-logs": "node scripts/sync-seed-logs.mjs",
     "baseline:launch": "node scripts/sync-launch-baseline.mjs",
     "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push",

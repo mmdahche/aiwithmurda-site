@@ -24,8 +24,6 @@ import {
   courseCompletion,
   firstBuildTracks,
   memberOnboardingSteps,
-  productAssetHighlights,
-  productFaqItems,
   productKey,
   productModules,
   productName,
@@ -54,6 +52,8 @@ import {
 import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
+import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
+import { KitPage } from "./pages/KitPage.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -62,7 +62,6 @@ import {
   createOperatorUpdatesCheckout,
   createOperatorBundleCheckout,
   createTestPurchaseCheckout,
-  createFutureMethodCheckout,
   disconnectSocialAccount,
   downloadOperatorBundleAsset,
   downloadOperatorToolkitAsset,
@@ -198,28 +197,6 @@ function escapeCertificateHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-
-const offerStack = [
-  {
-    title: productName,
-    price: "$47",
-    status: "Starter course",
-    description: "Set up Claude Code and Codex, install three starter skills, and ship one verified first build.",
-  },
-  {
-    title: operatorBundleProduct.name,
-    price: operatorBundleProduct.priceLabel,
-    status: operatorBundleProduct.status,
-    description: operatorBundleProduct.promise,
-    href: "/live-builds",
-  },
-  {
-    title: "Implementation Sprint",
-    price: "$2.5K+",
-    status: "Case-study gated",
-    description: "A scoped business workflow built, tested, trained, and handed off after a real audit.",
-  },
-];
 
 const buildLogReceipts = [
   "Scoreboard movement",
@@ -1697,7 +1674,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       )}
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
-      {knownRoute === "/kit" && <StarterKitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/kit" && <KitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/live-builds" && <OperatorBundlePage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/operator-toolkit" && <OperatorToolkitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
@@ -2622,147 +2599,6 @@ function StartPage() {
             <p>{item.body}</p>
           </article>
         ))}
-      </section>
-    </main>
-  );
-}
-
-function StarterKitPage({ authSession, authReady }) {
-  const checkoutState = new URLSearchParams(window.location.search).get("checkout");
-
-  return (
-    <main className="public-page">
-      <section className="public-section product-hero">
-        <div>
-          <span className="public-label">Claude Code + Codex starter course · $47</span>
-          <h1>{productName}</h1>
-          <p>
-            {productSubtitle}: go from uncertain at the terminal to an AI-ready project, three reusable
-            starter skills, and one useful build you can verify and continue.
-          </p>
-          {checkoutState === "cancel" && (
-            <p className="form-message">
-              Checkout was canceled. Your profile is still safe; you can restart whenever you are ready.
-            </p>
-          )}
-          <div className="hero-actions">
-            <a className="primary-link" href="/members">Preview member area</a>
-            <a className="secondary-link" href="/start">Join the build log</a>
-          </div>
-        </div>
-        <aside className="price-card">
-          <span>Starter tier</span>
-          <strong>$47</strong>
-          <p>Five guided modules, core prompt scripts, three starter skills, project templates, and a real member profile.</p>
-          <CheckoutButton authSession={authSession} authReady={authReady} />
-        </aside>
-      </section>
-
-      <section className="public-cards">
-        {offerStack.map((offer) => (
-          <article key={offer.title} className="tool-card">
-            <span>{offer.status}</span>
-            <h2>{offer.title}</h2>
-            <p>{offer.description}</p>
-            <strong className="card-price">{offer.price}</strong>
-            {offer.href && (
-              <a className="text-link" href={offer.href}>
-                Preview offer
-              </a>
-            )}
-          </article>
-        ))}
-      </section>
-
-      <section className="public-section two-col kit-proof-section">
-        <div>
-          <span className="public-label">What you get</span>
-          <h2>A first-build path, not a pile of AI tutorials.</h2>
-        </div>
-        <div className="kit-module-list">
-          {productModules.map((module) => (
-            <article key={module.title}>
-              <strong>{module.title}</strong>
-              <p>{module.body}</p>
-              <span className="kit-module-output">Output: {module.lesson.output}</span>
-              <ul className="kit-deliverable-list">
-                {module.lesson.deliverables.slice(0, 2).map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <ul className="module-todo-list">
-                {module.todos.map((todo) => (
-                  <li key={todo.key}>
-                    <ModuleTodoCopy todo={todo} />
-                  </li>
-                ))}
-              </ul>
-              <em className="module-done">Done: {module.done}</em>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="public-section kit-assets-section">
-        <div>
-          <span className="public-label">Member assets</span>
-          <h2>The scripts and skills behind the workflow.</h2>
-          <p>
-            The portal reveals the exact download tied to the current module. The full library stays available,
-            but it no longer competes with the next action.
-          </p>
-        </div>
-        <div className="kit-asset-list">
-          {productAssetHighlights.map((asset) => (
-            <article key={asset.title}>
-              <strong>{asset.title}</strong>
-              <p>{asset.body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="public-section kit-onboarding-section">
-        <div>
-          <span className="public-label">After you buy</span>
-          <h2>Your first build has rails.</h2>
-          <p>
-            The member hub and onboarding emails take you through tool setup, project context, the operator loop,
-            starter skills, and a verified first ship.
-          </p>
-        </div>
-        <div className="kit-onboarding-list">
-          {buyerOnboardingEmails.map((email) => (
-            <article key={email.key}>
-              <span>{email.day}</span>
-              <strong>{email.subject}</strong>
-              <p>{email.goal}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="public-section kit-faq-section">
-        <div>
-          <span className="public-label">Before you buy</span>
-          <h2>Know exactly what this teaches.</h2>
-          <p>
-            The public 60-day challenge is Murad's content series. The paid course teaches you how to use
-            Claude Code and Codex to complete your own useful builds.
-          </p>
-        </div>
-        <div className="kit-faq-list">
-          {productFaqItems.map((item) => (
-            <article key={item.question}>
-              <strong>{item.question}</strong>
-              <p>{item.answer}</p>
-            </article>
-          ))}
-        </div>
-        <div className="kit-final-cta">
-          <strong>Ready to ship your first verified build?</strong>
-          <CheckoutButton authSession={authSession} authReady={authReady} />
-        </div>
       </section>
     </main>
   );
@@ -4025,37 +3861,6 @@ function AuthPanel() {
         </form>
       </div>
     </section>
-  );
-}
-
-function CheckoutButton({ authSession, authReady }) {
-  const [status, setStatus] = useState("idle");
-  const [message, setMessage] = useState("");
-
-  async function handleCheckout() {
-    if (!authSession?.access_token) {
-      window.location.href = "/members";
-      return;
-    }
-
-    setStatus("loading");
-    setMessage("");
-    try {
-      const data = await createFutureMethodCheckout(authSession.access_token);
-      window.location.href = data.url;
-    } catch (error) {
-      setStatus("error");
-      setMessage(error.message || "Checkout is not wired yet.");
-    }
-  }
-
-  return (
-    <div className="checkout-box">
-      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
-        {authSession ? (status === "loading" ? "Opening Stripe..." : "Buy for $47") : "Create profile to buy"}
-      </button>
-      {message && <p className="form-message error">{message}</p>}
-    </div>
   );
 }
 

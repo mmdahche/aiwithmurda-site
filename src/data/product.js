@@ -524,6 +524,15 @@ export const buyerOnboardingEmails = [
 ];
 
 export const productAssetHighlights = [
+  {
+    title: "The Council — 5-Advisor Decision Engine",
+    body: "The standalone decision tool sold on its own: five models argue your call, anonymized peer review grades them, your session rules. Included in full.",
+  },
+  {
+    title: "Skill Authoring Kit",
+    body: "Also a standalone product, included in full: mint your own skills instead of collecting other people's — templates, the description drill, and validation loop.",
+  },
+  { title: "Daily Operator Checklist", body: "The one-page daily rhythm: 15/30/60-minute session tracks, verification gates, and the weekly review." },
   { title: "60-Minute Quickstart", body: "The exact beginner path from account choice to the first read-only inspection." },
   { title: "Install + Verify Pack", body: "Current setup links, version checks, platform notes, and a safe setup receipt." },
   { title: "Dual-Agent Project Starter", body: "Project brief, AGENTS.md, CLAUDE.md, .gitignore, and baseline templates." },
@@ -549,7 +558,7 @@ export const productFaqItems = [
   {
     question: "What is included at $47?",
     answer:
-      "The complete five-module starter course, core prompt scripts, three starter skills, project templates, first-build tracks, troubleshooting, progress tracking, and completion tools.",
+      "The complete five-module starter system, core prompt scripts, three starter skills, project templates, first-build tracks, troubleshooting, progress tracking, completion tools — plus two full standalone tools included at no extra cost: The Council decision engine and the Skill Authoring Kit, with the Daily Operator Checklist.",
   },
   {
     question: "What does the Operator Bundle add?",

@@ -214,6 +214,15 @@ try {
   if (!productAssets.some((asset) => asset.key === "course-completion-kit")) {
     throw new Error(`Course completion kit asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
   }
+  if (!productAssets.some((asset) => asset.key === "council-decision-engine")) {
+    throw new Error(`Council decision engine asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "skill-authoring-kit")) {
+    throw new Error(`Skill authoring kit asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
+  if (!productAssets.some((asset) => asset.key === "daily-operator-checklist")) {
+    throw new Error(`Daily operator checklist asset was not exposed on profile: ${JSON.stringify(productAssets)}`);
+  }
   const operatorBundle = profile.data?.operatorBundle;
   if (
     operatorBundle?.key !== "new_wave_live_builds" ||
@@ -538,6 +547,37 @@ try {
   if (!firstBuildLabResponse.ok || !firstBuildLabText.includes("First Build Lab") || !firstBuildLabText.includes("Track C - Automate a workflow")) {
     throw new Error(
       `First Build Lab download failed: ${firstBuildLabResponse.status} ${firstBuildLabText.slice(0, 120)}`,
+    );
+  }
+  const dailyChecklistResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/daily-operator-checklist`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const dailyChecklistText = await dailyChecklistResponse.text();
+  if (
+    !dailyChecklistResponse.ok ||
+    !dailyChecklistText.includes("The Daily Operator Checklist") ||
+    !dailyChecklistText.includes("Verification gates")
+  ) {
+    throw new Error(
+      `Daily operator checklist download failed: ${dailyChecklistResponse.status} ${dailyChecklistText.slice(0, 120)}`,
+    );
+  }
+  const councilZipResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/council-decision-engine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const councilZipBytes = new Uint8Array(await councilZipResponse.arrayBuffer());
+  if (!councilZipResponse.ok || councilZipBytes.length < 1000 || councilZipBytes[0] !== 0x50 || councilZipBytes[1] !== 0x4b) {
+    throw new Error(
+      `Council decision engine ZIP download failed: ${councilZipResponse.status} ${councilZipBytes.length} bytes`,
+    );
+  }
+  const authoringZipResponse = await fetch(`${siteUrl}/api/member-assets/future-proof-method/skill-authoring-kit`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const authoringZipBytes = new Uint8Array(await authoringZipResponse.arrayBuffer());
+  if (!authoringZipResponse.ok || authoringZipBytes.length < 1000 || authoringZipBytes[0] !== 0x50 || authoringZipBytes[1] !== 0x4b) {
+    throw new Error(
+      `Skill authoring kit ZIP download failed: ${authoringZipResponse.status} ${authoringZipBytes.length} bytes`,
     );
   }
 

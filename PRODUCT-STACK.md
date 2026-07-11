@@ -205,7 +205,8 @@ Gated assets:
 
 - Future Proof Method assets are served through `GET /api/member-assets/future-proof-method/:assetKey`.
 - The endpoint requires a valid Supabase session and either an active `future_proof_method` or bundle entitlement.
-- Current assets: 60-Minute Quickstart, Install + Verify Pack, Dual-Agent Project Starter, Core Prompt Scripts, Starter Skill Pack, First Build Lab, Verification + Handoff Checklist, Troubleshooting Guide, Module Roadmap, Module Field Guide, Course Workbook, and Completion Kit.
+- Current assets: The Council — 5-Advisor Decision Engine (ZIP), Skill Authoring Kit (ZIP), Daily Operator Checklist, 60-Minute Quickstart, Install + Verify Pack, Dual-Agent Project Starter, Core Prompt Scripts, Starter Skill Pack, First Build Lab, Verification + Handoff Checklist, Troubleshooting Guide, Module Roadmap, Module Field Guide, Course Workbook, and Completion Kit.
+- The Council and Skill Authoring Kit are store product folders under `products/`, zipped by `npm run assets:store` during prebuild after passing `npm run verify:products` (manifest-vs-disk, secret scan, forbidden-source scan). Product content changes go in `products/<slug>/`, never directly in `server/member-assets/`.
 - New Wave Operator Bundle assets use the compatibility endpoint `GET /api/member-assets/new-wave-live-builds/:assetKey`.
 - The bundle endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
 - Current bundle assets: Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.

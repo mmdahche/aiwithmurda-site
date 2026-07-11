@@ -33,6 +33,11 @@ Includes:
 - Verification and handoff checklist
 - Troubleshooting guide
 - Progress tracking and completion exports
+- The Council — 5-Advisor Decision Engine (full standalone product folder, ZIP)
+- Skill Authoring Kit (full standalone product folder, ZIP)
+- Daily Operator Checklist
+
+The two bundled product folders live under `products/` with their own README, INDEX, LICENSE, CHANGELOG, and VERIFY files, are validated by `scripts/verify-product-folder.mjs`, and are zipped into gated member assets by `scripts/build-store-product-assets.mjs` (see `PRODUCT-LINE-SPEC.md` for the full catalog plan).
 
 ### New Wave Operator Bundle - $97
 

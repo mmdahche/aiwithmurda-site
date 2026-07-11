@@ -1,5 +1,34 @@
 export const coreMemberAssets = [
   {
+    key: "council-decision-engine",
+    title: "The Council — 5-Advisor Decision Engine",
+    kind: "Tool · ZIP",
+    description:
+      "Five AI models argue your decision from five opposing lenses, five anonymized reviewers grade them, your session synthesizes the verdict. ~5 seconds, $0 per run on a free Groq key.",
+    fileName: "council-decision-engine.zip",
+    downloadName: "council-decision-engine.zip",
+    mimeType: "application/zip",
+  },
+  {
+    key: "skill-authoring-kit",
+    title: "Skill Authoring Kit",
+    kind: "Kit · ZIP",
+    description:
+      "The authoring discipline behind a 270+ skill library: write skills your agent reliably finds and fires, with templates, the description drill, placement guide, and two installable worked examples.",
+    fileName: "skill-authoring-kit.zip",
+    downloadName: "skill-authoring-kit.zip",
+    mimeType: "application/zip",
+  },
+  {
+    key: "daily-operator-checklist",
+    title: "Daily Operator Checklist",
+    kind: "Rhythm",
+    description: "The one-page daily rhythm: 15/30/60-minute session tracks, verification gates, bad-output protocol, and the weekly review.",
+    fileName: "daily-operator-checklist.md",
+    downloadName: "future-proof-method-daily-operator-checklist.md",
+    mimeType: "text/markdown; charset=utf-8",
+  },
+  {
     key: "quickstart",
     title: "60-Minute Quickstart",
     kind: "Start here",
