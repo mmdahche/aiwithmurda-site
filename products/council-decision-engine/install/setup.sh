@@ -30,7 +30,7 @@ cp "$PAYLOAD"/advisors/*.md "$TARGET/advisors/"
 cp "$PAYLOAD"/reviewers/*.md "$TARGET/reviewers/"
 
 if [[ ! -f "$TARGET/.secrets/groq.env" ]]; then
-    cp "$PAYLOAD/.secrets/groq.env.example" "$TARGET/.secrets/groq.env.example"
+    cp "$PAYLOAD/groq.env.example" "$TARGET/.secrets/groq.env.example"
     echo ""
     echo "NEXT STEP (manual, one time):"
     echo "  1. Get a free key: https://console.groq.com/keys"

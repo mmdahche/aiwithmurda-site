@@ -32,7 +32,7 @@ Follow `00-START-HERE.md`.
 | `payload/council/council.sh` | Wrapper that loads your key and dispatches |
 | `payload/council/advisors/` | The 5 advisor system prompts (tuned, incl. the anti-"demand a glossary" Outsider fix) |
 | `payload/council/reviewers/` | The anonymized peer-review prompt |
-| `payload/council/.secrets/groq.env.example` | Key template — never commit the real one |
+| `payload/council/groq.env.example` | Key template — setup.sh copies it into `~/.council/.secrets/`; never commit the real one |
 | `payload/framing-template.md` | Fill this before every run; framing quality = verdict quality |
 | `payload/companions/office-hours.md` | Companion skill: 6 forcing questions BEFORE an idea becomes a plan |
 | `payload/companions/grill.md` | Companion skill: Socratic interrogation of a plan that exists |

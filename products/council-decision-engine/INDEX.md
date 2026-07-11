@@ -15,13 +15,13 @@ wrong — email murad@aiwithmurda.com.
 - `LICENSE`
 - `payload/companions/grill.md`
 - `payload/companions/office-hours.md`
-- `payload/council/.secrets/groq.env.example`
 - `payload/council/advisors/01-contrarian.md`
 - `payload/council/advisors/02-first-principles.md`
 - `payload/council/advisors/03-expansionist.md`
 - `payload/council/advisors/04-outsider.md`
 - `payload/council/advisors/05-executor.md`
 - `payload/council/council.sh`
+- `payload/council/groq.env.example`
 - `payload/council/reviewers/peer-review-prompt.md`
 - `payload/council/runner.py`
 - `payload/framing-template.md`
