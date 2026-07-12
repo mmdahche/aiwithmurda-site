@@ -241,6 +241,9 @@ try {
   if (!operatorBundle.assets.some((asset) => asset.key === "safe-autonomy-guardrails")) {
     throw new Error(`Safe-autonomy guardrails missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
+  if (!operatorBundle.assets.some((asset) => asset.key === "verification-qa-pack")) {
+    throw new Error(`Verification QA pack missing: ${JSON.stringify(operatorBundle.assets)}`);
+  }
   if (!operatorBundle.assets.some((asset) => asset.key === "deployment-runbook")) {
     throw new Error(`Deployment runbook missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
@@ -472,6 +475,15 @@ try {
   ) {
     throw new Error(
       `Safe-autonomy guardrails ZIP download failed: ${guardrailsZipResponse.status} ${guardrailsZipBytes.length} bytes`,
+    );
+  }
+  const qaPackZipResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/verification-qa-pack`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const qaPackZipBytes = new Uint8Array(await qaPackZipResponse.arrayBuffer());
+  if (!qaPackZipResponse.ok || qaPackZipBytes.length < 1000 || qaPackZipBytes[0] !== 0x50 || qaPackZipBytes[1] !== 0x4b) {
+    throw new Error(
+      `Verification QA pack ZIP download failed: ${qaPackZipResponse.status} ${qaPackZipBytes.length} bytes`,
     );
   }
   const blueprintsResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/project-blueprints`, {

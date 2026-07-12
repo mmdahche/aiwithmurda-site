@@ -150,6 +150,16 @@ export const operatorBundleAssets = [
     mimeType: "application/zip",
   },
   {
+    key: "verification-qa-pack",
+    title: "Verification & QA Pack",
+    kind: "Tool · ZIP",
+    description:
+      "Six disciplines that make 'it works' mean something: the no-claims-without-evidence gate, state-sequence dead-button audits, AI blind-spot testing, browser QA with a fix loop, report-only QA, and ranked test-gap detection.",
+    fileName: "verification-qa-pack.zip",
+    downloadName: "verification-qa-pack.zip",
+    mimeType: "application/zip",
+  },
+  {
     key: "operator-skill-vault",
     title: "Operator Skill Vault",
     kind: "8 skills",

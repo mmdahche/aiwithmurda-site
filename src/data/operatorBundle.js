@@ -37,6 +37,7 @@ export const operatorBundlePath = [
 export const operatorBundleDeliverables = [
   "Everything in The Future Proof Method starter course.",
   "Safe-Autonomy Guardrails: the fail-closed safety layer for running agents unattended (firewall, six guards, enforcement hooks, test suites).",
+  "Verification & QA Pack: six disciplines that make 'done' provable — claim gating, dead-button audits, blind-spot testing, browser QA, gap detection.",
   "Eight-skill Operator Vault with installation and safety notes.",
   "Advanced prompt scripts for audits, refactors, migrations, and recovery.",
   "Dual-agent builder and reviewer workflow.",

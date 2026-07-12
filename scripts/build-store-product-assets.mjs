@@ -16,6 +16,7 @@ const STORE_PRODUCTS = [
   { slug: "council-decision-engine", zip: "council-decision-engine.zip" },
   { slug: "skill-authoring-kit", zip: "skill-authoring-kit.zip" },
   { slug: "safe-autonomy-guardrails", zip: "safe-autonomy-guardrails.zip" },
+  { slug: "verification-qa-pack", zip: "verification-qa-pack.zip" },
 ];
 
 const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);

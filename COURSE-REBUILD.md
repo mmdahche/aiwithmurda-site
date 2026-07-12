@@ -48,6 +48,7 @@ Outcome: repeat the core result across larger projects and client workflows with
 Includes everything in the $47 course plus:
 
 - Safe-Autonomy Guardrails (full standalone product folder, ZIP): egress redaction firewall, six local-agent guards, vault index, clipboard-only secret injection, destructive-command + freeze enforcement hooks, shipped test suites
+- Verification & QA Pack (full standalone product folder, ZIP): claim gating, state-sequence dead-button audits, AI blind-spot testing, browser QA with fix loop, ranked test-gap detection
 - Eight additional operator skills
 - Advanced prompt scripts
 - Dual-agent review loop
