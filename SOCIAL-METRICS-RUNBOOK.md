@@ -47,7 +47,7 @@ They are generated directly in Render. OAuth access and refresh tokens are encry
 - Account must be a professional Business or Creator account linked to a Facebook Page.
 - Render: `META_APP_ID`, `META_APP_SECRET`, `META_GRAPH_VERSION`
 - Redirect URI: `https://aiwithmurda.com/api/integrations/instagram/callback`
-- Permissions: `pages_show_list`, `instagram_basic`, `pages_read_engagement`
+- Permissions: `pages_show_list`, `instagram_basic`
 
 ### YouTube
 

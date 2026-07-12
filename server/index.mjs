@@ -1449,7 +1449,7 @@ async function exchangeInstagramLongLivedToken(accessToken) {
 
 async function resolveInstagramConnection(userAccessToken) {
   const config = getInstagramConfig();
-  const fields = "id,name,access_token,tasks,instagram_business_account";
+  const fields = "id,name,access_token,tasks";
   const response = await fetch(
     `https://graph.facebook.com/${config.graphVersion}/me/accounts?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(userAccessToken)}`,
   );
@@ -1461,16 +1461,37 @@ async function resolveInstagramConnection(userAccessToken) {
     throw error;
   }
 
-  const page = (data.data || []).find((item) => item.instagram_business_account?.id && item.access_token);
+  let page = null;
+  let lastLookupError = null;
+  for (const candidate of data.data || []) {
+    const pageResponse = await fetch(
+      `https://graph.facebook.com/${config.graphVersion}/${encodeURIComponent(candidate.id)}?fields=id,name,instagram_business_account&access_token=${encodeURIComponent(userAccessToken)}`,
+    );
+    const pageData = await pageResponse.json().catch(() => ({}));
+    if (!pageResponse.ok) {
+      lastLookupError = pageData;
+      continue;
+    }
+    if (pageData.instagram_business_account?.id) {
+      page = {
+        ...candidate,
+        name: pageData.name || candidate.name,
+        instagram_business_account: pageData.instagram_business_account,
+      };
+      break;
+    }
+  }
+
   if (!page) {
-    const error = new Error("instagram_professional_account_not_linked");
-    error.status = 409;
+    const error = new Error(lastLookupError?.error?.message || "instagram_professional_account_not_linked");
+    error.status = lastLookupError ? 502 : 409;
+    error.data = lastLookupError;
     throw error;
   }
 
   const instagramUserId = page.instagram_business_account.id;
   const profileResponse = await fetch(
-    `https://graph.facebook.com/${config.graphVersion}/${encodeURIComponent(instagramUserId)}?fields=id,username,name,followers_count,profile_picture_url&access_token=${encodeURIComponent(page.access_token)}`,
+    `https://graph.facebook.com/${config.graphVersion}/${encodeURIComponent(instagramUserId)}?fields=id,username,name,followers_count,profile_picture_url&access_token=${encodeURIComponent(userAccessToken)}`,
   );
   const profile = await profileResponse.json().catch(() => ({}));
   if (!profileResponse.ok) {
@@ -1480,7 +1501,7 @@ async function resolveInstagramConnection(userAccessToken) {
     throw error;
   }
 
-  return { page, profile };
+  return { page, profile, accessToken: userAccessToken };
 }
 
 async function refreshInstagramStoredTokenIfNeeded(token) {
@@ -1491,7 +1512,7 @@ async function refreshInstagramStoredTokenIfNeeded(token) {
   const longToken = await exchangeInstagramLongLivedToken(token.refresh_token);
   const connection = await resolveInstagramConnection(longToken.access_token);
   return storeIntegrationToken("instagram", {
-    access_token: connection.page.access_token,
+    access_token: connection.accessToken,
     refresh_token: longToken.access_token,
     token_type: "bearer",
     scope: token.scope,
@@ -1792,7 +1813,7 @@ function buildInstagramAuthorizationUrl() {
     client_id: config.appId,
     redirect_uri: config.redirectUri,
     response_type: "code",
-    scope: "pages_show_list,instagram_basic,pages_read_engagement",
+    scope: "pages_show_list,instagram_basic",
     state: signSocialOAuthState("instagram"),
   });
   return `https://www.facebook.com/${config.graphVersion}/dialog/oauth?${params.toString()}`;
@@ -1901,10 +1922,10 @@ async function completeSocialOAuthConnection(provider, code) {
     const longToken = await exchangeInstagramLongLivedToken(shortToken.access_token);
     const connection = await resolveInstagramConnection(longToken.access_token);
     await storeIntegrationToken(provider, {
-      access_token: connection.page.access_token,
+      access_token: connection.accessToken,
       refresh_token: longToken.access_token,
       token_type: "bearer",
-      scope: ["pages_show_list", "instagram_basic", "pages_read_engagement"],
+      scope: ["pages_show_list", "instagram_basic"],
       expires_at: longToken.expires_in
         ? new Date(Date.now() + Number(longToken.expires_in) * 1000).toISOString()
         : null,
@@ -1957,7 +1978,7 @@ function getSocialProviderSetup(provider) {
     return {
       oauthSupported: true,
       callbackUrl: getInstagramConfig().redirectUri,
-      requiredScopes: ["pages_show_list", "instagram_basic", "pages_read_engagement"],
+      requiredScopes: ["pages_show_list", "instagram_basic"],
       envKeys: ["META_APP_ID", "META_APP_SECRET", "META_GRAPH_VERSION"],
     };
   }
