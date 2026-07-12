@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-07-12_tiktok-production-review.md`](memory/2026-07-12_tiktok-production-review.md) - Verified Production URLs, read-only Login Kit review package, and current TikTok `In review` state.
 - [`memory/2026-07-10_public-broadcast-system.md`](memory/2026-07-10_public-broadcast-system.md) - Deployed public design system, protected production boundaries, and verification state.
 - [`memory/2026-07-10_member-operator-workspace.md`](memory/2026-07-10_member-operator-workspace.md) - Paid-member information architecture, authentication, and preserved functionality.
 - [`memory/2026-07-10_course-product-rebuild.md`](memory/2026-07-10_course-product-rebuild.md) - Locked Claude Code and Codex curriculum, product ladder, gated assets, Stripe setup, and verification state.
