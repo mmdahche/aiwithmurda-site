@@ -57,11 +57,11 @@ services:
         sync: false
       - key: TIKTOK_CLIENT_SECRET
         sync: false
-      - key: META_APP_ID
+      - key: INSTAGRAM_APP_ID
         sync: false
-      - key: META_APP_SECRET
+      - key: INSTAGRAM_APP_SECRET
         sync: false
-      - key: META_GRAPH_VERSION
+      - key: INSTAGRAM_GRAPH_VERSION
         value: v25.0
       - key: YOUTUBE_CLIENT_ID
         sync: false

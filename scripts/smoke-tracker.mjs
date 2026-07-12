@@ -69,7 +69,13 @@ if (
   !Array.isArray(socialStatus.data?.status?.providers) ||
   (siteUrl.startsWith("https://") && socialStatus.data?.status?.encryptionReady !== true) ||
   !socialStatus.data.status.providers.some((provider) => provider.key === "twitch" && provider.oauthSupported) ||
-  !socialStatus.data.status.providers.some((provider) => provider.key === "instagram" && provider.callbackUrl?.includes("/api/integrations/instagram/callback")) ||
+  !socialStatus.data.status.providers.some(
+    (provider) =>
+      provider.key === "instagram" &&
+      provider.callbackUrl?.includes("/api/integrations/instagram/callback") &&
+      provider.requiredScopes?.includes("instagram_business_basic") &&
+      provider.envKeys?.includes("INSTAGRAM_APP_ID"),
+  ) ||
   !socialStatus.data.status.providers.some((provider) => provider.key === "youtube" && provider.precision === "rounded")
 ) {
   throw new Error(`Social status failed: ${socialStatus.response.status} ${JSON.stringify(socialStatus.data)}`);

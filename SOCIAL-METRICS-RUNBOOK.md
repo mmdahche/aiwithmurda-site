@@ -44,10 +44,11 @@ They are generated directly in Render. OAuth access and refresh tokens are encry
 
 ### Instagram
 
-- Account must be a professional Business or Creator account linked to a Facebook Page.
-- Render: `META_APP_ID`, `META_APP_SECRET`, `META_GRAPH_VERSION`
+- Account must be a professional Business or Creator account.
+- Render: `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `INSTAGRAM_GRAPH_VERSION`
 - Redirect URI: `https://aiwithmurda.com/api/integrations/instagram/callback`
-- Permissions: `pages_show_list`, `instagram_basic`
+- Permission: `instagram_business_basic`
+- Login mode: Instagram Business Login. This does not depend on the Facebook Page or Meta Business Suite asset-login state.
 
 ### YouTube
 
