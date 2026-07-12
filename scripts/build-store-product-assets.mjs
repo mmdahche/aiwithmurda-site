@@ -15,12 +15,15 @@ const archiveEntryDate = new Date("2026-01-01T00:00:00.000Z");
 const STORE_PRODUCTS = [
   { slug: "council-decision-engine", zip: "council-decision-engine.zip" },
   { slug: "skill-authoring-kit", zip: "skill-authoring-kit.zip" },
+  { slug: "safe-autonomy-guardrails", zip: "safe-autonomy-guardrails.zip" },
 ];
+
+const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);
 
 async function walk(dir, base = dir) {
   const out = [];
   for (const entry of (await fs.readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
-    if (entry.name === ".DS_Store") continue;
+    if (IGNORED_NAMES.has(entry.name) || entry.name.endsWith(".pyc")) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) out.push(...(await walk(full, base)));
     else out.push(path.relative(base, full));

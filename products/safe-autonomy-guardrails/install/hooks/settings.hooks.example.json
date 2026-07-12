@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "_comment": "Always-on block list for irrecoverable shell operations (rm -rf, force-push to protected branches, chmod 777, dd, mkfs, curl|sh, npm publish, DROP TABLE, etc.).",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/destructive-command-guard.sh"
+          }
+        ]
+      },
+      {
+        "_comment": "Constrains file writes to the /freeze boundary directory when one is set in ~/.claude/state/freeze-<session>.txt. Absent boundary file = no restriction.",
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/freeze-path-guard.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

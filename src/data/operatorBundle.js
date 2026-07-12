@@ -18,6 +18,10 @@ export const operatorBundleProduct = {
 
 export const operatorBundleOutcomes = [
   { title: "The starter course is included", body: "Bundle access also unlocks all five beginner modules and core downloads." },
+  {
+    title: "Your agent becomes safe to trust",
+    body: "Safe-Autonomy Guardrails — a standalone product included in full — adds the fail-closed firewall, irreversible-action locks, and enforcement hooks for unattended runs.",
+  },
   { title: "Eight more skills", body: "Install focused workflows for planning, debugging, review, UI polish, deployment, and handoffs." },
   { title: "Advanced script library", body: "Use tested prompt structures for larger changes without giving the agent vague control." },
   { title: "Reusable build blueprints", body: "Start common small products and business workflows from bounded briefs instead of blank pages." },
@@ -32,6 +36,7 @@ export const operatorBundlePath = [
 
 export const operatorBundleDeliverables = [
   "Everything in The Future Proof Method starter course.",
+  "Safe-Autonomy Guardrails: the fail-closed safety layer for running agents unattended (firewall, six guards, enforcement hooks, test suites).",
   "Eight-skill Operator Vault with installation and safety notes.",
   "Advanced prompt scripts for audits, refactors, migrations, and recovery.",
   "Dual-agent builder and reviewer workflow.",

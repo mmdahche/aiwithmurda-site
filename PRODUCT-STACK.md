@@ -209,7 +209,7 @@ Gated assets:
 - The Council and Skill Authoring Kit are store product folders under `products/`, zipped by `npm run assets:store` during prebuild after passing `npm run verify:products` (manifest-vs-disk, secret scan, forbidden-source scan). Product content changes go in `products/<slug>/`, never directly in `server/member-assets/`.
 - New Wave Operator Bundle assets use the compatibility endpoint `GET /api/member-assets/new-wave-live-builds/:assetKey`.
 - The bundle endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
-- Current bundle assets: Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.
+- Current bundle assets: Safe-Autonomy Guardrails (ZIP, store product folder under `products/`), Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.
 - Operator Toolkit permanent assets use `GET /api/member-assets/operator-toolkit/:assetKey` and require `operator_toolkit` access.
 - The permanent library includes the 24-skill dual-layout ZIP, installation guide, command center, project instructions, dual-agent protocol, automation, design/QA, research/launch, client delivery, weekly review, and recovery systems.
 - Recurring release assets use `GET /api/member-assets/operator-updates/:assetKey` and require an active `operator_updates` entitlement.

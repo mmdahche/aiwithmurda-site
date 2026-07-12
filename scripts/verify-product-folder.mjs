@@ -42,11 +42,13 @@ const FORBIDDEN_SOURCES = [
 
 const TEXT_EXTENSIONS = new Set([".md", ".txt", ".sh", ".py", ".mjs", ".js", ".cjs", ".json", ".yaml", ".yml", ".example", ".env"]);
 
+const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);
+
 async function walk(dir, base = dir) {
   const out = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
-    if (entry.name === ".DS_Store") continue;
+    if (IGNORED_NAMES.has(entry.name) || entry.name.endsWith(".pyc")) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) out.push(...(await walk(full, base)));
     else out.push(path.relative(base, full));

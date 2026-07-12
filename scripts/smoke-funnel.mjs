@@ -238,6 +238,9 @@ try {
   if (!operatorBundle.assets.some((asset) => asset.key === "operator-skill-vault")) {
     throw new Error(`Operator skill vault missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
+  if (!operatorBundle.assets.some((asset) => asset.key === "safe-autonomy-guardrails")) {
+    throw new Error(`Safe-autonomy guardrails missing: ${JSON.stringify(operatorBundle.assets)}`);
+  }
   if (!operatorBundle.assets.some((asset) => asset.key === "deployment-runbook")) {
     throw new Error(`Deployment runbook missing: ${JSON.stringify(operatorBundle.assets)}`);
   }
@@ -455,6 +458,20 @@ try {
   ) {
     throw new Error(
       `Operator skill vault download failed: ${operatorVaultResponse.status} ${operatorVaultText.slice(0, 160)}`,
+    );
+  }
+  const guardrailsZipResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/safe-autonomy-guardrails`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const guardrailsZipBytes = new Uint8Array(await guardrailsZipResponse.arrayBuffer());
+  if (
+    !guardrailsZipResponse.ok ||
+    guardrailsZipBytes.length < 1000 ||
+    guardrailsZipBytes[0] !== 0x50 ||
+    guardrailsZipBytes[1] !== 0x4b
+  ) {
+    throw new Error(
+      `Safe-autonomy guardrails ZIP download failed: ${guardrailsZipResponse.status} ${guardrailsZipBytes.length} bytes`,
     );
   }
   const blueprintsResponse = await fetch(`${siteUrl}/api/member-assets/new-wave-live-builds/project-blueprints`, {

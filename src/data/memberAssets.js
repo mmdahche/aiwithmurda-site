@@ -140,6 +140,16 @@ export const coreMemberAssets = [
 
 export const operatorBundleAssets = [
   {
+    key: "safe-autonomy-guardrails",
+    title: "Safe-Autonomy Guardrails",
+    kind: "Tool · ZIP",
+    description:
+      "The fail-closed safety layer for unattended agents: egress redaction firewall, six local-agent guards, vault index, clipboard-only secret injection, and two enforcement hooks — with full test suites.",
+    fileName: "safe-autonomy-guardrails.zip",
+    downloadName: "safe-autonomy-guardrails.zip",
+    mimeType: "application/zip",
+  },
+  {
     key: "operator-skill-vault",
     title: "Operator Skill Vault",
     kind: "8 skills",
