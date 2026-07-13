@@ -212,7 +212,7 @@ Gated assets:
 - The bundle endpoint requires a valid Supabase session and an active `new_wave_live_builds` entitlement.
 - Current bundle assets: Safe-Autonomy Guardrails (ZIP, store product folder under `products/`), Verification & QA Pack (ZIP, store product folder), Operator Skill Vault, Advanced Prompt Scripts, Dual-Agent Review Loop, Debug Rescue System, Deployment Runbook, Reusable Project Blueprints, and Client Workflow Pack.
 - Operator Toolkit permanent assets use `GET /api/member-assets/operator-toolkit/:assetKey` and require `operator_toolkit` access.
-- The permanent library includes the 24-skill dual-layout ZIP, installation guide, command center, project instructions, dual-agent protocol, automation, design/QA, research/launch, client delivery, weekly review, and recovery systems.
+- The permanent library includes the three flagship store products as full ZIPs — The Three-Tier LLM Router (running code, 71 shipped tests), Memory OS, and The Operator Cycle (autonomous-operator-kit) — plus the 24-skill dual-layout ZIP, installation guide, command center, project instructions, dual-agent protocol, automation, design/QA, research/launch, client delivery, weekly review, and recovery systems.
 - Recurring release assets use `GET /api/member-assets/operator-updates/:assetKey` and require an active `operator_updates` entitlement.
 - The first update release includes four maintenance skills, a compatibility matrix, changelog, migration notes, verification receipt, and rollback guidance.
 - `npm run assets:member` regenerates the Module Roadmap and Module Field Guide from `src/data/product.js` so module deliverables, proof questions, traps, action kits, and task lists do not drift.

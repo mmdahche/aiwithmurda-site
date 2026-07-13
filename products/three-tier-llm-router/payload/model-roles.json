@@ -1,0 +1,16 @@
+{
+  "_comment": "Role -> model map for the 3-tier router. Loaded by lib/model-roles.cjs. Precedence at runtime: env var override > $ROUTER_HOME/model-roles.json (user file) > this bundled default > hardcoded fallback in each client. Copy this file to $ROUTER_HOME/model-roles.json to customize.",
+  "tiers": {
+    "tier1_local":     { "provider": "ollama",    "purpose": "chat / cheapest local inference",       "model": "qwen2.5:7b",                                                  "env_override": "TIER1_MODEL" },
+    "tier2_cheap":     { "provider": "groq",      "purpose": "cheap fast reasoning (default worker)", "model": "llama-3.3-70b-versatile",                                     "fallback_model": "llama-3.1-8b-instant",                                    "env_override": "TIER2_MODEL",             "fallback_env_override": "TIER2_FALLBACK_MODEL" },
+    "tier2b_overflow": { "provider": "fireworks", "purpose": "cheap overflow / deepseek reasoning",   "model": "accounts/fireworks/models/deepseek-v3",                       "fallback_model": "accounts/fireworks/models/llama-v3p1-70b-instruct",       "env_override": "FIREWORKS_PRIMARY_MODEL", "fallback_env_override": "FIREWORKS_FALLBACK_MODEL" },
+    "tier2c_cerebras": { "provider": "cerebras",  "purpose": "ultra-fast lane; opt-in via `cerebras` flag", "model": "llama-3.3-70b",                                          "fallback_model": "llama-3.1-8b",                                            "env_override": "CEREBRAS_PRIMARY_MODEL",  "fallback_env_override": "CEREBRAS_FALLBACK_MODEL" },
+    "tier3_precision": { "provider": "anthropic", "purpose": "hard-floor precision / orchestrator",   "model": "claude-opus-4-7",                                             "env_override": "TIER3_MODEL" }
+  },
+  "roles": {
+    "orchestrator":       "tier3_precision",
+    "worker":              "tier2_cheap",
+    "deepseek_reasoning": "tier2b_overflow",
+    "bookkeeping":        "tier1_local"
+  }
+}

@@ -17,6 +17,9 @@ const STORE_PRODUCTS = [
   { slug: "skill-authoring-kit", zip: "skill-authoring-kit.zip" },
   { slug: "safe-autonomy-guardrails", zip: "safe-autonomy-guardrails.zip" },
   { slug: "verification-qa-pack", zip: "verification-qa-pack.zip" },
+  { slug: "three-tier-llm-router", zip: "three-tier-llm-router.zip" },
+  { slug: "memory-os", zip: "memory-os.zip" },
+  { slug: "autonomous-operator-kit", zip: "autonomous-operator-kit.zip" },
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).

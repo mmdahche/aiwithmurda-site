@@ -58,6 +58,33 @@ export const storeProducts = [
     includedIn: { label: "Ships inside the Operator Bundle today", href: "/live-builds", tier: "$97" },
     license: "MIT",
   },
+  {
+    key: "three-tier-llm-router",
+    name: "The Three-Tier LLM Router",
+    price: "$79",
+    kind: "Engine · 27 files · 71 shipped tests",
+    promise: "Stop burning precision-tier tokens on cheap-tier work: classify-and-dispatch running code with hard-floor protection, fail-closed egress scrubbing, and a JSONL cost ledger.",
+    includedIn: { label: "Ships inside the Operator Toolkit today", href: "/operator-toolkit", tier: "$297" },
+    license: "Commercial",
+  },
+  {
+    key: "memory-os",
+    name: "Memory OS — Give Your Claude a Soul",
+    price: "$99",
+    kind: "System · 23 files",
+    promise: "Your AI stops forgetting: identity that survives sessions, a slim-index memory architecture, the boot ritual, and handoff / resume / dispatch.",
+    includedIn: { label: "Ships inside the Operator Toolkit today", href: "/operator-toolkit", tier: "$297" },
+    license: "Commercial",
+  },
+  {
+    key: "autonomous-operator-kit",
+    name: "The Operator Cycle — Autonomous Operator Kit",
+    price: "$129",
+    kind: "System · 31 files",
+    promise: "One verified ship per cycle, unattended: depth ladder, anti-decay rotation, honest nulls, autostop — with an auditable log and commit-trailer contract.",
+    includedIn: { label: "Ships inside the Operator Toolkit today", href: "/operator-toolkit", tier: "$297" },
+    license: "Commercial",
+  },
 ];
 
 export const storeTiers = [

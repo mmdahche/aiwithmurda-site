@@ -1,0 +1,10 @@
+{
+  "cycle_counter": 0,
+  "last_cycle_ts": null,
+  "last_cycle_depth": null,
+  "last_cycle_domain": null,
+  "last_cycle_commit": null,
+  "session_id": null,
+  "scope": null,
+  "schema_version": "1.0"
+}

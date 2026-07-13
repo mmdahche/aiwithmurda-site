@@ -24,6 +24,7 @@ The toolkit contains Murad-authored or newly created customer-safe workflows. It
 
 ## Launch edition
 
+- Three flagship store products included in full (store folders under `products/`): The Three-Tier LLM Router ($79 standalone), Memory OS ($99), The Operator Cycle ($129) — $307 of shelf value inside the $297 tier
 - 24 original skills across foundation, build/quality, design/product, and operations/growth
 - Dual-agent command center
 - Project instruction pack

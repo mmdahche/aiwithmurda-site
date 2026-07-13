@@ -29,6 +29,10 @@ export const operatorUpdatesProduct = {
 
 export const operatorToolkitOutcomes = [
   {
+    title: "The three flagship systems, included in full",
+    body: "The Three-Tier LLM Router (running code, 71 tests), Memory OS (the persistence layer), and The Operator Cycle (the autonomous loop) — $307 of standalone products inside the $297 tier.",
+  },
+  {
     title: "A working dual-agent command center",
     body: "Claude Code and Codex receive the same project facts, safety boundaries, verified commands, and handoff standard.",
   },

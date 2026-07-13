@@ -226,6 +226,36 @@ export const operatorBundleAssets = [
 
 export const operatorToolkitAssets = [
   {
+    key: "three-tier-llm-router",
+    title: "The Three-Tier LLM Router",
+    kind: "Engine · ZIP",
+    description:
+      "The author's actual dispatch router as running code: classify-and-route to the cheapest capable tier, hard-floor protection for high-stakes calls, fail-closed egress scrubbing, and a JSONL cost ledger — with 71 shipped tests.",
+    fileName: "three-tier-llm-router.zip",
+    downloadName: "three-tier-llm-router.zip",
+    mimeType: "application/zip",
+  },
+  {
+    key: "memory-os",
+    title: "Memory OS — Give Your Claude a Soul",
+    kind: "System · ZIP",
+    description:
+      "The persistence layer: SOUL.md identity template, slim-index memory architecture with the weekly curation ritual, the boot ritual, and the handoff / resume / dispatch commands that bridge sessions.",
+    fileName: "memory-os.zip",
+    downloadName: "memory-os.zip",
+    mimeType: "application/zip",
+  },
+  {
+    key: "autonomous-operator-kit",
+    title: "The Operator Cycle — Autonomous Operator Kit",
+    kind: "System · ZIP",
+    description:
+      "The persistent-operator loop: one verified ship per cycle, depth ladder, anti-decay rotation, counter-action discipline, null-result honesty, autostop — with the auditable log and commit-trailer contract.",
+    fileName: "autonomous-operator-kit.zip",
+    downloadName: "autonomous-operator-kit.zip",
+    mimeType: "application/zip",
+  },
+  {
     key: "full-skill-pack",
     title: "24-Skill Installation Pack",
     kind: "ZIP system",

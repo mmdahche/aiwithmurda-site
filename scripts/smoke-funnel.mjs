@@ -267,6 +267,11 @@ try {
   if (!operatorToolkit.assets.some((asset) => asset.key === "full-skill-pack")) {
     throw new Error(`Operator Toolkit skill pack missing: ${JSON.stringify(operatorToolkit.assets)}`);
   }
+  for (const flagshipKey of ["three-tier-llm-router", "memory-os", "autonomous-operator-kit"]) {
+    if (!operatorToolkit.assets.some((asset) => asset.key === flagshipKey)) {
+      throw new Error(`Operator Toolkit flagship missing (${flagshipKey}): ${JSON.stringify(operatorToolkit.assets)}`);
+    }
+  }
   if (!operatorToolkit.updateAssets.some((asset) => asset.key === "founding-update-001")) {
     throw new Error(`Operator Toolkit update pack missing: ${JSON.stringify(operatorToolkit.updateAssets)}`);
   }
@@ -637,6 +642,17 @@ try {
     throw new Error(
       `Operator Toolkit ZIP download failed: ${toolkitSkillPackResponse.status} ${toolkitSkillPackBytes.length} bytes`,
     );
+  }
+  for (const flagshipKey of ["three-tier-llm-router", "memory-os", "autonomous-operator-kit"]) {
+    const flagshipResponse = await fetch(`${siteUrl}/api/member-assets/operator-toolkit/${flagshipKey}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const flagshipBytes = new Uint8Array(await flagshipResponse.arrayBuffer());
+    if (!flagshipResponse.ok || flagshipBytes.length < 1000 || flagshipBytes[0] !== 0x50 || flagshipBytes[1] !== 0x4b) {
+      throw new Error(
+        `Toolkit flagship ZIP download failed (${flagshipKey}): ${flagshipResponse.status} ${flagshipBytes.length} bytes`,
+      );
+    }
   }
   const operatorUpdateResponse = await fetch(`${siteUrl}/api/member-assets/operator-updates/founding-update-001`, {
     headers: { Authorization: `Bearer ${token}` },

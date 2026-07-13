@@ -125,9 +125,13 @@ export async function verifyProductFolder(folder) {
       for (const line of text.split("\n")) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith("#")) continue;
+        const name = trimmed.split("=")[0].trim();
         const value = trimmed.split("=").slice(1).join("=").trim();
-        if (value && !/insert|replace|your-|xxx|<[^>]+>|example/i.test(value)) {
-          errors.push(`${rel}: .env.example line is not a placeholder: ${trimmed.split("=")[0]}=…`);
+        // Only secret-bearing variables must be placeholders; plain config
+        // defaults (quotas, feature flags, modes) may ship real values.
+        const secretBearing = /(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)S?($|_)/i.test(name) && !/^(ROUTER|LOCAL)_.*(ENABLED|MODE|SIZE|TARGET|TOLERANCE)/i.test(name);
+        if (secretBearing && value && !/insert|replace|your-|xxx|<[^>]+>|example/i.test(value)) {
+          errors.push(`${rel}: .env.example secret line is not a placeholder: ${name}=…`);
         }
       }
     }

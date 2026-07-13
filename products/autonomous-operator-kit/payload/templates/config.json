@@ -1,0 +1,33 @@
+{
+  "_comment_schema": "Operator Cycle config. See CYCLE-CONTRACT.md § 5 and § 10 for authoritative field definitions.",
+  "schema_version": "1.0",
+
+  "_comment_domain_rotation": "The 7 canonical domains. Cycle rotates through these; anti-decay switches domain after 3 same-domain or 3-null runs.",
+  "domain_rotation": [
+    "pipeline_fix",
+    "content_harvest",
+    "knowledge_expansion",
+    "self_optimize",
+    "recursive_learn",
+    "unasked_creative",
+    "dashboard_refresh"
+  ],
+
+  "_comment_project_allowlist": "Explicit list of project root paths the loop may write into via /cycle-evolve and /schedule-task. Ships empty — the operator populates this. Adding entries requires editing this file directly (it is on the protected-path list and cannot be modified by /cycle-evolve).",
+  "project_allowlist": [],
+
+  "_comment_briefing_every_n_cycles": "How often /operator-cycle auto-invokes /cycle-brief. 8 is a good starting cadence; drop to 4 for aggressive drift monitoring or raise to 12 for long-running unattended loops.",
+  "briefing_every_n_cycles": 8,
+
+  "_comment_stop_after_null_streak": "Diminishing-returns autostop. If the last K consecutive cycles all pass the low-value test (zero capabilities added AND no project-repo Evidence paths), the loop stops itself instead of scheduling the next wake-up. Ordering: anti-decay domain switch fires at 3 nulls; this gate fires at K=5, only after a forced switch has already failed to break the streak.",
+  "stop_after_null_streak": 5,
+
+  "_comment_cron_host_allowlist": "Hosts that scheduled tasks may reach without per-task declaration. Add per-task hosts at /schedule-task register-time; anything outside this list + the task's declared allowlist is rejected.",
+  "cron_host_allowlist": ["localhost", "127.0.0.1", "::1"],
+
+  "_comment_goal": "Goal mode. When active=true, the /operator-cycle Pre-cycle step 0.5 reads GOAL.md and overrides the domain to goal_ship on every non-free cycle. free_cycle_modulo=3 means every 3rd cycle is a free rotation instead of a goal cycle; raise to run more free cycles between goal pushes.",
+  "goal": {
+    "active": false,
+    "free_cycle_modulo": 3
+  }
+}
