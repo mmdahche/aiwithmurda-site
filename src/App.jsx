@@ -54,6 +54,7 @@ import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceH
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
 import { KitPage } from "./pages/KitPage.jsx";
+import { StorePage } from "./pages/StorePage.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -1652,7 +1653,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/live-builds", "/operator-toolkit", "/members", "/terms", "/privacy"].includes(route)
+      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/store", "/live-builds", "/operator-toolkit", "/members", "/terms", "/privacy"].includes(route)
         ? route
         : "/";
 
@@ -1675,6 +1676,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <KitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/store" && <StorePage />}
       {knownRoute === "/live-builds" && <OperatorBundlePage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/operator-toolkit" && <OperatorToolkitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
@@ -1694,6 +1696,7 @@ function PublicNav({ activeRoute }) {
     { href: "/60", label: "Dashboard" },
     { href: "/live", label: "Live" },
     { href: "/kit", label: "Kit" },
+    { href: "/store", label: "Store" },
     { href: "/live-builds", label: "Operator Bundle" },
     { href: "/operator-toolkit", label: "Full System" },
     { href: "/tools", label: "Tools" },
@@ -2516,7 +2519,7 @@ function StartPage() {
     try {
       await subscribeBuildLog({ email, name, source: "start_page" });
       setStatus("success");
-      setMessage("You are on the build log. The receipts start with the Day 0 setup.");
+      setMessage("You are on the build log. Your welcome email includes the free Operator Sampler — or grab it right here.");
       setEmail("");
       setName("");
     } catch (error) {
@@ -2551,11 +2554,11 @@ function StartPage() {
               <h2>You are on the build log.</h2>
               <p>{message}</p>
               <div className="hero-actions">
-                <a className="primary-link" href="/60">
-                  Watch the scoreboard
+                <a className="primary-link" href="/downloads/operator-sampler.zip" download>
+                  Download the free sampler
                 </a>
-                <a className="secondary-link" href="/kit">
-                  Preview the kit
+                <a className="secondary-link" href="/60">
+                  Watch the scoreboard
                 </a>
               </div>
             </div>

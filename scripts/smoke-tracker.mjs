@@ -251,6 +251,18 @@ if (!kitResponse.ok || !kitHtml.includes("root")) {
   throw new Error(`Kit route failed: ${kitResponse.status}`);
 }
 
+const storeResponse = await fetch(`${siteUrl}/store/`);
+const storeHtml = await storeResponse.text();
+if (!storeResponse.ok || !storeHtml.includes("root")) {
+  throw new Error(`Store route failed: ${storeResponse.status}`);
+}
+
+const samplerResponse = await fetch(`${siteUrl}/downloads/operator-sampler.zip`);
+const samplerBytes = new Uint8Array(await samplerResponse.arrayBuffer());
+if (!samplerResponse.ok || samplerBytes.length < 1000 || samplerBytes[0] !== 0x50 || samplerBytes[1] !== 0x4b) {
+  throw new Error(`Operator sampler download failed: ${samplerResponse.status} ${samplerBytes.length} bytes`);
+}
+
 const liveBuildsResponse = await fetch(`${siteUrl}/live-builds/`);
 const liveBuildsHtml = await liveBuildsResponse.text();
 if (!liveBuildsResponse.ok || !liveBuildsHtml.includes("root")) {

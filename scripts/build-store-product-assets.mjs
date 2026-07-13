@@ -19,6 +19,10 @@ const STORE_PRODUCTS = [
   { slug: "verification-qa-pack", zip: "verification-qa-pack.zip" },
 ];
 
+// Free products ship as PUBLIC static downloads (no entitlement gate).
+const PUBLIC_PRODUCTS = [{ slug: "operator-sampler", zip: "operator-sampler.zip" }];
+const publicDownloadDir = path.join(rootDir, "public", "downloads");
+
 const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);
 
 async function walk(dir, base = dir) {
@@ -56,8 +60,12 @@ async function zipFolder(folder, outputPath, slug) {
 }
 
 await fs.mkdir(assetDir, { recursive: true });
+await fs.mkdir(publicDownloadDir, { recursive: true });
 const built = [];
-for (const { slug, zip } of STORE_PRODUCTS) {
+for (const { slug, zip, dir } of [
+  ...STORE_PRODUCTS.map((p) => ({ ...p, dir: assetDir })),
+  ...PUBLIC_PRODUCTS.map((p) => ({ ...p, dir: publicDownloadDir })),
+]) {
   const folder = path.join(rootDir, "products", slug);
   const { errors } = await verifyProductFolder(folder);
   if (errors.length) {
@@ -65,7 +73,7 @@ for (const { slug, zip } of STORE_PRODUCTS) {
     for (const error of errors) console.error(`  - ${error}`);
     process.exit(1);
   }
-  const count = await zipFolder(folder, path.join(assetDir, zip), slug);
+  const count = await zipFolder(folder, path.join(dir, zip), slug);
   built.push(`${zip} (${count} files)`);
 }
 console.log(`Built store product assets: ${built.join(", ")}`);

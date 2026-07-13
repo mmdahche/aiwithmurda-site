@@ -2709,22 +2709,24 @@ function buildWelcomeEmail() {
       "",
       "I will send the daily receipts: scoreboard movement, the best clip, what shipped, what broke, and tomorrow's promise.",
       "",
+      `Grab the free Operator Sampler (a real skill, a real script, the daily checklist): ${siteUrl}/downloads/operator-sampler.zip`,
       `Open the public dashboard: ${siteUrl}/60`,
       `Preview the first drop: ${siteUrl}/kit`,
     ].join("\n"),
     html: baseEmailTemplate({
-      preheader: "Daily receipts from the 60-day AI operator sprint.",
+      preheader: "Daily receipts from the 60-day AI operator sprint — plus the free Operator Sampler.",
       title: "You are on the build log.",
       intro:
         "The sprint starts with the Day 0 setup, then turns into a daily receipt: what moved, what shipped, what broke, and what I am doing tomorrow.",
       bullets: [
+        "First move: download the free Operator Sampler below — one working skill, one prompt script, the daily checklist. Ten minutes to install.",
         "Scoreboard movement: revenue, followers, emails, clips, builds, calls.",
         "Best clip or proof asset from the day.",
         "The honest lesson from whatever worked or failed.",
       ],
-      primaryUrl: `${siteUrl}/60`,
-      primaryLabel: "Open the scoreboard",
-      footer: `You joined from aiwithmurda.com. The first paid drop is <a href="${siteUrl}/kit" style="color:#61e36d;">${productName}</a>.`,
+      primaryUrl: `${siteUrl}/downloads/operator-sampler.zip`,
+      primaryLabel: "Download the free Operator Sampler",
+      footer: `You joined from aiwithmurda.com. The scoreboard lives at <a href="${siteUrl}/60" style="color:#61e36d;">/60</a>; the first paid drop is <a href="${siteUrl}/kit" style="color:#61e36d;">${productName}</a>.`,
     }),
   };
 }

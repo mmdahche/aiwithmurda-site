@@ -10,6 +10,7 @@ const routes = [
   "tools",
   "start",
   "kit",
+  "store",
   "live-builds",
   "members",
   "admin",

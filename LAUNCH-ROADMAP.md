@@ -20,6 +20,7 @@ Company bridge: `Built with Codex, Claude Code, and Backbone Solutions`
 - `/tools` - public tools/resources shelf
 - `/start` - production email capture
 - `/kit` - first paid drop sales page
+- `/store` - the operator store shelf: folder-per-product catalog, free sampler download, tier cross-links
 - `/live-builds` - second product founding waitlist and paid-room offer surface
 - `/operator-toolkit` - full `$297` launch-edition system plus `$30/month` update-channel offer
 - `/members` - Supabase-gated member hub and asset delivery
