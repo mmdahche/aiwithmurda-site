@@ -1,5 +1,5 @@
 import { sprintConfig } from "../src/data/seed.js";
-import { getSiteUrl, loadEnv, requireEnv } from "./env-loader.mjs";
+import { defaultEnvPath, getSiteUrl, loadEnv, requireEnv } from "./env-loader.mjs";
 
 function createLaunchBaseline() {
   return [
@@ -30,7 +30,8 @@ function createLaunchBaseline() {
   ];
 }
 
-const env = loadEnv();
+const envPath = process.argv.slice(2).find((argument) => !argument.startsWith("--"));
+const env = loadEnv(envPath || defaultEnvPath);
 const siteUrl = getSiteUrl(env);
 const shouldPush = process.argv.includes("--push");
 const logs = createLaunchBaseline();
