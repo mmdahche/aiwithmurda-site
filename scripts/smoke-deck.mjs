@@ -4,6 +4,9 @@ import { buildDeckHtml, buildDeckSummary, weeklySummaries } from "../src/lib/tra
 const weekly = weeklySummaries(seedLogs);
 const summary = buildDeckSummary(sprintConfig, seedLogs, weekly);
 const html = buildDeckHtml(sprintConfig, seedLogs);
+const firstDay = seedLogs[0];
+const expectedProofCopy = firstDay.proofAssets[0] || "Proof assets pending.";
+const expectedShippedCopy = firstDay.shippedItems[0] || "No shipped items logged yet.";
 
 const checks = {
   loggedDaysCounted: summary.loggedDays === seedLogs.length,
@@ -12,8 +15,8 @@ const checks = {
   bestClipWeekPresent: Boolean(summary.bestClipWeek?.label),
   controlSlideExported: html.includes("Proof Deck Control Slide"),
   weeklySlidesExported: weekly.every((week) => html.includes(week.label)),
-  dailyProofAssetsExported: html.includes("Proof assets") && html.includes(seedLogs[0].proofAssets[0]),
-  dailyShippedItemsExported: html.includes("What shipped") && html.includes(seedLogs[0].shippedItems[0]),
+  dailyProofAssetsExported: html.includes("Proof assets") && html.includes(expectedProofCopy),
+  dailyShippedItemsExported: html.includes("What shipped") && html.includes(expectedShippedCopy),
 };
 
 const failed = Object.entries(checks)
