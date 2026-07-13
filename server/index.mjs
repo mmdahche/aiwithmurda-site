@@ -28,6 +28,7 @@ import {
   operatorToolkitReleases,
   operatorUpdatesProduct,
 } from "../src/data/operatorToolkit.js";
+import { sprintConfig } from "../src/data/seed.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -36,6 +37,7 @@ const assetDir = path.join(rootDir, "server", "member-assets");
 
 const app = express();
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:5173";
+const campaignStartAt = sprintConfig.startAt || `${sprintConfig.startDate}T00:00:00Z`;
 const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
 const twitchProviderKey = "twitch";
 const twitchOAuthScopes = ["moderator:read:followers"];
@@ -2865,6 +2867,23 @@ async function countSubscribersSince(isoDate = null) {
   return Number(count || 0);
 }
 
+async function getCampaignPurchaseSummary() {
+  const productKeys = [...checkoutProducts.values()].map((item) => item.key);
+  const { data, error } = await supabaseAdmin
+    .from("purchases")
+    .select("amount_total,currency,purchased_at")
+    .in("product_key", productKeys)
+    .eq("status", "paid")
+    .gte("purchased_at", campaignStartAt);
+
+  if (error) throw error;
+  return {
+    paidPurchases: (data || []).length,
+    revenueCents: (data || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0),
+    currency: data?.[0]?.currency || "usd",
+  };
+}
+
 function formatNumberForApi(value) {
   return Number(value || 0).toLocaleString("en-US");
 }
@@ -3051,16 +3070,19 @@ async function getMetricsAutomationSummary() {
 
   const [
     activeSubscribers,
+    campaignSubscribers,
     subscriber24h,
     subscriber7d,
     latestSubscribers,
     offerSummary,
+    campaignPurchases,
     latestPurchases,
     latestEntitlements,
     latestLogs,
     liveFollowerTicker,
   ] = await Promise.all([
     countSubscribersSince(),
+    countSubscribersSince(campaignStartAt),
     countSubscribersSince(since24h),
     countSubscribersSince(since7d),
     supabaseAdmin
@@ -3070,6 +3092,7 @@ async function getMetricsAutomationSummary() {
       .order("subscribed_at", { ascending: false })
       .limit(6),
     getOfferOpsSummary(),
+    getCampaignPurchaseSummary(),
     supabaseAdmin
       .from("purchases")
       .select("user_id,product_key,amount_total,currency,status,purchased_at")
@@ -3107,20 +3130,20 @@ async function getMetricsAutomationSummary() {
   const liveSources = [
     {
       key: "email-subscribers",
-      label: "Email subscribers",
+      label: "Sprint email subscribers",
       status: "live",
       mode: "Supabase capture",
-      metric: formatNumberForApi(activeSubscribers),
-      detail: `+${formatNumberForApi(subscriber24h)} in 24h · +${formatNumberForApi(subscriber7d)} in 7d`,
+      metric: formatNumberForApi(campaignSubscribers),
+      detail: `${formatNumberForApi(activeSubscribers)} total contacts · counting from ${sprintConfig.startDate}`,
       next: "Auto-counts from /api/subscribe and Resend-backed signup forms.",
     },
     {
       key: "stripe-sales",
-      label: "Stripe purchases",
+      label: "Sprint Stripe purchases",
       status: "live",
       mode: "Stripe webhook",
-      metric: `$${(offerSummary.sales.revenueCents / 100).toFixed(2)}`,
-      detail: `${formatNumberForApi(offerSummary.sales.paidPurchases)} paid order${offerSummary.sales.paidPurchases === 1 ? "" : "s"}`,
+      metric: `$${(campaignPurchases.revenueCents / 100).toFixed(2)}`,
+      detail: `${formatNumberForApi(campaignPurchases.paidPurchases)} paid order${campaignPurchases.paidPurchases === 1 ? "" : "s"} since ${sprintConfig.startDate}`,
       next: "Webhook writes purchases and unlocks entitlements automatically.",
     },
     {
@@ -3179,11 +3202,11 @@ async function getMetricsAutomationSummary() {
 
   return {
     snapshot: {
-      emailSubscribers: activeSubscribers,
+      emailSubscribers: campaignSubscribers,
       emailSubscribers24h: subscriber24h,
       emailSubscribers7d: subscriber7d,
-      revenueCents: offerSummary.sales.revenueCents,
-      paidPurchases: offerSummary.sales.paidPurchases,
+      revenueCents: campaignPurchases.revenueCents,
+      paidPurchases: campaignPurchases.paidPurchases,
       activeMembers: offerSummary.sales.activeMembers,
       completedMemberTasks: offerSummary.progress.completedTasks,
       latestSyncedDay: latestLog?.day || null,
