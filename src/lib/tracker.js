@@ -1,4 +1,4 @@
-const STORAGE_KEY = "sixty-day-command-center:v1";
+const STORAGE_KEY = "sixty-day-command-center:v2";
 
 export function loadLogs(seedLogs) {
   try {

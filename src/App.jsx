@@ -140,7 +140,9 @@ const numericFields = new Set([
 const adminTokenStorageKey = "aiwithmurda:admin-api-token";
 
 function isPrelaunch(config) {
-  return config.phase === "prelaunch";
+  if (config.phase !== "prelaunch") return false;
+  const startTime = Date.parse(config.startAt || `${config.startDate}T00:00:00`);
+  return Number.isNaN(startTime) || Date.now() < startTime;
 }
 
 function getPublicDataMode(config) {
