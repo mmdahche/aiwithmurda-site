@@ -173,7 +173,7 @@ export function weeklySummaries(logs) {
     const first = days[0];
     const last = days.at(-1);
     const before = getPreviousRecord(sorted, first.day);
-    const beforeFollowers = before ? totalFollowers(before) : 0;
+    const beforeFollowers = before ? totalFollowers(before) : baselineFollowers(first);
     const beforeRevenue = before?.revenueCollected || 0;
     const bestFollowerDay = days
       .map((record) => ({ record, gain: getDayGains(sorted, record).followers }))
