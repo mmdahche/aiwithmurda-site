@@ -20,7 +20,18 @@ export function resetLogs() {
 }
 
 export function totalFollowers(record) {
-  return Object.values(record.followers || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+  return Object.entries(record.followers || {}).reduce((sum, [key, value]) => {
+    if (key.startsWith("_")) return sum;
+    const count = Number(value);
+    return Number.isFinite(count) ? sum + count : sum;
+  }, 0);
+}
+
+function baselineFollowers(record) {
+  return Object.values(record.followers?._baseline || {}).reduce((sum, value) => {
+    const count = Number(value);
+    return Number.isFinite(count) ? sum + count : sum;
+  }, 0);
 }
 
 export function getLatestRecord(logs) {
@@ -33,7 +44,7 @@ export function getPreviousRecord(logs, day) {
 
 export function getDayGains(logs, record) {
   const previous = getPreviousRecord(logs, record.day);
-  const previousFollowers = previous ? totalFollowers(previous) : 0;
+  const previousFollowers = previous ? totalFollowers(previous) : baselineFollowers(record);
   return {
     followers: totalFollowers(record) - previousFollowers,
     revenue: Number(record.revenueCollected || 0) - Number(previous?.revenueCollected || 0),

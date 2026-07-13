@@ -2165,9 +2165,15 @@ async function syncLatestDailyLogFollower(provider, followerCount) {
   const sourceRow = await getDailyLogForSnapshot();
   if (!sourceRow) return null;
   const currentFollowers = sourceRow.followers && typeof sourceRow.followers === "object" ? sourceRow.followers : {};
-  if (Number(currentFollowers[provider]) === Number(followerCount)) return sourceRow;
+  const prelaunch = Date.now() < Date.parse(campaignStartAt);
+  const baseline =
+    currentFollowers._baseline && typeof currentFollowers._baseline === "object" ? currentFollowers._baseline : {};
+  const followerIsCurrent = Number(currentFollowers[provider]) === Number(followerCount);
+  const baselineIsCurrent = Number(baseline[provider]) === Number(followerCount);
+  if (followerIsCurrent && (!prelaunch || baselineIsCurrent)) return sourceRow;
 
   const followers = { ...currentFollowers, [provider]: Number(followerCount) };
+  if (prelaunch) followers._baseline = { ...baseline, [provider]: Number(followerCount) };
   const { data, error } = await supabaseAdmin
     .from("daily_logs")
     .update({ followers })
