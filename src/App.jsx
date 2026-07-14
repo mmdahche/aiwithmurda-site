@@ -2086,6 +2086,7 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
 function PublicFollowerTicker({ liveFollowers, latest }) {
   const sources = liveFollowers?.sources || [];
   const liveSourceCount = sources.filter((source) => source.connected).length;
+  const staleSourceCount = sources.filter((source) => source.status === "stale").length;
   const total = Number.isFinite(Number(liveFollowers?.total)) ? Number(liveFollowers.total) : 0;
 
   return (
@@ -2110,7 +2111,13 @@ function PublicFollowerTicker({ liveFollowers, latest }) {
                 <strong>{source.count === null ? "--" : formatNumber(source.count)}</strong>
                 <em>
                   {source.connected
-                    ? `${source.precision === "rounded" ? "Rounded" : "Verified"}${source.lastChangeDelta > 0 ? ` · +${formatNumber(source.lastChangeDelta)}` : ""}`
+                    ? `${
+                        source.status === "stale"
+                          ? "Last verified"
+                          : source.precision === "rounded"
+                            ? "Rounded"
+                            : "Verified"
+                      }${source.lastChangeDelta > 0 ? ` · +${formatNumber(source.lastChangeDelta)}` : ""}`
                     : "Not connected"}
                 </em>
               </>
@@ -2133,7 +2140,11 @@ function PublicFollowerTicker({ liveFollowers, latest }) {
       </div>
       <small>
         {liveSourceCount
-          ? `${liveSourceCount} verified source${liveSourceCount === 1 ? "" : "s"} included in the total`
+          ? `${liveSourceCount} connected source${liveSourceCount === 1 ? "" : "s"} included in the total${
+              staleSourceCount
+                ? ` · ${staleSourceCount} showing last verified data`
+                : ""
+            }`
           : "No social accounts connected yet. Demo counts are excluded."}
         {liveFollowers?.checkedAt ? ` · Checked ${new Date(liveFollowers.checkedAt).toLocaleTimeString()}` : ""}
       </small>
