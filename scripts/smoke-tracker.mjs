@@ -220,8 +220,8 @@ if (!liveBundle.includes("Start $2 test purchase")) {
 if (!liveBundle.includes("Metrics Automation Hub")) {
   throw new Error("Client bundle missing Metrics Automation Hub");
 }
-if (!liveBundle.includes("Automated Daily Snapshot")) {
-  throw new Error("Client bundle missing Automated Daily Snapshot");
+if (!liveBundle.includes("Daily Snapshot Recovery")) {
+  throw new Error("Client bundle missing Daily Snapshot Recovery");
 }
 if (!liveBundle.includes("Combined audience")) {
   throw new Error("Client bundle missing combined audience ticker");
@@ -402,7 +402,10 @@ if (
   !metricsAutomation.data.summary.sources.some((source) => source.key === "email-subscribers" && source.status === "live") ||
   !metricsAutomation.data.summary.sources.some((source) => source.key === "twitch-followers") ||
   !Array.isArray(metricsAutomation.data?.summary?.nextBuilds) ||
-  !metricsAutomation.data.summary.nextBuilds.includes("Authorize the Twitch channel and confirm EventSub delivery")
+  !metricsAutomation.data.summary.nextBuilds.includes(
+    "Run a private OBS rehearsal and confirm Twitch creates a rehearsal-only stream session",
+  ) ||
+  metricsAutomation.data?.summary?.campaign?.campaign?.startDate !== "2026-07-28"
 ) {
   throw new Error(
     `Admin metrics automation summary failed: ${metricsAutomation.response.status} ${JSON.stringify(metricsAutomation.data)}`,

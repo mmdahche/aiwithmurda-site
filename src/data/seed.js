@@ -1,15 +1,16 @@
 export const sprintConfig = {
   title: "60-Day Command Center",
   subtitle: "AI Operator Sprint with Claude Code & Codex",
-  startDate: "2026-07-14",
-  startAt: "2026-07-14T00:00:00-05:00",
+  startDate: "2026-07-28",
+  startAt: "2026-07-28T00:00:00-05:00",
+  timeZone: "America/Chicago",
   totalDays: 60,
   publicGoalLabel: "$100K or 100K followers",
-  familyReturnDate: "2026-09-11",
+  familyReturnDate: "2026-09-25",
   phase: "prelaunch",
-  prelaunchLabel: "Launch baseline",
+  prelaunchLabel: "Rehearsal mode",
   prelaunchCopy:
-    "The live scoreboard is reset to zero and ready for the 60-day sprint beginning July 14, 2026.",
+    "The official scoreboard begins July 28, 2026. Test streams, purchases, signups, and clips before launch are rehearsal-only and never count toward the 60-day totals.",
   goals: {
     revenue: 100000,
     followers: 100000,
@@ -25,8 +26,8 @@ export const sprintConfig = {
 export const seedLogs = [
   {
     day: 1,
-    date: "2026-07-14",
-    mainGoal: "Start the 60-day sprint and establish the real baseline",
+    date: "2026-07-28",
+    mainGoal: "Launch the 60-day sprint and establish the official baseline",
     status: "planned",
     followers: {
       youtube: 0,

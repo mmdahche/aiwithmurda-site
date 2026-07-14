@@ -92,6 +92,7 @@ import {
   verifyCheckoutSession,
 } from "./lib/api.js";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase.js";
+import { getCampaignState } from "./lib/campaign.js";
 import {
   buildDeckHtml,
   buildDeckSummary,
@@ -140,9 +141,7 @@ const numericFields = new Set([
 const adminTokenStorageKey = "aiwithmurda:admin-api-token";
 
 function isPrelaunch(config) {
-  if (config.phase !== "prelaunch") return false;
-  const startTime = Date.parse(config.startAt || `${config.startDate}T00:00:00`);
-  return Number.isNaN(startTime) || Date.now() < startTime;
+  return getCampaignState(config).isRehearsal;
 }
 
 function getPublicDataMode(config) {
@@ -5829,6 +5828,7 @@ function DeckView({ config, logs, weeks }) {
 
 function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
   const snapshot = summary?.snapshot || {};
+  const campaign = summary?.campaign || {};
   const sources = summary?.sources || [];
   const events = summary?.events || [];
   const nextBuilds = summary?.nextBuilds || [];
@@ -5840,10 +5840,10 @@ function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
       <div className="automation-hero">
         <div>
           <span className="panel-kicker">Source of truth</span>
-          <strong>Live metrics are moving into automation.</strong>
+          <strong>The official campaign ledger runs itself.</strong>
           <p>
-            Email, Stripe, member access, and product activity are already server-tracked.
-            Twitch, YouTube, and clips become automatic after their provider tokens are connected.
+            July 28 is the hard start. The server opens each day, reconciles Stripe and email,
+            counts Twitch time once across the multistream, and rejects duplicate clip events.
           </p>
         </div>
         <button type="button" className="primary-action" onClick={onRefresh} disabled={status === "loading"}>
@@ -5855,8 +5855,14 @@ function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
         <KeyValue label="Revenue" value={formatCurrency((snapshot.revenueCents || 0) / 100)} positive />
         <KeyValue label="Orders" value={formatNumber(snapshot.paidPurchases || 0)} />
         <KeyValue label="Members" value={formatNumber(snapshot.activeMembers || 0)} positive />
-        <KeyValue label="Latest day" value={snapshot.latestSyncedDay ? `Day ${snapshot.latestSyncedDay}` : "No day yet"} />
+        <KeyValue
+          label="Campaign mode"
+          value={campaign.campaign?.isRehearsal ? "Rehearsal" : campaign.campaign?.isComplete ? "Complete" : "Live"}
+          positive={!campaign.campaign?.isRehearsal}
+        />
+        <KeyValue label="Official day" value={campaign.campaign?.currentDay ? `Day ${campaign.campaign.currentDay}` : "Day 0"} />
         <KeyValue label="Clips logged" value={formatNumber(snapshot.clipsPosted || 0)} />
+        <KeyValue label="Stream hours" value={formatNumber(snapshot.hoursStreamed || 0)} />
       </div>
       <div className="automation-source-list">
         {sources.map((source) => (
@@ -5893,7 +5899,7 @@ function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
           </div>
         </section>
         <section>
-          <span className="panel-kicker">Next connectors</span>
+          <span className="panel-kicker">Rehearsal checklist</span>
           <div className="automation-next-list">
             {nextBuilds.map((item) => (
               <div key={item}>{item}</div>
@@ -5963,14 +5969,14 @@ function DailySnapshotPanel({ latest, adminToken, onApplied, onRefreshAutomation
 
   return (
     <article className="panel daily-snapshot-panel">
-      <PanelTitle icon="calendar" title="Automated Daily Snapshot" right={snapshot ? `Day ${snapshot.targetDay}` : "Admin reviewed"} />
+      <PanelTitle icon="calendar" title="Daily Snapshot Recovery" right={snapshot ? `Day ${snapshot.targetDay}` : "Audit tool"} />
       <div className="automation-hero snapshot-hero">
         <div>
           <span className="panel-kicker">Daily log writer</span>
-          <strong>Preview live metrics, then push them to the public scoreboard.</strong>
+          <strong>Audit or repair a day without depending on this button.</strong>
           <p>
-            This writes Stripe sales, email subscribers, and member access into the selected day.
-            Follower and clip automation stay separate until those provider connectors are live.
+            The background worker normally writes Stripe sales, email growth, Twitch hours, and clip totals automatically.
+            Use this preview only to inspect a discrepancy or recover after an outage.
           </p>
         </div>
         <label className="field snapshot-day-field">
@@ -6405,6 +6411,7 @@ function FollowerCountIntakePanel({ latest, adminToken, onApplied, onRefreshFoll
 
 function ClipIntakePanel({ latest, adminToken, onApplied }) {
   const [day, setDay] = useState(latest?.day || 1);
+  const [eventId, setEventId] = useState(() => globalThis.crypto?.randomUUID?.() || `clip-${Date.now()}`);
   const [platform, setPlatform] = useState("tiktok");
   const [title, setTitle] = useState("Clip posted");
   const [url, setUrl] = useState("");
@@ -6417,6 +6424,7 @@ function ClipIntakePanel({ latest, adminToken, onApplied }) {
   }, [latest?.day, day]);
 
   const payload = {
+    eventId,
     day,
     platform,
     title,
@@ -6457,7 +6465,13 @@ function ClipIntakePanel({ latest, adminToken, onApplied }) {
       const data = await submitClipIntake(payload, adminToken.trim());
       onApplied(data.logs || []);
       setStatus("success");
-      setMessage(`Clip logged on Day ${data.updatedLog?.day || day}. Clips: ${formatNumber(data.updatedLog?.clipsPosted || 0)}.`);
+      if (data.rehearsal) {
+        setMessage("Rehearsal clip recorded. The official scoreboard did not change.");
+      } else if (data.duplicate) {
+        setMessage("Duplicate delivery confirmed. This clip was not counted twice.");
+      } else {
+        setMessage(`Clip counted on Day ${data.updatedLog?.day || day}. Clips: ${formatNumber(data.updatedLog?.clipsPosted || 0)}.`);
+      }
     } catch (error) {
       setStatus("error");
       setMessage(error.message || "Clip intake failed.");
@@ -6466,14 +6480,14 @@ function ClipIntakePanel({ latest, adminToken, onApplied }) {
 
   return (
     <article className="panel clip-intake-panel">
-      <PanelTitle icon="video" title="Clip Intake Webhook" right="n8n ready" />
+      <PanelTitle icon="video" title="Clip Intake Webhook" right="Rehearsal safe" />
       <div className="clip-intake-hero">
         <div>
           <span className="panel-kicker">Short-form automation</span>
           <strong>Let posting workflows report clips automatically.</strong>
           <p>
-            n8n, Zapier, or a posting script can call this after a clip goes live. The endpoint increments
-            clips posted and appends the clip URL to the daily proof assets.
+            n8n, Zapier, or a posting script calls this after a clip goes live. Every external event ID can
+            count once, the official day comes from the posting timestamp, and prelaunch tests stay isolated.
           </p>
         </div>
         <div className="clip-intake-actions">
@@ -6487,7 +6501,11 @@ function ClipIntakePanel({ latest, adminToken, onApplied }) {
       </div>
       <div className="clip-intake-form">
         <label className="field">
-          <span>Day</span>
+          <span>Event ID</span>
+          <input value={eventId} onChange={(event) => setEventId(event.target.value)} />
+        </label>
+        <label className="field">
+          <span>Expected day</span>
           <input type="number" min="1" max="60" value={day} onChange={(event) => setDay(Number(event.target.value || 1))} />
         </label>
         <label className="field">

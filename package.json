@@ -20,6 +20,7 @@
     "smoke:deck": "node scripts/smoke-deck.mjs",
     "smoke:subscribe": "node scripts/smoke-subscribe.mjs",
     "smoke:stream": "node scripts/smoke-stream-config.mjs",
+    "smoke:campaign": "node scripts/smoke-campaign-automation.mjs",
     "smoke:launch": "node scripts/smoke-launch.mjs",
     "assets:member": "node scripts/build-member-assets.mjs",
     "assets:toolkit": "node scripts/build-operator-toolkit-assets.mjs",

@@ -29,6 +29,13 @@ import {
   operatorUpdatesProduct,
 } from "../src/data/operatorToolkit.js";
 import { sprintConfig } from "../src/data/seed.js";
+import {
+  getCampaignBounds,
+  getCampaignDateForDay,
+  getCampaignDayForTimestamp,
+  getCampaignState,
+} from "../src/lib/campaign.js";
+import { buildDeckHtml, toCsv } from "../src/lib/tracker.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -37,7 +44,13 @@ const assetDir = path.join(rootDir, "server", "member-assets");
 
 const app = express();
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:5173";
-const campaignStartAt = sprintConfig.startAt || `${sprintConfig.startDate}T00:00:00Z`;
+const campaignBounds = getCampaignBounds(sprintConfig);
+const campaignStartAt = campaignBounds.startAt;
+const campaignEndAt = campaignBounds.endAt;
+const campaignAutomationTickMs = Math.max(
+  15_000,
+  Number(process.env.CAMPAIGN_AUTOMATION_TICK_MS || 30_000),
+);
 const defaultEmailFrom = "AI with Murda <murad@aiwithmurda.com>";
 const twitchProviderKey = "twitch";
 const twitchOAuthScopes = ["moderator:read:followers"];
@@ -109,6 +122,9 @@ const providerLastPollAt = new Map();
 let followerTickerCache = null;
 let followerRefreshPromise = null;
 let followerRefreshTimer = null;
+let campaignAutomationPromise = null;
+let campaignAutomationTimer = null;
+let lastCampaignAutomationRun = null;
 const streamLinkKeys = [
   ["twitch", "Twitch", "STREAM_TWITCH_URL"],
   ["kick", "Kick", "STREAM_KICK_URL"],
@@ -729,13 +745,13 @@ function buildSnapshotChanges(currentLog, proposedLog) {
       key: "clipsPosted",
       label: "Clips posted",
       kind: "number",
-      source: "Daily dashboard until clip webhook is connected",
+      source: "Idempotent clip event ledger",
     },
     {
       key: "hoursStreamed",
       label: "Hours streamed",
       kind: "number",
-      source: "Daily dashboard until stream telemetry is connected",
+      source: "Twitch live-session telemetry",
     },
   ];
 
@@ -770,6 +786,147 @@ async function getAllDailyLogs() {
   return (data || []).map(toDailyLog);
 }
 
+const cumulativeDailyLogFields = [
+  "emailSubscribers",
+  "revenueCollected",
+  "revenuePipeline",
+  "hoursStreamed",
+  "clipsPosted",
+  "outreachSent",
+  "callsBooked",
+  "productsSold",
+  "buildsShipped",
+  "dailyLessons",
+];
+
+function cloneFollowerLedger(followers = {}) {
+  const ledger = followers && typeof followers === "object" ? followers : {};
+  return {
+    ...ledger,
+    ...(ledger._baseline && typeof ledger._baseline === "object"
+      ? { _baseline: { ...ledger._baseline } }
+      : {}),
+  };
+}
+
+function createCampaignDayLog(day, previous = null) {
+  const log = {
+    day,
+    date: getCampaignDateForDay(sprintConfig, day),
+    mainGoal:
+      String(previous?.tomorrowPromise || "").trim() ||
+      (day === 1
+        ? "Launch the 60-day sprint and establish the official baseline"
+        : `Execute Day ${day}, ship visible proof, and set up tomorrow`),
+    status: "planned",
+    followers: cloneFollowerLedger(previous?.followers),
+    emailSubscribers: 0,
+    revenueCollected: 0,
+    revenuePipeline: 0,
+    hoursStreamed: 0,
+    clipsPosted: 0,
+    outreachSent: 0,
+    callsBooked: 0,
+    productsSold: 0,
+    buildsShipped: 0,
+    dailyLessons: 0,
+    shippedItems: [],
+    bestMoment: "",
+    biggestFailure: "",
+    lessonLearned: "",
+    tomorrowPromise: "",
+    spikeCause: "",
+    proofAssets: [],
+  };
+
+  for (const field of cumulativeDailyLogFields) {
+    log[field] = Number(previous?.[field] || 0);
+  }
+  return log;
+}
+
+async function getOfficialLaunchFollowerLedger(existingFollowers = {}) {
+  const ledger = cloneFollowerLedger(existingFollowers);
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("social_accounts")
+      .select("provider,status,follower_count");
+    if (error) throw error;
+    for (const account of data || []) {
+      if (["connected", "stale"].includes(account.status) && Number.isFinite(Number(account.follower_count))) {
+        ledger[account.provider] = Number(account.follower_count);
+      }
+    }
+  } catch (error) {
+    if (!isMissingSocialMetricsStorageError(error)) throw error;
+  }
+
+  const baseline = Object.fromEntries(
+    sprintConfig.platforms.map((platform) => [platform, Number(ledger[platform] || 0)]),
+  );
+  return {
+    ...baseline,
+    _baseline: { ...baseline },
+    _campaignStartedAt: campaignStartAt,
+  };
+}
+
+async function ensureCampaignDailyLogs({ now = Date.now() } = {}) {
+  const campaign = getCampaignState(sprintConfig, now);
+  const existingLogs = await getAllDailyLogs();
+  const logsByDay = new Map(existingLogs.map((log) => [log.day, log]));
+  const targetDay = campaign.isRehearsal ? 1 : campaign.currentDay;
+  const changedLogs = [];
+  let officialLaunchReset = false;
+  let previous = null;
+
+  const existingDayOne = logsByDay.get(1);
+  if (!campaign.isRehearsal && !existingDayOne?.followers?._campaignStartedAt) {
+    const launchLog = createCampaignDayLog(1);
+    launchLog.followers = await getOfficialLaunchFollowerLedger(existingDayOne.followers);
+    logsByDay.set(1, launchLog);
+    for (const day of [...logsByDay.keys()]) {
+      if (day > 1) logsByDay.delete(day);
+    }
+    const { error: rehearsalCleanupError } = await supabaseAdmin.from("daily_logs").delete().gt("day", 1);
+    if (rehearsalCleanupError) throw rehearsalCleanupError;
+    officialLaunchReset = true;
+  }
+
+  for (let day = 1; day <= targetDay; day += 1) {
+    const existing = logsByDay.get(day);
+    const expectedDate = getCampaignDateForDay(sprintConfig, day);
+    const expectedStatus = campaign.isRehearsal ? "planned" : day < campaign.currentDay || campaign.isComplete ? "complete" : "active";
+    const next = existing ? { ...existing } : createCampaignDayLog(day, previous);
+
+    if (next.date !== expectedDate) next.date = expectedDate;
+    if (next.status !== expectedStatus) next.status = expectedStatus;
+    if (!String(next.mainGoal || "").trim()) next.mainGoal = createCampaignDayLog(day, previous).mainGoal;
+
+    if (!existing || JSON.stringify(next) !== JSON.stringify(existing)) {
+      changedLogs.push(next);
+    }
+    logsByDay.set(day, next);
+    previous = next;
+  }
+
+  if (changedLogs.length) {
+    const { error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert(changedLogs.map(toDailyLogRow), { onConflict: "day" })
+      .select("day");
+    if (error) throw error;
+  }
+
+  return {
+    campaign,
+    targetDay,
+    officialLaunchReset,
+    createdDays: changedLogs.filter((log) => !existingLogs.some((existing) => existing.day === log.day)).map((log) => log.day),
+    updatedDays: changedLogs.filter((log) => existingLogs.some((existing) => existing.day === log.day)).map((log) => log.day),
+  };
+}
+
 async function buildAutomatedDailySnapshot({ day = null } = {}) {
   const targetDay = day ? Number(day) : null;
   if (targetDay && (!Number.isInteger(targetDay) || targetDay < 1 || targetDay > 60)) {
@@ -796,8 +953,12 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
     emailSubscribers: Number(snapshot.emailSubscribers || 0),
     revenueCollected: Number(((snapshot.revenueCents || 0) / 100).toFixed(2)),
     productsSold: Number(snapshot.paidPurchases || 0),
-    clipsPosted: Number(snapshot.clipsPosted || currentLog.clipsPosted || 0),
-    hoursStreamed: Number(snapshot.hoursStreamed || currentLog.hoursStreamed || 0),
+    clipsPosted: snapshot.clipStorageReady
+      ? Number(snapshot.clipsPosted || 0)
+      : Number(currentLog.clipsPosted || 0),
+    hoursStreamed: snapshot.streamStorageReady
+      ? Number(snapshot.hoursStreamed || 0)
+      : Number(currentLog.hoursStreamed || 0),
   };
 
   return {
@@ -825,6 +986,12 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
         source: "Stripe paid purchases",
         status: "live",
       },
+      ...(snapshot.streamStorageReady
+        ? [{ key: "hoursStreamed", label: "Hours streamed", source: "Twitch session telemetry", status: "live" }]
+        : []),
+      ...(snapshot.clipStorageReady
+        ? [{ key: "clipsPosted", label: "Clips posted", source: "Idempotent clip event ledger", status: "live" }]
+        : []),
     ],
     pendingSources: [
       {
@@ -833,18 +1000,12 @@ async function buildAutomatedDailySnapshot({ day = null } = {}) {
         source: "Connected social accounts write directly to the current daily log",
         status: "managed-separately",
       },
-      {
-        key: "clipsPosted",
-        label: "Clips posted",
-        source: "n8n or upload webhook",
-        status: "connector-needed",
-      },
-      {
-        key: "hoursStreamed",
-        label: "Hours streamed",
-        source: "OBS or stream platform session telemetry",
-        status: "connector-needed",
-      },
+      ...(!snapshot.clipStorageReady
+        ? [{ key: "clipsPosted", label: "Clips posted", source: "n8n or upload webhook", status: "migration-required" }]
+        : []),
+      ...(!snapshot.streamStorageReady
+        ? [{ key: "hoursStreamed", label: "Hours streamed", source: "Twitch live-session telemetry", status: "migration-required" }]
+        : []),
     ],
   };
 }
@@ -2139,6 +2300,17 @@ function isMissingSocialMetricsStorageError(error) {
   return error?.code === "42P01" || message.includes("social_accounts") || message.includes("social_metric_snapshots");
 }
 
+function isMissingCampaignAutomationStorageError(error) {
+  const message = String(error?.message || error?.details || error?.hint || "").toLowerCase();
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST202" ||
+    message.includes("stream_sessions") ||
+    message.includes("clip_events") ||
+    message.includes("record_campaign_clip_event")
+  );
+}
+
 async function getSocialAccounts() {
   const { data, error } = await supabaseAdmin.from("social_accounts").select("*").order("provider");
   if (error) {
@@ -2162,10 +2334,16 @@ async function getSocialAccount(provider) {
 }
 
 async function syncLatestDailyLogFollower(provider, followerCount) {
-  const sourceRow = await getDailyLogForSnapshot();
+  const campaign = getCampaignState(sprintConfig);
+  const targetDay = campaign.isRehearsal ? 1 : campaign.currentDay;
+  let sourceRow = await getDailyLogForSnapshot(targetDay);
+  if (!sourceRow) {
+    await ensureCampaignDailyLogs();
+    sourceRow = await getDailyLogForSnapshot(targetDay);
+  }
   if (!sourceRow) return null;
   const currentFollowers = sourceRow.followers && typeof sourceRow.followers === "object" ? sourceRow.followers : {};
-  const prelaunch = Date.now() < Date.parse(campaignStartAt);
+  const prelaunch = campaign.isRehearsal;
   const baseline =
     currentFollowers._baseline && typeof currentFollowers._baseline === "object" ? currentFollowers._baseline : {};
   const followerIsCurrent = Number(currentFollowers[provider]) === Number(followerCount);
@@ -2312,6 +2490,111 @@ async function fetchTwitchSocialMetric(token) {
     profileUrl: username ? `https://www.twitch.tv/${encodeURIComponent(username)}` : null,
     precision: "exact",
   };
+}
+
+function calculateCampaignStreamSeconds(startedAt, observedAt) {
+  const startedMs = Date.parse(startedAt);
+  const observedMs = Date.parse(observedAt);
+  if (!Number.isFinite(startedMs) || !Number.isFinite(observedMs)) return 0;
+  const overlapStart = Math.max(startedMs, campaignBounds.startMs);
+  const overlapEnd = Math.min(observedMs, campaignBounds.endMs);
+  return Math.max(0, Math.floor((overlapEnd - overlapStart) / 1000));
+}
+
+async function closeInactiveTwitchStreamSessions(activeSessionId = null) {
+  const { data, error } = await supabaseAdmin
+    .from("stream_sessions")
+    .select("id,external_session_id,last_seen_at")
+    .eq("provider", twitchProviderKey)
+    .is("ended_at", null);
+  if (error) throw error;
+
+  const sessions = (data || []).filter((session) => session.external_session_id !== activeSessionId);
+  for (const session of sessions) {
+    const { error: updateError } = await supabaseAdmin
+      .from("stream_sessions")
+      .update({ ended_at: session.last_seen_at || new Date().toISOString() })
+      .eq("id", session.id);
+    if (updateError) throw updateError;
+  }
+  return sessions.length;
+}
+
+async function refreshTwitchStreamTelemetry({ now = new Date() } = {}) {
+  const config = getTwitchConfig();
+  if (!config.configured) {
+    return { status: "not-configured", live: false, countedSeconds: 0 };
+  }
+
+  const { token, missingTable: tokenTableMissing } = await getUsableTwitchToken();
+  if (tokenTableMissing) return { status: "migration-required", live: false, countedSeconds: 0 };
+  if (!token?.access_token) return { status: "not-connected", live: false, countedSeconds: 0 };
+
+  const broadcasterId =
+    token.broadcaster_user_id || token.provider_user_id || readPublicUrlEnv("TWITCH_BROADCASTER_ID");
+  if (!broadcasterId) return { status: "not-connected", live: false, countedSeconds: 0 };
+
+  const response = await fetch(
+    `https://api.twitch.tv/helix/streams?user_id=${encodeURIComponent(broadcasterId)}`,
+    { headers: { Authorization: `Bearer ${token.access_token}`, "Client-Id": config.clientId } },
+  );
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.message || `twitch_streams_${response.status}`);
+
+  const stream = payload.data?.[0] || null;
+  const observedAt = now.toISOString();
+  try {
+    if (!stream) {
+      const closedSessions = await closeInactiveTwitchStreamSessions();
+      return { status: "offline", live: false, countedSeconds: 0, closedSessions, observedAt };
+    }
+
+    const countedSeconds = calculateCampaignStreamSeconds(stream.started_at, observedAt);
+    await closeInactiveTwitchStreamSessions(stream.id);
+    const { data, error } = await supabaseAdmin
+      .from("stream_sessions")
+      .upsert(
+        {
+          provider: twitchProviderKey,
+          external_session_id: stream.id,
+          provider_user_id: broadcasterId,
+          title: stream.title || null,
+          started_at: stream.started_at,
+          last_seen_at: observedAt,
+          ended_at: null,
+          counts_toward_campaign: countedSeconds > 0,
+          counted_seconds: countedSeconds,
+          metadata: {
+            streamType: stream.type || null,
+            viewerCount: Number(stream.viewer_count || 0),
+            gameId: stream.game_id || null,
+            language: stream.language || null,
+          },
+        },
+        { onConflict: "provider,external_session_id" },
+      )
+      .select("id,external_session_id,started_at,last_seen_at,counts_toward_campaign,counted_seconds")
+      .single();
+    if (error) throw error;
+
+    return {
+      status:
+        countedSeconds > 0
+          ? "counting"
+          : getCampaignState(sprintConfig, now.getTime()).isRehearsal
+            ? "rehearsal-live"
+            : "outside-campaign-live",
+      live: true,
+      countedSeconds,
+      session: data,
+      observedAt,
+    };
+  } catch (error) {
+    if (isMissingCampaignAutomationStorageError(error)) {
+      return { status: "migration-required", live: Boolean(stream), countedSeconds: 0, observedAt };
+    }
+    throw error;
+  }
 }
 
 async function fetchTikTokSocialMetric(token) {
@@ -2600,8 +2883,9 @@ async function buildLiveFollowerTicker({ refreshDue = true } = {}) {
 }
 
 function normalizeClipSubmission(body = {}) {
-  const day = Number(body.day);
-  if (!Number.isInteger(day) || day < 1 || day > 60) {
+  const requestedDay =
+    body.day === undefined || body.day === null || body.day === "" ? null : Number(body.day);
+  if (requestedDay !== null && (!Number.isInteger(requestedDay) || requestedDay < 1 || requestedDay > 60)) {
     const error = new Error("valid_day_required");
     error.status = 400;
     throw error;
@@ -2611,14 +2895,34 @@ function normalizeClipSubmission(body = {}) {
   const platform = String(body.platform || "clip").trim().slice(0, 40) || "clip";
   const title = String(body.title || "Clip posted").trim().slice(0, 140) || "Clip posted";
   const url = String(body.url || "").trim().slice(0, 500);
-  const postedAt = String(body.postedAt || new Date().toISOString()).trim();
+  const postedAtMs = Date.parse(body.postedAt || new Date().toISOString());
+  if (!Number.isFinite(postedAtMs)) {
+    const error = new Error("valid_posted_at_required");
+    error.status = 400;
+    throw error;
+  }
+  const postedAt = new Date(postedAtMs).toISOString();
+  const campaignDay = getCampaignDayForTimestamp(sprintConfig, postedAtMs);
+  if (requestedDay !== null && campaignDay !== null && requestedDay !== campaignDay) {
+    const error = new Error("campaign_day_mismatch");
+    error.status = 400;
+    throw error;
+  }
+  const providedEventId = String(body.eventId || body.externalId || "").trim().slice(0, 180);
+  const eventFingerprint = url ? `${platform}|${url}` : `${platform}|${title}|${postedAt}`;
+  const eventId =
+    providedEventId || `clip_${crypto.createHash("sha256").update(eventFingerprint).digest("hex").slice(0, 32)}`;
   return {
-    day,
+    eventId,
+    day: campaignDay,
+    requestedDay,
     count,
     platform,
     title,
     url,
     postedAt,
+    countsTowardCampaign: campaignDay !== null,
+    rehearsal: campaignDay === null,
   };
 }
 
@@ -2650,13 +2954,15 @@ function normalizeFollowerCountSubmission(body = {}) {
     throw error;
   }
 
+  const campaign = getCampaignState(sprintConfig);
   return {
-    day,
+    day: day || (campaign.isRehearsal ? 1 : campaign.currentDay),
     platform,
     count: Math.floor(count),
     source: String(body.source || "automation").trim().slice(0, 80) || "automation",
     observedAt: String(body.observedAt || new Date().toISOString()).trim(),
     addProof: body.addProof === true,
+    rehearsal: campaign.isRehearsal,
   };
 }
 
@@ -2858,7 +3164,7 @@ function buildAccessEmail(productConfig = checkoutProducts.get(productKey)) {
   };
 }
 
-async function countSubscribersSince(isoDate = null) {
+async function countSubscribersSince(isoDate = null, endDate = null) {
   let query = supabaseAdmin
     .from("subscribers")
     .select("email", { count: "exact", head: true })
@@ -2866,6 +3172,9 @@ async function countSubscribersSince(isoDate = null) {
 
   if (isoDate) {
     query = query.gte("subscribed_at", isoDate);
+  }
+  if (endDate) {
+    query = query.lt("subscribed_at", endDate);
   }
 
   const { count, error } = await query;
@@ -2880,7 +3189,8 @@ async function getCampaignPurchaseSummary() {
     .select("amount_total,currency,purchased_at")
     .in("product_key", productKeys)
     .eq("status", "paid")
-    .gte("purchased_at", campaignStartAt);
+    .gte("purchased_at", campaignStartAt)
+    .lt("purchased_at", campaignEndAt);
 
   if (error) throw error;
   return {
@@ -2888,6 +3198,207 @@ async function getCampaignPurchaseSummary() {
     revenueCents: (data || []).reduce((total, purchase) => total + Number(purchase.amount_total || 0), 0),
     currency: data?.[0]?.currency || "usd",
   };
+}
+
+async function getCampaignStreamSummary() {
+  const { data, error } = await supabaseAdmin
+    .from("stream_sessions")
+    .select("external_session_id,started_at,last_seen_at,ended_at,counts_toward_campaign,counted_seconds,metadata")
+    .eq("provider", twitchProviderKey)
+    .order("last_seen_at", { ascending: false });
+
+  if (error) {
+    if (isMissingCampaignAutomationStorageError(error)) {
+      return {
+        storageReady: false,
+        authority: "twitch",
+        totalSeconds: 0,
+        totalHours: 0,
+        officialSessions: 0,
+        rehearsalSessions: 0,
+        live: false,
+        latestSession: null,
+      };
+    }
+    throw error;
+  }
+
+  const sessions = data || [];
+  const totalSeconds = sessions.reduce((total, session) => total + Number(session.counted_seconds || 0), 0);
+  return {
+    storageReady: true,
+    authority: "twitch",
+    totalSeconds,
+    totalHours: Number((totalSeconds / 3600).toFixed(2)),
+    officialSessions: sessions.filter((session) => session.counts_toward_campaign).length,
+    rehearsalSessions: sessions.filter((session) => !session.counts_toward_campaign).length,
+    live: sessions.some((session) => !session.ended_at),
+    latestSession: sessions[0] || null,
+  };
+}
+
+async function getCampaignClipSummary() {
+  const { data, error } = await supabaseAdmin
+    .from("clip_events")
+    .select("event_id,platform,title,url,posted_at,campaign_day,clip_count,counts_toward_campaign,processed_at")
+    .order("posted_at", { ascending: false });
+
+  if (error) {
+    if (isMissingCampaignAutomationStorageError(error)) {
+      return {
+        storageReady: false,
+        countedClips: 0,
+        officialEvents: 0,
+        rehearsalEvents: 0,
+        latestEvent: null,
+      };
+    }
+    throw error;
+  }
+
+  const events = data || [];
+  const officialEvents = events.filter((event) => event.counts_toward_campaign);
+  return {
+    storageReady: true,
+    countedClips: officialEvents.reduce((total, event) => total + Number(event.clip_count || 0), 0),
+    officialEvents: officialEvents.length,
+    rehearsalEvents: events.length - officialEvents.length,
+    latestEvent: events[0] || null,
+  };
+}
+
+async function getCampaignAutomatedTotals() {
+  const [emailSubscribers, purchases, stream, clips] = await Promise.all([
+    countSubscribersSince(campaignStartAt, campaignEndAt),
+    getCampaignPurchaseSummary(),
+    getCampaignStreamSummary(),
+    getCampaignClipSummary(),
+  ]);
+
+  return {
+    emailSubscribers,
+    revenueCents: purchases.revenueCents,
+    paidPurchases: purchases.paidPurchases,
+    currency: purchases.currency,
+    hoursStreamed: stream.totalHours,
+    clipsPosted: clips.countedClips,
+    stream,
+    clips,
+  };
+}
+
+async function syncCurrentCampaignMetrics({ now = Date.now(), ensureLogs = true } = {}) {
+  const campaign = getCampaignState(sprintConfig, now);
+  if (campaign.isRehearsal) {
+    return { applied: false, reason: "rehearsal", campaign };
+  }
+
+  if (ensureLogs) await ensureCampaignDailyLogs({ now });
+  const sourceRow = await getDailyLogForSnapshot(campaign.currentDay);
+  if (!sourceRow) throw new Error("campaign_daily_log_not_found");
+
+  const currentLog = toDailyLog(sourceRow);
+  const totals = await getCampaignAutomatedTotals();
+  const updatedLog = {
+    ...currentLog,
+    emailSubscribers: totals.emailSubscribers,
+    revenueCollected: Number((totals.revenueCents / 100).toFixed(2)),
+    productsSold: totals.paidPurchases,
+    hoursStreamed: totals.stream.storageReady ? totals.hoursStreamed : currentLog.hoursStreamed,
+    clipsPosted: totals.clips.storageReady ? totals.clipsPosted : currentLog.clipsPosted,
+  };
+  const changed = buildSnapshotChanges(currentLog, updatedLog);
+
+  if (changed.length) {
+    const { error } = await supabaseAdmin
+      .from("daily_logs")
+      .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
+      .select("day");
+    if (error) throw error;
+  }
+
+  return {
+    applied: changed.length > 0,
+    campaign,
+    targetDay: campaign.currentDay,
+    changes: changed,
+    totals,
+  };
+}
+
+async function getCampaignAutomationStatus({ now = Date.now() } = {}) {
+  const campaign = getCampaignState(sprintConfig, now);
+  const [logs, stream, clips] = await Promise.all([
+    getAllDailyLogs(),
+    getCampaignStreamSummary(),
+    getCampaignClipSummary(),
+  ]);
+  const currentLog = logs.find((log) => log.day === (campaign.isRehearsal ? 1 : campaign.currentDay)) || null;
+
+  return {
+    campaign,
+    worker: {
+      enabled: true,
+      intervalMs: campaignAutomationTickMs,
+      lastRun: lastCampaignAutomationRun,
+    },
+    dailyLogs: {
+      count: logs.length,
+      currentDay: currentLog?.day || null,
+      currentStatus: currentLog?.status || null,
+      currentDate: currentLog?.date || null,
+    },
+    stream,
+    clips,
+    rehearsalIsolation: {
+      active: campaign.isRehearsal,
+      message: campaign.isRehearsal
+        ? "Prelaunch activity is recorded as rehearsal and excluded from official totals."
+        : "Only activity inside the official 60-day campaign window is counted.",
+    },
+    checkedAt: new Date(now).toISOString(),
+  };
+}
+
+async function runCampaignAutomationTick({ refreshStream = true, now = new Date() } = {}) {
+  if (campaignAutomationPromise) return campaignAutomationPromise;
+  campaignAutomationPromise = (async () => {
+    const startedAt = new Date().toISOString();
+    const lifecycle = await ensureCampaignDailyLogs({ now: now.getTime() });
+    const stream = refreshStream ? await refreshTwitchStreamTelemetry({ now }) : { status: "skipped" };
+    const metrics = await syncCurrentCampaignMetrics({ now: now.getTime(), ensureLogs: false });
+    const result = {
+      ok: true,
+      startedAt,
+      completedAt: new Date().toISOString(),
+      lifecycle,
+      stream,
+      metrics,
+    };
+    lastCampaignAutomationRun = result;
+    return result;
+  })();
+
+  try {
+    return await campaignAutomationPromise;
+  } catch (error) {
+    lastCampaignAutomationRun = {
+      ok: false,
+      completedAt: new Date().toISOString(),
+      error: error.message || "campaign_automation_failed",
+    };
+    throw error;
+  } finally {
+    campaignAutomationPromise = null;
+  }
+}
+
+function ensureCampaignAutomationLoop() {
+  if (campaignAutomationTimer) return;
+  campaignAutomationTimer = setInterval(() => {
+    runCampaignAutomationTick().catch((error) => console.error("[campaign-automation-loop]", error.message));
+  }, campaignAutomationTickMs);
+  campaignAutomationTimer.unref?.();
 }
 
 function formatNumberForApi(value) {
@@ -3071,6 +3582,7 @@ async function getOfferOpsSummary() {
 
 async function getMetricsAutomationSummary() {
   const now = Date.now();
+  const campaign = getCampaignState(sprintConfig, now);
   const since24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
   const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -3086,9 +3598,10 @@ async function getMetricsAutomationSummary() {
     latestEntitlements,
     latestLogs,
     liveFollowerTicker,
+    campaignAutomation,
   ] = await Promise.all([
     countSubscribersSince(),
-    countSubscribersSince(campaignStartAt),
+    countSubscribersSince(campaignStartAt, campaignEndAt),
     countSubscribersSince(since24h),
     countSubscribersSince(since7d),
     supabaseAdmin
@@ -3117,6 +3630,7 @@ async function getMetricsAutomationSummary() {
       .order("day", { ascending: false })
       .limit(1),
     buildLiveFollowerTicker({ refreshDue: false }),
+    getCampaignAutomationStatus({ now }),
   ]);
 
   for (const result of [latestSubscribers, latestPurchases, latestEntitlements, latestLogs]) {
@@ -3136,12 +3650,14 @@ async function getMetricsAutomationSummary() {
   const liveSources = [
     {
       key: "email-subscribers",
-      label: "Sprint email subscribers",
+      label: "Official email subscribers",
       status: "live",
       mode: "Supabase capture",
       metric: formatNumberForApi(campaignSubscribers),
-      detail: `${formatNumberForApi(activeSubscribers)} total contacts · counting from ${sprintConfig.startDate}`,
-      next: "Auto-counts from /api/subscribe and Resend-backed signup forms.",
+      detail: `${formatNumberForApi(activeSubscribers)} lifetime contacts · official counting begins ${sprintConfig.startDate}`,
+      next: campaign.isRehearsal
+        ? "Rehearsal signups remain outside the public total."
+        : "Every /api/subscribe capture syncs into the current official day.",
     },
     {
       key: "stripe-sales",
@@ -3149,8 +3665,10 @@ async function getMetricsAutomationSummary() {
       status: "live",
       mode: "Stripe webhook",
       metric: `$${(campaignPurchases.revenueCents / 100).toFixed(2)}`,
-      detail: `${formatNumberForApi(campaignPurchases.paidPurchases)} paid order${campaignPurchases.paidPurchases === 1 ? "" : "s"} since ${sprintConfig.startDate}`,
-      next: "Webhook writes purchases and unlocks entitlements automatically.",
+      detail: `${formatNumberForApi(campaignPurchases.paidPurchases)} official paid order${campaignPurchases.paidPurchases === 1 ? "" : "s"} inside the campaign window`,
+      next: campaign.isRehearsal
+        ? "Test purchases still unlock access but never enter the July 28 scoreboard."
+        : "Stripe webhooks update access and the current public total.",
     },
     {
       key: "member-access",
@@ -3163,22 +3681,35 @@ async function getMetricsAutomationSummary() {
     },
     {
       key: "daily-dashboard",
-      label: "Daily dashboard",
+      label: "Campaign day rollover",
       status: "live",
-      mode: "Admin reviewed automation",
-      metric: latestLog ? `Day ${latestLog.day}` : "No live day",
-      detail: latestLog ? `${latestLog.date} · ${formatNumberForApi(latestLog.clips_posted)} clips logged` : "Waiting for Day 1 baseline",
-      next: "Snapshot writer can apply Stripe, email, and member metrics into daily_logs.",
+      mode: "30-second server worker",
+      metric: campaign.isRehearsal ? "Day 0" : `Day ${campaign.currentDay}`,
+      detail: latestLog ? `${latestLog.date} · ${latestLog.status}` : "Waiting for the official Day 1 baseline",
+      next: "New days open automatically at midnight Central and inherit cumulative totals.",
     },
     ...socialAutomationSources,
     {
+      key: "stream-hours",
+      label: "Stream hours",
+      status: campaignAutomation.stream.storageReady ? "live" : "migration-required",
+      mode: "Twitch live-session telemetry",
+      metric: `${formatNumberForApi(campaignAutomation.stream.totalHours)} hours`,
+      detail: `${campaignAutomation.stream.officialSessions} official · ${campaignAutomation.stream.rehearsalSessions} rehearsal session${campaignAutomation.stream.rehearsalSessions === 1 ? "" : "s"}`,
+      next: campaignAutomation.stream.live
+        ? campaign.isRehearsal
+          ? "Twitch is live in rehearsal mode; elapsed time is intentionally excluded."
+          : "Twitch is live and the worker is counting elapsed campaign time."
+        : "Twitch is the single hour authority, preventing multistream double-counting.",
+    },
+    {
       key: "clip-pipeline",
       label: "Clips posted",
-      status: "planned",
-      mode: "Upload workflow / n8n",
-      metric: latestLog ? formatNumberForApi(latestLog.clips_posted) : "0",
-      detail: "Manual today; can become automatic when clips are posted through our pipeline.",
-      next: "Add a clip submission webhook and count every accepted clip event.",
+      status: campaignAutomation.clips.storageReady ? "live" : "migration-required",
+      mode: "Idempotent n8n webhook",
+      metric: formatNumberForApi(campaignAutomation.clips.countedClips),
+      detail: `${campaignAutomation.clips.officialEvents} official · ${campaignAutomation.clips.rehearsalEvents} rehearsal event${campaignAutomation.clips.rehearsalEvents === 1 ? "" : "s"}`,
+      next: "Each external event ID can count once; prelaunch clip tests remain rehearsal-only.",
     },
   ];
 
@@ -3218,15 +3749,18 @@ async function getMetricsAutomationSummary() {
       latestSyncedDay: latestLog?.day || null,
       clipsPosted: Number(latestLog?.clips_posted || 0),
       hoursStreamed: Number(latestLog?.hours_streamed || 0),
+      streamStorageReady: campaignAutomation.stream.storageReady,
+      clipStorageReady: campaignAutomation.clips.storageReady,
     },
+    campaign: campaignAutomation,
     sources: liveSources,
     events,
     nextBuilds: [
-      "Authorize the Twitch channel and confirm EventSub delivery",
-      "Authorize TikTok with user.info.stats",
-      "Connect the professional Instagram account through Meta",
-      "Authorize the YouTube channel and verify rounded subscriber precision",
-      "Clip submission webhook for n8n/short-form pipeline",
+      "Run a private OBS rehearsal and confirm Twitch creates a rehearsal-only stream session",
+      "Send the same test clip event twice and confirm the second delivery is marked duplicate",
+      "Run a Stripe test checkout and email signup before July 28 and confirm both stay outside the scoreboard",
+      "Export JSON, CSV, and the 60-day proof deck from the clean launch baseline",
+      "Connect X only if its API access is worth adding before launch",
     ],
     checkedAt: new Date().toISOString(),
   };
@@ -3271,7 +3805,13 @@ async function upsertProductEntitlement({ userId, productConfig, sourcePurchaseI
   return data;
 }
 
-async function grantEntitlement({ userId, email, session, productConfig = checkoutProducts.get(productKey) }) {
+async function grantEntitlement({
+  userId,
+  email,
+  session,
+  productConfig = checkoutProducts.get(productKey),
+  purchasedAt = null,
+}) {
   if (!supabaseAdmin || !userId || !session?.id) return null;
   if (!productConfig?.key || !checkoutProducts.has(productConfig.key)) {
     throw new Error("unknown_product_entitlement");
@@ -3281,6 +3821,16 @@ async function grantEntitlement({ userId, email, session, productConfig = checko
     typeof session.customer === "string" ? session.customer : session.customer?.id || null;
   const amountTotal = Number(session.amount_total || productConfig.priceCents);
   const currency = String(session.currency || "usd").toLowerCase();
+  const { data: existingPurchase, error: existingPurchaseError } = await supabaseAdmin
+    .from("purchases")
+    .select("purchased_at")
+    .eq("stripe_checkout_session_id", session.id)
+    .maybeSingle();
+  if (existingPurchaseError) throw existingPurchaseError;
+  const stablePurchasedAt =
+    existingPurchase?.purchased_at ||
+    purchasedAt ||
+    (session.created ? new Date(Number(session.created) * 1000).toISOString() : new Date().toISOString());
 
   await ensureProductRecord(productConfig);
 
@@ -3307,7 +3857,7 @@ async function grantEntitlement({ userId, email, session, productConfig = checko
         amount_total: amountTotal,
         currency,
         status: "paid",
-        purchased_at: new Date().toISOString(),
+        purchased_at: stablePurchasedAt,
       },
       { onConflict: "stripe_checkout_session_id" },
     )
@@ -3427,9 +3977,15 @@ async function recordOperatorUpdateInvoicePayment({ invoice, userId }) {
   return data;
 }
 
-async function grantOperatorToolkitAccess({ userId, email, session }) {
+async function grantOperatorToolkitAccess({ userId, email, session, purchasedAt = null }) {
   const toolkitConfig = checkoutProducts.get(operatorToolkitProduct.key);
-  const permanentEntitlement = await grantEntitlement({ userId, email, session, productConfig: toolkitConfig });
+  const permanentEntitlement = await grantEntitlement({
+    userId,
+    email,
+    session,
+    productConfig: toolkitConfig,
+    purchasedAt,
+  });
   const { data: purchase, error: purchaseError } = await supabaseAdmin
     .from("purchases")
     .select("id")
@@ -3452,9 +4008,15 @@ async function grantOperatorToolkitAccess({ userId, email, session }) {
   return { permanentEntitlement, updates };
 }
 
-async function grantOperatorUpdateOnlyAccess({ userId, email, session }) {
+async function grantOperatorUpdateOnlyAccess({ userId, email, session, purchasedAt = null }) {
   const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
-  const updateEntitlement = await grantEntitlement({ userId, email, session, productConfig: updatesConfig });
+  const updateEntitlement = await grantEntitlement({
+    userId,
+    email,
+    session,
+    productConfig: updatesConfig,
+    purchasedAt,
+  });
   const { data: purchase, error: purchaseError } = await supabaseAdmin
     .from("purchases")
     .select("id")
@@ -3642,18 +4204,23 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const productConfig = checkoutProducts.get(session.metadata?.product_key);
+      const purchasedAt = event.created
+        ? new Date(Number(event.created) * 1000).toISOString()
+        : new Date().toISOString();
       if (productConfig && session.payment_status === "paid") {
         if (productConfig.key === operatorToolkitProduct.key) {
           await grantOperatorToolkitAccess({
             userId: session.metadata?.supabase_user_id,
             email: session.customer_details?.email,
             session,
+            purchasedAt,
           });
         } else if (productConfig.key === operatorUpdatesProduct.key) {
           await grantOperatorUpdateOnlyAccess({
             userId: session.metadata?.supabase_user_id,
             email: session.customer_details?.email,
             session,
+            purchasedAt,
           });
         } else {
           await grantEntitlement({
@@ -3661,6 +4228,7 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
             email: session.customer_details?.email,
             session,
             productConfig,
+            purchasedAt,
           });
         }
 
@@ -3705,6 +4273,10 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
         }
       }
     }
+
+    await syncCurrentCampaignMetrics().catch((error) => {
+      console.error("[stripe-campaign-sync]", error.message);
+    });
 
     res.json({ received: true });
   } catch (error) {
@@ -3786,6 +4358,23 @@ app.get("/api/health", (req, res) => {
     supabase: Boolean(supabaseAdmin),
     stripe: Boolean(stripe),
     resend: Boolean(resend),
+    campaign: getCampaignState(sprintConfig),
+  });
+});
+
+app.get("/api/campaign/status", (req, res) => {
+  const campaign = getCampaignState(sprintConfig);
+  res.setHeader("Cache-Control", "no-store");
+  res.json({
+    ok: true,
+    campaign,
+    rehearsalIsolation: campaign.isRehearsal,
+    automation: {
+      enabled: true,
+      intervalMs: campaignAutomationTickMs,
+      lastRunOk: lastCampaignAutomationRun?.ok ?? null,
+      lastCompletedAt: lastCampaignAutomationRun?.completedAt || null,
+    },
   });
 });
 
@@ -4121,6 +4710,66 @@ app.get("/api/admin/metrics/automation", requireAdmin, async (req, res) => {
   }
 });
 
+app.get("/api/admin/campaign/automation", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  try {
+    res.json({ ok: true, status: await getCampaignAutomationStatus() });
+  } catch (error) {
+    console.error("[admin-campaign-automation]", error);
+    res.status(500).json({ error: "campaign_automation_status_failed" });
+  }
+});
+
+app.post("/api/admin/campaign/tick", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  try {
+    const result = await runCampaignAutomationTick({ refreshStream: req.body?.refreshStream !== false });
+    res.json({ ok: true, result, status: await getCampaignAutomationStatus() });
+  } catch (error) {
+    console.error("[admin-campaign-tick]", error);
+    res.status(500).json({ error: error.message || "campaign_automation_tick_failed" });
+  }
+});
+
+app.get("/api/admin/campaign/export/:format", requireAdmin, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+  const format = String(req.params.format || "").toLowerCase();
+  if (!new Set(["json", "csv", "html"]).has(format)) {
+    res.status(400).json({ error: "supported_export_format_required" });
+    return;
+  }
+
+  try {
+    const logs = await getAllDailyLogs();
+    const filename = `aiwithmurda-60-day-campaign-${sprintConfig.startDate}.${format}`;
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    if (format === "csv") {
+      res.type("text/csv").send(toCsv(logs));
+      return;
+    }
+    if (format === "html") {
+      res.type("text/html").send(buildDeckHtml(sprintConfig, logs));
+      return;
+    }
+    res.type("application/json").send(
+      JSON.stringify(
+        {
+          exportedAt: new Date().toISOString(),
+          campaign: getCampaignState(sprintConfig),
+          config: sprintConfig,
+          logs,
+        },
+        null,
+        2,
+      ),
+    );
+  } catch (error) {
+    console.error("[admin-campaign-export]", error);
+    res.status(500).json({ error: "campaign_export_failed" });
+  }
+});
+
 app.get("/api/admin/metrics/daily-snapshot", requireAdmin, async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 
@@ -4171,43 +4820,40 @@ app.post("/api/admin/clips/intake", requireAdmin, async (req, res) => {
 
   try {
     const clip = normalizeClipSubmission(req.body || {});
-    const sourceRow = await getDailyLogForSnapshot(clip.day);
-    if (!sourceRow) {
-      res.status(404).json({ error: "daily_log_not_found" });
-      return;
-    }
-
-    const currentLog = toDailyLog(sourceRow);
+    await ensureCampaignDailyLogs();
     const proofAsset = formatClipProofAsset(clip);
-    const proofAssets = currentLog.proofAssets.includes(proofAsset)
-      ? currentLog.proofAssets
-      : [...currentLog.proofAssets, proofAsset];
-    const updatedLog = {
-      ...currentLog,
-      clipsPosted: Number(currentLog.clipsPosted || 0) + clip.count,
-      proofAssets,
-      bestMoment: currentLog.bestMoment || `First ${clip.platform} clip logged through automation.`,
-    };
-
-    if (!validateDailyLog(updatedLog)) {
-      res.status(500).json({ error: "generated_daily_log_invalid" });
-      return;
-    }
-
-    const { error } = await supabaseAdmin
-      .from("daily_logs")
-      .upsert([toDailyLogRow(updatedLog)], { onConflict: "day" })
-      .select("day");
+    const { data: result, error } = await supabaseAdmin.rpc("record_campaign_clip_event", {
+      p_event_id: clip.eventId,
+      p_platform: clip.platform,
+      p_title: clip.title,
+      p_url: clip.url,
+      p_posted_at: clip.postedAt,
+      p_campaign_day: clip.day,
+      p_count: clip.count,
+      p_counts_toward_campaign: clip.countsTowardCampaign,
+      p_proof_asset: proofAsset,
+      p_payload: req.body || {},
+    });
     if (error) throw error;
+    const displayDay = clip.day || 1;
+    const updatedRow = await getDailyLogForSnapshot(displayDay);
 
     res.json({
       ok: true,
       clip,
-      updatedLog,
+      result,
+      duplicate: result?.duplicate === true,
+      counted: result?.counted === true,
+      rehearsal: clip.rehearsal,
+      updatedLog: updatedRow ? toDailyLog(updatedRow) : null,
       logs: await getAllDailyLogs(),
     });
   } catch (error) {
     console.error("[admin-clips-intake]", error);
+    if (isMissingCampaignAutomationStorageError(error)) {
+      res.status(503).json({ error: "campaign_automation_migration_required" });
+      return;
+    }
     res.status(error.status || 500).json({ error: error.message || "clip_intake_failed" });
   }
 });
@@ -4234,9 +4880,16 @@ app.post("/api/admin/followers/intake", requireAdmin, async (req, res) => {
       followers: {
         ...(currentLog.followers || {}),
         [update.platform]: update.count,
+        ...(update.rehearsal
+          ? {
+              _baseline: {
+                ...(currentLog.followers?._baseline || {}),
+                [update.platform]: update.count,
+              },
+            }
+          : {}),
       },
       proofAssets,
-      bestMoment: currentLog.bestMoment || `${update.platform} follower count started updating through automation.`,
     };
 
     if (!validateDailyLog(updatedLog)) {
@@ -4253,6 +4906,7 @@ app.post("/api/admin/followers/intake", requireAdmin, async (req, res) => {
     res.json({
       ok: true,
       update,
+      rehearsal: update.rehearsal,
       updatedLog,
       liveFollowers: await buildLiveFollowerTicker(),
       logs: await getAllDailyLogs(),
@@ -4360,6 +5014,12 @@ app.post("/api/subscribe", async (req, res) => {
       subject: welcomeEmail.subject,
       text: welcomeEmail.text,
       html: welcomeEmail.html,
+    });
+  }
+
+  if (supabaseAdmin) {
+    await syncCurrentCampaignMetrics().catch((error) => {
+      console.error("[subscribe-campaign-sync]", error.message);
     });
   }
 
@@ -4743,6 +5403,10 @@ server.on("listening", () => {
   console.log(`AI with Murda server listening on ${host}:${port}`);
   ensureFollowerRefreshLoop();
   refreshDueSocialMetrics().catch((error) => console.error("[social-startup-refresh]", error.message));
+  if (supabaseAdmin) {
+    ensureCampaignAutomationLoop();
+    runCampaignAutomationTick().catch((error) => console.error("[campaign-startup-automation]", error.message));
+  }
 });
 server.on("error", (error) => {
   console.error("[server-listen]", error);
