@@ -2038,7 +2038,7 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
         ))}
       </section>
 
-      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} />
+      <PublicFollowerTicker liveFollowers={liveFollowers} latest={latest} preview={isPrelaunch(config)} />
 
       <InteractiveProofline
         logs={logs}
@@ -2083,7 +2083,7 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
   );
 }
 
-function PublicFollowerTicker({ liveFollowers, latest }) {
+function PublicFollowerTicker({ liveFollowers, latest, preview = false }) {
   const sources = liveFollowers?.sources || [];
   const liveSourceCount = sources.filter((source) => source.connected).length;
   const staleSourceCount = sources.filter((source) => source.status === "stale").length;
@@ -2102,6 +2102,7 @@ function PublicFollowerTicker({ liveFollowers, latest }) {
       <div className="follower-source-strip">
         {sources.length ? (
           sources.map((source) => {
+            const displayedChangeDelta = preview ? 0 : Number(source.lastChangeDelta || 0);
             const content = (
               <>
                 <div>
@@ -2117,7 +2118,7 @@ function PublicFollowerTicker({ liveFollowers, latest }) {
                           : source.precision === "rounded"
                             ? "Rounded"
                             : "Verified"
-                      }${source.lastChangeDelta > 0 ? ` · +${formatNumber(source.lastChangeDelta)}` : ""}`
+                      }${displayedChangeDelta !== 0 ? ` · ${signedNumber(displayedChangeDelta)}` : ""}`
                     : "Not connected"}
                 </em>
               </>

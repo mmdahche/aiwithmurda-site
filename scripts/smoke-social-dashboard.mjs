@@ -49,7 +49,18 @@ async function verifyDashboard(page, label) {
   for (const labelText of ["Twitch", "TikTok", "Instagram", "YouTube", "X"]) {
     await ticker.getByText(labelText, { exact: true }).waitFor();
   }
-  assert(!(await ticker.textContent()).includes("12,996"), `${label} leaked the old seed follower total`);
+  const tickerText = await ticker.textContent();
+  assert(!tickerText.includes("12,996"), `${label} leaked the old seed follower total`);
+  if ((await page.getByText("Prelaunch board", { exact: true }).count()) > 0) {
+    assert(!/·\s*[+-]\d/.test(tickerText), `${label} leaked rehearsal follower deltas`);
+  }
+  const staleCards = ticker.locator(".follower-source-strip > .stale");
+  if ((await staleCards.count()) > 0) {
+    assert(
+      (await staleCards.allTextContents()).every((text) => text.includes("Last verified")),
+      `${label} presents stale follower data as live`,
+    );
+  }
   await auditLayout(page, label);
 }
 
