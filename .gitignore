@@ -5,3 +5,6 @@ dist/
 .env.*
 .secrets/
 supabase/.temp/
+__pycache__/
+*.pyc
+.pytest_cache/
