@@ -33,10 +33,6 @@ import {
 import {
   operatorBundleAccessPlan,
   operatorBundleCollections,
-  operatorBundleDeliverables,
-  operatorBundleFaq,
-  operatorBundleOutcomes,
-  operatorBundlePath,
   operatorBundleProduct,
 } from "./data/operatorBundle.js";
 import {
@@ -55,6 +51,7 @@ import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
 import { KitPage } from "./pages/KitPage.jsx";
 import { StorePage } from "./pages/StorePage.jsx";
+import { BundlePage } from "./pages/BundlePage.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -1678,7 +1675,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/start" && <StartPage />}
       {knownRoute === "/kit" && <KitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/store" && <StorePage />}
-      {knownRoute === "/live-builds" && <OperatorBundlePage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/live-builds" && <BundlePage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/operator-toolkit" && <OperatorToolkitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
@@ -2617,257 +2614,6 @@ function StartPage() {
         ))}
       </section>
     </main>
-  );
-}
-
-function OperatorBundlePage({ authSession, authReady }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle");
-  const [message, setMessage] = useState("");
-  const [accessCheck, setAccessCheck] = useState({ status: "idle" });
-
-  useEffect(() => {
-    if (!authSession?.access_token) return undefined;
-
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session_id");
-    const checkoutState = params.get("checkout");
-    if (!sessionId || checkoutState !== "success") return undefined;
-
-    let cancelled = false;
-    setAccessCheck({
-      status: "checking",
-      title: "Checking your Operator Bundle",
-      body: "Confirming Stripe payment and attaching the advanced vault to your profile.",
-    });
-
-    verifyCheckoutSession(sessionId, authSession.access_token)
-      .then((result) => {
-        if (cancelled) return;
-        window.history.replaceState({}, "", "/live-builds?checkout=success");
-        setAccessCheck({
-          status: "success",
-          title: "Bundle confirmed",
-          body:
-            result.entitlement?.product_key === operatorBundleProduct.key
-              ? "Your New Wave Operator Bundle is attached to this profile."
-              : "Stripe confirmed the payment and your profile was updated.",
-        });
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        const pending = error.data?.error === "checkout_not_paid";
-        setAccessCheck({
-          status: pending ? "pending" : "error",
-          title: pending ? "Payment is not marked paid yet" : "Bundle check needs attention",
-          body: pending
-            ? "Stripe has the session, but it is not marked paid yet. Refresh in a moment if you completed payment."
-            : error.message || "Could not verify the Operator Bundle yet.",
-        });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authSession?.access_token]);
-
-  async function handleSubscribe(event) {
-    event.preventDefault();
-    setStatus("loading");
-    setMessage("");
-
-    try {
-      await subscribeBuildLog({ email, name, source: "operator-bundle" });
-      setStatus("success");
-      setMessage("You are on the Operator Bundle update list.");
-      setEmail("");
-      setName("");
-    } catch (error) {
-      setStatus("error");
-      setMessage(error.message || "Could not join the live-build list yet.");
-    }
-  }
-
-  return (
-    <main className="public-page">
-      <section className="public-section live-builds-hero">
-        <div>
-          <span className="public-label">Complete bundle · {operatorBundleProduct.status}</span>
-          <h1>{operatorBundleProduct.name}</h1>
-          <p>{operatorBundleProduct.promise}</p>
-          <div className="live-builds-positioning">
-            <strong>{operatorBundleProduct.subtitle}</strong>
-            <span>{operatorBundleProduct.positioning}</span>
-          </div>
-          <div className="hero-actions">
-            <a className="primary-link" href="#operator-bundle-details">
-              {operatorBundleProduct.primaryCta}
-            </a>
-            <a className="secondary-link" href="/kit">
-              {operatorBundleProduct.secondaryCta}
-            </a>
-          </div>
-        </div>
-        <aside className="live-builds-ticket">
-          <span>One-time bundle access</span>
-          <strong>{operatorBundleProduct.priceLabel}</strong>
-          <p>Includes the complete $47 course plus the advanced skill, script, review, debug, deployment, and blueprint vault.</p>
-          <OperatorBundleCheckoutButton authSession={authSession} authReady={authReady} />
-          {accessCheck.status !== "idle" && (
-            <div className={`live-builds-access ${accessCheck.status}`}>
-              <strong>{accessCheck.title}</strong>
-              <p>{accessCheck.body}</p>
-            </div>
-          )}
-          <form id="operator-bundle-list" className="start-form" onSubmit={handleSubscribe}>
-            <input
-              type="text"
-              placeholder="First name"
-              aria-label="First name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-            <input
-              type="email"
-              placeholder="you@example.com"
-              aria-label="Email address"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            <button type="submit" disabled={status === "loading"}>
-              {status === "loading" ? "Joining..." : "Get bundle updates"}
-            </button>
-          </form>
-          {message && <p className={`form-message ${status}`}>{message}</p>}
-        </aside>
-      </section>
-
-      <section className="live-builds-outcomes">
-        {operatorBundleOutcomes.map((outcome) => (
-          <article key={outcome.title}>
-            <span>{outcome.title}</span>
-            <p>{outcome.body}</p>
-          </article>
-        ))}
-      </section>
-
-      <section id="operator-bundle-details" className="public-section live-builds-flow-section">
-        <div>
-          <span className="public-label">How to use the bundle</span>
-          <h2>Foundation first. Advanced tools second.</h2>
-          <p>
-            The larger vault should not become a larger distraction. Finish the core setup, install only the skills tied to a
-            repeated need, add a second-agent review pass, then use one blueprint for the next build.
-          </p>
-        </div>
-        <div className="live-builds-flow">
-          {operatorBundlePath.map((phase) => (
-            <article key={phase.phase}>
-              <strong>{phase.phase}</strong>
-              <div>
-                <span>{phase.time}</span>
-                <h3>{phase.title}</h3>
-                <p>{phase.body}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="public-section live-build-room-queue-section">
-        <div>
-          <span className="public-label">Operator collections</span>
-          <h2>Install by workflow, not by hype.</h2>
-          <p>
-            Each collection solves a specific stage of the build lifecycle. Start with the collection that removes a real
-            repeated problem from your current work.
-          </p>
-        </div>
-        <div className="live-build-room-queue">
-          {operatorBundleCollections.map((collection) => (
-            <article key={collection.key}>
-              <span>{collection.label}</span>
-              <h3>{collection.title}</h3>
-              <strong>{collection.status} · {collection.estimatedTime}</strong>
-              <p>{collection.outcome}</p>
-              <em>{collection.proofTarget}</em>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="public-section live-builds-deliverables">
-        <div>
-          <span className="public-label">What is included</span>
-          <h2>The repeatable systems behind the next build.</h2>
-          <p>
-            These are customer-safe versions of the workflows Murad uses. Private infrastructure, credentials, and company-only
-            automation are deliberately excluded.
-          </p>
-        </div>
-        <ul>
-          {operatorBundleDeliverables.map((deliverable) => (
-            <li key={deliverable}>{deliverable}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="public-section live-builds-faq-section">
-        <div>
-          <span className="public-label">Before you upgrade</span>
-          <h2>Buy the larger vault for a larger workflow.</h2>
-        </div>
-        <div className="kit-faq-list">
-          {operatorBundleFaq.map((item) => (
-            <article key={item.question}>
-              <strong>{item.question}</strong>
-              <p>{item.answer}</p>
-            </article>
-          ))}
-        </div>
-        <div className="kit-final-cta">
-          <strong>Ready for the full operator system?</strong>
-          <OperatorBundleCheckoutButton authSession={authSession} authReady={authReady} compact />
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function OperatorBundleCheckoutButton({ authSession, authReady, compact = false }) {
-  const [status, setStatus] = useState("idle");
-  const [message, setMessage] = useState("");
-
-  async function handleCheckout() {
-    if (!authSession?.access_token) {
-      window.location.href = "/members";
-      return;
-    }
-
-    setStatus("loading");
-    setMessage("");
-    try {
-      const data = await createOperatorBundleCheckout(authSession.access_token);
-      window.location.href = data.url;
-    } catch (error) {
-      setStatus("error");
-      setMessage(error.message || "Could not open the Operator Bundle checkout.");
-    }
-  }
-
-  return (
-    <div className={`checkout-box ${compact ? "compact" : ""}`}>
-      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
-        {authSession
-          ? status === "loading"
-            ? "Opening Stripe..."
-            : `Unlock for ${operatorBundleProduct.priceLabel}`
-          : "Create profile to unlock"}
-      </button>
-      {message && <p className="form-message error">{message}</p>}
-    </div>
   );
 }
 
