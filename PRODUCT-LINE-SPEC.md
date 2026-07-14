@@ -94,9 +94,9 @@ Companion: `AUDIT-REPORT.md` (Phase 1) · This run builds ONLY the Starter Kit (
 | 4 | `three-tier-llm-router` | Engine | $79 | N | 2 |
 | 5 | `zero-dollar-research-engine` | Engine | $29 | N | 3 |
 | 6 | `browser-automation-studio` | Studio | $39 | N | 3 |
-| 7 | `operator-marketing-pack` | Pack | $49 | N | 3 |
-| 8 | `design-studio-pack` | Pack | $49 | N | 3 |
-| 9 | `content-engine-pack` | Pack | $39 | N | 3 |
+| 7 | ~~`operator-marketing-pack`~~ | — | — | **DROPPED 2026-07-13** | — |
+| 8 | `design-studio-pack` | Pack | $49 | **V — deferred pending per-component provenance** | 4 |
+| 9 | `content-engine-pack` | Pack | $39 | **V — deferred; 2 components failed provenance 2026-07-13** | 4 |
 | 10 | `verification-qa-pack` | Pack | $29 | N | 1 |
 | 11 | `skill-authoring-kit` | Kit | $19 | N | **0 (this run)** |
 | 12 | `memory-os` | OS | $99 | N | 2 |
@@ -132,18 +132,16 @@ Buyer: power users with bloated/franken setups. Delivery: DEFAULT.
 Inside: sanitized `~/router` codebase (`tiered-ask.cjs`, `model-roles.cjs` single-source-of-truth, Groq/Fireworks/Ollama/Anthropic clients, `redact.cjs`, `confidence-gate.cjs`, `capacity-ledger.cjs`), `noor-ask`-style CLI, purpose taxonomy, hard-floor purposes pattern (never demote identity/architecture calls), JSONL usage ledger, dispatch-discipline doc.
 Buyer: builders running agents at scale who feel the token bill. Delivery: DEFAULT + ships inside Toolkit $297. Evidence: his own `tier-usage.jsonl` stats, sanitized (verify-at-packaging). Honesty edge: the reference bundle sells a 1-file markdown "router"; this is running code with logs.
 
-**#5 `zero-dollar-research-engine` — $29 — key `sku_research`**
-*"Ask the open web one question, get structured JSON from a dozen free sources."*
-Inside: `research` skill (multi-source aggregator, three fail-closed security gates) + `web-fetch` (curl-impersonate fast path) + `to-markdown` (fail-closed doc converter) + `last30days` (what people actually said, last 30 days, across 8 platforms). Buyer: anyone paying for research SaaS. Delivery: DEFAULT.
+**#5 `zero-dollar-research-engine` — $29 — key `sku_research` — SHIPPED Wave 3 (2026-07-14)**
+*"Ask the open web one question, get structured results from many free sources."*
+Inside: `research` skill (multi-source aggregator, security gates) + `web-fetch` (curl-impersonate fast path, SSRF-guarded) + `to-markdown` (fail-closed doc converter). 158 shipped tests. `last30days` EXCLUDED at packaging: it is third-party (mvanhorn/last30days-skill, MIT) AND requires paid API keys — both disqualifying (§1.5 + the $0 pitch). The Guardrails firewall dependency became an optional seam (cross-sells #2). Buyer: anyone paying for research SaaS. Delivery: DEFAULT.
 
 **#6 `browser-automation-studio` — $39 — key `sku_browser`**
 *"Point your agent at any site: scrape it, test it, drive it."*
 Inside: the `browser` studio skill — navigation/scrape/form/test flows, screenshot discipline, anti-rabbit-hole rules, blocker-reporting protocol. Buyer: operators automating web chores. Delivery: DEFAULT.
 
-**#7 `operator-marketing-pack` — $49 — key `sku_marketing`**
-*"The marketing department in your terminal."*
-Inside: the `/marketing` conductor + a curated, **exact-counted** subset (~25) of native component skills: ads, ad-creative, copywriting, copy-editing, cro, emails, cold-email, launch, pricing, paywalls, signup, onboarding, referrals, seo-audit, ai-seo, programmatic-seo, social, sms, popups, lead-magnets, competitors, customer-research, marketing-psychology, product-marketing, analytics. Final count verified by the folder pass and stamped in the name (e.g. "-25").
-Buyer: solo founders doing their own marketing. Delivery: DEFAULT.
+**#7 `operator-marketing-pack` — DROPPED 2026-07-13 (provenance)**
+The packaging-time provenance check (§13) found the `/marketing` conductor and its ~40 component skills are `coreyhaines31/marketingskills v2.3.0` — third-party material, not Murad's to resell (spec §1.5 boundary; the original class-N tag was wrong). Murad's call: drop from the catalog; revisit post-launch as an ORIGINAL "operator marketing playbook" authoring project (his launches, his receipts, zero ported content). Key `sku_marketing` stays reserved.
 
 **#8 `design-studio-pack` — $49 — key `sku_design`**
 *"Ship interfaces that don't look like AI slop."*
@@ -187,9 +185,9 @@ Inside: `inventory-demand-planning` (forecasting, safety stock, replenishment, p
 *"CFO-grade analysis without the CFO."*
 Inside: `cfo-advisor` + `financial-analyst` + `saas-metrics-coach` + `investor-materials` + `investor-outreach` + `board-deck-builder`. Buyer: founders raising or reporting. Delivery: DEFAULT. **Provenance class V — confirm each skill is native before packaging.**
 
-**#18 `mcp-builder-pack` — $39 — key `sku_mcp_builder`**
+**#18 `mcp-builder-pack` — $39 — key `sku_mcp_builder` — SHIPPED Wave 3 (2026-07-14, clean-room)**
 *"Build the tools your agent is missing."*
-Inside: `mcp-server-builder` + `mcp-server-patterns` (Node/TS SDK, Zod, stdio vs HTTP) + `agent-harness-construction` (action-space design) + `regex-vs-llm-structured-text` (decision framework). Buyer: technical operators extending their stack. Delivery: DEFAULT. Provenance class V.
+Provenance check found all four source skills were `origin: ECC` (third-party collection) — the pack was **written clean-room from scratch** (the four source files were never read): MCP server building with the official TS SDK (worked example compiled against SDK 1.29 under strict TS), server design patterns, agent action-space discipline, and the regex-vs-LLM parsing framework. Buyer: technical operators extending their stack. Delivery: DEFAULT.
 
 **#B `operator-arsenal` — $497 (FLAGGED — see F2) — key `sku_arsenal`**
 *"Every tool on the shelf, plus the full Operator Toolkit."*

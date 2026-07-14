@@ -85,6 +85,22 @@ export const storeProducts = [
     includedIn: { label: "Ships inside the Operator Toolkit today", href: "/operator-toolkit", tier: "$297" },
     license: "Commercial",
   },
+  {
+    key: "zero-dollar-research-engine",
+    name: "$0 Research Engine",
+    price: "$29",
+    kind: "Engine · 158 shipped tests",
+    promise: "Ask the open web one question, get structured results from many free sources, convert anything to clean markdown — SSRF-guarded, fail-closed, zero paid APIs.",
+    license: "MIT",
+  },
+  {
+    key: "mcp-builder-pack",
+    name: "MCP Builder Pack",
+    price: "$39",
+    kind: "Pack · 4 skills + compiled worked example",
+    promise: "Build the tools your agent is missing: MCP servers with the official SDK, tool-design patterns, action-space discipline, and the regex-vs-LLM parsing framework.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

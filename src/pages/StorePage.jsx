@@ -70,9 +70,15 @@ export function StorePage() {
             <p>{product.promise}</p>
             <strong className="card-price">{product.price}</strong>
             <em className="module-done">{product.license} license · standalone checkout at launch</em>
-            <a className="text-link" href={product.includedIn.href}>
-              {product.includedIn.label} ({product.includedIn.tier})
-            </a>
+            {product.includedIn ? (
+              <a className="text-link" href={product.includedIn.href}>
+                {product.includedIn.label} ({product.includedIn.tier})
+              </a>
+            ) : (
+              <a className="text-link" href="/start">
+                Standalone-only drop — join the build log for the launch alert
+              </a>
+            )}
           </article>
         ))}
       </section>

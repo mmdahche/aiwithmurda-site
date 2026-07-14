@@ -20,6 +20,8 @@ const STORE_PRODUCTS = [
   { slug: "three-tier-llm-router", zip: "three-tier-llm-router.zip" },
   { slug: "memory-os", zip: "memory-os.zip" },
   { slug: "autonomous-operator-kit", zip: "autonomous-operator-kit.zip" },
+  { slug: "zero-dollar-research-engine", zip: "zero-dollar-research-engine.zip" },
+  { slug: "mcp-builder-pack", zip: "mcp-builder-pack.zip" },
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).

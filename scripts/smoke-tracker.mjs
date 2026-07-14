@@ -256,6 +256,12 @@ const storeHtml = await storeResponse.text();
 if (!storeResponse.ok || !storeHtml.includes("root")) {
   throw new Error(`Store route failed: ${storeResponse.status}`);
 }
+const storeBundle = await fetchClientBundle(storeHtml, "Store route", siteUrl);
+for (const shelfName of ["The Operator Store", "MCP Builder Pack", "Research Engine"]) {
+  if (!storeBundle.includes(shelfName)) {
+    throw new Error(`Store bundle missing shelf copy: ${shelfName}`);
+  }
+}
 
 const samplerResponse = await fetch(`${siteUrl}/downloads/operator-sampler.zip`);
 const samplerBytes = new Uint8Array(await samplerResponse.arrayBuffer());
