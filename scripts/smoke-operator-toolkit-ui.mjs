@@ -46,7 +46,7 @@ async function verifySalesPage(page, label) {
   await page.getByText("$327 due today, then $30/month", { exact: true }).waitFor();
   await page.getByRole("heading", { name: "Buy the amount of system you are ready to operate." }).waitFor();
   assert((await page.locator(".operator-tier-grid article").count()) === 3, `${label} tier comparison is incomplete`);
-  assert((await page.locator(".operator-toolkit-outcomes article").count()) === 4, `${label} outcomes are incomplete`);
+  assert((await page.locator(".operator-toolkit-outcomes article").count()) === 5, `${label} outcomes are incomplete`);
   assert((await page.locator(".operator-toolkit-path article").count()) === 5, `${label} install path is incomplete`);
   assert((await page.locator(".operator-toolkit-collections article").count()) === 4, `${label} skill collections are incomplete`);
   await page.getByRole("heading", { name: "No hidden ownership rules." }).waitFor();
@@ -95,7 +95,7 @@ try {
           transparentInitialCharge: true,
           transparentRenewal: true,
           threeTierComparison: true,
-          fourOutcomes: true,
+          fiveOutcomes: true,
           fiveStageInstallation: true,
           fourSkillCollections: true,
           ownershipBoundary: true,
