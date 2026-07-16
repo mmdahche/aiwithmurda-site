@@ -10,7 +10,7 @@
 
 ## One-line status
 
-**Waves 0–3 shipped.** **`/operator-toolkit` T.I.M.E.R. rebuild done locally (2026-07-16)** — extracted to `ToolkitPage.jsx` + `OperatorToolkitCheckoutButton.jsx`. Build + `verify:products` green; prod `smoke:launch` still on prior deploy until commit/push. Next: commit/push, then Wave 1 remainder (`claude-setup-audit-suite`) or Wave 4 provenance-gated packs.
+**Waves 0–3 + Wave 1 remainder shipped.** **`/operator-toolkit` T.I.M.E.R. rebuild** @ `1bcfd49`. **`claude-setup-audit-suite`** @ `0b9e610` — 10th store SKU. Next: Wave 4 provenance-gated packs (`proof-engine-kit`, `retail-ops-ai-pack`, etc.) or standalone Payment Links when Murad adds Stripe fields.
 
 ---
 

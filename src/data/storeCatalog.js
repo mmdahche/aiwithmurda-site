@@ -109,6 +109,14 @@ export const storeProducts = [
     promise: "Find out what your Claude setup actually costs you — deterministic inventory, context budget, hook regression eval, and pre-install skill security scanning.",
     license: "MIT",
   },
+  {
+    key: "retail-ops-ai-pack",
+    name: "Retail Ops AI Pack",
+    price: "$59",
+    kind: "Pack · 2 clean-room skills",
+    promise: "Demand planning and reverse logistics playbooks — forecast selection, safety stock, promo lift, RMA grading, disposition routing, and fraud scoring with numbers attached.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

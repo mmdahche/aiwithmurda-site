@@ -177,9 +177,9 @@ Inside: `swarm-intake` — idea/brief/repo → intake package with collision-fre
 *"The build-in-public command center running aiwithmurda.com — as a template."*
 Inside: sanitized patterns from this repo — scoreboard data model, daily-log + receipt-page templates, OBS overlay pattern (transparent browser-source discipline), prelaunch-labeling system, launch-gate smoke-test pattern, baseline-reset workflow. Buyer: builders starting their own public sprint. Delivery: DEFAULT. Wave 4 — sell it after the 60-day run makes the live site itself the sales page.
 
-**#16 `retail-ops-ai-pack` — $59 — key `sku_retail_ops`**
+**#16 `retail-ops-ai-pack` — $59 — key `sku_retail_ops` — SHIPPED Wave 4 (2026-07-16, clean-room)**
 *"15-years-experience playbooks for demand planning and returns — as agent skills."*
-Inside: `inventory-demand-planning` (forecasting, safety stock, replenishment, promo lift) + `returns-reverse-logistics` (RMA, disposition, fraud detection, warranty). Born from Backbone IMS domain work. Buyer: retail/e-com operators. Delivery: DEFAULT.
+Provenance check found ECC-tagged source drafts in the reference library — **written clean-room from scratch** (source files never read for wording): `inventory-demand-planning` (forecasting, safety stock, replenishment, promo lift) + `returns-reverse-logistics` (RMA, disposition, fraud detection, warranty). Born from Backbone IMS domain work. Buyer: retail/e-com operators. Delivery: DEFAULT.
 
 **#17 `founder-finance-pack` — $49 — key `sku_founder_finance`**
 *"CFO-grade analysis without the CFO."*
