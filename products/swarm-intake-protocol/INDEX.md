@@ -1,6 +1,6 @@
 # INDEX — swarm-intake-protocol
 
-Generated: 2026-07-16 · Files: 43 (excluding this manifest)
+Generated: 2026-07-16 · Files: 45 (excluding this manifest)
 
 Every file in this product, verified against disk by `verify-product-folder.mjs`
 at build time. If your download doesn't match this list exactly, something is
@@ -9,6 +9,8 @@ wrong — email murad@aiwithmurda.com.
 - `00-START-HERE.md`
 - `CHANGELOG.md`
 - `examples/greenfield-intake-walkthrough.md`
+- `install/claude-code/swarm-intake.md`
+- `install/codex/swarm-intake/SKILL.md`
 - `install/setup.sh`
 - `LICENSE`
 - `payload/G10-manifest.yaml`
