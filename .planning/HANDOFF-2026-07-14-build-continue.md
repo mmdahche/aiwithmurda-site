@@ -10,7 +10,7 @@
 
 ## One-line status
 
-**Waves 0–3 + Wave 1 remainder shipped.** **`/operator-toolkit` T.I.M.E.R. rebuild** @ `1bcfd49`. **`claude-setup-audit-suite`** @ `0b9e610` — 10th store SKU. Next: Wave 4 provenance-gated packs (`proof-engine-kit`, `retail-ops-ai-pack`, etc.) or standalone Payment Links when Murad adds Stripe fields.
+**Waves 0–3 + Wave 1 remainder + Wave 4 start shipped.** **`/operator-toolkit` T.I.M.E.R. rebuild** @ `1bcfd49`. **`claude-setup-audit-suite`** @ `0b9e610` — 10th store SKU. **`retail-ops-ai-pack`** — 11th store SKU (clean-room). Next: `swarm-intake-protocol`, `founder-finance-pack` (provenance), `proof-engine-kit` (needs live receipts), or standalone Payment Links when Murad adds Stripe fields.
 
 ---
 
