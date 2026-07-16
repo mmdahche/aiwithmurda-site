@@ -38,8 +38,6 @@ import {
 import {
   operatorToolkitAccessPlan,
   operatorToolkitCollections,
-  operatorToolkitFaq,
-  operatorToolkitOutcomes,
   operatorToolkitPath,
   operatorToolkitProduct,
   operatorToolkitReleases,
@@ -52,11 +50,12 @@ import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
 import { KitPage } from "./pages/KitPage.jsx";
 import { StorePage } from "./pages/StorePage.jsx";
 import { BundlePage } from "./pages/BundlePage.jsx";
+import { ToolkitPage } from "./pages/ToolkitPage.jsx";
+import { OperatorToolkitCheckoutButton } from "./components/checkout/OperatorToolkitCheckoutButton.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
   createBillingPortal,
-  createOperatorToolkitCheckout,
   createOperatorUpdatesCheckout,
   createOperatorBundleCheckout,
   createTestPurchaseCheckout,
@@ -1676,7 +1675,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/kit" && <KitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/store" && <StorePage />}
       {knownRoute === "/live-builds" && <BundlePage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/operator-toolkit" && <OperatorToolkitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/operator-toolkit" && <ToolkitPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -2614,196 +2613,6 @@ function StartPage() {
         ))}
       </section>
     </main>
-  );
-}
-
-function OperatorToolkitPage({ authSession, authReady }) {
-  const checkoutCanceled = new URLSearchParams(window.location.search).get("checkout") === "cancel";
-
-  return (
-    <main className="public-page operator-toolkit-page">
-      <section className="operator-toolkit-hero">
-        <div className="operator-toolkit-hero-copy">
-          <span className="public-label">Full system · Permanent launch edition + monthly updates</span>
-          <h1>{operatorToolkitProduct.name}</h1>
-          <p>{operatorToolkitProduct.promise}</p>
-          <div className="operator-toolkit-hero-actions">
-            <a className="primary-link" href="#toolkit-checkout">Install the full system</a>
-            <a className="secondary-link" href="#compare-tiers">Compare tiers</a>
-          </div>
-          <div className="operator-toolkit-trust-strip">
-            <span><PackageCheck size={17} aria-hidden="true" /> Launch edition stays yours</span>
-            <span><RefreshCw size={17} aria-hidden="true" /> Versioned monthly releases</span>
-            <span><ShieldCheck size={17} aria-hidden="true" /> Customer-safe system</span>
-          </div>
-        </div>
-        <aside id="toolkit-checkout" className="operator-toolkit-pricing">
-          <span>Complete setup</span>
-          <strong>{operatorToolkitProduct.priceLabel}</strong>
-          <p>{operatorToolkitProduct.checkoutLabel}</p>
-          <ul>
-            <li>Permanent 24-skill launch edition</li>
-            <li>Both lower tiers included</li>
-            <li>First month of system updates included</li>
-            <li>Cancel future updates without losing the toolkit</li>
-          </ul>
-          <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} />
-          {checkoutCanceled && <em>Checkout was canceled. Nothing was charged.</em>}
-        </aside>
-      </section>
-
-      <section className="operator-toolkit-outcomes" aria-label="Operator Toolkit outcomes">
-        {operatorToolkitOutcomes.map((outcome, index) => (
-          <article key={outcome.title}>
-            <strong>{String(index + 1).padStart(2, "0")}</strong>
-            <div><span>{outcome.title}</span><p>{outcome.body}</p></div>
-          </article>
-        ))}
-      </section>
-
-      <section id="compare-tiers" className="operator-tier-comparison">
-        <header>
-          <span className="public-label">Three clear levels</span>
-          <h2>Buy the amount of system you are ready to operate.</h2>
-          <p>The $97 bundle stays available. The full system earns the higher price through setup, installation, ownership, and ongoing versioned releases.</p>
-        </header>
-        <div className="operator-tier-grid">
-          <article>
-            <span>Learn</span>
-            <strong>$47</strong>
-            <h3>The Future Proof Method</h3>
-            <p>Set up Claude Code and Codex and ship the first verified build.</p>
-            <a href="/kit">Open starter course</a>
-          </article>
-          <article>
-            <span>Repeat</span>
-            <strong>$97</strong>
-            <h3>{operatorBundleProduct.name}</h3>
-            <p>Add focused skills, advanced scripts, review, debugging, deployment, and blueprints.</p>
-            <a href="/live-builds">Open Operator Bundle</a>
-          </article>
-          <article className="featured">
-            <span>Install</span>
-            <strong>$297 + $30/mo</strong>
-            <h3>{operatorToolkitProduct.name}</h3>
-            <p>Install the complete customer-safe command center and keep its release channel active.</p>
-            <a href="#toolkit-checkout">Choose full system</a>
-          </article>
-        </div>
-      </section>
-
-      <section className="operator-toolkit-path-section">
-        <header>
-          <span className="public-label">Installation path</span>
-          <h2>From clean environment to verified operating system.</h2>
-        </header>
-        <div className="operator-toolkit-path">
-          {operatorToolkitPath.map((phase) => (
-            <article key={phase.phase}>
-              <strong>{phase.phase}</strong>
-              <div><span>{phase.time}</span><h3>{phase.title}</h3><p>{phase.body}</p></div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="operator-toolkit-collections-section">
-        <header>
-          <span className="public-label">24 original skills</span>
-          <h2>Four collections. Installed by actual need.</h2>
-          <p>The pack includes matching project layouts for Claude Code and Codex. Every skill has an explicit workflow, output contract, and safety guardrails.</p>
-        </header>
-        <div className="operator-toolkit-collections">
-          {operatorToolkitCollections.map((collection) => (
-            <article key={collection.key}>
-              <span>{collection.label}</span>
-              <strong>{collection.status}</strong>
-              <h3>{collection.title}</h3>
-              <p>{collection.outcome}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="operator-toolkit-ownership">
-        <div>
-          <span className="public-label">Permanent ownership</span>
-          <h2>The launch edition remains yours.</h2>
-          <p>The $297 purchase permanently unlocks the setup, 24-skill ZIP, command center, templates, playbooks, and recovery system.</p>
-        </div>
-        <div>
-          <span className="public-label">Recurring continuity</span>
-          <h2>The $30/month keeps the system current.</h2>
-          <p>Active members receive new and revised skills, compatibility reviews, release notes, migrations, verification receipts, and rollback instructions.</p>
-        </div>
-      </section>
-
-      <section className="operator-toolkit-release-preview">
-        <header>
-          <span className="public-label">Release discipline</span>
-          <h2>Every update has a version and a rollback.</h2>
-        </header>
-        <div>
-          {operatorToolkitReleases.map((release) => (
-            <article key={release.version}>
-              <strong>v{release.version}</strong>
-              <span>{release.access}</span>
-              <h3>{release.title}</h3>
-              <p>{release.summary}</p>
-              <em>{release.date}</em>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="operator-toolkit-faq">
-        <header>
-          <span className="public-label">Billing and access</span>
-          <h2>No hidden ownership rules.</h2>
-        </header>
-        <div className="kit-faq-list">
-          {operatorToolkitFaq.map((item) => (
-            <article key={item.question}><strong>{item.question}</strong><p>{item.answer}</p></article>
-          ))}
-        </div>
-        <div className="operator-toolkit-final-cta">
-          <div><span>Initial payment</span><strong>$327 today</strong><small>$30/month thereafter</small></div>
-          <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function OperatorToolkitCheckoutButton({ authSession, authReady, compact = false }) {
-  const [status, setStatus] = useState("idle");
-  const [message, setMessage] = useState("");
-
-  async function handleCheckout() {
-    if (!authSession?.access_token) {
-      window.location.href = "/members?next=operator-toolkit";
-      return;
-    }
-
-    setStatus("loading");
-    setMessage("");
-    try {
-      const data = await createOperatorToolkitCheckout(authSession.access_token);
-      window.location.href = data.url;
-    } catch (error) {
-      setStatus("error");
-      setMessage(error.message || "Could not open the Operator Toolkit checkout.");
-    }
-  }
-
-  return (
-    <div className={`checkout-box operator-toolkit-checkout ${compact ? "compact" : ""}`}>
-      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
-        {authSession ? (status === "loading" ? "Opening Stripe..." : "Pay $327 and activate") : "Create profile to continue"}
-      </button>
-      <small>$297 permanent setup + first $30 month. Then $30/month until canceled.</small>
-      {message && <p className="form-message error">{message}</p>}
-    </div>
   );
 }
 

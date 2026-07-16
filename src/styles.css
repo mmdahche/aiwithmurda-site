@@ -5709,6 +5709,33 @@ button {
   line-height: 1.5;
 }
 
+.price-card .toolkit-pricing-list {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.price-card .toolkit-pricing-list li {
+  position: relative;
+  padding-left: 20px;
+  color: #a9b5aa;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.price-card .toolkit-pricing-list li::before {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #73f47d;
+  content: "";
+}
+
 .member-login-card strong {
   display: block;
   margin: 16px 0 10px;
@@ -5734,6 +5761,10 @@ button {
   grid-template-columns: 0.8fr 1.2fr;
   align-items: start;
   gap: 34px;
+}
+
+.kit-assets-section > * {
+  min-width: 0;
 }
 
 .kit-assets-section h2 {
@@ -7867,6 +7898,33 @@ button {
   line-height: 1.5;
 }
 
+.live-builds-ticket .toolkit-pricing-list {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-builds-ticket .toolkit-pricing-list li {
+  position: relative;
+  padding-left: 20px;
+  color: #a9b5aa;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.live-builds-ticket .toolkit-pricing-list li::before {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #73f47d;
+  content: "";
+}
+
 .live-builds-access {
   display: grid;
   gap: 5px;
@@ -8711,9 +8769,9 @@ button {
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* Operator Toolkit: permanent full-system setup plus a versioned update channel. */
+/* Operator Toolkit sales + member surfaces share the standard public-page width. */
 .operator-toolkit-page {
-  width: min(1320px, calc(100vw - 48px));
+  width: min(1180px, calc(100vw - 48px));
 }
 
 .operator-toolkit-hero {

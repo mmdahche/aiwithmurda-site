@@ -44,11 +44,10 @@ async function verifySalesPage(page, label) {
   await page.getByRole("heading", { level: 1, name: "The Operator Toolkit", exact: true }).waitFor({ timeout: 20_000 });
   await page.getByText("$297 setup + $30/month", { exact: true }).waitFor();
   await page.getByText("$327 due today, then $30/month", { exact: true }).waitFor();
-  await page.getByRole("heading", { name: "Buy the amount of system you are ready to operate." }).waitFor();
-  assert((await page.locator(".operator-tier-grid article").count()) === 3, `${label} tier comparison is incomplete`);
-  assert((await page.locator(".operator-toolkit-outcomes article").count()) === 5, `${label} outcomes are incomplete`);
+  await page.getByText("Three flagship systems ride inside a $297 tier.", { exact: true }).waitFor();
+  assert((await page.locator("#compare-tiers .tool-card").count()) === 3, `${label} tier comparison is incomplete`);
   assert((await page.locator(".operator-toolkit-path article").count()) === 5, `${label} install path is incomplete`);
-  assert((await page.locator(".operator-toolkit-collections article").count()) === 4, `${label} skill collections are incomplete`);
+  assert((await page.locator("#toolkit-collections .kit-asset-list article").count()) === 4, `${label} skill collections are incomplete`);
   await page.getByRole("heading", { name: "No hidden ownership rules." }).waitFor();
   await auditLayout(page, label);
 }
@@ -95,7 +94,6 @@ try {
           transparentInitialCharge: true,
           transparentRenewal: true,
           threeTierComparison: true,
-          fiveOutcomes: true,
           fiveStageInstallation: true,
           fourSkillCollections: true,
           ownershipBoundary: true,
