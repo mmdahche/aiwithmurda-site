@@ -197,6 +197,13 @@ export function createOperatorToolkitCheckout(token) {
   });
 }
 
+export function createOperatorArsenalCheckout(token) {
+  return apiRequest("/api/checkout/operator-arsenal", {
+    method: "POST",
+    token,
+  });
+}
+
 export function createOperatorUpdatesCheckout(token) {
   return apiRequest("/api/checkout/operator-updates", {
     method: "POST",
@@ -274,6 +281,14 @@ export function downloadOperatorToolkitAsset(assetKey, token) {
   return downloadProtectedAsset(
     `/api/member-assets/operator-toolkit/${encodeURIComponent(assetKey)}`,
     "operator_toolkit_asset_download_failed",
+    token,
+  );
+}
+
+export function downloadOperatorArsenalAsset(assetKey, token) {
+  return downloadProtectedAsset(
+    `/api/member-assets/operator-arsenal/${encodeURIComponent(assetKey)}`,
+    "operator_arsenal_asset_download_failed",
     token,
   );
 }

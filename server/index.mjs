@@ -28,6 +28,11 @@ import {
   operatorToolkitReleases,
   operatorUpdatesProduct,
 } from "../src/data/operatorToolkit.js";
+import {
+  operatorArsenalAccessPlan,
+  operatorArsenalProduct,
+  operatorArsenalShelfAssets,
+} from "../src/data/operatorArsenal.js";
 import { sprintConfig } from "../src/data/seed.js";
 import {
   getCampaignBounds,
@@ -310,6 +315,16 @@ const checkoutProducts = new Map(
       priceCents: operatorUpdatesProduct.priceCents,
       priceEnvKey: "STRIPE_OPERATOR_UPDATES_PRICE_ID",
       billing: "subscription_entitlement",
+    },
+    {
+      key: operatorArsenalProduct.key,
+      name: operatorArsenalProduct.name,
+      subtitle: operatorArsenalProduct.subtitle,
+      priceCents: operatorArsenalProduct.priceCents,
+      priceEnvKey: "STRIPE_OPERATOR_ARSENAL_PRICE_ID",
+      successPath: "/members",
+      cancelPath: "/operator-arsenal",
+      billing: "mixed_subscription",
     },
   ].map((item) => [item.key, item]),
 );
@@ -629,6 +644,17 @@ async function getMemberAccess(user) {
       updateAssets: operatorUpdateAssets.map(publicAsset),
       releases: operatorToolkitReleases,
     },
+    operatorArsenal: {
+      key: operatorArsenalProduct.key,
+      name: operatorArsenalProduct.name,
+      subtitle: operatorArsenalProduct.subtitle,
+      status: operatorArsenalProduct.status,
+      price_cents: operatorArsenalProduct.priceCents,
+      monthly_price_cents: operatorArsenalProduct.monthlyPriceCents,
+      initial_total_cents: operatorArsenalProduct.initialTotalCents,
+      accessPlan: operatorArsenalAccessPlan,
+      shelfAssets: operatorArsenalShelfAssets.map(publicAsset),
+    },
   };
 }
 
@@ -646,12 +672,13 @@ async function hasActiveProductEntitlement(userId, entitlementProductKey) {
 }
 
 async function hasActiveEntitlement(userId) {
-  const [starterAccess, bundleAccess, toolkitAccess] = await Promise.all([
+  const [starterAccess, bundleAccess, toolkitAccess, arsenalAccess] = await Promise.all([
     hasActiveProductEntitlement(userId, productKey),
     hasActiveProductEntitlement(userId, operatorBundleProduct.key),
     hasActiveProductEntitlement(userId, operatorToolkitProduct.key),
+    hasActiveProductEntitlement(userId, operatorArsenalProduct.key),
   ]);
-  return starterAccess || bundleAccess || toolkitAccess;
+  return starterAccess || bundleAccess || toolkitAccess || arsenalAccess;
 }
 
 function toDailyLog(row) {
@@ -3046,6 +3073,35 @@ function buildWelcomeEmail() {
 }
 
 function buildAccessEmail(productConfig = checkoutProducts.get(productKey)) {
+  if (productConfig?.key === operatorArsenalProduct.key) {
+    return {
+      subject: "Your Operator Arsenal is ready",
+      text: [
+        "Your Operator Arsenal is active — full toolkit plus every shelf zip.",
+        "",
+        `Open your member workspace: ${siteUrl}/members`,
+        "Download shelf products from the Arsenal shelf section.",
+        "Run the Operator Toolkit setup path for the command center and 24 skills.",
+        "",
+        "Billing: $497 one-time setup plus $30/month for Operator System Updates.",
+      ].join("\n"),
+      html: baseEmailTemplate({
+        preheader: "Every shelf tool plus the full Operator Toolkit is active.",
+        title: "The complete library is ready.",
+        intro:
+          "Your profile owns the full Operator Toolkit and permanent downloads for every standalone shelf product.",
+        bullets: [
+          "Download shelf zips from the member hub Arsenal section.",
+          "Run the toolkit setup path before installing skills.",
+          "The launch edition remains yours if you cancel future updates.",
+        ],
+        primaryUrl: `${siteUrl}/members?product=operator-toolkit`,
+        primaryLabel: "Open member workspace",
+        footer: `This confirmation was sent after Stripe activated ${operatorArsenalProduct.name}.`,
+      }),
+    };
+  }
+
   if (productConfig?.key === operatorToolkitProduct.key) {
     return {
       subject: "Your Operator Toolkit is ready",
@@ -4008,6 +4064,45 @@ async function grantOperatorToolkitAccess({ userId, email, session, purchasedAt 
   return { permanentEntitlement, updates };
 }
 
+async function grantOperatorArsenalAccess({ userId, email, session, purchasedAt = null }) {
+  const arsenalConfig = checkoutProducts.get(operatorArsenalProduct.key);
+  const toolkitConfig = checkoutProducts.get(operatorToolkitProduct.key);
+  const arsenalEntitlement = await grantEntitlement({
+    userId,
+    email,
+    session,
+    productConfig: arsenalConfig,
+    purchasedAt,
+  });
+  const { data: purchase, error: purchaseError } = await supabaseAdmin
+    .from("purchases")
+    .select("id")
+    .eq("stripe_checkout_session_id", session.id)
+    .single();
+  if (purchaseError) throw purchaseError;
+
+  const toolkitEntitlement = await upsertProductEntitlement({
+    userId,
+    productConfig: toolkitConfig,
+    sourcePurchaseId: purchase.id,
+    active: true,
+  });
+
+  let subscription = session.subscription;
+  if (typeof subscription === "string") {
+    subscription = await stripe.subscriptions.retrieve(subscription);
+  }
+  if (!subscription?.id) throw new Error("operator_update_subscription_missing");
+
+  const updates = await syncOperatorUpdateSubscription(subscription, {
+    userId,
+    checkoutSessionId: session.id,
+    sourcePurchaseId: purchase.id,
+  });
+
+  return { arsenalEntitlement, toolkitEntitlement, updates };
+}
+
 async function grantOperatorUpdateOnlyAccess({ userId, email, session, purchasedAt = null }) {
   const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
   const updateEntitlement = await grantEntitlement({
@@ -4136,6 +4231,69 @@ async function createOperatorToolkitCheckoutSession(req) {
   });
 }
 
+async function createOperatorArsenalCheckoutSession(req) {
+  const arsenalConfig = checkoutProducts.get(operatorArsenalProduct.key);
+  const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
+  await Promise.all([ensureProductRecord(arsenalConfig), ensureProductRecord(updatesConfig)]);
+
+  const profile = await ensureProfile(req.user);
+  const customerTarget = profile.stripe_customer_id
+    ? { customer: profile.stripe_customer_id }
+    : { customer_email: profile.email };
+  const arsenalPriceId = process.env.STRIPE_OPERATOR_ARSENAL_PRICE_ID;
+  const updatesPriceId = process.env.STRIPE_OPERATOR_UPDATES_PRICE_ID;
+  const setupLineItem = arsenalPriceId
+    ? { price: arsenalPriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: operatorArsenalProduct.priceCents,
+          product_data: {
+            name: operatorArsenalProduct.name,
+            description: "Permanent shelf library + full Operator Toolkit.",
+          },
+        },
+        quantity: 1,
+      };
+  const updateLineItem = updatesPriceId
+    ? { price: updatesPriceId, quantity: 1 }
+    : {
+        price_data: {
+          currency: "usd",
+          unit_amount: operatorUpdatesProduct.priceCents,
+          recurring: { interval: "month" },
+          product_data: {
+            name: operatorUpdatesProduct.name,
+            description: operatorUpdatesProduct.subtitle,
+          },
+        },
+        quantity: 1,
+      };
+
+  return stripe.checkout.sessions.create({
+    mode: "subscription",
+    ...customerTarget,
+    allow_promotion_codes: true,
+    client_reference_id: req.user.id,
+    line_items: [setupLineItem, updateLineItem],
+    success_url: `${siteUrl}/members?checkout=success&product=operator-arsenal&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/operator-arsenal?checkout=cancel`,
+    metadata: {
+      product_key: operatorArsenalProduct.key,
+      update_product_key: operatorUpdatesProduct.key,
+      supabase_user_id: req.user.id,
+      billing_model: "497_setup_plus_30_monthly",
+    },
+    subscription_data: {
+      metadata: {
+        product_key: operatorUpdatesProduct.key,
+        permanent_product_key: operatorArsenalProduct.key,
+        supabase_user_id: req.user.id,
+      },
+    },
+  });
+}
+
 async function createOperatorUpdatesCheckoutSession(req) {
   const updatesConfig = checkoutProducts.get(operatorUpdatesProduct.key);
   await ensureProductRecord(updatesConfig);
@@ -4210,6 +4368,13 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
       if (productConfig && session.payment_status === "paid") {
         if (productConfig.key === operatorToolkitProduct.key) {
           await grantOperatorToolkitAccess({
+            userId: session.metadata?.supabase_user_id,
+            email: session.customer_details?.email,
+            session,
+            purchasedAt,
+          });
+        } else if (productConfig.key === operatorArsenalProduct.key) {
+          await grantOperatorArsenalAccess({
             userId: session.metadata?.supabase_user_id,
             email: session.customer_details?.email,
             session,
@@ -5142,6 +5307,18 @@ app.post("/api/checkout/operator-toolkit", requireUser, async (req, res) => {
   }
 });
 
+app.post("/api/checkout/operator-arsenal", requireUser, async (req, res) => {
+  if (!requireConfigured(res, stripe, "stripe")) return;
+
+  try {
+    const session = await createOperatorArsenalCheckoutSession(req);
+    res.json({ url: session.url, session_id: session.id });
+  } catch (error) {
+    console.error("[operator-arsenal-checkout]", error);
+    res.status(500).json({ error: "operator_arsenal_checkout_create_failed" });
+  }
+});
+
 app.post("/api/checkout/operator-updates", requireUser, async (req, res) => {
   if (!requireConfigured(res, stripe, "stripe")) return;
 
@@ -5263,7 +5440,13 @@ app.get("/api/access/session/:sessionId", requireUser, async (req, res) => {
             email: req.user.email,
             session,
           })
-        : productConfig.key === operatorUpdatesProduct.key
+        : productConfig.key === operatorArsenalProduct.key
+          ? await grantOperatorArsenalAccess({
+              userId: req.user.id,
+              email: req.user.email,
+              session,
+            })
+          : productConfig.key === operatorUpdatesProduct.key
           ? await grantOperatorUpdateOnlyAccess({
               userId: req.user.id,
               email: req.user.email,
@@ -5386,6 +5569,30 @@ app.get("/api/member-assets/operator-updates/:assetKey", requireUser, async (req
     res.send(file);
   } catch (error) {
     console.error("[operator-update-member-asset]", error);
+    res.status(500).json({ error: "asset_download_failed" });
+  }
+});
+
+app.get("/api/member-assets/operator-arsenal/:assetKey", requireUser, async (req, res) => {
+  try {
+    const asset = operatorArsenalShelfAssets.find((item) => item.key === req.params.assetKey);
+    if (!asset) {
+      res.status(404).json({ error: "asset_not_found" });
+      return;
+    }
+
+    if (!(await hasActiveProductEntitlement(req.user.id, operatorArsenalProduct.key))) {
+      res.status(403).json({ error: "entitlement_required" });
+      return;
+    }
+
+    const filePath = path.join(assetDir, asset.fileName);
+    const file = await fs.readFile(filePath);
+    res.setHeader("Content-Type", asset.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${asset.downloadName}"`);
+    res.send(file);
+  } catch (error) {
+    console.error("[operator-arsenal-member-asset]", error);
     res.status(500).json({ error: "asset_download_failed" });
   }
 });

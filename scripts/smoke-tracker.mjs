@@ -262,6 +262,19 @@ for (const shelfName of ["The Operator Store", "MCP Builder Pack", "Research Eng
     throw new Error(`Store bundle missing shelf copy: ${shelfName}`);
   }
 }
+if (!storeBundle.includes("Operator Arsenal")) {
+  throw new Error("Store bundle missing Operator Arsenal tier copy");
+}
+
+const arsenalResponse = await fetch(`${siteUrl}/operator-arsenal/`);
+const arsenalHtml = await arsenalResponse.text();
+if (!arsenalResponse.ok || !arsenalHtml.includes("root")) {
+  throw new Error(`Operator Arsenal route failed: ${arsenalResponse.status}`);
+}
+const arsenalBundle = await fetchClientBundle(arsenalHtml, "Operator Arsenal route", siteUrl);
+if (!arsenalBundle.includes("Operator Arsenal") || !arsenalBundle.includes("Unlock the complete library")) {
+  throw new Error("Operator Arsenal route client bundle missing sales copy");
+}
 
 const samplerResponse = await fetch(`${siteUrl}/downloads/operator-sampler.zip`);
 const samplerBytes = new Uint8Array(await samplerResponse.arrayBuffer());

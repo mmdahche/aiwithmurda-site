@@ -36,6 +36,10 @@ import {
   operatorBundleProduct,
 } from "./data/operatorBundle.js";
 import {
+  operatorArsenalAccessPlan,
+  operatorArsenalProduct,
+} from "./data/operatorArsenal.js";
+import {
   operatorToolkitAccessPlan,
   operatorToolkitCollections,
   operatorToolkitPath,
@@ -51,7 +55,9 @@ import { KitPage } from "./pages/KitPage.jsx";
 import { StorePage } from "./pages/StorePage.jsx";
 import { BundlePage } from "./pages/BundlePage.jsx";
 import { ToolkitPage } from "./pages/ToolkitPage.jsx";
+import { ArsenalPage } from "./pages/ArsenalPage.jsx";
 import { OperatorToolkitCheckoutButton } from "./components/checkout/OperatorToolkitCheckoutButton.jsx";
+import { OperatorArsenalCheckoutButton } from "./components/checkout/OperatorArsenalCheckoutButton.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
 import {
   applyDailySnapshot,
@@ -61,6 +67,7 @@ import {
   createTestPurchaseCheckout,
   disconnectSocialAccount,
   downloadOperatorBundleAsset,
+  downloadOperatorArsenalAsset,
   downloadOperatorToolkitAsset,
   downloadOperatorUpdateAsset,
   downloadMemberAsset,
@@ -1650,7 +1657,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/store", "/live-builds", "/operator-toolkit", "/members", "/terms", "/privacy"].includes(route)
+      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
         ? route
         : "/";
 
@@ -1676,6 +1683,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/store" && <StorePage />}
       {knownRoute === "/live-builds" && <BundlePage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/operator-toolkit" && <ToolkitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/operator-arsenal" && <ArsenalPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
       )}
@@ -2621,11 +2629,12 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   const [status, setStatus] = useState("idle");
   const [notice, setNotice] = useState(null);
   const [accessCheck, setAccessCheck] = useState({ status: "idle" });
-  const [activeMemberProduct, setActiveMemberProduct] = useState(() =>
-    new URLSearchParams(window.location.search).get("product") === "operator-toolkit"
-      ? "operator-toolkit"
-      : "future-method",
-  );
+  const [activeMemberProduct, setActiveMemberProduct] = useState(() => {
+    const productParam = new URLSearchParams(window.location.search).get("product");
+    if (productParam === "operator-toolkit") return "operator-toolkit";
+    if (productParam === "operator-arsenal") return "operator-arsenal";
+    return "future-method";
+  });
   const accessToken = authSession?.access_token;
   const requestedNext = new URLSearchParams(window.location.search).get("next");
   const futureMethodPurchased = Boolean(
@@ -2641,6 +2650,11 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       (entitlement) => entitlement.product_key === operatorToolkitProduct.key && entitlement.status === "active",
     ),
   );
+  const operatorArsenalEntitled = Boolean(
+    memberData?.entitlements?.some(
+      (entitlement) => entitlement.product_key === operatorArsenalProduct.key && entitlement.status === "active",
+    ),
+  );
   const operatorUpdatesEntitled = Boolean(
     memberData?.entitlements?.some(
       (entitlement) => entitlement.product_key === operatorUpdatesProduct.key && entitlement.status === "active",
@@ -2651,8 +2665,8 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   );
   const operatorBundleEntitled = operatorBundlePurchased || operatorToolkitEntitled;
   const futureMethodEntitled = futureMethodPurchased || operatorBundleEntitled || operatorToolkitEntitled;
-  const hasAnyPaidAccess = futureMethodEntitled || operatorBundleEntitled || operatorToolkitEntitled;
-  const entitledProductCount = [futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled].filter(Boolean).length;
+  const hasAnyPaidAccess = futureMethodEntitled || operatorBundleEntitled || operatorToolkitEntitled || operatorArsenalEntitled;
+  const entitledProductCount = [futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled, operatorArsenalEntitled].filter(Boolean).length;
 
   useEffect(() => {
     if (activeModuleKey && futureMethodEntitled) {
@@ -2662,14 +2676,17 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     if (activeMemberProduct === "future-method" && futureMethodEntitled) return;
     if (activeMemberProduct === "operator-bundle" && operatorBundleEntitled) return;
     if (activeMemberProduct === "operator-toolkit" && operatorToolkitEntitled) return;
+    if (activeMemberProduct === "operator-arsenal" && operatorArsenalEntitled) return;
     if (futureMethodEntitled) {
       setActiveMemberProduct("future-method");
     } else if (operatorBundleEntitled) {
       setActiveMemberProduct("operator-bundle");
+    } else if (operatorArsenalEntitled) {
+      setActiveMemberProduct("operator-arsenal");
     } else if (operatorToolkitEntitled) {
       setActiveMemberProduct("operator-toolkit");
     }
-  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled]);
+  }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled, operatorArsenalEntitled]);
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2689,9 +2706,15 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           });
           const result = await verifyCheckoutSession(sessionId, accessToken);
           verifiedAccess = result.access || null;
-          const verifiedProduct = result.product_key === operatorToolkitProduct.key ? "&product=operator-toolkit" : "";
+          const verifiedProduct =
+            result.product_key === operatorToolkitProduct.key
+              ? "&product=operator-toolkit"
+              : result.product_key === operatorArsenalProduct.key
+                ? "&product=operator-arsenal"
+                : "";
           window.history.replaceState({}, "", `/members?checkout=success${verifiedProduct}`);
           if (result.product_key === operatorToolkitProduct.key) setActiveMemberProduct("operator-toolkit");
+          if (result.product_key === operatorArsenalProduct.key) setActiveMemberProduct("operator-arsenal");
           setNotice({ tone: "success", text: "Payment verified. Your profile is unlocked." });
           setAccessCheck({
             status: "success",
@@ -2833,6 +2856,17 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             <span><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
+          {operatorArsenalEntitled && (
+            <button
+              type="button"
+              className={activeMemberProduct === "operator-arsenal" ? "active" : ""}
+              onClick={() => setActiveMemberProduct("operator-arsenal")}
+            >
+              <FolderDown size={19} aria-hidden="true" />
+              <span><strong>{operatorArsenalProduct.name}</strong><small>All shelf zips and toolkit access</small></span>
+              <Check size={16} aria-hidden="true" />
+            </button>
+          )}
           {operatorToolkitEntitled && (
             <button
               type="button"
@@ -2851,6 +2885,10 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <OperatorBundleMemberPanel accessToken={authSession.access_token} bundle={memberData?.operatorBundle} />
       )}
 
+      {authSession && status === "ready" && operatorArsenalEntitled && activeMemberProduct === "operator-arsenal" && (
+        <OperatorArsenalMemberPanel accessToken={authSession.access_token} arsenal={memberData?.operatorArsenal} />
+      )}
+
       {authSession && status === "ready" && operatorToolkitEntitled && activeMemberProduct === "operator-toolkit" && (
         <OperatorToolkitMemberPanel
           accessToken={authSession.access_token}
@@ -2862,18 +2900,30 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         />
       )}
 
-      {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && !operatorToolkitEntitled && (
+      {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && !operatorToolkitEntitled && !operatorArsenalEntitled && (
         <section className="public-section unlock-section">
           <div>
             <span className="public-label">Unlock required</span>
-            <h2>{requestedNext === "operator-toolkit" ? operatorToolkitProduct.name : productName}</h2>
-            {requestedNext === "operator-toolkit" ? (
+            <h2>
+              {requestedNext === "operator-arsenal"
+                ? operatorArsenalProduct.name
+                : requestedNext === "operator-toolkit"
+                  ? operatorToolkitProduct.name
+                  : productName}
+            </h2>
+            {requestedNext === "operator-arsenal" ? (
+              <p>
+                Your profile is active. Continue to the transparent mixed checkout: $497 today ($467 permanent library plus first $30 update month), then $30/month. Every shelf zip and the full toolkit remain yours if updates are canceled.
+              </p>
+            ) : requestedNext === "operator-toolkit" ? (
               <p>Your profile is active. Continue to the transparent mixed checkout: $327 today, then $30/month. The $297 launch edition remains yours if updates are canceled.</p>
             ) : (
               <p>Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules, core prompt scripts, starter skills, and the first-build lab.</p>
             )}
           </div>
-          {requestedNext === "operator-toolkit" ? (
+          {requestedNext === "operator-arsenal" ? (
+            <OperatorArsenalCheckoutButton authSession={authSession} authReady={authReady} compact />
+          ) : requestedNext === "operator-toolkit" ? (
             <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
           ) : (
             <CheckoutButton authSession={authSession} authReady={authReady} />
@@ -2993,6 +3043,80 @@ function OperatorBundleMemberPanel({ accessToken, bundle }) {
                 disabled={downloadState[asset.key] === "loading"}
               >
                 {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
+              </button>
+              {downloadState[asset.key] === "success" && <em>Saved</em>}
+              {downloadState[asset.key] === "error" && <em>Retry</em>}
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function OperatorArsenalMemberPanel({ accessToken, arsenal }) {
+  const [downloadState, setDownloadState] = useState({});
+  const accessPlan = arsenal?.accessPlan || operatorArsenalAccessPlan;
+  const shelfAssets = arsenal?.shelfAssets || [];
+
+  async function handleDownload(asset) {
+    if (!asset?.key) return;
+
+    setDownloadState((current) => ({ ...current, [asset.key]: "loading" }));
+    try {
+      const blob = await downloadOperatorArsenalAsset(asset.key, accessToken);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = asset.downloadName || `${asset.key}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState((current) => ({ ...current, [asset.key]: "success" }));
+    } catch (error) {
+      setDownloadState((current) => ({ ...current, [asset.key]: "error" }));
+    }
+  }
+
+  return (
+    <section className="operator-arsenal-member-panel">
+      <article className="operator-arsenal-member-hero">
+        <div>
+          <span className="public-label">{accessPlan.label}</span>
+          <h2>The complete shelf is ready.</h2>
+          <p>{accessPlan.accessNote}</p>
+        </div>
+        <div className="operator-arsenal-ticket-strip">
+          <strong>{accessPlan.tier}</strong>
+          <span>{accessPlan.status}</span>
+          <a className="secondary-link" href="/operator-arsenal">
+            Open Arsenal page
+          </a>
+        </div>
+      </article>
+
+      <section className="operator-arsenal-shelf-section">
+        <div>
+          <span className="public-label">Shelf downloads</span>
+          <h2>Every standalone product, verified and zipped.</h2>
+          <p>{accessPlan.activationPromise}</p>
+          <a className="secondary-link" href="/members?product=operator-toolkit">
+            Open Operator Toolkit setup
+          </a>
+        </div>
+        <div className="operator-arsenal-shelf-grid">
+          {shelfAssets.map((asset) => (
+            <article key={asset.key}>
+              <strong>{asset.title}</strong>
+              <p>{asset.body}</p>
+              <button
+                type="button"
+                onClick={() => handleDownload(asset)}
+                disabled={downloadState[asset.key] === "loading"}
+              >
+                <Download size={16} aria-hidden="true" />
+                {downloadState[asset.key] === "loading" ? "Downloading..." : "Download zip"}
               </button>
               {downloadState[asset.key] === "success" && <em>Saved</em>}
               {downloadState[asset.key] === "error" && <em>Retry</em>}

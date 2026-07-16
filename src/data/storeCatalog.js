@@ -165,6 +165,13 @@ export const storeTiers = [
     href: "/operator-toolkit",
     body: "The complete customer-safe operating system — 24 skills, command center, dual-agent protocol — permanently yours, updates optional.",
   },
+  {
+    key: "operator-arsenal",
+    name: "Operator Arsenal",
+    price: "$497 + $30/mo",
+    href: "/operator-arsenal",
+    body: "Every standalone shelf product as permanent zip downloads, plus the full Operator Toolkit — the complete library in one checkout.",
+  },
 ];
 
 export const storeStandaloneNote =
