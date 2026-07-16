@@ -122,7 +122,7 @@ Buyer: solo operators who make impulsive bets. Delivery: DEFAULT + ships inside 
 Inside: `redaction-firewall` (fail-closed egress scrub) + `local-agent-kit` (irreversible-action guard, read-token vs act-token, deny-by-default, fresh-date injection) + `vault-index` (navigable doc vault + append-only session log) + `guard`/`freeze`/`unfreeze`/`set-secret` + `verify-before-claiming` + `health-console` (bonus). Pure stdlib, $0 to run.
 Buyer: anyone running Claude Code/Codex semi-autonomously on real code/data. Delivery: DEFAULT + ships inside Bundle $97. Evidence: these are the exact guards Murad's own overnight loop runs behind. A security frame almost no AI seller ships — direct counter to the reference bundles' bypass-permissions footgun (which this catalog will never include).
 
-**#3 `claude-setup-audit-suite` — $39 — key `sku_audit_suite`**
+**#3 `claude-setup-audit-suite` — $39 — key `sku_audit_suite` — SHIPPED Wave 1 remainder (2026-07-16)**
 *"Find out what your Claude setup actually costs you — then prove your fixes didn't break it."*
 Inside: `audit-setup` (deterministic collector → maturity tier + risk flags) + `context-budget` (token-burn audit across agents/skills/MCP/rules) + `eval` (regression-test your own config) + `skill-security-auditor` (vet third-party skills before install).
 Buyer: power users with bloated/franken setups. Delivery: DEFAULT.

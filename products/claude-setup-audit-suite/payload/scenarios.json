@@ -1,0 +1,39 @@
+{
+  "_README": "Golden scenarios for /eval. hook_scenarios are deterministic and run by run-evals.sh (free); a hook that isn't installed is SKIPped, not failed. agent_scenarios cost claude -p tokens and are run by the /eval skill, scored on require_markers (regex, case-insensitive) NOT exact text. Keep this set SMALL and FIXED; add one whenever a real miss reveals a gap.",
+  "hook_scenarios": [
+    { "id": "secret-env-blocked", "hook": "pre-commit-secrets.sh", "desc": "staging a .env must block the commit", "expect_exit": 2 },
+    { "id": "secret-example-allowed", "hook": "pre-commit-secrets.sh", "desc": ".env.example must be allowed", "expect_exit": 0 },
+    { "id": "token-content-blocked", "hook": "pre-commit-secrets.sh", "desc": "an API token in source must block", "expect_exit": 2 },
+    { "id": "clean-file-allowed", "hook": "pre-commit-secrets.sh", "desc": "a clean source file must pass", "expect_exit": 0 },
+    { "id": "destructive-rm-blocked", "hook": "destructive-command-guard.sh", "desc": "rm -rf must be blocked", "expect_exit": 2 },
+    { "id": "destructive-clean-allowed", "hook": "destructive-command-guard.sh", "desc": "an ordinary command must pass", "expect_exit": 0 },
+    { "id": "session-state-injected", "hook": "session-start.sh", "desc": "PROJECT_STATE.md content must be injected as additionalContext", "expect_marker": "additionalContext" },
+    { "id": "session-missing-state-nudge", "hook": "session-start.sh", "desc": "a project with no state file must get the /bootstrap-state nudge", "expect_marker": "bootstrap-state" }
+  ],
+  "agent_scenarios": [
+    {
+      "id": "sql-injection",
+      "agent": "code-reviewer",
+      "fixture": "A function that builds a SQL query by string-concatenating an untrusted request parameter, e.g. `db.query(\"SELECT * FROM users WHERE id = \" + req.query.id)`.",
+      "require_markers": ["must fix", "injection"]
+    },
+    {
+      "id": "swallowed-exception",
+      "agent": "code-reviewer",
+      "fixture": "A try/catch where the catch block is empty (swallows the error silently).",
+      "require_markers": ["must fix|should fix", "error|exception|swallow"]
+    },
+    {
+      "id": "plan-before-code",
+      "agent": "planner",
+      "fixture": "A request to add a CSV-export endpoint to an existing REST API (new route; touches auth, serialization, and pagination).",
+      "require_markers": ["files to touch", "risk", "test"]
+    },
+    {
+      "id": "edge-case-tests",
+      "agent": "test-writer",
+      "fixture": "A new pure function with non-trivial branching (e.g. a tiered discount calculator) and NO accompanying test file.",
+      "require_markers": ["test", "edge|boundar|empty|null"]
+    }
+  ]
+}

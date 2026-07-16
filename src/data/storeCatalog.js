@@ -101,6 +101,14 @@ export const storeProducts = [
     promise: "Build the tools your agent is missing: MCP servers with the official SDK, tool-design patterns, action-space discipline, and the regex-vs-LLM parsing framework.",
     license: "MIT",
   },
+  {
+    key: "claude-setup-audit-suite",
+    name: "Claude Setup Audit Suite",
+    price: "$39",
+    kind: "Pack · 26 files · 2 runnable scripts",
+    promise: "Find out what your Claude setup actually costs you — deterministic inventory, context budget, hook regression eval, and pre-install skill security scanning.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

@@ -22,6 +22,7 @@ const STORE_PRODUCTS = [
   { slug: "autonomous-operator-kit", zip: "autonomous-operator-kit.zip" },
   { slug: "zero-dollar-research-engine", zip: "zero-dollar-research-engine.zip" },
   { slug: "mcp-builder-pack", zip: "mcp-builder-pack.zip" },
+  { slug: "claude-setup-audit-suite", zip: "claude-setup-audit-suite.zip" },
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).
