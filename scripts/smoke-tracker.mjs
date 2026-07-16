@@ -257,7 +257,7 @@ if (!storeResponse.ok || !storeHtml.includes("root")) {
   throw new Error(`Store route failed: ${storeResponse.status}`);
 }
 const storeBundle = await fetchClientBundle(storeHtml, "Store route", siteUrl);
-for (const shelfName of ["The Operator Store", "MCP Builder Pack", "Research Engine", "Claude Setup Audit Suite", "Retail Ops AI Pack", "Swarm Intake Protocol"]) {
+for (const shelfName of ["The Operator Store", "MCP Builder Pack", "Research Engine", "Claude Setup Audit Suite", "Retail Ops AI Pack", "Swarm Intake Protocol", "Founder Finance Pack"]) {
   if (!storeBundle.includes(shelfName)) {
     throw new Error(`Store bundle missing shelf copy: ${shelfName}`);
   }

@@ -125,6 +125,14 @@ export const storeProducts = [
     promise: "Make any project swarm-ready before the first dispatch — 5-stage intake pipeline, layered context, task graph, and a deterministic READY gate with ten checks.",
     license: "MIT",
   },
+  {
+    key: "founder-finance-pack",
+    name: "Founder Finance Pack",
+    price: "$49",
+    kind: "Pack · 6 clean-room skills",
+    promise: "CFO-grade analysis without the CFO — burn and runway, SaaS metrics, financial models, investor materials, outreach, and board decks with one source of truth for your numbers.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

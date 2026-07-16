@@ -25,6 +25,7 @@ const STORE_PRODUCTS = [
   { slug: "claude-setup-audit-suite", zip: "claude-setup-audit-suite.zip" },
   { slug: "retail-ops-ai-pack", zip: "retail-ops-ai-pack.zip" },
   { slug: "swarm-intake-protocol", zip: "swarm-intake-protocol.zip" },
+  { slug: "founder-finance-pack", zip: "founder-finance-pack.zip" },
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).

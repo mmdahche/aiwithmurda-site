@@ -181,9 +181,9 @@ Inside: sanitized patterns from this repo — scoreboard data model, daily-log +
 *"15-years-experience playbooks for demand planning and returns — as agent skills."*
 Provenance check found ECC-tagged source drafts in the reference library — **written clean-room from scratch** (source files never read for wording): `inventory-demand-planning` (forecasting, safety stock, replenishment, promo lift) + `returns-reverse-logistics` (RMA, disposition, fraud detection, warranty). Born from Backbone IMS domain work. Buyer: retail/e-com operators. Delivery: DEFAULT.
 
-**#17 `founder-finance-pack` — $49 — key `sku_founder_finance`**
+**#17 `founder-finance-pack` — $49 — key `sku_founder_finance` — SHIPPED Wave 4 (2026-07-16, clean-room)**
 *"CFO-grade analysis without the CFO."*
-Inside: `cfo-advisor` + `financial-analyst` + `saas-metrics-coach` + `investor-materials` + `investor-outreach` + `board-deck-builder`. Buyer: founders raising or reporting. Delivery: DEFAULT. **Provenance class V — confirm each skill is native before packaging.**
+Provenance audit: `investor-materials` + `investor-outreach` were ECC-tagged; `cfo-advisor`, `financial-analyst`, `saas-metrics-coach`, `board-deck-builder` were third-party-authored library skills — **all six written clean-room from scratch** (source files never read for wording): burn/runway/unit economics, statement analysis, SaaS metrics, investor materials with consistency ledger, outreach templates, board deck structure. Buyer: founders raising or reporting. Delivery: DEFAULT.
 
 **#18 `mcp-builder-pack` — $39 — key `sku_mcp_builder` — SHIPPED Wave 3 (2026-07-14, clean-room)**
 *"Build the tools your agent is missing."*

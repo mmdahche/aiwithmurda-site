@@ -10,7 +10,7 @@
 
 ## One-line status
 
-**Waves 0–3 + Wave 1 remainder + Wave 4 in progress.** **`retail-ops-ai-pack`** — 11th store SKU (clean-room). **`swarm-intake-protocol`** — 12th store SKU (native). Next: `founder-finance-pack` (provenance), `proof-engine-kit` (needs live receipts), or standalone Payment Links when Murad adds Stripe fields.
+**Waves 0–3 + Wave 1 remainder + Wave 4 in progress.** 12 store SKUs through **`swarm-intake-protocol`**. **`founder-finance-pack`** — 13th store SKU (clean-room). Next: `proof-engine-kit` (needs live receipts), deferred studio packs, or standalone Payment Links when Murad adds Stripe fields.
 
 ---
 
