@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/daily-log.json",
+  "title": "DailyLog",
+  "type": "object",
+  "required": ["day", "date", "mainGoal", "status", "followers"],
+  "properties": {
+    "day": { "type": "integer", "minimum": 1, "maximum": 365 },
+    "date": { "type": "string", "format": "date" },
+    "mainGoal": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["planned", "active", "complete"] },
+    "followers": {
+      "type": "object",
+      "properties": {
+        "_baseline": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } },
+        "_campaignStartedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "emailSubscribers": { "type": "integer", "minimum": 0 },
+    "revenueCollected": { "type": "number", "minimum": 0 },
+    "revenuePipeline": { "type": "number", "minimum": 0 },
+    "hoursStreamed": { "type": "number", "minimum": 0 },
+    "clipsPosted": { "type": "integer", "minimum": 0 },
+    "outreachSent": { "type": "integer", "minimum": 0 },
+    "callsBooked": { "type": "integer", "minimum": 0 },
+    "productsSold": { "type": "integer", "minimum": 0 },
+    "buildsShipped": { "type": "integer", "minimum": 0 },
+    "dailyLessons": { "type": "integer", "minimum": 0 },
+    "shippedItems": { "type": "array", "items": { "type": "string" } },
+    "bestMoment": { "type": "string" },
+    "biggestFailure": { "type": "string" },
+    "lessonLearned": { "type": "string" },
+    "tomorrowPromise": { "type": "string" },
+    "spikeCause": { "type": "string" },
+    "proofAssets": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "day": 1,
+    "date": "2026-08-01",
+    "mainGoal": "Launch the sprint and set the public baseline",
+    "status": "planned",
+    "followers": {
+      "youtube": 1200,
+      "tiktok": 800,
+      "instagram": 450,
+      "x": 300,
+      "_baseline": { "youtube": 1200, "tiktok": 800, "instagram": 450, "x": 300 }
+    },
+    "emailSubscribers": 150,
+    "revenueCollected": 0,
+    "revenuePipeline": 0,
+    "hoursStreamed": 0,
+    "clipsPosted": 0,
+    "outreachSent": 0,
+    "callsBooked": 0,
+    "productsSold": 0,
+    "buildsShipped": 0,
+    "dailyLessons": 0,
+    "shippedItems": [],
+    "bestMoment": "",
+    "biggestFailure": "",
+    "lessonLearned": "",
+    "tomorrowPromise": "",
+    "spikeCause": "",
+    "proofAssets": []
+  }
+]

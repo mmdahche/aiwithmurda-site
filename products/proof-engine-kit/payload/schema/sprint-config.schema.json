@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/sprint-config.json",
+  "title": "SprintConfig",
+  "type": "object",
+  "required": ["title", "startDate", "startAt", "timeZone", "totalDays", "goals", "platforms"],
+  "properties": {
+    "title": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "startDate": { "type": "string", "format": "date" },
+    "startAt": { "type": "string", "format": "date-time" },
+    "timeZone": { "type": "string" },
+    "totalDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+    "publicGoalLabel": { "type": "string" },
+    "phase": { "enum": ["prelaunch", "live", "complete"] },
+    "prelaunchLabel": { "type": "string" },
+    "prelaunchCopy": { "type": "string" },
+    "goals": {
+      "type": "object",
+      "properties": {
+        "revenue": { "type": "number" },
+        "followers": { "type": "number" },
+        "emailSubscribers": { "type": "number" },
+        "hoursStreamed": { "type": "number" },
+        "clipsPosted": { "type": "number" },
+        "buildsShipped": { "type": "number" },
+        "dailyLessons": { "type": "number" }
+      }
+    },
+    "platforms": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+  }
+}

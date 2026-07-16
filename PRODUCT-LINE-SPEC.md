@@ -173,9 +173,9 @@ Buyer: ambitious solo builders who want compounding overnight progress. Delivery
 *"Make any project swarm-ready so parallel agents build the RIGHT thing the first time."*
 Native Murad skill (M12 / Teamwork intake): `swarm-intake` — idea/brief/repo → intake package with collision-free routing, role splits, context contracts, deterministic 10-check readiness gate + 21 tests. Buyer: teams/solos running multiple agents in parallel. Delivery: DEFAULT. Standalone through Stage 3 + readiness gate; Stages 4–5 wire into `/swarm` when running the Teamwork Swarm.
 
-**#15 `proof-engine-kit` — $99 — key `sku_proof_engine`**
+**#15 `proof-engine-kit` — $99 — key `sku_proof_engine` — SHIPPED Wave 4 (2026-07-16, sanitized from live repo)**
 *"The build-in-public command center running aiwithmurda.com — as a template."*
-Inside: sanitized patterns from this repo — scoreboard data model, daily-log + receipt-page templates, OBS overlay pattern (transparent browser-source discipline), prelaunch-labeling system, launch-gate smoke-test pattern, baseline-reset workflow. Buyer: builders starting their own public sprint. Delivery: DEFAULT. Wave 4 — sell it after the 60-day run makes the live site itself the sales page.
+Sanitized patterns from the production sprint codebase: daily-log + sprint-config schemas, Postgres migration, campaign phase engine, tracker helpers, day-receipt pattern doc, four runbooks (prelaunch, OBS, baseline, launch gate), smoke-launch + baseline-sync script templates, proof-engine skill. Buyer: builders starting their own public sprint. Delivery: DEFAULT. Live site remains the sales demo.
 
 **#16 `retail-ops-ai-pack` — $59 — key `sku_retail_ops` — SHIPPED Wave 4 (2026-07-16, clean-room)**
 *"15-years-experience playbooks for demand planning and returns — as agent skills."*

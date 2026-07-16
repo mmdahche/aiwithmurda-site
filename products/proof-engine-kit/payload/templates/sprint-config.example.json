@@ -1,0 +1,22 @@
+{
+  "title": "90-Day Build Sprint",
+  "subtitle": "Build in public command center",
+  "startDate": "2026-08-01",
+  "startAt": "2026-08-01T00:00:00-05:00",
+  "timeZone": "America/Chicago",
+  "totalDays": 90,
+  "publicGoalLabel": "$50K revenue or 10K followers",
+  "phase": "prelaunch",
+  "prelaunchLabel": "Rehearsal mode",
+  "prelaunchCopy": "The official scoreboard begins on the start date. Test streams, purchases, and clips before launch are rehearsal-only and never count toward sprint totals.",
+  "goals": {
+    "revenue": 50000,
+    "followers": 10000,
+    "emailSubscribers": 2000,
+    "hoursStreamed": 180,
+    "clipsPosted": 90,
+    "buildsShipped": 45,
+    "dailyLessons": 45
+  },
+  "platforms": ["youtube", "tiktok", "instagram", "x"]
+}

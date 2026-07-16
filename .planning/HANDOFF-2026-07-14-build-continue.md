@@ -10,7 +10,7 @@
 
 ## One-line status
 
-**Waves 0–3 + Wave 1 remainder + Wave 4 in progress.** 12 store SKUs through **`swarm-intake-protocol`**. **`founder-finance-pack`** — 13th store SKU (clean-room). Next: `proof-engine-kit` (needs live receipts), deferred studio packs, or standalone Payment Links when Murad adds Stripe fields.
+**Wave 4 complete (4/4 provenance-gated SKUs shipped).** 14 store SKUs through **`proof-engine-kit`**. Next: deferred studio packs (`design-studio`, `content-engine`, `browser-automation`), `operator-arsenal` (needs ≥6 shelf SKUs — met), or standalone Payment Links when Murad adds Stripe fields.
 
 ---
 

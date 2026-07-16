@@ -133,6 +133,14 @@ export const storeProducts = [
     promise: "CFO-grade analysis without the CFO — burn and runway, SaaS metrics, financial models, investor materials, outreach, and board decks with one source of truth for your numbers.",
     license: "MIT",
   },
+  {
+    key: "proof-engine-kit",
+    name: "Proof Engine Kit",
+    price: "$99",
+    kind: "System · schemas + runbooks + skill",
+    promise: "The build-in-public command center pattern — scoreboard data model, daily receipts, OBS overlay discipline, prelaunch honesty, baseline reset, and smoke:launch gate templates.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [
