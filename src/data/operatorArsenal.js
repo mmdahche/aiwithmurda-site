@@ -11,7 +11,7 @@ export const operatorArsenalProduct = {
   checkoutLabel: "$497 due today, then $30/month",
   status: "Complete library",
   promise:
-    "All fourteen standalone shelf products as permanent downloads, plus the complete Operator Toolkit, course, vault, and the first month of system updates.",
+    "All standalone shelf products as permanent downloads, plus the complete Operator Toolkit, course, vault, and the first month of system updates.",
   positioning:
     "The ceiling tier for operators who want every tool on the shelf without assembling the ladder one SKU at a time.",
   primaryCta: "Unlock the complete library",

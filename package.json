@@ -25,12 +25,13 @@
     "assets:member": "node scripts/build-member-assets.mjs",
     "assets:toolkit": "node scripts/build-operator-toolkit-assets.mjs",
     "assets:store": "node scripts/build-store-product-assets.mjs",
-    "verify:products": "node scripts/verify-product-folder.mjs products/council-decision-engine products/skill-authoring-kit products/safe-autonomy-guardrails products/verification-qa-pack products/operator-sampler products/three-tier-llm-router products/memory-os products/autonomous-operator-kit products/zero-dollar-research-engine products/mcp-builder-pack products/claude-setup-audit-suite products/retail-ops-ai-pack products/swarm-intake-protocol products/founder-finance-pack products/proof-engine-kit",
+    "verify:products": "node scripts/verify-product-folder.mjs products/council-decision-engine products/skill-authoring-kit products/safe-autonomy-guardrails products/verification-qa-pack products/operator-sampler products/three-tier-llm-router products/memory-os products/autonomous-operator-kit products/zero-dollar-research-engine products/mcp-builder-pack products/claude-setup-audit-suite products/retail-ops-ai-pack products/swarm-intake-protocol products/founder-finance-pack products/proof-engine-kit products/browser-automation-studio products/design-studio-pack products/content-engine-pack",
     "sync:seed-logs": "node scripts/sync-seed-logs.mjs",
     "baseline:launch": "node scripts/sync-launch-baseline.mjs",
     "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push",
     "stripe:operator-bundle": "node scripts/setup-operator-bundle-stripe.mjs",
-    "stripe:operator-toolkit": "node scripts/setup-operator-toolkit-stripe.mjs"
+    "stripe:operator-toolkit": "node scripts/setup-operator-toolkit-stripe.mjs",
+    "stripe:operator-arsenal": "node scripts/setup-operator-arsenal-stripe.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",

@@ -27,6 +27,9 @@ const STORE_PRODUCTS = [
   { slug: "swarm-intake-protocol", zip: "swarm-intake-protocol.zip" },
   { slug: "founder-finance-pack", zip: "founder-finance-pack.zip" },
   { slug: "proof-engine-kit", zip: "proof-engine-kit.zip" },
+  { slug: "browser-automation-studio", zip: "browser-automation-studio.zip" },
+  { slug: "design-studio-pack", zip: "design-studio-pack.zip" },
+  { slug: "content-engine-pack", zip: "content-engine-pack.zip" },
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).

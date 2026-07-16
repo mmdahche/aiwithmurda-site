@@ -30,6 +30,7 @@ let userId = null;
 let checkoutSessionId = null;
 let liveBuildCheckoutSessionId = null;
 let operatorToolkitCheckoutSessionId = null;
+let operatorArsenalCheckoutSessionId = null;
 let testCheckoutSessionId = null;
 let billingCustomerId = null;
 
@@ -129,6 +130,51 @@ try {
     updateProduct.name !== "Operator System Updates"
   ) {
     throw new Error(`Operator Toolkit Stripe display failed: ${JSON.stringify(operatorToolkitLineItems.data)}`);
+  }
+
+  const operatorArsenalCheckout = await fetchJson(`${siteUrl}/api/checkout/operator-arsenal`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (
+    !operatorArsenalCheckout.response.ok ||
+    !operatorArsenalCheckout.data?.session_id ||
+    !operatorArsenalCheckout.data?.url
+  ) {
+    throw new Error(`Operator Arsenal checkout creation failed: ${JSON.stringify(operatorArsenalCheckout.data)}`);
+  }
+  operatorArsenalCheckoutSessionId = operatorArsenalCheckout.data.session_id;
+  const operatorArsenalSession = await stripe.checkout.sessions.retrieve(operatorArsenalCheckoutSessionId);
+  if (
+    operatorArsenalSession.mode !== "subscription" ||
+    operatorArsenalSession.amount_total !== 49700 ||
+    operatorArsenalSession.metadata?.product_key !== "sku_arsenal" ||
+    operatorArsenalSession.metadata?.update_product_key !== "operator_updates"
+  ) {
+    throw new Error(`Operator Arsenal checkout shape failed: ${JSON.stringify(operatorArsenalSession)}`);
+  }
+  const operatorArsenalLineItems = await stripe.checkout.sessions.listLineItems(operatorArsenalCheckoutSessionId, {
+    limit: 10,
+    expand: ["data.price.product"],
+  });
+  const arsenalSetupItem = operatorArsenalLineItems.data.find((item) => item.price?.unit_amount === 46700);
+  const arsenalUpdateItem = operatorArsenalLineItems.data.find((item) => item.price?.unit_amount === 3000);
+  const arsenalSetupProduct = arsenalSetupItem?.price?.product;
+  const arsenalUpdateProduct = arsenalUpdateItem?.price?.product;
+  if (
+    operatorArsenalLineItems.data.length !== 2 ||
+    !arsenalSetupItem ||
+    !arsenalUpdateItem ||
+    arsenalSetupItem.price?.recurring ||
+    arsenalUpdateItem.price?.recurring?.interval !== "month" ||
+    !arsenalSetupProduct ||
+    typeof arsenalSetupProduct === "string" ||
+    arsenalSetupProduct.name !== "Operator Arsenal" ||
+    !arsenalUpdateProduct ||
+    typeof arsenalUpdateProduct === "string" ||
+    arsenalUpdateProduct.name !== "Operator System Updates"
+  ) {
+    throw new Error(`Operator Arsenal Stripe display failed: ${JSON.stringify(operatorArsenalLineItems.data)}`);
   }
 
   const testCheckout = await fetchJson(`${siteUrl}/api/checkout/test-purchase`, {
@@ -274,6 +320,21 @@ try {
   }
   if (!operatorToolkit.updateAssets.some((asset) => asset.key === "founding-update-001")) {
     throw new Error(`Operator Toolkit update pack missing: ${JSON.stringify(operatorToolkit.updateAssets)}`);
+  }
+  const operatorArsenal = profile.data?.operatorArsenal;
+  if (
+    operatorArsenal?.key !== "sku_arsenal" ||
+    operatorArsenal?.price_cents !== 46700 ||
+    operatorArsenal?.monthly_price_cents !== 3000 ||
+    operatorArsenal?.initial_total_cents !== 49700 ||
+    !operatorArsenal?.accessPlan?.activationPromise ||
+    !Array.isArray(operatorArsenal?.shelfAssets) ||
+    operatorArsenal.shelfAssets.length < 17
+  ) {
+    throw new Error(`Operator Arsenal was not exposed on profile: ${JSON.stringify(operatorArsenal)}`);
+  }
+  if (!operatorArsenal.shelfAssets.some((asset) => asset.key === "proof-engine-kit")) {
+    throw new Error(`Operator Arsenal shelf missing proof-engine-kit: ${JSON.stringify(operatorArsenal.shelfAssets)}`);
   }
   const productModules = profile.data?.product?.modules;
   if (!Array.isArray(productModules) || productModules.length < 5) {
@@ -745,6 +806,11 @@ try {
           operatorToolkitCheckoutAmountVerified: true,
           operatorToolkitMixedBillingVerified: true,
           operatorToolkitStripeDisplayVerified: true,
+          operatorArsenalCheckoutSessionCreated: true,
+          operatorArsenalCheckoutAmountVerified: true,
+          operatorArsenalMixedBillingVerified: true,
+          operatorArsenalStripeDisplayVerified: true,
+          operatorArsenalExposed: true,
           testCheckoutSessionCreated: true,
           testCheckoutAmountVerified: true,
           unpaidAccessGuard: true,
@@ -810,6 +876,9 @@ try {
   }
   if (liveBuildCheckoutSessionId) {
     await stripe.checkout.sessions.expire(liveBuildCheckoutSessionId).catch(() => {});
+  }
+  if (operatorArsenalCheckoutSessionId) {
+    await stripe.checkout.sessions.expire(operatorArsenalCheckoutSessionId).catch(() => {});
   }
   if (operatorToolkitCheckoutSessionId) {
     await stripe.checkout.sessions.expire(operatorToolkitCheckoutSessionId).catch(() => {});

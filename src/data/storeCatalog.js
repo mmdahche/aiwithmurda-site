@@ -141,6 +141,30 @@ export const storeProducts = [
     promise: "The build-in-public command center pattern — scoreboard data model, daily receipts, OBS overlay discipline, prelaunch honesty, baseline reset, and smoke:launch gate templates.",
     license: "MIT",
   },
+  {
+    key: "browser-automation-studio",
+    name: "Browser Automation Studio",
+    price: "$39",
+    kind: "Studio · conductor skill",
+    promise: "Point your agent at any site — scrape, test, and drive flows with backend routing, scraper robots, anti-rabbit-hole rules, and blocker reporting.",
+    license: "MIT",
+  },
+  {
+    key: "design-studio-pack",
+    name: "Design Studio Pack",
+    price: "$49",
+    kind: "Pack · 4 clean-room skills",
+    promise: "Ship interfaces that don't look like AI slop — DESIGN.md brand contracts, a 28-rule anti-slop audit, motion framework, and structured UI critique.",
+    license: "MIT",
+  },
+  {
+    key: "content-engine-pack",
+    name: "Content Engine Pack",
+    price: "$39",
+    kind: "Pack · 5 clean-room skills",
+    promise: "Hooks, UGC scripts, humanized copy, trending angles with citations, and audio overviews — ethics baked in, no fake-guru defaults.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

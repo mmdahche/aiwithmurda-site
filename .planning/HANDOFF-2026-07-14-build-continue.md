@@ -10,7 +10,7 @@
 
 ## One-line status
 
-**Wave 4 complete (4/4 provenance-gated SKUs shipped).** 14 store SKUs through **`proof-engine-kit`**. Next: deferred studio packs (`design-studio`, `content-engine`, `browser-automation`), `operator-arsenal` (needs ≥6 shelf SKUs — met), or standalone Payment Links when Murad adds Stripe fields.
+**Wave 4 + Operator Arsenal + studio packs complete.** 17 shelf SKUs + **`operator-arsenal`**. Standalone Payment Links when Murad adds Stripe fields.
 
 ---
 
