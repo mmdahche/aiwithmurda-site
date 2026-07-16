@@ -1,0 +1,66 @@
+# swarm.config.yml -- the Swarm-core schema (owned by Swarm Phase 0, §7).
+# INTAKE POPULATES a valid instance; it does NOT define/extend the schema. If a
+# project needs a field the schema lacks, FLAG IT TO MASON (a Swarm-core touch),
+# never silently add it. Readiness check C5 verifies every required block is
+# present and deterministic_checks is non-empty. Replace {{PLACEHOLDER}} values.
+
+# (1) workspace -- manager + module list (polyglot adaptation, §3.1).
+#     manager: pnpm | npm | yarn | bun  (JS/TS)  OR  directory  (polyglot/plain).
+#     package_dir: where modules live ("packages" for pnpm, "modules" for plain).
+workspace:
+  manager: pnpm
+  package_dir: packages
+  modules:
+    - {{MODULE_A}}
+    - {{MODULE_B}}
+    - shared
+    - integrations
+
+# (2) deterministic_checks -- per-language Step-A verifier commands. NON-EMPTY.
+#     Run locally pre-push AND server-side in Docker (§4 step 6A).
+deterministic_checks:
+  default:
+    lint: pnpm -r lint
+    format: pnpm -r format:check
+    typecheck: pnpm -r typecheck
+    test: pnpm -r test
+    audit: pnpm audit --audit-level=high
+    semgrep: semgrep --config auto --error
+  # Per-language overrides for polyglot modules, e.g.:
+  # "{{PY_MODULE}}":
+  #   lint: ruff check .
+  #   typecheck: mypy .
+  #   test: pytest -q
+
+# (3) critical_paths -- always-serialize globs (collision rule, §4 step 5).
+critical_paths:
+  - packages/shared/**
+  - "**/migrations/**"
+  - swarm.config.yml
+
+# (4) sensitive_paths -- auth / payments / security / schema-migrations ->
+#     Docker sandbox (Pantheon P4, §14).
+sensitive_paths:
+  - "**/auth/**"
+  - "**/payments/**"
+  - "**/security/**"
+  - "**/migrations/**"
+
+# (5) watchdog -- G6 anomaly thresholds.
+watchdog:
+  task_creation_rate_per_min: 10
+  firewall_hits_per_hour: 5
+  out_of_module_routes_per_hour: 3
+  claude_nonzero_exits_per_hour: 5
+
+# (6) briefings -- rolling-window N (default 20, §13).
+briefings:
+  rolling_window: 20
+  brief_on_merge_min_depth: 4
+
+# (7) pool -- multi-project selective participation metadata (§1).
+pool:
+  project: {{PROJECT_NAME}}
+  opt_in: true
+  pools:
+    - {{POOL_NAME}}

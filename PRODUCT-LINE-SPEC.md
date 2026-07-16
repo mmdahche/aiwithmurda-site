@@ -169,9 +169,9 @@ Buyer: power users losing context every session. Delivery: DEFAULT + ships insid
 Inside: `mega-cycle` loop (contract + pitfalls templates, state.json schema, inner-log format, firewall/`.cycle-active` pattern) + depth ladder L1–L6 + anti-decay/diminishing-returns gates + dead-work blocklist + `depth-check` + `cycle-brief` + `goal` + `evolve` + `schedule-task` + counter-action discipline + dispatch-to-cheap-tier protocol (pairs with #4) + null-result honesty rules.
 Buyer: ambitious solo builders who want compounding overnight progress. Delivery: DEFAULT + ships inside Toolkit $297. **Honesty note (required in copy):** the loop mechanism is a clean-room port Murad adapted; the moat is the Noor-stack integration (council, guardrails, router dispatch, receipts) and the logged results — global loop at cycle 20, SuperMaxAi per-project loop C85+ (verify-at-packaging). Recommended cross-sell: #2 guardrails ("don't run an overnight agent without a firewall").
 
-**#14 `swarm-intake-protocol` — $49 — key `sku_swarm_intake`**
+**#14 `swarm-intake-protocol` — $49 — key `sku_swarm_intake` — SHIPPED Wave 4 (2026-07-16, native)**
 *"Make any project swarm-ready so parallel agents build the RIGHT thing the first time."*
-Inside: `swarm-intake` — idea/brief/repo → intake package with collision-free routing, role splits, context contracts. Buyer: teams/solos running multiple agents in parallel. Delivery: DEFAULT. Wave 4 (mature alongside the Teamwork system).
+Native Murad skill (M12 / Teamwork intake): `swarm-intake` — idea/brief/repo → intake package with collision-free routing, role splits, context contracts, deterministic 10-check readiness gate + 21 tests. Buyer: teams/solos running multiple agents in parallel. Delivery: DEFAULT. Standalone through Stage 3 + readiness gate; Stages 4–5 wire into `/swarm` when running the Teamwork Swarm.
 
 **#15 `proof-engine-kit` — $99 — key `sku_proof_engine`**
 *"The build-in-public command center running aiwithmurda.com — as a template."*

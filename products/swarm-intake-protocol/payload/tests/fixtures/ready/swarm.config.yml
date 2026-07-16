@@ -1,0 +1,34 @@
+workspace:
+  manager: pnpm
+  package_dir: packages
+  modules:
+    - module-a
+    - module-b
+    - shared
+    - integrations
+
+deterministic_checks:
+  default:
+    lint: pnpm -r lint
+    typecheck: pnpm -r typecheck
+    test: pnpm -r test
+    audit: pnpm audit --audit-level=high
+
+critical_paths:
+  - packages/shared/**
+  - swarm.config.yml
+
+sensitive_paths:
+  - "**/auth/**"
+  - "**/payments/**"
+
+watchdog:
+  task_creation_rate_per_min: 10
+  firewall_hits_per_hour: 5
+
+briefings:
+  rolling_window: 20
+
+pool:
+  project: sample-app
+  opt_in: true

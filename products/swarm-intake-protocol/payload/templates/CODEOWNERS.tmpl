@@ -1,0 +1,26 @@
+# .github/CODEOWNERS -- module ownership -> PR reviewer auto-assignment.
+# LOAD-BEARING for the orchestrator (deterministic routing = module owner, §4)
+# AND the verifier (security label on auth / free-API / /evolve paths, §12 MF-B).
+# Readiness check C4 verifies: every module path is covered, and shared/ +
+# integrations/ have >=2 owners (all-team review). Replace every {{PLACEHOLDER}}.
+
+# --- per-module ownership (module owner auto-reviews) ---
+{{PKG_DIR}}/{{MODULE_A}}/        @{{OWNER_A_GH}}
+{{PKG_DIR}}/{{MODULE_B}}/        @{{OWNER_B_GH}}
+
+# --- shared contracts + third-party adapters require ALL-TEAM review ---
+{{PKG_DIR}}/shared/             @{{OWNER_A_GH}} @{{OWNER_B_GH}} @{{FOUNDER_GH}}
+{{PKG_DIR}}/integrations/       @{{OWNER_A_GH}} @{{OWNER_B_GH}} @{{FOUNDER_GH}}
+
+# --- founder-owned: blueprints, root config, workspace + swarm config ---
+{{PKG_DIR}}/blueprints/         @{{FOUNDER_GH}}
+/CLAUDE.md                      @{{FOUNDER_GH}}
+/swarm.config.yml               @{{FOUNDER_GH}}
+/pnpm-workspace.yaml            @{{FOUNDER_GH}}
+/package.json                   @{{FOUNDER_GH}}
+
+# --- supply-chain review: lockfile diffs go to the founder (G8) ---
+/pnpm-lock.yaml                 @{{FOUNDER_GH}}
+**/Cargo.lock                   @{{FOUNDER_GH}}
+**/go.sum                       @{{FOUNDER_GH}}
+**/poetry.lock                  @{{FOUNDER_GH}}

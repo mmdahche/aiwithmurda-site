@@ -1,0 +1,54 @@
+# .github/workflows/ci.yml -- per-module matrix: lint + typecheck + test.
+# Readiness check C6 verifies: matrix covers EVERY declared module AND the file
+# contains at least a lint step and a typecheck step. Polyglot note: the matrix
+# may carry per-language toolchain steps; keep one job per module so a module's
+# language toolchain is self-contained. Replace {{PLACEHOLDER}} values.
+name: CI
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  module-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # MUST list every module declared in swarm.config.yml workspace.modules.
+        module:
+          - {{MODULE_A}}
+          - {{MODULE_B}}
+          - shared
+          - integrations
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter "@{{PROJECT_SCOPE}}/${{ matrix.module }}" lint
+      - run: pnpm --filter "@{{PROJECT_SCOPE}}/${{ matrix.module }}" typecheck
+      - run: pnpm --filter "@{{PROJECT_SCOPE}}/${{ matrix.module }}" test
+
+  # POLYGLOT EXAMPLE (delete if pure JS/TS): a non-JS module carries its own
+  # toolchain. Keep lint + typecheck (or the language's equivalent) per the
+  # module's deterministic_checks block in swarm.config.yml.
+  #
+  # python-module:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with: { python-version: "3.12" }
+  #     - run: pip install ruff mypy pytest
+  #     - run: ruff check modules/{{PY_MODULE}}        # lint
+  #     - run: mypy modules/{{PY_MODULE}}              # typecheck
+  #     - run: pytest modules/{{PY_MODULE}}
+
+  gate:
+    needs: [module-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All module checks passed."

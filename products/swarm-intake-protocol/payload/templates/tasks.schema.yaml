@@ -1,0 +1,34 @@
+# tasks.schema.yaml -- the durable mirror schema for the intake task graph.
+# Native TaskCreate/TaskUpdate (addBlockedBy/addBlocks) is the in-session DAG;
+# this YAML is the PORTABLE record the Swarm bridge ingests (native Task* is
+# ephemeral, M03 §1). Readiness check C8 enforces that EVERY task carries every
+# required field. Fields that reach the metabrain are STRICT ENUM-TYPED (Risk #2:
+# prevents prompt-injection via free-form task text; the schema is the input-layer
+# defense). NEVER place code/diff/file_content in any field -- metadata only.
+#
+# Top-level shape:
+#   version: 1
+#   tasks: [ <task>, <task>, ... ]
+#
+# <task> required fields:
+#   id                str    unique, kebab-case (e.g. "auth-login")
+#   goal              str    what to build (maps to swarm directive `Goal:`)
+#   until             str    done-condition = the matching PROJECT_STATE acceptance
+#                            criterion (maps to `Until:`; this is what the verifier checks)
+#   without           str    constraints (maps to `Without:`): $0, no-code-to-free-API,
+#                            cross-platform, don't touch other modules, security gates
+#   module            str    owning module -> drives CODEOWNERS routing + commit-trailer
+#   acceptance_criteria  list[str]  references into PROJECT_STATE §3 (e.g. ["AC-A1"])
+#   blockedBy         list[str]  task ids this task depends on (deps; [] if none)
+#   complexity        enum   "simple" | "complex"
+#                            "complex" when touches 3+ modules OR est. depth >= L4
+#                            ("complex" -> /swarm --complex -> multi-stage research->
+#                             story->spec->build->test->validate with story/spec/pr gates)
+#   cross_module      bool   true if it must edit shared/ or integrations/ or cross a
+#                            module boundary (true -> /swarm --cross-module -> releases
+#                            the module-ownership lock -> all-team review)
+#
+# DERIVED dispatch flag (not stored; computed at Stage 4):
+#   complexity=="complex"      -> /swarm --complex <id>
+#   cross_module==true         -> /swarm --cross-module <id>
+#   else                       -> /swarm <id>

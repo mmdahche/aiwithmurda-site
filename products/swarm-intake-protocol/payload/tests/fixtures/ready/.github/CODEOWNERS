@@ -1,0 +1,11 @@
+# module ownership
+packages/module-a/        @dev-a
+packages/module-b/        @dev-b
+
+# all-team review
+packages/shared/          @dev-a @dev-b @founder
+packages/integrations/    @dev-a @dev-b @founder
+
+# founder
+/CLAUDE.md                @founder
+/swarm.config.yml         @founder

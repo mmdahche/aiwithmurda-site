@@ -1,0 +1,48 @@
+# G10-manifest.yaml -- /evolve 5-gate skill-propagation manifest (Swarm §12 G10).
+# Gate 1 requires this manifest; declares exactly what the skill touches so the
+# skill-security verifier (Gate 2) + human review (Gate 3) + Docker sandbox test
+# (Gate 4) can hold it to its declared surface. No manifest = automatic rejection.
+skill: swarm-intake
+version: 0.1.0
+spec: specs/M12.md
+risk: low
+summary: >
+  Project Intake Protocol. Produces the four inputs the LOCKED Swarm consumes
+  (4-layer context repo shape, PROJECT_STATE locked-spec, task graph, swarm.config
+  /CODEOWNERS/CI) plus a deterministic readiness gate. Never routes/executes/
+  verifies/merges; never edits the locked plane.
+
+# --- declared surface (held to this at runtime) ---
+file_write_paths:
+  # Writes ONLY into the target project repo (with operator approval) + this skill's
+  # own tests tmp dir. NEVER ~/.claude, _refs, or another module's _staging subtree.
+  - "<target-repo>/CLAUDE.md"
+  - "<target-repo>/swarm.config.yml"
+  - "<target-repo>/.github/CODEOWNERS"
+  - "<target-repo>/.github/workflows/ci.yml"
+  - "<target-repo>/docs/PROJECT_STATE.md"
+  - "<target-repo>/.swarm/**"
+  - "<target-repo>/packages/**/CLAUDE.md"   # or modules/** for polyglot
+  - "<target-repo>/pnpm-workspace.yaml"
+  - "$TMPDIR/**"                             # pytest scratch only
+
+network_hosts: []                            # the collector makes ZERO network calls
+                                             # (intake context-gather uses native
+                                             # /deep-research, metadata only, outside this code)
+
+exec_commands:
+  - "python3 lib/readiness_check.py"         # stdlib only
+  - "bash lib/readiness_check.sh"            # thin shim -> python3
+  # NOTE: no eval/exec, no child_process string-concat, no git writes. The
+  # collector is READ-ONLY against the target repo.
+
+reads_secrets: false                         # never reads .env / keychains / tokens.
+                                             # The C10 check DETECTS committed secrets
+                                             # and logs the pattern NAME only -- never
+                                             # the matched value (fail-closed).
+
+# --- ship path ---
+ship_target: S4G414                          # canonical team core
+consumed_via: "/evolve 5-gate pipeline (G10)"
+locked_design_respected: true                # produces inputs; conforms to §4/§7/§13;
+                                             # schema changes are flagged to the core maintainer, not edited.

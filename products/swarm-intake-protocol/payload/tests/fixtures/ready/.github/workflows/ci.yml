@@ -1,0 +1,33 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  module-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - module-a
+          - module-b
+          - shared
+          - integrations
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter "@sample/${{ matrix.module }}" lint
+      - run: pnpm --filter "@sample/${{ matrix.module }}" typecheck
+      - run: pnpm --filter "@sample/${{ matrix.module }}" test
+
+  gate:
+    needs: [module-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "all green"

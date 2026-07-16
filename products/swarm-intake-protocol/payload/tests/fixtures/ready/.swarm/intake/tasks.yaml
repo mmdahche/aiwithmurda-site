@@ -1,0 +1,24 @@
+version: 1
+tasks:
+  - id: "landing-page"
+    goal: "Build the landing page for module-a"
+    until: "AC-A1: the landing page renders and the component test passes"
+    without: "$0; no code to free APIs; cross-platform; do not touch other modules"
+    module: "module-a"
+    acceptance_criteria:
+      - "AC-A1"
+    blockedBy: []
+    complexity: "simple"
+    cross_module: false
+
+  - id: "login-flow"
+    goal: "Build the login flow in module-b backed by a shared session type"
+    until: "AC-B1: login returns a session and the integration test passes"
+    without: "$0; no code to free APIs; security-review on auth paths"
+    module: "shared"
+    acceptance_criteria:
+      - "AC-B1"
+    blockedBy:
+      - "landing-page"
+    complexity: "complex"
+    cross_module: true

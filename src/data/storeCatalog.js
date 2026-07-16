@@ -117,6 +117,14 @@ export const storeProducts = [
     promise: "Demand planning and reverse logistics playbooks — forecast selection, safety stock, promo lift, RMA grading, disposition routing, and fraud scoring with numbers attached.",
     license: "MIT",
   },
+  {
+    key: "swarm-intake-protocol",
+    name: "Swarm Intake Protocol",
+    price: "$49",
+    kind: "Kit · skill + 21 tests + readiness gate",
+    promise: "Make any project swarm-ready before the first dispatch — 5-stage intake pipeline, layered context, task graph, and a deterministic READY gate with ten checks.",
+    license: "MIT",
+  },
 ];
 
 export const storeTiers = [

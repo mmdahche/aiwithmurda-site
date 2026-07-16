@@ -1,0 +1,28 @@
+# task.tmpl.yaml -- starter .swarm/intake/tasks.yaml (copy + fill, add tasks).
+# Conforms to tasks.schema.yaml. Keys are lowercase YAML; they map to the swarm
+# directive Goal/Until/Without. Every task must keep ALL required fields (C8).
+version: 1
+tasks:
+  - id: "{{TASK_ID}}"
+    goal: "{{WHAT_TO_BUILD}}"
+    until: "{{DONE_CONDITION = matching PROJECT_STATE acceptance criterion}}"
+    without: "$0; no code to free APIs; cross-platform; do not touch other modules; {{EXTRA_CONSTRAINTS}}"
+    module: "{{MODULE}}"
+    acceptance_criteria:
+      - "AC-A1"
+    blockedBy: []
+    complexity: "simple"      # simple | complex
+    cross_module: false       # true if it must edit shared/ or integrations/
+
+  - id: "{{TASK_ID_2}}"
+    goal: "{{WHAT_TO_BUILD}}"
+    until: "{{DONE_CONDITION}}"
+    without: "$0; no code to free APIs; cross-platform; security-review on auth paths"
+    module: "shared"
+    acceptance_criteria:
+      - "AC-B1"
+      - "AC-B2"
+    blockedBy:
+      - "{{TASK_ID}}"
+    complexity: "complex"     # touches 3+ modules OR depth >= L4
+    cross_module: true        # edits shared/ -> all-team review
