@@ -3,6 +3,15 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `install/setup.sh`: one-shot install of all six skills
+  (`verify-before-claiming`, `state-sequence-audit`, `ai-blind-spot-testing`,
+  `qa`, `qa-only`, `test-gap-detector`) into
+  `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` with `--force` overwrite guard
+  and Codex mirror into `.agents/skills/` when that root exists. Skill
+  contents unchanged.
+
 ## 1.0.0 — 2026-07-12 — Launch edition
 
 - `verify-before-claiming`: the Iron Law (no completion claims without fresh

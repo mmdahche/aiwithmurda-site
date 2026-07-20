@@ -36,7 +36,7 @@ means this file grows and your download refreshes — verifiably.
   passthrough scrubber + one-time stderr note; the SSRF / live / caps /
   isolation gates still hold. The firewall is NOT vendored — it ships in
   the Safe-Autonomy Guardrails pack (sold separately).
-- Shipped tests (158 total: 39 research + 89 web-fetch + 30 to-markdown)
+- Shipped tests (119 total: 39 research + 50 web-fetch + 30 to-markdown)
   drive the production code path against mocks; zero network calls
   regardless of the live gates. See `VERIFY.md` for the command.
 - Install: `bash install/setup.sh` copies the three payloads to

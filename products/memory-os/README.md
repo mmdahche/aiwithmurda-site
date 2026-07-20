@@ -43,9 +43,20 @@ All markdown. No dependencies, no services, no database — files and rituals.
 
 ## Setup
 
-Follow `00-START-HERE.md`. Commands install by copying from
-`install/claude-code/` (or `install/codex/<name>/SKILL.md` →
-`.agents/skills/`); templates get filled and placed per the addon's paths.
+Follow `00-START-HERE.md` for the full boot ritual.
+
+**Quick path for the three commands:** `bash install/setup.sh` (add `--force` to
+overwrite). Copies `dispatch`, `handoff`, and `resume` into
+`$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` and mirrors into `.agents/skills/`
+when that Codex root exists.
+
+**Manual:** copy from `install/claude-code/` (or `install/codex/<name>/SKILL.md`
+→ `.agents/skills/`).
+
+The identity + memory templates (`SOUL.md`, `MEMORY.md`, `AGENTS-ADDON.md`,
+`daily-note.md`, `workspace-map.md`) in `payload/templates/` get filled and
+placed per your addon's paths — the setup script deliberately does NOT touch
+those; that's a decision you make once per workspace.
 
 ## Design posture
 

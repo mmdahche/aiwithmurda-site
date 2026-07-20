@@ -1,6 +1,6 @@
 # INDEX — three-tier-llm-router
 
-Generated: 2026-07-13 · Files: 27 (excluding this manifest)
+Generated: 2026-07-20 · Files: 28 (excluding this manifest)
 
 Every file in this product, verified against disk by `verify-product-folder.mjs`
 at build time. If your download doesn't match this list exactly, something is
@@ -8,6 +8,7 @@ wrong — email murad@aiwithmurda.com.
 
 - `00-START-HERE.md`
 - `CHANGELOG.md`
+- `examples/dispatch-and-ledger-walkthrough.md`
 - `install/setup.sh`
 - `LICENSE`
 - `payload/.env.example`

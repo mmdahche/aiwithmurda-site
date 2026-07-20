@@ -48,7 +48,7 @@ python3 -m venv /tmp/rre-venv
 ```
 
 - [ ] research: 39 passed.
-- [ ] web-fetch: 89 passed.
+- [ ] web-fetch: 50 passed.
 - [ ] to-markdown: 30 passed (all reportlab-optional tests skip if that dep
       is missing).
 

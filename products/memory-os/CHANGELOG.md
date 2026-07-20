@@ -3,6 +3,15 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `install/setup.sh`: one-shot install of the three command-skills
+  (`dispatch`, `handoff`, `resume`) into `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md`
+  with `--force` overwrite guard and Codex mirror into `.agents/skills/` when
+  that root exists. The script deliberately does NOT touch identity + memory
+  templates in `payload/templates/` — placement remains a per-workspace decision
+  driven by `00-START-HERE.md`.
+
 ## 1.0.0 — 2026-07-13 — Launch edition
 
 - Identity layer: SOUL.md template (voice contract, standing judgment rules,

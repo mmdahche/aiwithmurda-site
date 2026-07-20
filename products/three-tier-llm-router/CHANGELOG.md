@@ -3,6 +3,15 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `examples/dispatch-and-ledger-walkthrough.md`: one cheap-tier call
+  (`summarize` → T2), one hard-floored call (`architectural_decision` → T3),
+  the JSONL ledger row each one produces, and the last-N usage report — the
+  peer-engine walkthrough the store audit flagged as missing.
+- No code, test, or install-script changes; 71 shipped tests still pass
+  offline against `node --test test/*.test.cjs`.
+
 ## 1.0.0 — 2026-07-13 — Launch edition
 
 - The router (`lib/tiered-ask.cjs`): purpose-taxonomy classification, flag

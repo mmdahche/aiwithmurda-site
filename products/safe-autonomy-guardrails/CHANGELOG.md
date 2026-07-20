@@ -26,5 +26,6 @@ means this file grows and your download refreshes — verifiably.
   copy-pasteable settings example.
 - Eight skills in Claude Code + Codex layouts: three engine guides,
   `/guard`, `/freeze`, `/unfreeze`, `/set-secret`, `/verify-before-claiming`.
-- Full test suites for all three engines, shipped and runnable.
+- Full test suites for all three engines, shipped and runnable (100 total:
+  redaction-firewall 27 + local-agent-kit 50 + vault-index 23).
 - Worked example: hardening an overnight agent run end-to-end.

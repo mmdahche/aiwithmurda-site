@@ -29,7 +29,7 @@ cd ~/.guardrails
 /tmp/guardrails-venv/bin/python -m pytest redaction-firewall/tests/ local-agent-kit/tests/ vault-index/tests/ -q
 ```
 
-- [ ] All tests pass (118 at v1.0.0).
+- [ ] All tests pass (100 at v1.0.0: firewall 27 + kit 50 + vault 23).
 
 ## 4. Firewall live-fire
 

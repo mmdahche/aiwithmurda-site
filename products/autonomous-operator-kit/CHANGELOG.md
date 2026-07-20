@@ -3,6 +3,18 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `install/setup.sh`: one-shot install of the six command-skills
+  (`/operator-cycle`, `/depth-check`, `/cycle-brief`, `/cycle-goal`,
+  `/cycle-evolve`, `/schedule-task`) into
+  `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` with `--force` overwrite guard
+  and Codex mirror into `.agents/skills/` when that root exists. The script
+  intentionally does NOT bootstrap `~/.operator-cycle/` or arm the write
+  boundary — that stays a per-workspace decision handled by
+  `payload/bootstrap.md` §1-2, so attended first runs remain the required
+  on-ramp to unattended cycles.
+
 ## 1.0.0 — 2026-07-13 — Launch edition
 
 - `/operator-cycle`: the full loop — pre-cycle safety checks (write-boundary

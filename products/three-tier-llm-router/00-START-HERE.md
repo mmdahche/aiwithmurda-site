@@ -32,6 +32,7 @@ what the quota says.
 - `payload/scripts/` — usage + capacity reports over the JSONL ledger
 - `payload/test/` — 71 tests, runnable offline, shipped on purpose
 - `payload/.env.example` — every key and knob, placeholders only
+- `examples/dispatch-and-ledger-walkthrough.md` — one cheap-tier call, one hard-floored call, and the JSONL ledger row each produces
 - `VERIFY.md` — the checklist we ran; re-run it
 
 ## The one rule

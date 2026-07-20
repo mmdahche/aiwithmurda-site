@@ -19,7 +19,7 @@ const includedTools = [
     name: "Safe-Autonomy Guardrails",
     standalone: "Sold separately at $49 — included in full",
     body:
-      "The fail-closed safety layer for unattended agents: egress redaction firewall, six local-agent guards (irreversible-action locks, token hygiene, untrusted-input validation), a doc-vault index that can't lie fresh, clipboard-only secret injection, and two Claude Code enforcement hooks — with 118 shipped tests you can run yourself.",
+      "The fail-closed safety layer for unattended agents: egress redaction firewall, six local-agent guards (irreversible-action locks, token hygiene, untrusted-input validation), a doc-vault index that can't lie fresh, clipboard-only secret injection, and two Claude Code enforcement hooks — with 100 shipped tests you can run yourself.",
   },
   {
     name: "Verification & QA Pack",
@@ -45,7 +45,7 @@ const mechanismSteps = [
 const realReceipts = [
   {
     title: "The guardrails ship their own proof",
-    body: "118 tests, runnable offline from the download in one command. The VERIFY checklist in every folder is the same one we ran before shipping — re-run it and check our work.",
+    body: "100 tests, runnable offline from the download in one command. The VERIFY checklist in every folder is the same one we ran before shipping — re-run it and check our work.",
   },
   {
     title: "This is the author's own machinery",

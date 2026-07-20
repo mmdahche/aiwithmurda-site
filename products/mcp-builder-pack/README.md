@@ -40,14 +40,22 @@ principles apply unchanged to any client or SDK.
 
 ## Setup
 
-Copy the four files from `install/claude-code/` into your skills/commands
-folder — or per-skill `install/codex/<name>/SKILL.md` into
-`.agents/skills/`. No dependencies, nothing to run to install the skills
-themselves.
+No dependencies for the skills themselves.
 
-To follow the worked example (build and run the `changelog-query` server),
-you need Node 20+ and the two npm packages the walkthrough installs:
-`@modelcontextprotocol/sdk` and `zod`.
+**Quick path:** `bash install/setup.sh` (add `--force` to overwrite existing
+installs). Copies the four skills into `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md`
+(defaults to `$HOME/.claude/skills/`) and mirrors each into `.agents/skills/`
+when that Codex root exists.
+
+**Manual:** copy the four files from `install/claude-code/` into your
+skills/commands folder — or per-skill `install/codex/<name>/SKILL.md` into
+`.agents/skills/`.
+
+To follow the TypeScript worked example (build and run the `changelog-query`
+server yourself), you need Node 20+ and the two npm packages the walkthrough
+installs: `@modelcontextprotocol/sdk` and `zod`. The TS source lives in
+`examples/changelog-mcp-walkthrough.md` — copy, build, and run it; nothing is
+pre-compiled in the payload.
 
 ## What this is NOT
 

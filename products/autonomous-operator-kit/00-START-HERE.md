@@ -16,8 +16,12 @@ wiring options; the loop's value works at any cadence.
 1. **Bootstrap the root:** follow `payload/bootstrap.md` § 1-2 — create
    `~/.operator-cycle/` (global) or `<project>/.operator-cycle/`, copy the
    four templates in, list your allowed projects in `config.json`.
-2. **Install the six commands:** copy `install/claude-code/*.md` into your
-   commands/skills folder (Codex layouts in `install/codex/`).
+2. **Install the six commands:** `bash install/setup.sh` (add `--force` to
+   overwrite an existing install) copies the six command-skills into
+   `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` and mirrors them into
+   `.agents/skills/` when that Codex root exists. Manual: copy
+   `install/claude-code/*.md` into your commands/skills folder (Codex layouts
+   in `install/codex/`).
 3. **Run cycle 1 attended.** Say `/operator-cycle` and watch a full cycle:
    domain pick → deep work → counter-action → ship with the trailer →
    inner-log entry. Attended first runs catch config mistakes cheaply.

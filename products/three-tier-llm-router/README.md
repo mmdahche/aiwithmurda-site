@@ -78,6 +78,13 @@ console.log(r.tier, r.model, r.text);
 - No cost promises: savings depend on your mix. The ledger makes your actual
   mix measurable, which is the point.
 
+## Worked example
+
+`examples/dispatch-and-ledger-walkthrough.md` — one cheap-tier call, one
+hard-floored precision call, the JSONL ledger row each one produces, and the
+usage report over the last N calls. Follow it end to end after `setup.sh`;
+it doubles as the honest answer to "am I actually saving money?"
+
 ## Support boundary
 
 Digital product. Setup questions: murad@aiwithmurda.com. No custom routing

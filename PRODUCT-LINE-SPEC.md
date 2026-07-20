@@ -1,7 +1,36 @@
 # PRODUCT-LINE-SPEC.md — Murad's Original Product Line
 
-Date: 2026-07-11 · Phase 2 deliverable (spec only — nothing built yet)
-Companion: `AUDIT-REPORT.md` (Phase 1) · This run builds ONLY the Starter Kit (§11, Wave 0) after this spec is approved.
+Date: 2026-07-11 · Phase 2 deliverable · Refreshed 2026-07-20 after store built-out audit (`.planning/AUDIT-STORE-BUILT-2026-07-20.md`).
+Companion: `AUDIT-REPORT.md` (Phase 1) · Original directive: build ONLY the Starter Kit (§11, Wave 0) after this spec is approved. Status now: all 18 shelf SKUs on disk, verified, zipped.
+
+## Refresh log — 2026-07-20 audit follow-up
+
+- **#8 `design-studio-pack` and #9 `content-engine-pack`:** spec had them as
+  Wave 4 **deferred pending provenance**; on disk today both are **SHIPPED
+  clean-room** (2026-07-16 Wave 4). Table below now reads SHIPPED for both.
+- **#7 `operator-marketing-pack`:** confirmed **DROPPED** — not on disk,
+  correctly absent from `storeCatalog.js` and the shelf zip build script.
+  Key `sku_marketing` remains reserved per the original drop decision.
+- **Test-count discipline (new law):** every SKU that ships a test suite
+  states the exact `def test_` / `node --test` count in `storeCatalog.js`,
+  the SKU README, `CHANGELOG.md`, and `VERIFY.md` — and those four numbers
+  must match `rg "def test_" products/<slug> -c` (or the equivalent
+  node-test count) at any time. The 2026-07-20 audit found drift on three
+  SKUs (`zero-dollar-research-engine` 158→119, `safe-autonomy-guardrails`
+  118→100, `swarm-intake-protocol` 21→16); all four surfaces were corrected
+  and this discipline is now the standing rule.
+- **MCP Builder pack copy:** store card now reads "TypeScript worked example
+  (copy-build-run)" instead of "compiled worked example" — the buyer
+  compiles against `@modelcontextprotocol/sdk`; nothing pre-compiled ships
+  in the payload.
+- **`install/setup.sh` coverage:** added to `skill-authoring-kit`,
+  `verification-qa-pack`, `memory-os`, `autonomous-operator-kit`, and
+  `mcp-builder-pack` (five SKUs the audit flagged as missing the folder
+  standard's install script). `operator-sampler` (free) stays without one
+  by design.
+- **`examples/` coverage:** added
+  `three-tier-llm-router/examples/dispatch-and-ledger-walkthrough.md` to
+  match the peer engine SKUs' walkthrough discipline.
 
 ---
 
@@ -10,7 +39,7 @@ Companion: `AUDIT-REPORT.md` (Phase 1) · This run builds ONLY the Starter Kit (
 1. **Value-ladder law:** the more they pay, the more they get — every tier strictly stacks everything below it PLUS more. The cheapest tier must over-deliver so hard the buyer thinks *"if I got THIS for $47, imagine the bigger tiers."*
 2. **Reference = FORM only.** Wassim/Sina/courses informed folder shape, tier naming, pricing psychology, and failure modes to beat. **Zero lines of their content port into any SKU.**
 3. **Real receipts only.** No invented testimonials, revenue, or student counts. Prelaunch = say prelaunch. Every evidence claim in this spec is verified or marked `verify-at-packaging`.
-4. **Honest counting.** Every pack states its exact verified file/skill count; `INDEX.md` must match disk reality (this is the #1 structural failure in both reference bundles — Murad passes what they fail).
+4. **Honest counting.** Every pack states its exact verified file/skill count; `INDEX.md` must match disk reality (this is the #1 structural failure in both reference bundles — Murad passes what they fail). **Test-count discipline (added 2026-07-20):** SKUs that ship test suites cite the exact `rg "def test_" products/<slug> -c` (or `node --test` count) in all four of `storeCatalog.js`, the SKU README, `CHANGELOG.md`, and `VERIFY.md` — the numbers must agree with disk, always.
 5. **Product boundary (from `OPERATOR-TOOLKIT-ROADMAP.md`, extended):** never ship GSD packages (67 dirs), plugin-cache skills, licensed third-party material, private Backbone/client automation, credentials, customer data, machine-specific paths, or Murad's actual `SOUL.md`/`MEMORY.md`/audit logs. Patterns and templates ship; the personal instance never does.
 6. **Entitlement keys are immutable.** The four live keys (`future_proof_method`, `new_wave_live_builds`, `operator_toolkit`, `operator_updates`) are never renamed or repurposed. All new SKU keys use the `sku_` prefix.
 
@@ -95,8 +124,8 @@ Companion: `AUDIT-REPORT.md` (Phase 1) · This run builds ONLY the Starter Kit (
 | 5 | `zero-dollar-research-engine` | Engine | $29 | N | 3 |
 | 6 | `browser-automation-studio` | Studio | $39 | N | 3 |
 | 7 | ~~`operator-marketing-pack`~~ | — | — | **DROPPED 2026-07-13** | — |
-| 8 | `design-studio-pack` | Pack | $49 | **V — deferred pending per-component provenance** | 4 |
-| 9 | `content-engine-pack` | Pack | $39 | **V — deferred; 2 components failed provenance 2026-07-13** | 4 |
+| 8 | `design-studio-pack` | Pack | $49 | **SHIPPED Wave 4 (2026-07-16, clean-room)** | 4 |
+| 9 | `content-engine-pack` | Pack | $39 | **SHIPPED Wave 4 (2026-07-16, clean-room)** | 4 |
 | 10 | `verification-qa-pack` | Pack | $29 | N | 1 |
 | 11 | `skill-authoring-kit` | Kit | $19 | N | **0 (this run)** |
 | 12 | `memory-os` | OS | $99 | N | 2 |
@@ -134,7 +163,7 @@ Buyer: builders running agents at scale who feel the token bill. Delivery: DEFAU
 
 **#5 `zero-dollar-research-engine` — $29 — key `sku_research` — SHIPPED Wave 3 (2026-07-14)**
 *"Ask the open web one question, get structured results from many free sources."*
-Inside: `research` skill (multi-source aggregator, security gates) + `web-fetch` (curl-impersonate fast path, SSRF-guarded) + `to-markdown` (fail-closed doc converter). 158 shipped tests. `last30days` EXCLUDED at packaging: it is third-party (mvanhorn/last30days-skill, MIT) AND requires paid API keys — both disqualifying (§1.5 + the $0 pitch). The Guardrails firewall dependency became an optional seam (cross-sells #2). Buyer: anyone paying for research SaaS. Delivery: DEFAULT.
+Inside: `research` skill (multi-source aggregator, security gates) + `web-fetch` (curl-impersonate fast path, SSRF-guarded) + `to-markdown` (fail-closed doc converter). 119 shipped tests (39 research + 50 web-fetch + 30 to-markdown; corrected 2026-07-20 from the 158 claim in the launch card). `last30days` EXCLUDED at packaging: it is third-party (mvanhorn/last30days-skill, MIT) AND requires paid API keys — both disqualifying (§1.5 + the $0 pitch). The Guardrails firewall dependency became an optional seam (cross-sells #2). Buyer: anyone paying for research SaaS. Delivery: DEFAULT.
 
 **#6 `browser-automation-studio` — $39 — key `sku_browser`**
 *"Point your agent at any site: scrape it, test it, drive it."*
@@ -143,13 +172,13 @@ Inside: the `browser` studio skill — navigation/scrape/form/test flows, screen
 **#7 `operator-marketing-pack` — DROPPED 2026-07-13 (provenance)**
 The packaging-time provenance check (§13) found the `/marketing` conductor and its ~40 component skills are `coreyhaines31/marketingskills v2.3.0` — third-party material, not Murad's to resell (spec §1.5 boundary; the original class-N tag was wrong). Murad's call: drop from the catalog; revisit post-launch as an ORIGINAL "operator marketing playbook" authoring project (his launches, his receipts, zero ported content). Key `sku_marketing` stays reserved.
 
-**#8 `design-studio-pack` — $49 — key `sku_design`**
+**#8 `design-studio-pack` — $49 — key `sku_design` — SHIPPED Wave 4 (2026-07-16, clean-room)**
 *"Ship interfaces that don't look like AI slop."*
-Inside: atelier-derived customer-safe system — DESIGN.md brand-contract pattern + synthesis workflow (`design-md`), anti-AI-slop detector checklist, motion framework, typography/color calibration rules (`taste-design`), UI critique protocol. Buyer: builders whose apps look generic. Delivery: DEFAULT.
+Inside: atelier-derived customer-safe system — DESIGN.md brand-contract pattern + synthesis workflow (`design-md`), anti-AI-slop detector checklist, motion framework, typography/color calibration rules (`taste-design`), UI critique protocol. Buyer: builders whose apps look generic. Delivery: DEFAULT. Provenance: originally spec-deferred pending per-component provenance (Wave 4 flag); the shipped pack is a clean-room rewrite, README carries the honesty note.
 
-**#9 `content-engine-pack` — $39 — key `sku_content`**
+**#9 `content-engine-pack` — $39 — key `sku_content` — SHIPPED Wave 4 (2026-07-16, clean-room)**
 *"Hooks, scripts, and humanized copy — without the fake-guru stink."*
-Inside: `hooks-angles` + `content-humanizer` + `seedance-ugc-scriptwriter` + `trending-news-content` + `audio-overview` + faceless-channel workflow. **Ethics posture baked in:** no fabricated income hooks, no fake-persona defaults — the explicit inverse of the reference material's failure. Buyer: creators/operators feeding social channels. Delivery: DEFAULT.
+Inside: `hooks-angles` + `content-humanizer` + `seedance-ugc-scriptwriter` + `trending-news-content` + `audio-overview` + faceless-channel workflow. **Ethics posture baked in:** no fabricated income hooks, no fake-persona defaults — the explicit inverse of the reference material's failure. Buyer: creators/operators feeding social channels. Delivery: DEFAULT. Provenance: originally spec-deferred (two components failed provenance 2026-07-13); the shipped pack is a clean-room rewrite from scratch, README carries the honesty note.
 
 **#10 `verification-qa-pack` — $29 — key `sku_verification`**
 *"Make 'it works' mean something."*
@@ -171,7 +200,7 @@ Buyer: ambitious solo builders who want compounding overnight progress. Delivery
 
 **#14 `swarm-intake-protocol` — $49 — key `sku_swarm_intake` — SHIPPED Wave 4 (2026-07-16, native)**
 *"Make any project swarm-ready so parallel agents build the RIGHT thing the first time."*
-Native Murad skill (M12 / Teamwork intake): `swarm-intake` — idea/brief/repo → intake package with collision-free routing, role splits, context contracts, deterministic 10-check readiness gate + 21 tests. Buyer: teams/solos running multiple agents in parallel. Delivery: DEFAULT. Standalone through Stage 3 + readiness gate; Stages 4–5 wire into `/swarm` when running the Teamwork Swarm.
+Native Murad skill (M12 / Teamwork intake): `swarm-intake` — idea/brief/repo → intake package with collision-free routing, role splits, context contracts, deterministic 10-check readiness gate + 16 tests (corrected 2026-07-20 from the 21 claim in the launch card). Buyer: teams/solos running multiple agents in parallel. Delivery: DEFAULT. Standalone through Stage 3 + readiness gate; Stages 4–5 wire into `/swarm` when running the Teamwork Swarm.
 
 **#15 `proof-engine-kit` — $99 — key `sku_proof_engine` — SHIPPED Wave 4 (2026-07-16, sanitized from live repo)**
 *"The build-in-public command center running aiwithmurda.com — as a template."*

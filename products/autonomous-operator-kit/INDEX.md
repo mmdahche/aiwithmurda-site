@@ -1,6 +1,6 @@
 # INDEX — autonomous-operator-kit
 
-Generated: 2026-07-13 · Files: 31 (excluding this manifest)
+Generated: 2026-07-20 · Files: 32 (excluding this manifest)
 
 Every file in this product, verified against disk by `verify-product-folder.mjs`
 at build time. If your download doesn't match this list exactly, something is
@@ -21,6 +21,7 @@ wrong — email murad@aiwithmurda.com.
 - `install/codex/depth-check/SKILL.md`
 - `install/codex/operator-cycle/SKILL.md`
 - `install/codex/schedule-task/SKILL.md`
+- `install/setup.sh`
 - `LICENSE`
 - `payload/bootstrap.md`
 - `payload/commands/cycle-brief.md`

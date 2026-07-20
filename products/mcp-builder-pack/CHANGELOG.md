@@ -3,6 +3,19 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `install/setup.sh`: one-shot install of all four skills
+  (`agent-action-space`, `mcp-server-build`, `mcp-server-patterns`,
+  `regex-vs-llm`) into `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` with
+  `--force` overwrite guard and Codex mirror into `.agents/skills/` when
+  that root exists.
+- README + store card clarified: the `changelog-query` worked example is a
+  copy-build-run TypeScript walkthrough (source lives in
+  `examples/changelog-mcp-walkthrough.md`, buyer compiles against
+  `@modelcontextprotocol/sdk`); no pre-compiled artifact ships in the
+  payload.
+
 ## 1.0.0 — 2026-07-14 — Launch edition
 
 - `mcp-server-build` (original write-up): end-to-end build of an MCP server

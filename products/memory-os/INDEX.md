@@ -1,6 +1,6 @@
 # INDEX — memory-os
 
-Generated: 2026-07-13 · Files: 23 (excluding this manifest)
+Generated: 2026-07-20 · Files: 24 (excluding this manifest)
 
 Every file in this product, verified against disk by `verify-product-folder.mjs`
 at build time. If your download doesn't match this list exactly, something is
@@ -15,6 +15,7 @@ wrong — email murad@aiwithmurda.com.
 - `install/codex/dispatch/SKILL.md`
 - `install/codex/handoff/SKILL.md`
 - `install/codex/resume/SKILL.md`
+- `install/setup.sh`
 - `LICENSE`
 - `payload/boot-ritual.md`
 - `payload/commands/dispatch.md`

@@ -12,7 +12,7 @@ READY before anything dispatches.
 | **swarm-intake skill** | 5-stage guided pipeline with a human gate after each stage |
 | **readiness collector** | Stdlib Python — 10 checks, fixed-shape JSON, exit 0 = READY |
 | **templates/** | Monorepo scaffold, CODEOWNERS, CI matrix, PROJECT_STATE, task graph |
-| **tests/** | 21 table-driven tests + golden ready fixture |
+| **tests/** | 16 table-driven tests + golden ready fixture |
 
 ## Time to first value
 

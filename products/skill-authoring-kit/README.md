@@ -33,7 +33,14 @@ that repetition into a permanent capability.
 
 ## Setup
 
-No dependencies. Copy the install file for your agent:
+No dependencies.
+
+**Quick path:** `bash install/setup.sh` (add `--force` to overwrite an existing
+install). Copies the authoring skill into `$CLAUDE_CONFIG_DIR/skills/write-a-skill/SKILL.md`
+(defaults to `$HOME/.claude/skills/`) and mirrors it into `.agents/skills/` when
+that Codex root exists.
+
+**Manual:**
 
 - **Claude Code:** `install/claude-code/write-a-skill.md` → your `~/.claude/skills/` (as `write-a-skill/SKILL.md` or your flat-file convention) or `~/.claude/commands/`
 - **Codex:** `install/codex/write-a-skill/SKILL.md` → `<project>/.agents/skills/write-a-skill/SKILL.md`

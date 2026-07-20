@@ -8,7 +8,7 @@ node scripts/verify-product-folder.mjs products/swarm-intake-protocol
 
 Expect PASS, no forbidden content.
 
-## 2. Readiness tests (21)
+## 2. Readiness tests (16)
 
 From repo root after install, or directly against payload:
 
@@ -16,7 +16,7 @@ From repo root after install, or directly against payload:
 PYTHONUTF8=1 python3 -m pytest products/swarm-intake-protocol/payload/tests/ -q
 ```
 
-Expect 21 passed.
+Expect 16 passed.
 
 ## 3. Golden fixture READY
 

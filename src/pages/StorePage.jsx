@@ -121,7 +121,7 @@ export function StorePage() {
             <strong>Real receipts only.</strong>
             <p>
               Products ship with sanitized artifacts from actual use — a real council run, real test suites
-              (118 of them in the guardrails pack). Prelaunch means buyer proof accumulates in public, not
+              (100 of them in the guardrails pack). Prelaunch means buyer proof accumulates in public, not
               that it gets invented.
             </p>
           </article>

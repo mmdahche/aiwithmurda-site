@@ -3,6 +3,13 @@
 All notable changes to this product are recorded here. "Lifetime updates"
 means this file grows and your download refreshes — verifiably.
 
+## 1.0.1 — 2026-07-20 — Audit follow-up
+
+- Added `install/setup.sh`: one-shot install of the `write-a-skill` authoring
+  skill into `$CLAUDE_CONFIG_DIR/skills/write-a-skill/SKILL.md` (defaults to
+  `$HOME/.claude/skills/`) with `--force` overwrite guard and Codex mirror
+  into `.agents/skills/` when that root exists. No payload changes.
+
 ## 1.0.0 — 2026-07-11 — Launch edition
 
 - `write-a-skill` authoring meta-skill: one-question-at-a-time requirements

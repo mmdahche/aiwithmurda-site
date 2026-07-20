@@ -34,9 +34,16 @@ automation such as Playwright MCP is available to the agent).
 
 ## Setup
 
-Copy the six files from `install/claude-code/` into your skills/commands
-folder — or per-skill `install/codex/<name>/SKILL.md` into
-`.agents/skills/`. No dependencies, nothing to run.
+No dependencies.
+
+**Quick path:** `bash install/setup.sh` (add `--force` to overwrite existing
+installs). Copies the six skills into `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md`
+(defaults to `$HOME/.claude/skills/`) and mirrors each into `.agents/skills/`
+when that Codex root exists.
+
+**Manual:** copy the six files from `install/claude-code/` into your
+skills/commands folder — or per-skill `install/codex/<name>/SKILL.md` into
+`.agents/skills/`.
 
 ## Cross-reference note (honest packaging)
 

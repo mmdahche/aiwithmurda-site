@@ -1,6 +1,6 @@
 # INDEX — verification-qa-pack
 
-Generated: 2026-07-12 · Files: 24 (excluding this manifest)
+Generated: 2026-07-20 · Files: 25 (excluding this manifest)
 
 Every file in this product, verified against disk by `verify-product-folder.mjs`
 at build time. If your download doesn't match this list exactly, something is
@@ -21,6 +21,7 @@ wrong — email murad@aiwithmurda.com.
 - `install/codex/state-sequence-audit/SKILL.md`
 - `install/codex/test-gap-detector/SKILL.md`
 - `install/codex/verify-before-claiming/SKILL.md`
+- `install/setup.sh`
 - `LICENSE`
 - `payload/ai-blind-spot-testing.md`
 - `payload/qa-only.md`
