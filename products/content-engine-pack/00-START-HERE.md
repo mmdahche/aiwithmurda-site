@@ -1,19 +1,29 @@
 # START HERE — Content Engine Pack
 
-Five skills + a faceless-channel workflow for hooks, humanized copy, UGC
-scripts, trending angles, and audio overviews.
+You bought five skills that cover the short-form content stack: hook design,
+humanization, script writing, trend-driven angles, and spoken overviews. Plus
+one operator workflow doc that ties them together.
 
-## First win in 3 steps (~15 minutes)
+## First win in 3 steps (~20 minutes)
 
-1. **Install:** `bash install/setup.sh`
-2. **Pick a topic** — run `hooks-angles` for three opener options
-3. **Humanize** — pass the winner through `content-humanizer` before posting
+1. **Install all five:** `bash install/setup.sh`
+2. **Voice pass:** paste 400–1000 words of your own writing and ask the agent
+   to run the `content-humanizer` fingerprint step. Save the fingerprint.
+3. **Ship one:** open the daily pipeline in
+   `payload/templates/faceless-channel-workflow.md`, pick one trend with a
+   real source, and run it end-to-end into a 30-second script.
 
 ## Where everything is
 
-- `payload/` — five skills + `templates/faceless-channel-workflow.md`
-- `examples/reel-hook-humanize-walkthrough.md`
+- `payload/*.md` — five skills (source copies)
+- `payload/templates/faceless-channel-workflow.md` — daily operator pipeline
+- `install/claude-code/` + `install/codex/` — dual layouts
+- `examples/reel-hook-humanize-walkthrough.md` — trend → hook → script → caption
+- `VERIFY.md` — checklist we ran before shipping
 
 ## The one rule
 
-**Receipts over hype.** Every stat needs a source or it gets cut.
+**Every claim needs a source.** No fake income numbers, no unsourced "trending"
+takes, no hooks that would need a lie to land. The pack refuses those inputs
+by design — if the agent asks you for a source, provide one or change the
+angle.

@@ -1,87 +1,110 @@
 ---
 name: design-contract
-description: Create and maintain a DESIGN.md brand contract — the single source of truth for UI generation. Use when starting a new product UI, onboarding a design system, or before any "make it look on-brand" task. Outputs a 9-section semantic design file agents can compose from instead of inventing styles each session.
+description: Draft or update a DESIGN.md brand contract that agents obey on every screen — identity, palette, typography, spacing, components, motion, voice, anti-patterns, and verification. Use before starting any new product surface, when unifying a fragmented UI, or when an agent keeps inventing new colors and spacing tokens each session.
 ---
 
-# Design Contract (DESIGN.md)
+# Design Contract
 
-A `DESIGN.md` file is the **brand contract** for UI work. Agents read it before
-touching `.tsx`, `.html`, or CSS. Compose from the contract — don't freestyle
-colors each generation.
+You write the single source of truth that every agent, every screen, and
+every reviewer refers back to when a design decision is on the table. The
+output is a `DESIGN.md` file that lives at the repo root next to `README.md`.
+
+The contract is enforced, not aspirational. If a component violates a section
+of the contract, the component is wrong — not the contract.
 
 ## When to use
 
-- New app, landing page, or major redesign
-- "Make this match our brand" without a Figma file
-- Handoff between design and build agents
-- Preventing style drift across sessions
-
-## The 9 sections
-
-Write all nine. Skip none — empty sections invite invention.
-
-### 1. Identity
-
-- Product name, one-line promise, primary audience
-- **Aesthetic direction** — pick ONE committed adjective pair (e.g. "industrial calm", "editorial sharp")
-- What this product is NOT (generic SaaS purple, glassmorphism soup)
-
-### 2. Palette
-
-- Primary, secondary, accent, surface, border, text (primary/muted/inverse)
-- Hex values + **when to use each** (not just swatches)
-- Dark mode mapping if applicable
-
-### 3. Typography
-
-- Font families (heading, body, mono) with fallbacks
-- Scale: h1–h4, body, caption — size/weight/line-height
-- Max line length for prose (typically 60–72ch)
-
-### 4. Spacing & layout
-
-- Base unit (4px or 8px grid)
-- Section padding, card padding, stack gaps
-- Breakpoints and container max-widths
-
-### 5. Components
-
-- Buttons (primary/secondary/ghost/destructive) — radius, padding, states
-- Inputs, cards, nav, badges — one paragraph each
-- **Compose rule:** reuse these tokens; no one-off button styles per page
-
-### 6. Motion
-
-- Default duration tiers (micro 120ms, standard 200ms, emphasis 320ms)
-- Easing curves; respect `prefers-reduced-motion`
-- What animates (opacity, transform) vs what never does (layout thrash)
-
-### 7. Voice & microcopy
-
-- Sentence length, formality, forbidden phrases ("unlock", "leverage" unless brand says so)
-- Error tone: helpful, not cute
-- CTA verb style ("Start build" not "Get started today!!!")
-
-### 8. Anti-patterns
-
-- Explicit bans: gradient hero + stock illustration, 3-column feature grid clone, etc.
-- Reference the anti-slop audit skill for full checklist
-
-### 9. Verification
-
-- How to prove compliance: screenshot checklist, contrast ratios, keyboard nav spot-check
-- Who signs off before ship
+- Starting a new product or marketing site from scratch
+- Unifying two surfaces that drifted apart (marketing vs app)
+- An agent keeps inventing new colors, weights, or spacings each session
+- Onboarding a new contractor and needing a one-page brand handoff
+- Preparing a design audit — you need the target before the diff
 
 ## Workflow
 
-1. Interview or infer brand inputs (existing site, logo, competitor you are NOT copying)
-2. Draft all 9 sections in one file at repo root or `docs/DESIGN.md`
-3. Run anti-slop audit on a sample screen generated FROM the contract
-4. Iterate contract — not individual pages — when drift appears
+1. **Read the current UI** — screenshots of the top five surfaces, current CSS variables, any brand PDF
+2. **Ask the founder five questions** — see below; do not skip
+3. **Draft the nine sections** — every section must have concrete values, not adjectives
+4. **List anti-patterns explicitly** — three things this brand will never do
+5. **Write the verification protocol** — how a reviewer proves compliance in under 60 seconds
+
+## Five questions before drafting
+
+1. Who is this for, in one sentence?
+2. What feeling should the first screen produce (calm, urgent, credible, playful)?
+3. Name two brands whose look you'd steal, and one you'd never look like
+4. Where does this UI live (dashboard, marketing, mobile, in-terminal)?
+5. What is the one rule you never want an agent to break?
+
+## The nine sections
+
+### 1. Identity
+
+- Product name, one-line positioning, target user
+- Personality traits (pick three, e.g. precise, dry, human)
+- Two visual moodboard references (public URLs or attached images)
+- One-line anti-positioning ("we are not X")
+
+### 2. Palette
+
+- Primary, secondary, accent, background, surface, text, muted, danger, success — each with a hex value and a usage rule
+- Contrast pairs called out (which text goes on which surface)
+- Semantic tokens named by role, not by hue (`--color-danger`, not `--color-red`)
+- Dark-mode equivalents where the product supports it — with contrast ratios
+
+### 3. Typography
+
+- Display, heading, body, mono — family name, weight, line-height for each
+- Type ramp with pixel values (e.g. 12, 14, 16, 18, 24, 32, 48) and the intended use for each step
+- Never mix more than two families; state the two
+- Letter-spacing and paragraph rhythm rules (measure, tracking)
+
+### 4. Spacing
+
+- Base unit (usually 4px or 8px)
+- Named scale (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`) with pixel values
+- Grid columns and gutters
+- Container max-width and the rule for when to break it
+
+### 5. Components
+
+- Button (variants, heights, radii, disabled state)
+- Input (default, focus, error, disabled)
+- Card (padding, radius, border, elevation)
+- Modal, toast, tooltip — pick the primitives this product actually uses
+- Icon system: which family, which stroke width, at which sizes
+
+### 6. Motion
+
+- Duration tiers (micro / standard / deliberate) with millisecond values
+- Default easing curve
+- Which interactions animate, which do not
+- Reduced-motion behaviour (respect `prefers-reduced-motion` in one sentence)
+
+### 7. Voice
+
+- Reading grade level target
+- Sentence-length rule (e.g. average under 18 words)
+- Words this brand uses; words this brand refuses
+- Capitalisation rule for headings and buttons
+- One-line elevator sentence used verbatim in metadata
+
+### 8. Anti-patterns
+
+- Three things this brand will never ship (specific — "no glassmorphism headers", "no purple-to-pink gradients", "no auto-playing hero video")
+- One anti-pattern per drift category (visual, motion, copy)
+
+### 9. Verification
+
+- The 60-second review protocol a human uses on any new screen
+- The token search command that proves no hard-coded colors slipped in
+- The screenshot-diff cadence (weekly, per PR, per release)
+- Who owns the contract and how it is amended (PR against `DESIGN.md`)
 
 ## Output rules
 
-- Every color has a semantic name AND hex
-- No "TBD" in palette or typography — use provisional values with a REVIEW tag
-- Link to motion-framework skill for animation depth
-- File must be readable in under 5 minutes
+- Every value is concrete — hex, pixels, milliseconds, family names
+- No adjective without a measurement next to it
+- Contract fits on one screen when collapsed — sections are dense, not verbose
+- The file is versioned; the top of the file lists the current revision date
+- The contract points to the audit skill by name: `anti-slop-audit` runs after every material change

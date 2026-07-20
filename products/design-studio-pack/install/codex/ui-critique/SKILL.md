@@ -1,82 +1,80 @@
 ---
 name: ui-critique
-description: Structured UI critique protocol — Nielsen heuristics plus AI-slop tells for design reviews. Use when reviewing mockups, staging URLs, or PR screenshots before sign-off.
+description: Structured senior-designer critique of a UI screen, combining Nielsen usability heuristics with AI-slop tells. Use when reviewing a page a founder or agent produced, preparing a design review meeting, or writing feedback that goes to a contractor. Output is a numbered issue list with severity, heuristic tag, evidence, and a concrete fix — never vibes.
 ---
 
-# UI Critique Protocol
+# UI Critique
 
-Structured review that produces **actionable fixes**, not vague "make it pop."
+You review a UI the way a senior designer reviews a junior designer's work at
+the whiteboard: patient, specific, evidence-based, prescriptive. No "feels
+off" without a reason. No "make it pop" as a fix.
+
+The critique layers two frameworks: Nielsen–Norman usability heuristics
+(the classical 10) and AI-slop tells (drift patterns specific to
+agent-generated UI). Every issue is tagged with which framework caught it.
 
 ## When to use
 
-- Design review before merge
-- Critique of agent-generated screens
-- Stakeholder feedback synthesis into a fix list
+- Reviewing any screen produced by a coding agent
+- Preparing a written design review to send a contractor
+- Debugging a page users describe as "confusing" without knowing why
+- Coaching a founder to see UI the way a designer does
+- Second-pass review before shipping a marketing site
 
-## Review setup
+## Workflow
 
-1. Capture viewport: mobile 390px + desktop 1280px minimum
-2. Load DESIGN.md if it exists — critique against contract, not personal taste
-3. Walk primary user path once without devtools
+1. **Establish target** — what task is this screen for, and who is the user? A screen without a task is a screenshot, not a UI
+2. **First read (10 s)** — glance and note the three things your eye lands on, in order. If those aren't the three most important things on the page, you have a hierarchy problem
+3. **Task walk** — attempt the primary task as a first-time user; every friction gets a note
+4. **Heuristic sweep** — walk Nielsen's 10 in order, tag any violations
+5. **Slop sweep** — walk the AI-slop tells (see below), tag any hits
+6. **Rank** — blocker / major / minor, per issue
+7. **Ship the critique** — numbered list, one issue per line, each with severity, tag, evidence, fix
 
-## Nielsen heuristics (score 0–2 each)
+## The 10 heuristics (short form)
 
-| # | Heuristic | 0=fail 1=partial 2=pass |
-|---|-----------|-------------------------|
-| H1 | Visibility of system status | |
-| H2 | Match real world | |
-| H3 | User control & freedom | |
-| H4 | Consistency & standards | |
-| H5 | Error prevention | |
-| H6 | Recognition over recall | |
-| H7 | Flexibility & efficiency | |
-| H8 | Aesthetic & minimalist design | |
-| H9 | Help users recover from errors | |
-| H10 | Help & documentation | |
+1. **Visibility of system status** — the UI tells the user what is happening (loading, saved, error, offline)
+2. **Match between system and real world** — labels use the user's vocabulary, not internal jargon
+3. **User control and freedom** — undo, cancel, back; no dead-end confirmations
+4. **Consistency and standards** — same word for same thing; platform conventions honoured
+5. **Error prevention** — the design makes the error hard, not the recovery easy
+6. **Recognition over recall** — visible options and defaults; do not make users remember from screen A on screen B
+7. **Flexibility and efficiency** — shortcuts for power users; sensible defaults for new ones
+8. **Aesthetic and minimalist design** — every element on the page earns its place; if a section only exists because pages "should have a testimonial section", cut it
+9. **Help users recognize, diagnose, and recover from errors** — plain-language error messages, next-step suggested
+10. **Help and documentation** — findable, task-scoped, and not a wall of FAQ
 
-**Ship bar:** no heuristic at 0; average ≥1.5
+## AI-slop tells (12 categories)
 
-## AI-slop tells (binary)
+- **T1 Purple default** — accent gradient is purple→pink or blue→cyan with no brand rationale
+- **T2 Emoji chrome** — emoji used as icons on tabs, buttons, or section headers
+- **T3 Uniform radius** — every card, button, and input has the same medium radius; visual language is monotonous
+- **T4 Card grave** — six identical feature cards in a 3×2 grid with icon + heading + one sentence, none differentiated
+- **T5 Testimonial ghosts** — three quotes with generic first-name-last-initial attributions, no company logos or real links
+- **T6 Placeholder people** — stock avatars, fake team photos, or clearly AI-generated portraits
+- **T7 Symmetric grave** — perfectly symmetric hero split with headline left, image right; no rhythm break for 4 sections
+- **T8 Section emoji chorus** — every H2 opens with a decorative emoji or icon glyph
+- **T9 Motion tax** — fade-in-on-scroll on every block, parallax on hero, scale-on-hover on cards, all shipping together
+- **T10 Generic hero copy** — "Build faster.", "Ship smarter.", "The future of X." — no proof, no verb specific to the product
+- **T11 Feature soup** — 12+ features listed as equals; no primary, no priority
+- **T12 CTA proliferation** — three different primary buttons above the fold competing for the same click
 
-- Could swap logo for any SaaS and nobody would notice
-- Three equal columns with generic icons
-- Gradient blob background without brand reason
-- CTA says "Get Started" with no specificity
-- Numbers or social proof without source
+## Critique output format
 
-Each tell found → link to anti-slop-audit rule number.
+For each issue:
 
-## Critique output template
-
-```markdown
-## UI Critique — [screen/route]
-Reviewer: [agent/human] · Date: · DESIGN.md: yes/no
-
-### Top 3 blockers
-1. ...
-2. ...
-3. ...
-
-### Heuristic scores
-H1:2 H2:1 ... (total /20)
-
-### Slop tells: [list or none]
-
-### Recommended fixes (ordered)
-1. [file/component] — change — why
-2. ...
-
-Verdict: APPROVE / REVISE / REJECT
+```
+#N  [severity]  [tag]  Evidence: <one line>   Fix: <one line>
 ```
 
-## Verdict
+- **severity** — blocker (do not ship) / major (fix this week) / minor (backlog)
+- **tag** — `H1`–`H10` (Nielsen), `T1`–`T12` (slop tell), or `C` (contract violation vs `DESIGN.md`)
+- **evidence** — cite the element with a selector, screenshot region, or line number in source
+- **fix** — a concrete action a mid-level engineer could execute today, not a direction
 
-- **APPROVE** — heuristics pass, zero slop tells, anti-slop audit would SHIP
-- **REVISE** — fixable issues listed; re-review one viewport after fixes
-- **REJECT** — missing DESIGN.md + generic layout; regenerate from contract first
+## Output rules
 
-## Rules
-
-- Critique behavior and hierarchy, not subject preference for blue vs green
-- Every negative must include a specific fix direction
-- Screenshot or route reference required per blocker
+- Never write a critique bullet without evidence and fix — a note without a fix is not feedback
+- Never mix five issues into one bullet — one issue per line, always
+- If the screen is fine, say so and say why in three sentences; do not manufacture problems
+- Close every critique with the single highest-leverage change if only one thing can be done — the "if I had one hour" line
