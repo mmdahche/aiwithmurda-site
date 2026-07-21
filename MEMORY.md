@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-07-21_obs-launch-profile.md`](memory/2026-07-21_obs-launch-profile.md) - Verified 720p30 OBS launch profile, rehearsal findings, rollback path, and stream safety boundaries.
 - [`memory/2026-07-13_campaign-automation.md`](memory/2026-07-13_campaign-automation.md) - Locked July 28 campaign clock, rehearsal isolation, automatic daily ledger, telemetry, exports, and production reset state.
 - [`memory/2026-07-12_tiktok-production-review.md`](memory/2026-07-12_tiktok-production-review.md) - Verified Production URLs, read-only Login Kit review package, and current TikTok `In review` state.
 - [`memory/2026-07-10_public-broadcast-system.md`](memory/2026-07-10_public-broadcast-system.md) - Deployed public design system, protected production boundaries, and verification state.
