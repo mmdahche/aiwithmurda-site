@@ -1824,6 +1824,11 @@ button {
   box-shadow: 0 0 18px rgba(97, 227, 109, 0.75);
 }
 
+.live-dot.offline {
+  background: #6f7d75;
+  box-shadow: none;
+}
+
 .main-panel {
   padding: 26px;
 }

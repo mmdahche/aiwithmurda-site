@@ -4658,6 +4658,7 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/campaign/status", (req, res) => {
   const campaign = getCampaignState(sprintConfig);
+  const lastStream = lastCampaignAutomationRun?.stream || null;
   res.setHeader("Cache-Control", "no-store");
   res.json({
     ok: true,
@@ -4668,6 +4669,11 @@ app.get("/api/campaign/status", (req, res) => {
       intervalMs: campaignAutomationTickMs,
       lastRunOk: lastCampaignAutomationRun?.ok ?? null,
       lastCompletedAt: lastCampaignAutomationRun?.completedAt || null,
+    },
+    stream: {
+      live: Boolean(lastStream?.live),
+      status: lastStream?.status || "pending",
+      observedAt: lastStream?.observedAt || lastCampaignAutomationRun?.completedAt || null,
     },
   });
 });

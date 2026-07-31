@@ -45,6 +45,8 @@ assert(publicStatus.response.ok && publicStatus.data?.ok === true, "Public campa
 assert(publicStatus.data?.campaign?.startDate === "2026-07-31", "Production campaign start date drifted");
 assert(publicStatus.data?.campaign?.endDate === "2026-09-28", "Production campaign end date drifted");
 assert(publicStatus.data?.automation?.enabled === true, "Campaign worker is not enabled");
+assert(typeof publicStatus.data?.stream?.live === "boolean", "Public stream status is missing its live flag");
+assert(typeof publicStatus.data?.stream?.status === "string", "Public stream status is missing its telemetry state");
 
 const blockedAdminStatus = await fetchJson(`${siteUrl}/api/admin/campaign/automation`);
 assert(

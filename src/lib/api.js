@@ -168,6 +168,10 @@ export function getStreamConfig() {
   return apiRequest("/api/stream/config");
 }
 
+export function getCampaignStatus() {
+  return apiRequest("/api/campaign/status");
+}
+
 export function getMemberProfile(token) {
   return apiRequest("/api/me", { token });
 }

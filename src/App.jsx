@@ -82,6 +82,7 @@ import {
   downloadOperatorUpdateAsset,
   downloadMemberAsset,
   getDailyLogs,
+  getCampaignStatus,
   getLiveFollowers,
   getMetricsAutomationSummary,
   getMemberProfile,
@@ -893,6 +894,7 @@ function App() {
   const [socialIntegrationMessage, setSocialIntegrationMessage] = useState("");
   const [streamConfig, setStreamConfig] = useState(fallbackStreamConfig);
   const [streamConfigStatus, setStreamConfigStatus] = useState("idle");
+  const [campaignStatus, setCampaignStatus] = useState(null);
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedView = params.get("view");
@@ -933,6 +935,29 @@ function App() {
     loadStreamConfig();
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    let timer = null;
+
+    async function refreshCampaignStatus() {
+      try {
+        const data = await getCampaignStatus();
+        if (!mounted) return;
+        setCampaignStatus(data);
+        const refreshMs = Math.max(15_000, Math.min(60_000, Number(data?.automation?.intervalMs || 30_000)));
+        timer = window.setTimeout(refreshCampaignStatus, refreshMs);
+      } catch {
+        if (mounted) timer = window.setTimeout(refreshCampaignStatus, 30_000);
+      }
+    }
+
+    refreshCampaignStatus();
+    return () => {
+      mounted = false;
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 
@@ -1469,8 +1494,8 @@ function App() {
           </nav>
 
           <div className="sidebar-footer">
-            <StatusPanel />
-            <OperatorsPanel />
+            <StatusPanel campaignStatus={campaignStatus} />
+            <OperatorsPanel campaignStatus={campaignStatus} />
           </div>
         </aside>
 
@@ -7657,23 +7682,42 @@ function KeyValue({ label, value, positive = false }) {
   );
 }
 
-function StatusPanel() {
+function formatStatusTime(value) {
+  if (!value) return "Waiting for first check";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Last check unavailable";
+  return `Checked ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+}
+
+function StatusPanel({ campaignStatus }) {
+  const stream = campaignStatus?.stream;
+  const isLive = Boolean(stream?.live);
+  const hasStatus = Boolean(stream?.status && stream.status !== "pending");
+
   return (
     <div className="mini-panel">
-      <span className="live-dot" />
-      <strong>Stream Connected</strong>
-      <p>OBS: Live</p>
-      <p>1080p60 · 6,432 kbps</p>
+      <span className={`live-dot ${isLive ? "" : "offline"}`} />
+      <strong>{isLive ? "Stream Live" : hasStatus ? "Stream Offline" : "Checking Stream"}</strong>
+      <p>{isLive ? "Twitch broadcast detected" : hasStatus ? "Twitch: Offline" : "Waiting for Twitch telemetry"}</p>
+      <p>{formatStatusTime(stream?.observedAt)}</p>
     </div>
   );
 }
 
-function OperatorsPanel() {
+function OperatorsPanel({ campaignStatus }) {
+  const automation = campaignStatus?.automation;
+  const lastRunLabel =
+    automation?.lastRunOk === false
+      ? "Last sync needs attention"
+      : automation?.lastCompletedAt
+        ? formatStatusTime(automation.lastCompletedAt).replace("Checked", "Synced")
+        : "Waiting for first sync";
+
   return (
     <div className="mini-panel">
-      <strong>AI Operators</strong>
-      <p>Claude Code · Online</p>
-      <p>Codex · Online</p>
+      <strong>Campaign Automation</strong>
+      <p>{automation?.enabled ? "Metrics worker: Active" : "Metrics worker: Checking"}</p>
+      <p>{lastRunLabel}</p>
     </div>
   );
 }
