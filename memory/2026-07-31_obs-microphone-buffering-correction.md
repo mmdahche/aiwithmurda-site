@@ -61,6 +61,19 @@ After restarting OBS:
 
 Before the next important call or stream, make a private 20-30 second local recording while speaking and play it back. Never create a second CoreAudio input for the Scarlett; use the global `Mic/Aux` mute control across scenes.
 
-## Separate video issue
+## Rendering-lag correction
 
-The incident session also reported heavy rendering lag during the meeting recording. That does not explain the missing voice and should be diagnosed separately before a long broadcast.
+The duplicate Scarlett capture also destabilized OBS timing beyond the microphone source. Before the correction, a 32-second private all-scene test reported:
+
+- 963 attempted frames
+- 450 rendering-lag frames
+- 46.7% rendering loss
+
+The meeting recording later reported 49.9% rendering loss. After removing `Broadcast Mic` and restarting OBS, the same test pattern passed without reducing canvas resolution, output resolution, frame rate, camera quality, or browser-source quality:
+
+- Privacy-only recording: 452 drawn frames with no rendering-lag entry
+- Full `Main Scene` recording: 457 drawn frames with no rendering-lag entry
+- 31-second all-scene stress recording: 941 attempted frames, 1 rendering-lag frame, 0.1% loss
+- No encoder skips, microphone-buffer errors, or public stream output
+
+The active launch profile remains 2560x1440 canvas, 1280x720 output, 30 FPS, bicubic downscale, and Apple VideoToolbox H.264 hardware encoding. Do not lower quality unless a later controlled test proves a new bottleneck.
