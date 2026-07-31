@@ -31,7 +31,11 @@ const siteUrl = getSiteUrl(env);
 const adminToken = requireEnv(env, "ADMIN_API_TOKEN");
 
 const publicLogs = await fetchJson(`${siteUrl}/api/daily-logs`);
-if (!publicLogs.response.ok || !Array.isArray(publicLogs.data?.logs)) {
+if (
+  !publicLogs.response.ok ||
+  !Array.isArray(publicLogs.data?.logs) ||
+  publicLogs.data.logs.some((log) => !Array.isArray(log.workItems))
+) {
   throw new Error(`Public daily logs failed: ${publicLogs.response.status} ${JSON.stringify(publicLogs.data)}`);
 }
 
@@ -186,6 +190,12 @@ if (!liveBundle.includes("Daily Run Sheet")) {
 }
 if (!liveBundle.includes("Daily Clip Packet")) {
   throw new Error("Client bundle missing Daily Clip Packet");
+}
+if (!liveBundle.includes("Live work queue") || !liveBundle.includes("Read-only automation")) {
+  throw new Error("Client bundle missing daily operating console");
+}
+if (!liveBundle.includes("What is happening today.")) {
+  throw new Error("Client bundle missing public live work board");
 }
 if (!liveBundle.includes("Manual Gate Runbook")) {
   throw new Error("Client bundle missing Manual Gate Runbook");
@@ -361,6 +371,17 @@ if (blockedWrite.response.status !== 401 || blockedWrite.data?.error !== "invali
   throw new Error(`Admin guard failed: ${blockedWrite.response.status} ${JSON.stringify(blockedWrite.data)}`);
 }
 
+const blockedDailyPlanPatch = await fetchJson(`${siteUrl}/api/admin/daily-logs/1`, {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ mainGoal: "Blocked smoke test" }),
+});
+if (blockedDailyPlanPatch.response.status !== 401 || blockedDailyPlanPatch.data?.error !== "missing_bearer_token") {
+  throw new Error(
+    `Admin daily plan guard failed: ${blockedDailyPlanPatch.response.status} ${JSON.stringify(blockedDailyPlanPatch.data)}`,
+  );
+}
+
 const blockedClipIntake = await fetchJson(`${siteUrl}/api/admin/clips/intake`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -467,6 +488,8 @@ console.log(
         publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,
+        adminDailyOperatingConsoleBundle: true,
+        publicLiveWorkBoardBundle: true,
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
         adminStreamRehearsalBundle: true,
@@ -496,6 +519,7 @@ console.log(
         followerObsAliasRoute: true,
         dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
+        adminDailyPlanPatchBlockedWithoutLogin: true,
         adminClipIntakeBlockedWithoutToken: true,
         adminFollowerIntakeBlockedWithoutToken: true,
         adminTwitchStatusBlockedWithoutToken: true,

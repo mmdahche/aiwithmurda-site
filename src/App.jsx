@@ -3,19 +3,29 @@ import {
   ArrowRight,
   BookOpenText,
   Check,
+  CheckCircle2,
+  ChevronDown,
+  CircleDot,
   Download,
   ExternalLink,
   FileCheck2,
   FolderDown,
   House,
   Layers3,
+  ListTodo,
+  LockKeyhole,
   LogOut,
   Menu,
   PackageCheck,
+  Play,
+  Plus,
   RadioTower,
   RefreshCw,
+  RotateCcw,
+  Save,
   Search,
   ShieldCheck,
+  Trash2,
   Trophy,
   X,
 } from "lucide-react";
@@ -91,6 +101,7 @@ import {
   subscribeBuildLog,
   syncDailyLogs,
   updateMemberTaskProgress,
+  updateDailyLog,
   verifyAdminSession,
   verifyCheckoutSession,
 } from "./lib/api.js";
@@ -863,6 +874,8 @@ function App() {
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(adminTokenStorageKey) || "");
   const [syncStatus, setSyncStatus] = useState("idle");
   const [syncMessage, setSyncMessage] = useState("");
+  const [daySaveStatus, setDaySaveStatus] = useState("idle");
+  const [daySaveMessage, setDaySaveMessage] = useState("");
   const [subscriberSummary, setSubscriberSummary] = useState(null);
   const [subscriberStatus, setSubscriberStatus] = useState("idle");
   const [subscriberMessage, setSubscriberMessage] = useState("");
@@ -920,6 +933,33 @@ function App() {
     loadStreamConfig();
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const publicRoute = getRoute();
+    if (publicRoute !== "/60" && !publicRoute.startsWith("/day/")) return undefined;
+
+    let mounted = true;
+    let timer = null;
+    async function refreshPublicLogs() {
+      try {
+        const data = await getDailyLogs();
+        if (mounted && Array.isArray(data.logs) && data.logs.length) {
+          setLogs(data.logs);
+          setRemoteLogStatus("live");
+          updateRemoteMeta(data.logs);
+        }
+      } catch {
+        // Keep the last verified public record and retry on the next interval.
+      }
+      if (mounted) timer = window.setTimeout(refreshPublicLogs, 10_000);
+    }
+
+    timer = window.setTimeout(refreshPublicLogs, 10_000);
+    return () => {
+      mounted = false;
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 
@@ -1218,6 +1258,13 @@ function App() {
     setSyncMessage("");
     try {
       const data = await syncDailyLogs(targetLogs, adminToken.trim());
+      const targetDays = new Set(targetLogs.map((record) => record.day));
+      const syncedByDay = new Map((data.logs || []).map((record) => [record.day, record]));
+      setLogs((current) =>
+        current.map((record) =>
+          targetDays.has(record.day) && syncedByDay.has(record.day) ? syncedByDay.get(record.day) : record,
+        ),
+      );
       await refreshRemoteLogMeta();
       setRemoteLogStatus("live");
       clearDirtyDays(targetLogs.map((record) => record.day));
@@ -1229,6 +1276,70 @@ function App() {
       setSyncMessage(error.message || "Public sync failed.");
       return false;
     }
+  }
+
+  async function saveDailyPlan(record) {
+    if (!authSession?.access_token) {
+      setDaySaveStatus("error");
+      setDaySaveMessage("Your admin session expired. Sign in again before saving.");
+      return false;
+    }
+
+    setDaySaveStatus("loading");
+    setDaySaveMessage("");
+    try {
+      const data = await updateDailyLog(
+        record.day,
+        {
+          mainGoal: record.mainGoal,
+          revenuePipeline: record.revenuePipeline,
+          outreachSent: record.outreachSent,
+          callsBooked: record.callsBooked,
+          buildsShipped: record.buildsShipped,
+          dailyLessons: record.dailyLessons,
+          shippedItems: record.shippedItems || [],
+          bestMoment: record.bestMoment,
+          biggestFailure: record.biggestFailure,
+          lessonLearned: record.lessonLearned,
+          tomorrowPromise: record.tomorrowPromise,
+          spikeCause: record.spikeCause,
+          proofAssets: record.proofAssets || [],
+          workItems: record.workItems || [],
+        },
+        authSession.access_token,
+      );
+
+      setLogs((current) => current.map((item) => (item.day === record.day ? data.log : item)));
+      clearDirtyDays([record.day]);
+      setRemoteLogStatus("live");
+      setDaySaveStatus("success");
+      setDaySaveMessage(`Day ${record.day} plan saved. Automated metrics were left untouched.`);
+      return true;
+    } catch (error) {
+      setDaySaveStatus("error");
+      setDaySaveMessage(error.message || "The day plan could not be saved.");
+      return false;
+    }
+  }
+
+  async function persistDailyWorkItems(day, workItems) {
+    if (!authSession?.access_token) {
+      throw new Error("Your admin session expired. Sign in again before changing the work queue.");
+    }
+
+    const data = await updateDailyLog(day, { workItems }, authSession.access_token);
+    setLogs((current) =>
+      current.map((record) =>
+        record.day === day
+          ? {
+              ...record,
+              workItems: data.log?.workItems || [],
+            }
+          : record,
+      ),
+    );
+    setRemoteLogStatus("live");
+    return data.log?.workItems || [];
   }
 
   function handleSnapshotApplied(nextLogs) {
@@ -1247,22 +1358,6 @@ function App() {
         return {
           ...record,
           [field]: numericFields.has(field) ? Number(value || 0) : value,
-        };
-      }),
-    );
-  }
-
-  function updateFollowers(day, platform, value) {
-    markDayDirty(day);
-    setLogs((current) =>
-      current.map((record) => {
-        if (record.day !== day) return record;
-        return {
-          ...record,
-          followers: {
-            ...record.followers,
-            [platform]: Number(value || 0),
-          },
         };
       }),
     );
@@ -1294,6 +1389,7 @@ function App() {
       tomorrowPromise: "",
       spikeCause: "",
       proofAssets: [],
+      workItems: [],
     };
     setLogs((current) => [...current, nextRecord]);
     markDayDirty(nextDay);
@@ -1398,13 +1494,15 @@ function App() {
               selectedRecord={selectedRecord}
               setSelectedDay={setSelectedDay}
               updateRecord={updateRecord}
-              updateFollowers={updateFollowers}
               updateList={updateList}
               addNextDay={addNextDay}
               dirtyDays={dirtyDays}
-              syncStatus={syncStatus}
-              syncMessage={syncMessage}
-              onSyncSelectedDay={() => syncLogsToPublic([selectedRecord], `Day ${selectedRecord.day}`)}
+              liveFollowers={liveFollowers}
+              saveStatus={daySaveStatus}
+              saveMessage={daySaveMessage}
+              onSaveSelectedDay={() => saveDailyPlan(selectedRecord)}
+              onPersistWorkItems={persistDailyWorkItems}
+              onOpenIntegrations={() => setActiveView("settings")}
             />
           )}
           {activeView === "overlay" && <OverlayView config={sprintConfig} latest={latest} logs={logs} liveFollowers={liveFollowers} />}
@@ -2184,6 +2282,10 @@ function DayReceiptPage({ config, logs, day }) {
   }
 
   const gains = getDayGains(logs, record);
+  const workItems = Array.isArray(record.workItems) ? record.workItems : [];
+  const activeWorkItem = workItems.find((item) => item.status === "active") || null;
+  const queuedWorkItems = workItems.filter((item) => item.status === "queued");
+  const completedWorkItems = workItems.filter((item) => item.status === "done");
   const dayLabel = isPrelaunch(config) ? "Preview Day" : "Day";
   const receiptMetrics = [
     { label: "Revenue", value: formatCurrency(record.revenueCollected), delta: signedCurrency(gains.revenue) },
@@ -2229,6 +2331,67 @@ function DayReceiptPage({ config, logs, day }) {
           <strong>{record.day}</strong>
           <em>{record.status}</em>
         </aside>
+      </section>
+
+      <section className="public-section day-work-board">
+        <header>
+          <div>
+            <span className="public-label">Live work board</span>
+            <h2>What is happening today.</h2>
+          </div>
+          <div className="day-work-counts">
+            <span><i className="active" />{activeWorkItem ? "1 active" : "No active task"}</span>
+            <span>{queuedWorkItems.length} queued</span>
+            <span>{completedWorkItems.length} finished</span>
+          </div>
+        </header>
+
+        <div className="day-work-board-grid">
+          <article className={`public-active-work ${activeWorkItem ? "active" : "empty"}`}>
+            <span>{activeWorkItem ? "Building now" : "Current focus"}</span>
+            <h3>{activeWorkItem?.title || record.mainGoal}</h3>
+            <p>
+              {activeWorkItem?.outcome ||
+                (activeWorkItem
+                  ? "The result and proof note will appear here as the task moves."
+                  : "The operator has not started a specific task yet.")}
+            </p>
+            {activeWorkItem?.startedAt ? <time dateTime={activeWorkItem.startedAt}>Started {formatWorkItemTime(activeWorkItem.startedAt)}</time> : null}
+          </article>
+
+          <div className="public-work-list">
+            <h3>Up next</h3>
+            {queuedWorkItems.length ? (
+              <ol>
+                {queuedWorkItems.map((item) => (
+                  <li key={item.id}>{item.title}</li>
+                ))}
+              </ol>
+            ) : (
+              <p>No additional task is queued yet.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="public-completed-work">
+          <h3>Finished today</h3>
+          {completedWorkItems.length ? (
+            <ul>
+              {[...completedWorkItems].reverse().map((item) => (
+                <li key={item.id}>
+                  <Check size={15} aria-hidden="true" />
+                  <div>
+                    <strong>{item.title}</strong>
+                    {item.outcome ? <p>{item.outcome}</p> : null}
+                  </div>
+                  {item.completedAt ? <time dateTime={item.completedAt}>{formatWorkItemTime(item.completedAt)}</time> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Completed tasks will build the public receipt throughout the day.</p>
+          )}
+        </div>
       </section>
 
       <section className="day-receipt-metrics">
@@ -5077,6 +5240,13 @@ function Dashboard({ config, logs, latest, weeks, liveFollowers, onGenerateSlide
   );
 }
 
+function formatWorkItemTime(value) {
+  if (!value) return "";
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) return "";
+  return timestamp.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
 function DailyLog({
   config,
   logs,
@@ -5084,13 +5254,15 @@ function DailyLog({
   selectedRecord,
   setSelectedDay,
   updateRecord,
-  updateFollowers,
   updateList,
   addNextDay,
   dirtyDays,
-  syncStatus,
-  syncMessage,
-  onSyncSelectedDay,
+  liveFollowers,
+  saveStatus,
+  saveMessage,
+  onSaveSelectedDay,
+  onPersistWorkItems,
+  onOpenIntegrations,
 }) {
   const gains = getDayGains(logs, selectedRecord);
   const selectedDirty = dirtyDays.includes(selectedRecord.day);
@@ -5098,8 +5270,138 @@ function DailyLog({
   const dailyRunSheetText = formatDailyRunSheet(selectedRecord, dailyRunSheet);
   const dailyClipPacket = getDailyClipPacket(selectedRecord, dailyRunSheet);
   const dailyClipPacketText = formatDailyClipPacket(selectedRecord, dailyRunSheet, dailyClipPacket);
+  const workItems = Array.isArray(selectedRecord.workItems) ? selectedRecord.workItems : [];
+  const activeItem = workItems.find((item) => item.status === "active") || null;
+  const queuedItems = workItems.filter((item) => item.status === "queued");
+  const doneItems = workItems.filter((item) => item.status === "done");
+  const connectedSources = Array.isArray(liveFollowers?.sources)
+    ? liveFollowers.sources.filter((source) => source.connected)
+    : [];
+  const displayedFollowerTotal =
+    typeof liveFollowers?.total === "number" ? liveFollowers.total : totalFollowers(selectedRecord);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [outcomeDrafts, setOutcomeDrafts] = useState({});
+  const [workSyncStatus, setWorkSyncStatus] = useState("idle");
+  const [workSyncMessage, setWorkSyncMessage] = useState("");
   const [runSheetCopyStatus, setRunSheetCopyStatus] = useState("idle");
   const [clipPacketCopyStatus, setClipPacketCopyStatus] = useState("idle");
+
+  useEffect(() => {
+    setNewTaskTitle("");
+    setOutcomeDrafts(
+      Object.fromEntries(
+        (Array.isArray(selectedRecord.workItems) ? selectedRecord.workItems : []).map((item) => [
+          item.id,
+          item.outcome || "",
+        ]),
+      ),
+    );
+    setWorkSyncStatus("idle");
+    setWorkSyncMessage("");
+  }, [selectedRecord.day]);
+
+  async function commitWorkItems(nextItems, successMessage) {
+    setWorkSyncStatus("loading");
+    setWorkSyncMessage("");
+    try {
+      const savedItems = await onPersistWorkItems(selectedRecord.day, nextItems);
+      setOutcomeDrafts(Object.fromEntries(savedItems.map((item) => [item.id, item.outcome || ""])));
+      setWorkSyncStatus("success");
+      setWorkSyncMessage(successMessage);
+      return true;
+    } catch (error) {
+      setWorkSyncStatus("error");
+      setWorkSyncMessage(error.message || "The work queue could not be saved.");
+      return false;
+    }
+  }
+
+  async function addWorkItem(event) {
+    event.preventDefault();
+    const title = newTaskTitle.trim();
+    if (!title || workSyncStatus === "loading") return;
+
+    const now = new Date().toISOString();
+    const startsActive = !activeItem;
+    const nextItem = {
+      id: globalThis.crypto?.randomUUID?.() || `work-item-${Date.now()}`,
+      title,
+      status: startsActive ? "active" : "queued",
+      outcome: "",
+      createdAt: now,
+      startedAt: startsActive ? now : null,
+      completedAt: null,
+    };
+    if (await commitWorkItems([...workItems, nextItem], startsActive ? "Task started." : "Task added to today’s queue.")) {
+      setNewTaskTitle("");
+    }
+  }
+
+  function startWorkItem(itemId) {
+    const now = new Date().toISOString();
+    const nextItems = workItems.map((item) => {
+      if (item.id === itemId) {
+        return { ...item, status: "active", startedAt: now, completedAt: null };
+      }
+      if (item.status === "active") {
+        return { ...item, status: "queued", startedAt: null, completedAt: null };
+      }
+      return item;
+    });
+    return commitWorkItems(nextItems, "Active task changed.");
+  }
+
+  function finishWorkItem(itemId) {
+    const now = new Date().toISOString();
+    const nextItems = workItems.map((item) =>
+      item.id === itemId
+        ? {
+            ...item,
+            status: "done",
+            outcome: String(outcomeDrafts[item.id] ?? item.outcome ?? "").trim(),
+            completedAt: now,
+          }
+        : item,
+    );
+    return commitWorkItems(nextItems, "Task completed and added to today’s receipt.");
+  }
+
+  function saveWorkItemNote(itemId) {
+    const nextItems = workItems.map((item) =>
+      item.id === itemId
+        ? {
+            ...item,
+            outcome: String(outcomeDrafts[item.id] ?? item.outcome ?? "").trim(),
+          }
+        : item,
+    );
+    return commitWorkItems(nextItems, "Task note saved.");
+  }
+
+  function reopenWorkItem(itemId) {
+    const canStartNow = !activeItem;
+    const now = new Date().toISOString();
+    const nextItems = workItems.map((item) =>
+      item.id === itemId
+        ? {
+            ...item,
+            status: canStartNow ? "active" : "queued",
+            startedAt: canStartNow ? now : null,
+            completedAt: null,
+          }
+        : item,
+    );
+    return commitWorkItems(nextItems, canStartNow ? "Task reopened and started." : "Task reopened in the queue.");
+  }
+
+  function removeWorkItem(itemId) {
+    const item = workItems.find((candidate) => candidate.id === itemId);
+    if (!item || !window.confirm(`Remove “${item.title}” from Day ${selectedRecord.day}?`)) return;
+    return commitWorkItems(
+      workItems.filter((candidate) => candidate.id !== itemId),
+      "Task removed.",
+    );
+  }
 
   async function copyRunSheet() {
     if (await copyPlainText(dailyRunSheetText)) {
@@ -5120,13 +5422,13 @@ function DailyLog({
   }
 
   return (
-    <section className="workspace-view">
+    <section className="workspace-view daily-command-view">
       <div className="view-header">
         <div>
-          <h2>Daily Log</h2>
-          <p>One record powers the dashboard, overlay, deck, and recap.</p>
+          <h2>Today’s Command</h2>
+          <p>Set the target, run one task at a time, and let the connected systems count the results.</p>
           <div className={`sync-pill ${selectedDirty ? "dirty" : "clean"}`}>
-            {selectedDirty ? `Day ${selectedRecord.day} has unsynced changes` : `Day ${selectedRecord.day} is synced locally`}
+            {selectedDirty ? `Day ${selectedRecord.day} has unsaved planning changes` : `Day ${selectedRecord.day} plan is saved`}
           </div>
         </div>
         <div className="toolbar">
@@ -5145,111 +5447,322 @@ function DailyLog({
           <button
             type="button"
             className="primary-action"
-            onClick={onSyncSelectedDay}
-            disabled={syncStatus === "loading" || !selectedRecord}
+            onClick={onSaveSelectedDay}
+            disabled={saveStatus === "loading" || !selectedRecord}
           >
-            {syncStatus === "loading" ? "Syncing..." : `Sync Day ${selectedRecord.day}`}
+            <Save size={16} aria-hidden="true" />
+            {saveStatus === "loading" ? "Saving..." : "Save day plan"}
           </button>
         </div>
       </div>
-      {syncMessage && <p className={`form-message ${syncStatus}`}>{syncMessage}</p>}
+      {saveMessage && <p className={`form-message ${saveStatus}`}>{saveMessage}</p>}
 
-      <div className="log-layout">
-        <article className="panel log-form">
-          <div className="form-row two">
-            <Field
-              label="Date"
-              value={selectedRecord.date}
-              onChange={(value) => updateRecord(selectedRecord.day, "date", value)}
+      <div className="daily-command-layout">
+        <article className="panel daily-execution-panel">
+          <header className="daily-goal-header">
+            <div>
+              <span className="daily-section-label">Day {selectedRecord.day} mission</span>
+              <div className="daily-day-meta">
+                <time dateTime={selectedRecord.date}>{selectedRecord.date}</time>
+                <span>{selectedRecord.status}</span>
+              </div>
+            </div>
+            <a href={`/day/${selectedRecord.day}`} target="_blank" rel="noreferrer">
+              View public day
+              <ExternalLink size={15} aria-hidden="true" />
+            </a>
+          </header>
+
+          <label className="daily-goal-field">
+            <span>Main goal</span>
+            <textarea
+              value={selectedRecord.mainGoal}
+              onChange={(event) => updateRecord(selectedRecord.day, "mainGoal", event.target.value)}
+              placeholder="What must be true before today ends?"
             />
-            <Field
-              label="Status"
-              value={selectedRecord.status}
-              onChange={(value) => updateRecord(selectedRecord.day, "status", value)}
-            />
+          </label>
+
+          <section className="live-work-queue" aria-labelledby="live-work-queue-title">
+            <div className="work-queue-heading">
+              <div>
+                <ListTodo size={18} aria-hidden="true" />
+                <h3 id="live-work-queue-title">Live work queue</h3>
+              </div>
+              <span>{doneItems.length} done · {queuedItems.length} queued</span>
+            </div>
+
+            <form className="work-item-composer" onSubmit={addWorkItem}>
+              <label htmlFor="new-daily-task">Add a topic or task</label>
+              <div>
+                <input
+                  id="new-daily-task"
+                  value={newTaskTitle}
+                  onChange={(event) => setNewTaskTitle(event.target.value)}
+                  placeholder={activeItem ? "What should come next?" : "What are you working on now?"}
+                  maxLength={180}
+                />
+                <button type="submit" className="primary-action" disabled={!newTaskTitle.trim() || workSyncStatus === "loading"}>
+                  <Plus size={16} aria-hidden="true" />
+                  {activeItem ? "Add to queue" : "Start task"}
+                </button>
+              </div>
+            </form>
+
+            <div className={`active-work-zone ${activeItem ? "has-active" : "empty"}`}>
+              {activeItem ? (
+                <>
+                  <div className="active-work-heading">
+                    <span><CircleDot size={15} aria-hidden="true" />Working now</span>
+                    <em>{activeItem.startedAt ? `Started ${formatWorkItemTime(activeItem.startedAt)}` : "In progress"}</em>
+                  </div>
+                  <h3>{activeItem.title}</h3>
+                  <label>
+                    <span>Result or proof note</span>
+                    <textarea
+                      value={outcomeDrafts[activeItem.id] ?? activeItem.outcome ?? ""}
+                      onChange={(event) =>
+                        setOutcomeDrafts((current) => ({ ...current, [activeItem.id]: event.target.value }))
+                      }
+                      placeholder="Optional: link, result, lesson, or what changed."
+                      maxLength={1000}
+                    />
+                  </label>
+                  <div className="active-work-actions">
+                    <button
+                      type="button"
+                      className="primary-action"
+                      onClick={() => finishWorkItem(activeItem.id)}
+                      disabled={workSyncStatus === "loading"}
+                    >
+                      <CheckCircle2 size={16} aria-hidden="true" />
+                      Finish task
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => saveWorkItemNote(activeItem.id)}
+                      disabled={workSyncStatus === "loading"}
+                    >
+                      <Save size={15} aria-hidden="true" />
+                      Save note
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-action danger"
+                      onClick={() => removeWorkItem(activeItem.id)}
+                      disabled={workSyncStatus === "loading"}
+                      title="Remove task"
+                      aria-label={`Remove ${activeItem.title}`}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="work-zone-empty">
+                  <Play size={22} aria-hidden="true" />
+                  <div>
+                    <strong>No task is active.</strong>
+                    <p>Add the first task above or start one from the queue.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="queued-work-items">
+              <h4>Up next</h4>
+              {queuedItems.length ? (
+                <ol>
+                  {queuedItems.map((item) => (
+                    <li key={item.id}>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <span>Queued {formatWorkItemTime(item.createdAt)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => startWorkItem(item.id)}
+                        disabled={workSyncStatus === "loading"}
+                      >
+                        <Play size={15} aria-hidden="true" />
+                        Start
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-action danger"
+                        onClick={() => removeWorkItem(item.id)}
+                        disabled={workSyncStatus === "loading"}
+                        title="Remove task"
+                        aria-label={`Remove ${item.title}`}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="queue-empty-copy">Nothing is waiting. Add another task whenever the stream changes direction.</p>
+              )}
+            </div>
+
+            <details className="completed-work-items">
+              <summary>
+                <span><CheckCircle2 size={16} aria-hidden="true" />Completed today ({doneItems.length})</span>
+                <ChevronDown size={16} aria-hidden="true" />
+              </summary>
+              {doneItems.length ? (
+                <ul>
+                  {[...doneItems].reverse().map((item) => (
+                    <li key={item.id}>
+                      <Check size={15} aria-hidden="true" />
+                      <div>
+                        <strong>{item.title}</strong>
+                        {item.outcome ? <p>{item.outcome}</p> : null}
+                        <span>{item.completedAt ? `Finished ${formatWorkItemTime(item.completedAt)}` : "Completed"}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="icon-action"
+                        onClick={() => reopenWorkItem(item.id)}
+                        disabled={workSyncStatus === "loading"}
+                        title="Reopen task"
+                        aria-label={`Reopen ${item.title}`}
+                      >
+                        <RotateCcw size={15} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-action danger"
+                        onClick={() => removeWorkItem(item.id)}
+                        disabled={workSyncStatus === "loading"}
+                        title="Remove task"
+                        aria-label={`Remove ${item.title}`}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="queue-empty-copy">Finished tasks will collect here and appear on the public day page.</p>
+              )}
+            </details>
+            {workSyncMessage && <p className={`work-sync-message ${workSyncStatus}`}>{workSyncMessage}</p>}
+          </section>
+        </article>
+
+        <aside className="panel automated-signals-panel">
+          <header>
+            <div>
+              <span className="daily-section-label">Read-only automation</span>
+              <h3>Live signals</h3>
+            </div>
+            <LockKeyhole size={18} aria-label="Automation-owned metrics" />
+          </header>
+          <div className="automated-total">
+            <span>Combined followers</span>
+            <strong>{formatNumber(displayedFollowerTotal)}</strong>
+            <em>{connectedSources.length} connected account{connectedSources.length === 1 ? "" : "s"}</em>
           </div>
+          <div className="automated-source-list">
+            {config.platforms.map((platform) => {
+              const source = liveFollowers?.sources?.find((item) => item.key === platform);
+              return (
+                <div key={platform}>
+                  <span>{platformLabel(platform)}</span>
+                  <strong>{source?.connected ? formatNumber(source.count) : "—"}</strong>
+                  <em className={source?.connected ? source.status : "not-connected"}>
+                    {source?.connected ? (source.status === "stale" ? "Last verified" : "Live sync") : "Not connected"}
+                  </em>
+                </div>
+              );
+            })}
+          </div>
+          <div className="automated-metric-list">
+            <div>
+              <span>Revenue collected</span>
+              <strong>{formatCurrency(selectedRecord.revenueCollected)}</strong>
+              <em>Stripe</em>
+            </div>
+            <div>
+              <span>Email subscribers</span>
+              <strong>{formatNumber(selectedRecord.emailSubscribers)}</strong>
+              <em>Subscriber ledger</em>
+            </div>
+            <div>
+              <span>Products sold</span>
+              <strong>{formatNumber(selectedRecord.productsSold)}</strong>
+              <em>Stripe</em>
+            </div>
+            <div>
+              <span>Hours streamed</span>
+              <strong>{formatNumber(selectedRecord.hoursStreamed)}</strong>
+              <em>Twitch telemetry</em>
+            </div>
+            <div>
+              <span>Clips posted</span>
+              <strong>{formatNumber(selectedRecord.clipsPosted)}</strong>
+              <em>Clip ledger</em>
+            </div>
+          </div>
+          <p className="automation-note">These values update from the connected systems and cannot be typed over on this page.</p>
+          <button type="button" onClick={onOpenIntegrations}>
+            Manage connections
+            <ArrowRight size={15} aria-hidden="true" />
+          </button>
+        </aside>
+      </div>
+
+      <section className="panel manual-operations-panel">
+        <header>
+          <div>
+            <span className="daily-section-label">Manual operating numbers</span>
+            <h3>Update only what your connected systems cannot know.</h3>
+          </div>
+          <span>Saved with the day plan</span>
+        </header>
+        <div className="manual-metric-grid">
           <Field
-            label="Main Goal"
-            value={selectedRecord.mainGoal}
-            onChange={(value) => updateRecord(selectedRecord.day, "mainGoal", value)}
+            label="Revenue Pipeline"
+            type="number"
+            value={selectedRecord.revenuePipeline}
+            onChange={(value) => updateRecord(selectedRecord.day, "revenuePipeline", value)}
           />
+          <Field
+            label="Builds Shipped"
+            type="number"
+            value={selectedRecord.buildsShipped}
+            onChange={(value) => updateRecord(selectedRecord.day, "buildsShipped", value)}
+          />
+          <Field
+            label="Outreach Sent"
+            type="number"
+            value={selectedRecord.outreachSent}
+            onChange={(value) => updateRecord(selectedRecord.day, "outreachSent", value)}
+          />
+          <Field
+            label="Calls Booked"
+            type="number"
+            value={selectedRecord.callsBooked}
+            onChange={(value) => updateRecord(selectedRecord.day, "callsBooked", value)}
+          />
+          <Field
+            label="Lessons Recorded"
+            type="number"
+            value={selectedRecord.dailyLessons}
+            onChange={(value) => updateRecord(selectedRecord.day, "dailyLessons", value)}
+          />
+        </div>
+      </section>
 
-          <h3>Core Metrics</h3>
-          <div className="form-row three">
-            <Field
-              label="Revenue Collected"
-              type="number"
-              value={selectedRecord.revenueCollected}
-              onChange={(value) => updateRecord(selectedRecord.day, "revenueCollected", value)}
-            />
-            <Field
-              label="Revenue Pipeline"
-              type="number"
-              value={selectedRecord.revenuePipeline}
-              onChange={(value) => updateRecord(selectedRecord.day, "revenuePipeline", value)}
-            />
-            <Field
-              label="Email Subscribers"
-              type="number"
-              value={selectedRecord.emailSubscribers}
-              onChange={(value) => updateRecord(selectedRecord.day, "emailSubscribers", value)}
-            />
+      <details className="panel daily-disclosure">
+        <summary>
+          <div>
+            <span className="daily-section-label">End-of-day closeout</span>
+            <strong>Turn finished work into the Day {selectedRecord.day} receipt.</strong>
           </div>
-
-          <h3>Followers</h3>
-          <div className="form-row five">
-            {config.platforms.map((platform) => (
-              <Field
-                key={platform}
-                label={platformLabel(platform)}
-                type="number"
-                value={selectedRecord.followers[platform] || 0}
-                onChange={(value) => updateFollowers(selectedRecord.day, platform, value)}
-              />
-            ))}
-          </div>
-
-          <h3>Output</h3>
-          <div className="form-row three">
-            <Field
-              label="Hours Streamed"
-              type="number"
-              value={selectedRecord.hoursStreamed}
-              onChange={(value) => updateRecord(selectedRecord.day, "hoursStreamed", value)}
-            />
-            <Field
-              label="Clips Posted"
-              type="number"
-              value={selectedRecord.clipsPosted}
-              onChange={(value) => updateRecord(selectedRecord.day, "clipsPosted", value)}
-            />
-            <Field
-              label="Builds Shipped"
-              type="number"
-              value={selectedRecord.buildsShipped}
-              onChange={(value) => updateRecord(selectedRecord.day, "buildsShipped", value)}
-            />
-            <Field
-              label="Outreach Sent"
-              type="number"
-              value={selectedRecord.outreachSent}
-              onChange={(value) => updateRecord(selectedRecord.day, "outreachSent", value)}
-            />
-            <Field
-              label="Calls Booked"
-              type="number"
-              value={selectedRecord.callsBooked}
-              onChange={(value) => updateRecord(selectedRecord.day, "callsBooked", value)}
-            />
-            <Field
-              label="Products Sold"
-              type="number"
-              value={selectedRecord.productsSold}
-              onChange={(value) => updateRecord(selectedRecord.day, "productsSold", value)}
-            />
-          </div>
-
-          <h3>Story</h3>
+          <ChevronDown size={18} aria-hidden="true" />
+        </summary>
+        <div className="daily-closeout-grid">
           <Textarea
             label="Best Moment"
             value={selectedRecord.bestMoment}
@@ -5270,9 +5783,37 @@ function DailyLog({
             value={selectedRecord.tomorrowPromise}
             onChange={(value) => updateRecord(selectedRecord.day, "tomorrowPromise", value)}
           />
-        </article>
+          <Field
+            label="Spike Cause"
+            value={selectedRecord.spikeCause}
+            onChange={(value) => updateRecord(selectedRecord.day, "spikeCause", value)}
+          />
+          <Textarea
+            label="Shipped Items"
+            value={(selectedRecord.shippedItems || []).join("\n")}
+            onChange={(value) => updateList(selectedRecord.day, "shippedItems", value)}
+          />
+          <Textarea
+            label="Proof Assets"
+            value={(selectedRecord.proofAssets || []).join("\n")}
+            onChange={(value) => updateList(selectedRecord.day, "proofAssets", value)}
+          />
+          <div className="daily-closeout-delta">
+            <PanelTitle icon="chart" title={`Day ${selectedRecord.day} Delta`} />
+            <DeltaList gains={gains} />
+          </div>
+        </div>
+      </details>
 
-        <aside className="panel log-side">
+      <details className="panel daily-disclosure stream-tools-disclosure">
+        <summary>
+          <div>
+            <span className="daily-section-label">Optional stream tools</span>
+            <strong>Run sheet and clip packet</strong>
+          </div>
+          <ChevronDown size={18} aria-hidden="true" />
+        </summary>
+        <div className="daily-stream-tools">
           <section className="daily-run-sheet">
             <PanelTitle icon="calendar" title="Daily Run Sheet" right={`Day ${selectedRecord.day}`} />
             <span className="run-sheet-phase">{dailyRunSheet.label}</span>
@@ -5349,25 +5890,8 @@ function DailyLog({
               />
             ) : null}
           </section>
-          <PanelTitle icon="chart" title={`Day ${selectedRecord.day} Delta`} />
-          <DeltaList gains={gains} />
-          <Field
-            label="Spike Cause"
-            value={selectedRecord.spikeCause}
-            onChange={(value) => updateRecord(selectedRecord.day, "spikeCause", value)}
-          />
-          <Textarea
-            label="Shipped Items"
-            value={(selectedRecord.shippedItems || []).join("\n")}
-            onChange={(value) => updateList(selectedRecord.day, "shippedItems", value)}
-          />
-          <Textarea
-            label="Proof Assets"
-            value={(selectedRecord.proofAssets || []).join("\n")}
-            onChange={(value) => updateList(selectedRecord.day, "proofAssets", value)}
-          />
-        </aside>
-      </div>
+        </div>
+      </details>
     </section>
   );
 }
@@ -6575,6 +7099,10 @@ function SettingsView({
           <TestPurchaseButton authSession={authSession} />
           <p className="panel-note">
             Use this after stream setup so we can confirm checkout, webhook, email, and client portal access in one pass.
+          </p>
+          <p className="panel-note">
+            To test every tier at a discount: run <code>npm run stripe:founder-promo -- --apply</code>, then at each
+            tier checkout enter the promotion code on the Stripe page (Add promotion code).
           </p>
         </article>
         <article className="panel admin-security-panel">

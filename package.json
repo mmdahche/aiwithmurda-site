@@ -31,7 +31,8 @@
     "baseline:launch:push": "node scripts/sync-launch-baseline.mjs --push",
     "stripe:operator-bundle": "node scripts/setup-operator-bundle-stripe.mjs",
     "stripe:operator-toolkit": "node scripts/setup-operator-toolkit-stripe.mjs",
-    "stripe:operator-arsenal": "node scripts/setup-operator-arsenal-stripe.mjs"
+    "stripe:operator-arsenal": "node scripts/setup-operator-arsenal-stripe.mjs",
+    "stripe:founder-promo": "node scripts/setup-founder-test-promo.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",

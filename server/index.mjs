@@ -681,6 +681,56 @@ async function hasActiveEntitlement(userId) {
   return starterAccess || bundleAccess || toolkitAccess || arsenalAccess;
 }
 
+const dailyWorkItemStatuses = new Set(["queued", "active", "done"]);
+
+function normalizeWorkItemTimestamp(value) {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
+function normalizeDailyWorkItems(value) {
+  if (!Array.isArray(value)) return [];
+
+  const usedIds = new Set();
+  return value
+    .slice(0, 100)
+    .map((item, index) => {
+      const title = String(item?.title || "").trim().slice(0, 180);
+      if (!title) return null;
+
+      const requestedId = String(item?.id || "").trim().slice(0, 100);
+      let id = requestedId || `work-item-${index + 1}`;
+      while (usedIds.has(id)) id = `${id}-${index + 1}`;
+      usedIds.add(id);
+
+      const status = dailyWorkItemStatuses.has(item?.status) ? item.status : "queued";
+      return {
+        id,
+        title,
+        status,
+        outcome: String(item?.outcome || "").trim().slice(0, 1000),
+        createdAt: normalizeWorkItemTimestamp(item?.createdAt) || new Date().toISOString(),
+        startedAt: status === "queued" ? null : normalizeWorkItemTimestamp(item?.startedAt),
+        completedAt: status === "done" ? normalizeWorkItemTimestamp(item?.completedAt) : null,
+      };
+    })
+    .filter(Boolean);
+}
+
+function validateDailyWorkItems(value) {
+  if (!Array.isArray(value) || value.length > 100) return false;
+  return value.every((item) => {
+    if (!item || typeof item !== "object") return false;
+    if (!String(item.title || "").trim() || String(item.title || "").trim().length > 180) return false;
+    if (item.status && !dailyWorkItemStatuses.has(item.status)) return false;
+    if (String(item.outcome || "").length > 1000) return false;
+    return ["createdAt", "startedAt", "completedAt"].every(
+      (field) => !item[field] || Number.isFinite(Date.parse(item[field])),
+    );
+  });
+}
+
 function toDailyLog(row) {
   return {
     day: Number(row.day),
@@ -705,6 +755,7 @@ function toDailyLog(row) {
     tomorrowPromise: row.tomorrow_promise || "",
     spikeCause: row.spike_cause || "",
     proofAssets: row.proof_assets || [],
+    workItems: normalizeDailyWorkItems(row.work_items),
   };
 }
 
@@ -732,6 +783,7 @@ function toDailyLogRow(log) {
     tomorrow_promise: String(log.tomorrowPromise || ""),
     spike_cause: String(log.spikeCause || ""),
     proof_assets: Array.isArray(log.proofAssets) ? log.proofAssets.map(String) : [],
+    work_items: normalizeDailyWorkItems(log.workItems),
   };
 }
 
@@ -740,7 +792,83 @@ function validateDailyLog(log) {
   if (!Number.isInteger(day) || day < 1 || day > 60) return false;
   if (!String(log?.date || "").match(/^\d{4}-\d{2}-\d{2}$/)) return false;
   if (!String(log?.mainGoal || "").trim()) return false;
+  if (log?.workItems !== undefined && !validateDailyWorkItems(log.workItems)) return false;
   return true;
+}
+
+function normalizeDailyTextList(value, { maxItems = 100, maxLength = 500 } = {}) {
+  if (!Array.isArray(value)) return null;
+  return value
+    .slice(0, maxItems)
+    .map((item) => String(item || "").trim().slice(0, maxLength))
+    .filter(Boolean);
+}
+
+function buildManualDailyLogPatch(body = {}) {
+  const patch = {};
+  const has = (key) => Object.prototype.hasOwnProperty.call(body, key);
+
+  if (has("mainGoal")) {
+    const mainGoal = String(body.mainGoal || "").trim().slice(0, 240);
+    if (!mainGoal) throw Object.assign(new Error("main_goal_required"), { status: 400 });
+    patch.main_goal = mainGoal;
+  }
+
+  const decimalFields = [["revenuePipeline", "revenue_pipeline"]];
+  const integerFields = [
+    ["outreachSent", "outreach_sent"],
+    ["callsBooked", "calls_booked"],
+    ["buildsShipped", "builds_shipped"],
+    ["dailyLessons", "daily_lessons"],
+  ];
+
+  for (const [clientKey, rowKey] of decimalFields) {
+    if (!has(clientKey)) continue;
+    const value = Number(body[clientKey]);
+    if (!Number.isFinite(value) || value < 0) {
+      throw Object.assign(new Error(`valid_${rowKey}_required`), { status: 400 });
+    }
+    patch[rowKey] = Number(value.toFixed(2));
+  }
+
+  for (const [clientKey, rowKey] of integerFields) {
+    if (!has(clientKey)) continue;
+    const value = Number(body[clientKey]);
+    if (!Number.isFinite(value) || value < 0) {
+      throw Object.assign(new Error(`valid_${rowKey}_required`), { status: 400 });
+    }
+    patch[rowKey] = Math.floor(value);
+  }
+
+  const textFields = [
+    ["bestMoment", "best_moment", 2000],
+    ["biggestFailure", "biggest_failure", 2000],
+    ["lessonLearned", "lesson_learned", 2000],
+    ["tomorrowPromise", "tomorrow_promise", 500],
+    ["spikeCause", "spike_cause", 500],
+  ];
+  for (const [clientKey, rowKey, maxLength] of textFields) {
+    if (has(clientKey)) patch[rowKey] = String(body[clientKey] || "").trim().slice(0, maxLength);
+  }
+
+  for (const [clientKey, rowKey] of [
+    ["shippedItems", "shipped_items"],
+    ["proofAssets", "proof_assets"],
+  ]) {
+    if (!has(clientKey)) continue;
+    const list = normalizeDailyTextList(body[clientKey]);
+    if (!list) throw Object.assign(new Error(`valid_${rowKey}_required`), { status: 400 });
+    patch[rowKey] = list;
+  }
+
+  if (has("workItems")) {
+    if (!validateDailyWorkItems(body.workItems)) {
+      throw Object.assign(new Error("valid_work_items_required"), { status: 400 });
+    }
+    patch.work_items = normalizeDailyWorkItems(body.workItems);
+  }
+
+  return patch;
 }
 
 function formatSnapshotValue(value, kind = "number") {
@@ -864,6 +992,7 @@ function createCampaignDayLog(day, previous = null) {
     tomorrowPromise: "",
     spikeCause: "",
     proofAssets: [],
+    workItems: [],
   };
 
   for (const field of cumulativeDailyLogFields) {
@@ -4765,6 +4894,41 @@ app.get(socialCallbackPaths.tiktok, (req, res) => handleSocialOAuthCallback(req,
 app.get(socialCallbackPaths.instagram, (req, res) => handleSocialOAuthCallback(req, res, "instagram"));
 app.get(socialCallbackPaths.youtube, (req, res) => handleSocialOAuthCallback(req, res, "youtube"));
 
+app.patch("/api/admin/daily-logs/:day", requireAdminSession, async (req, res) => {
+  if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
+
+  const day = Number(req.params.day);
+  if (!Number.isInteger(day) || day < 1 || day > sprintConfig.totalDays) {
+    res.status(400).json({ error: "valid_day_required" });
+    return;
+  }
+
+  try {
+    const patch = buildManualDailyLogPatch(req.body || {});
+    if (!Object.keys(patch).length) {
+      res.status(400).json({ error: "daily_log_patch_required" });
+      return;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("daily_logs")
+      .update(patch)
+      .eq("day", day)
+      .select("*")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      res.status(404).json({ error: "daily_log_not_found" });
+      return;
+    }
+
+    res.json({ ok: true, log: toDailyLog(data) });
+  } catch (error) {
+    console.error("[admin-daily-log-patch]", error);
+    res.status(error.status || 500).json({ error: error.message || "daily_log_patch_failed" });
+  }
+});
+
 app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   if (!requireConfigured(res, supabaseAdmin, "supabase")) return;
 
@@ -4776,7 +4940,34 @@ app.put("/api/admin/daily-logs", requireAdmin, async (req, res) => {
   }
 
   try {
-    const rows = logs.map(toDailyLogRow);
+    let rows = logs.map(toDailyLogRow);
+    if (!replace) {
+      const protectedFields = [
+        "followers",
+        "email_subscribers",
+        "revenue_collected",
+        "products_sold",
+        "hours_streamed",
+        "clips_posted",
+        "work_items",
+      ];
+      const { data: currentRows, error: currentRowsError } = await supabaseAdmin
+        .from("daily_logs")
+        .select(`day,${protectedFields.join(",")}`)
+        .in("day", rows.map((row) => row.day));
+      if (currentRowsError) throw currentRowsError;
+
+      const currentByDay = new Map((currentRows || []).map((row) => [Number(row.day), row]));
+      rows = rows.map((row) => {
+        const current = currentByDay.get(row.day);
+        if (!current) return row;
+        return Object.fromEntries([
+          ...Object.entries(row),
+          ...protectedFields.map((field) => [field, current[field]]),
+        ]);
+      });
+    }
+
     const { error } = await supabaseAdmin
       .from("daily_logs")
       .upsert(rows, { onConflict: "day" })
@@ -5376,6 +5567,7 @@ app.post("/api/checkout/test-purchase", requireUser, async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       ...customerTarget,
+      allow_promotion_codes: true,
       client_reference_id: req.user.id,
       line_items: [
         {

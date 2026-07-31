@@ -42,6 +42,14 @@ export function syncDailyLogs(logs, adminToken, { replace = false } = {}) {
   });
 }
 
+export function updateDailyLog(day, patch, accessToken) {
+  return apiRequest(`/api/admin/daily-logs/${encodeURIComponent(day)}`, {
+    method: "PATCH",
+    body: patch,
+    token: accessToken,
+  });
+}
+
 export function getSubscriberSummary(adminToken) {
   return apiRequest("/api/admin/subscribers/summary", {
     token: adminToken,

@@ -54,5 +54,6 @@ export const seedLogs = [
     tomorrowPromise: "",
     spikeCause: "",
     proofAssets: [],
+    workItems: [],
   },
 ];
