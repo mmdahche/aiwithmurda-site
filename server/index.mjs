@@ -356,7 +356,7 @@ function buildStreamConfig() {
     statusLabel: process.env.STREAM_STATUS_LABEL || (primaryUrl ? "Live room ready" : "Prelaunch room"),
     message:
       process.env.STREAM_MESSAGE ||
-      "Live links, pinned chat commands, and embeds get added here before July 28.",
+      "Live links, pinned chat commands, and embeds get added here before July 31.",
     primary: {
       name: "Main live room",
       href: primaryUrl,
@@ -3723,7 +3723,7 @@ async function getMetricsAutomationSummary() {
       metric: `$${(campaignPurchases.revenueCents / 100).toFixed(2)}`,
       detail: `${formatNumberForApi(campaignPurchases.paidPurchases)} official paid order${campaignPurchases.paidPurchases === 1 ? "" : "s"} inside the campaign window`,
       next: campaign.isRehearsal
-        ? "Test purchases still unlock access but never enter the July 28 scoreboard."
+        ? "Test purchases still unlock access but never enter the July 31 scoreboard."
         : "Stripe webhooks update access and the current public total.",
     },
     {
@@ -3814,7 +3814,7 @@ async function getMetricsAutomationSummary() {
     nextBuilds: [
       "Run a private OBS rehearsal and confirm Twitch creates a rehearsal-only stream session",
       "Send the same test clip event twice and confirm the second delivery is marked duplicate",
-      "Run a Stripe test checkout and email signup before July 28 and confirm both stay outside the scoreboard",
+      "Run a Stripe test checkout and email signup before July 31 and confirm both stay outside the scoreboard",
       "Export JSON, CSV, and the 60-day proof deck from the clean launch baseline",
       "Connect X only if its API access is worth adding before launch",
     ],

@@ -62,7 +62,7 @@ Why:
    - current: Supabase-backed dashboard with admin token write flow
    - support scripts: `npm run smoke:tracker`, `npm run sync:seed-logs`, `npm run baseline:launch`
 
-## Product Build Order Before July 28
+## Product Build Order Before July 31
 
 1. Resend signup capture, durable Supabase subscriber list, branded welcome email.
 2. Supabase Auth profiles and entitlements.

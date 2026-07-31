@@ -424,7 +424,7 @@ if (
   !metricsAutomation.data.summary.nextBuilds.includes(
     "Run a private OBS rehearsal and confirm Twitch creates a rehearsal-only stream session",
   ) ||
-  metricsAutomation.data?.summary?.campaign?.campaign?.startDate !== "2026-07-28"
+  metricsAutomation.data?.summary?.campaign?.campaign?.startDate !== "2026-07-31"
 ) {
   throw new Error(
     `Admin metrics automation summary failed: ${metricsAutomation.response.status} ${JSON.stringify(metricsAutomation.data)}`,

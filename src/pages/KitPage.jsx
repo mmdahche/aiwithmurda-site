@@ -45,7 +45,7 @@ const mechanismSteps = [
 const realReceipts = [
   {
     title: "Built in public, on the record",
-    body: "The whole system runs live at aiwithmurda.com — scoreboard, daily receipts, and the 60-day sprint starting July 28. Watch the method operate before you buy it.",
+    body: "The whole system runs live at aiwithmurda.com — scoreboard, daily receipts, and the 60-day sprint starting July 31. Watch the method operate before you buy it.",
     href: "/60",
     label: "See the scoreboard",
   },
