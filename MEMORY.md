@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-07-31_shared-obs-audio-and-chat-gate.md`](memory/2026-07-31_shared-obs-audio-and-chat-gate.md) - Shared microphone and computer audio across every OBS scene, private validation, and the Restream 2/2 chat connection launch gate.
 - [`memory/2026-07-31_daily-command-console.md`](memory/2026-07-31_daily-command-console.md) - Persistent same-day work queue, protected automated metrics, and the public Day work board.
 - [`memory/2026-07-27_launch-unblocking.md`](memory/2026-07-27_launch-unblocking.md) - Verified Restream launch event, production live links, OBS privacy scene, and remaining microphone/public rehearsal gate.
 - [`memory/2026-07-21_obs-launch-profile.md`](memory/2026-07-21_obs-launch-profile.md) - Verified 720p30 OBS launch profile, rehearsal findings, rollback path, and stream safety boundaries.
