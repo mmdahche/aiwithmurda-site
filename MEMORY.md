@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-07-31_daily-command-console.md`](memory/2026-07-31_daily-command-console.md) - Persistent same-day work queue, protected automated metrics, and the public Day work board.
 - [`memory/2026-07-27_launch-unblocking.md`](memory/2026-07-27_launch-unblocking.md) - Verified Restream launch event, production live links, OBS privacy scene, and remaining microphone/public rehearsal gate.
 - [`memory/2026-07-21_obs-launch-profile.md`](memory/2026-07-21_obs-launch-profile.md) - Verified 720p30 OBS launch profile, rehearsal findings, rollback path, and stream safety boundaries.
 - [`memory/2026-07-13_campaign-automation.md`](memory/2026-07-13_campaign-automation.md) - Locked July 28 campaign clock, rehearsal isolation, automatic daily ledger, telemetry, exports, and production reset state.
@@ -19,7 +20,8 @@ Long-term project decisions and verified implementation state for the AI with Mu
 - Production: `https://aiwithmurda.com`
 - Repository: `mmdahche/aiwithmurda-site`
 - Hosting: Render service `aiwithmurda-web`
-- Primary launch date: July 28, 2026
+- Primary launch date: July 31, 2026
+- Current daily command console release: `dfde1cd`
 - Current course and member rebuild commit: `4e3bca3`
 - Current Operator Toolkit release commit: `40d5e0a` (QA follow-up `1d48f94`)
 - Current social metrics release commit: `cf655cc`
