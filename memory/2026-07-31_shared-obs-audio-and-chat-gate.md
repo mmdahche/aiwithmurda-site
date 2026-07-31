@@ -8,6 +8,8 @@ date_added: 2026-07-31
 
 # Shared OBS Audio And Restream Chat Gate
 
+> **Superseded microphone routing:** The scene-specific `Broadcast Mic` setup below caused two OBS CoreAudio sources to open the same Scarlett 2i2. During a later meeting recording, `Broadcast Mic` accumulated roughly 14 seconds of lag and restarted every 30 seconds. Use the corrected single-source routing in [`2026-07-31_obs-microphone-buffering-correction.md`](2026-07-31_obs-microphone-buffering-correction.md). The Restream chat guidance in this file remains valid.
+
 ## OBS routing
 
 The `Untitled` scene collection now uses the same two audio sources in all four scenes:
