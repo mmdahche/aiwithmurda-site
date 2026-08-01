@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { sprintConfig } from "../src/data/seed.js";
 import { defaultEnvPath, getSiteUrl, loadEnv, requireEnv } from "./env-loader.mjs";
 
@@ -11,7 +12,11 @@ function createLaunchBaseline(followers = {}) {
       date: sprintConfig.startDate,
       mainGoal: "Launch the first official AI with Murda stream and establish the Day 1 baseline",
       status: "planned",
-      followers: { ...followerCounts, _baseline: followerCounts },
+      followers: {
+        ...followerCounts,
+        _baseline: followerCounts,
+        _campaignStartedAt: new Date(sprintConfig.startAt).toISOString(),
+      },
       emailSubscribers: 0,
       revenueCollected: 0,
       revenuePipeline: 0,
@@ -73,6 +78,32 @@ if (!shouldPush) {
 }
 
 const adminToken = requireEnv(env, "ADMIN_API_TOKEN");
+const supabaseUrl = requireEnv(env, "SUPABASE_URL");
+const supabaseServiceRoleKey = requireEnv(env, "SUPABASE_SERVICE_ROLE_KEY");
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+
+const campaignStatusResponse = await fetch(`${siteUrl}/api/campaign/status`);
+const campaignStatus = await campaignStatusResponse.json().catch(() => ({}));
+if (!campaignStatusResponse.ok || campaignStatus?.stream?.live) {
+  throw new Error("Refusing launch reset while the production stream is live or its status is unavailable.");
+}
+
+const { data: resetStreamSessions, error: streamResetError } = await supabaseAdmin
+  .from("stream_sessions")
+  .update({ counts_toward_campaign: false, counted_seconds: 0 })
+  .or("counts_toward_campaign.eq.true,counted_seconds.gt.0")
+  .select("id");
+if (streamResetError) throw streamResetError;
+
+const { data: resetClipEvents, error: clipResetError } = await supabaseAdmin
+  .from("clip_events")
+  .update({ counts_toward_campaign: false, campaign_day: null })
+  .eq("counts_toward_campaign", true)
+  .select("id");
+if (clipResetError) throw clipResetError;
+
 const response = await fetch(`${siteUrl}/api/admin/daily-logs`, {
   method: "PUT",
   headers: {
@@ -96,6 +127,8 @@ console.log(
       synced: data.logs?.length || 0,
       firstDay: data.logs?.[0]?.day || null,
       latestDay: data.logs?.at(-1)?.day || null,
+      resetStreamSessions: resetStreamSessions?.length || 0,
+      resetClipEvents: resetClipEvents?.length || 0,
     },
     null,
     2,

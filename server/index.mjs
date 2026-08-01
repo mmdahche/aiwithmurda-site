@@ -971,7 +971,7 @@ function createCampaignDayLog(day, previous = null) {
     mainGoal:
       String(previous?.tomorrowPromise || "").trim() ||
       (day === 1
-        ? "Launch the 60-day sprint and establish the official baseline"
+        ? "Launch the first official AI with Murda stream and establish the Day 1 baseline"
         : `Execute Day ${day}, ship visible proof, and set up tomorrow`),
     status: "planned",
     followers: cloneFollowerLedger(previous?.followers),
