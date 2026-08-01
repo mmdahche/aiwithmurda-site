@@ -24,7 +24,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 - Production: `https://aiwithmurda.com`
 - Repository: `mmdahche/aiwithmurda-site`
 - Hosting: Render service `aiwithmurda-web`
-- Primary launch date: July 31, 2026
+- Primary launch date: August 1, 2026
 - Current daily command console release: `dfde1cd`
 - Current course and member rebuild commit: `4e3bca3`
 - Current Operator Toolkit release commit: `40d5e0a` (QA follow-up `1d48f94`)

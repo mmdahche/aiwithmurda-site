@@ -442,9 +442,9 @@ const weeklyDailyRunSheetPattern = [
 ];
 
 const fallbackStreamConfig = {
-  status: "prelaunch",
-  statusLabel: "Prelaunch room",
-  message: "Live links, pinned chat commands, and embeds get added here before July 31.",
+  status: "live",
+  statusLabel: "Live room ready",
+  message: "Live links, pinned chat commands, and embeds are managed from the command center.",
   primary: {
     name: "Main live room",
     href: null,
@@ -2704,7 +2704,7 @@ function ToolsPage({ latest }) {
           <Icon name="calendar" />
           <h2>Live Build Events</h2>
           <p>Stream-native builds first. Workshop assets come from the best live segments.</p>
-          <span>Built before July 31</span>
+          <span>Built for the August 1 launch</span>
         </article>
       </section>
     </main>
@@ -2770,9 +2770,9 @@ function StartPage() {
           ) : (
             <>
               <div>
-                <span>Prelaunch list</span>
+                <span>Build-in-public list</span>
                 <strong>Daily receipts, no classroom fluff.</strong>
-                <p>Join before July 31 and follow the setup from Day 0.</p>
+                <p>Join from Day 1 and follow every public build receipt.</p>
               </div>
               <form className="start-form" aria-label="Email signup" onSubmit={handleSubscribe}>
                 <input
@@ -6082,7 +6082,7 @@ function MetricsAutomationPanel({ summary, status, message, onRefresh }) {
           <span className="panel-kicker">Source of truth</span>
           <strong>The official campaign ledger runs itself.</strong>
           <p>
-            July 31 is the hard start. The server opens each day, reconciles Stripe and email,
+            August 1 is the hard start. The server opens each day, reconciles Stripe and email,
             counts Twitch time once across the multistream, and rejects duplicate clip events.
           </p>
         </div>

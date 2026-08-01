@@ -2,10 +2,10 @@
 
 ## Official Window
 
-- Rehearsal mode: before July 31, 2026 at 12:00 AM Central
-- Day 1: July 31, 2026
-- Day 60: September 28, 2026
-- Complete: September 29, 2026 at 12:00 AM Central
+- Rehearsal mode: before August 1, 2026 at 12:00 AM Central
+- Day 1: August 1, 2026
+- Day 60: September 29, 2026
+- Complete: September 30, 2026 at 12:00 AM Central
 
 The shared campaign clock in `src/lib/campaign.js` is authoritative for the browser, API, daily-log worker, stream telemetry, and clip intake.
 
@@ -79,4 +79,4 @@ The existing Deck view remains the visual export surface.
 5. Run a Stripe test checkout and one email signup.
 6. Confirm member access works while campaign revenue and subscribers remain zero.
 7. Open `/60`, `/obs`, and `/obs/followers` in OBS browser sources.
-8. Export JSON, CSV, and HTML and confirm every export starts on July 31.
+8. Export JSON, CSV, and HTML and confirm every export starts on August 1.

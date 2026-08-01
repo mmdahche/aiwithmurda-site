@@ -14,7 +14,7 @@ Secondary users are Murad and the AI operator stack inside `/admin`, using the s
 
 AI with Murda turns the 60-day family-overseas window into a public entertainment-first proof engine: build in public, track every meaningful number, sell the first digital product, and show the receipts as the sprint unfolds.
 
-Success means the site can capture email demand, sell The Future Proof Method, unlock member assets, publish the public scoreboard, and give Murad a private operator workflow that is ready before July 31, 2026.
+Success means the site can capture email demand, sell The Future Proof Method, unlock member assets, publish the public scoreboard, and give Murad a private operator workflow that is ready for the August 1, 2026 launch.
 
 ## Brand Personality
 

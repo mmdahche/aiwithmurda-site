@@ -25,7 +25,7 @@ This keeps the show, the scoreboard, checkout, and member delivery in one brande
 - Ownership rule: canceling updates revokes only future update files. The purchased launch-edition toolkit remains active.
 - Delivery feel: premium Supabase-gated member hub, not a loose Google Drive folder.
 - Stream angle: entertainment-first, streamer-style show; education happens through live proof, not classroom framing.
-- Deadline: all core funnel pieces live before July 31, 2026.
+- Deadline: all core funnel pieces live before August 1, 2026.
 
 ## Platform Recommendation
 
@@ -253,7 +253,7 @@ Dashboard phase:
 - Run `npm run baseline:launch` any time to inspect the clean Day 1 launch payload without changing production.
 - Run `npm run baseline:launch:push` on launch day only. It uses admin replace mode to remove preview rows and leave the production dashboard at one clean Day 1 baseline row.
 
-## July 31 Definition Of Done
+## August 1 Definition Of Done
 
 - `/start` captures emails into Resend.
 - Welcome email sends.

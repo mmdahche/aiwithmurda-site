@@ -9,7 +9,7 @@ function createLaunchBaseline(followers = {}) {
     {
       day: 1,
       date: sprintConfig.startDate,
-      mainGoal: "Launch the sprint and set the public baseline",
+      mainGoal: "Launch the first official AI with Murda stream and establish the Day 1 baseline",
       status: "planned",
       followers: { ...followerCounts, _baseline: followerCounts },
       emailSubscribers: 0,
@@ -29,6 +29,7 @@ function createLaunchBaseline(followers = {}) {
       tomorrowPromise: "",
       spikeCause: "",
       proofAssets: [],
+      workItems: [],
     },
   ];
 }
