@@ -4,7 +4,8 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
-- [`memory/2026-08-01_obs-music-isolation-routing.md`](memory/2026-08-01_obs-music-isolation-routing.md) - Verified macOS live-music routing, clean multitrack recordings, isolated edit stems, and the Restream Twitch VOD boundary.
+- [`memory/2026-08-01_obs-facecam-rebind.md`](memory/2026-08-01_obs-facecam-rebind.md) - Elgato Facecam recovery after a USB reconnect changed the macOS device ID, with duplicate-source cleanup and restart verification.
+- [`memory/2026-08-01_obs-music-isolation-routing.md`](memory/2026-08-01_obs-music-isolation-routing.md) - Verified hybrid macOS live-music routing, clean multitrack recordings, isolated edit stems, and the Restream Twitch VOD boundary.
 - [`memory/2026-07-31_obs-microphone-buffering-correction.md`](memory/2026-07-31_obs-microphone-buffering-correction.md) - Plaid recording microphone failure, duplicate Scarlett root cause, recovery limits, and verified single-source routing.
 - [`memory/2026-07-31_shared-obs-audio-and-chat-gate.md`](memory/2026-07-31_shared-obs-audio-and-chat-gate.md) - Superseded microphone routing history plus the still-valid Restream 2/2 chat connection launch gate.
 - [`memory/2026-07-31_daily-command-console.md`](memory/2026-07-31_daily-command-console.md) - Persistent same-day work queue, protected automated metrics, and the public Day work board.

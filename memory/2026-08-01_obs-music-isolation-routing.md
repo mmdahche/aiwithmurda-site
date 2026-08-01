@@ -1,6 +1,6 @@
 ---
 name: OBS music isolation routing
-description: Verified macOS OBS routing for live music, clean local recordings, isolated edit tracks, and the current Restream Twitch VOD limitation.
+description: Verified hybrid macOS OBS routing for live Apple Music, clean local recordings, isolated edit tracks, and the current Restream Twitch VOD limitation.
 type: project
 source: rubyx
 date_added: 2026-08-01
@@ -19,7 +19,7 @@ OBS 32.2.1 uses native macOS application audio capture rather than the Windows-o
 - `Program Audio - Chrome`: `com.google.Chrome`
 - `Program Audio - Codex`: `com.openai.codex`
 - `Program Audio - Cursor`: `com.todesktop.230313mzl4w4u92`
-- `Music - Apple Music`: `com.apple.Music`
+- `Music - Apple Music`: `com.apple.Music` (inactive placeholder)
 
 Scenes covered:
 
@@ -28,17 +28,23 @@ Scenes covered:
 - `Privacy / BRB`
 - `Just Camera`
 
-The privacy scene therefore keeps both microphone and music available. Either source can still be muted from the mixer when privacy requires it.
+Apple Music played normally but its application-only ScreenCaptureKit source produced a zero meter, while the broad native `Desktop Audio` source received the song at full level. The production setup therefore uses a hybrid split:
+
+- Broad `Desktop Audio` feeds Track 1 only, carrying Apple Music and all computer sound to the live audience once.
+- Per-application Chrome, Codex, and Cursor sources feed Tracks 2 and 4 only, preserving clean program audio in local recordings.
+- The ineffective `Music - Apple Music` source is muted and assigned to no tracks.
+
+The privacy scene keeps the live desktop/music feed and microphone available. Either source can still be muted from the mixer when privacy requires it.
 
 ## Track matrix
 
 | Source | Track 1 live | Track 2 clean mix | Track 3 mic stem | Track 4 program stem |
 | --- | --- | --- | --- | --- |
 | `Mic/Aux` | Yes | Yes | Yes | No |
-| Chrome, Codex, Cursor | Yes | Yes | No | Yes |
-| Apple Music | Yes | No | No | No |
+| Broad `Desktop Audio` | Yes | No | No | No |
+| Chrome, Codex, Cursor | No | Yes | No | Yes |
+| `Music - Apple Music` placeholder | No | No | No | No |
 | Browser-source audio | Yes | Yes | No | Yes |
-| Broad `Desktop Audio` | No | No | No | No |
 | `Desktop Screen` audio | No | No | No | No |
 
 Local recordings use tracks 2, 3, and 4 (`SimpleOutput/RecTracks=14`). This yields a ready-to-watch clean mix plus isolated microphone and program tracks for editing. Track 1 is the live mix and is not written to local recordings.
@@ -47,7 +53,7 @@ The single global `Mic/Aux` remains the only Scarlett 2i2 capture. Do not add a 
 
 ## Verification
 
-After restarting OBS, a private 7.7-second recording was written to the external SSD with:
+After restarting OBS, private recordings were written to the external SSD with:
 
 - One H.264 video stream
 - Three stereo AAC streams
@@ -55,7 +61,16 @@ After restarting OBS, a private 7.7-second recording was written to the external
 - No `Max audio buffering`, `audio is lagging`, encoding-lag, or rendering-lag error
 - Streaming stopped before, during, and after the test
 
-The final physical-signal check still requires playing a song in Apple Music and confirming its OBS meter moves while a short local recording remains music-free.
+The final physical-signal test played a real song in Apple Music while all recording-track sources were temporarily muted:
+
+- Live-only `Desktop Audio` peak: `0.4396`, proving the playing song reached the live source
+- Track 2 clean mix maximum: `-91.0 dB`
+- Track 3 microphone stem maximum: `-91.0 dB`
+- Track 4 program stem maximum: `-91.0 dB`
+- All temporary mute states were restored
+- OBS remained offline and returned to `Privacy / BRB`
+
+This proves Apple Music is present on the live-track source and absent from every local recording track. Any new program that must appear in clean recordings needs its own native application-audio source assigned to Tracks 2 and 4.
 
 ## Twitch VOD boundary
 
@@ -71,8 +86,10 @@ To make Twitch VODs music-free, switch the Twitch path to a direct OBS Twitch co
 
 ## Rollback
 
-The pre-change OBS profile and scene collection are backed up under:
+Pre-change OBS profiles and scene collections are backed up under:
 
 `/Users/muhammad/ContentCreating/tools/60-day-command-center/.secrets/obs-backups/2026-08-01_pre-music-routing/`
+
+`/Users/muhammad/ContentCreating/tools/60-day-command-center/.secrets/obs-backups/2026-08-01_pre-desktop-live-routing/`
 
 Do not publish that backup or copy its contents into a handoff.
