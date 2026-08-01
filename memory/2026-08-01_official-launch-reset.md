@@ -52,3 +52,5 @@ Revenue, email growth, streamed hours, clips, products sold, builds, and lessons
 Apple Music subscription catalog tracks are not approved for the live stream. The zero-cost launch recommendation is StreamBeats, whose published license covers synchronized use on Twitch and YouTube.
 
 Use downloaded StreamBeats files, not ordinary Apple Music subscription tracks. Import the downloaded files into a local playlist and play them through the verified OBS desktop-live-only route. Run a final private meter/recording check before starting the first official broadcast.
+
+Resolved on August 1: the `Low-key` MP3 320 album was installed as 30 local tracks in the `AI with Murda - Stream Safe` Music playlist. The final offline OBS check confirmed music on live Track 1, silence on recording Tracks 2-4, a working FaceCam, restored mixer state, and `Privacy / BRB` as the parked scene. See [`2026-08-01_streambeats-launch-music.md`](2026-08-01_streambeats-launch-music.md).

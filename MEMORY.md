@@ -4,7 +4,8 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
-- [`memory/2026-08-01_official-launch-reset.md`](memory/2026-08-01_official-launch-reset.md) - August 1 production clock, protected Day 1 baseline, deployment verification, and the remaining licensed-music launch gate.
+- [`memory/2026-08-01_streambeats-launch-music.md`](memory/2026-08-01_streambeats-launch-music.md) - Licensed local StreamBeats library, Music playlist, and final OBS live/recording isolation verification.
+- [`memory/2026-08-01_official-launch-reset.md`](memory/2026-08-01_official-launch-reset.md) - August 1 production clock, protected Day 1 baseline, deployment verification, and licensed-music launch gate.
 - [`memory/2026-08-01_obs-facecam-rebind.md`](memory/2026-08-01_obs-facecam-rebind.md) - Elgato Facecam recovery after a USB reconnect changed the macOS device ID, with duplicate-source cleanup and restart verification.
 - [`memory/2026-08-01_obs-music-isolation-routing.md`](memory/2026-08-01_obs-music-isolation-routing.md) - Verified hybrid macOS live-music routing, clean multitrack recordings, isolated edit stems, and the Restream Twitch VOD boundary.
 - [`memory/2026-07-31_obs-microphone-buffering-correction.md`](memory/2026-07-31_obs-microphone-buffering-correction.md) - Plaid recording microphone failure, duplicate Scarlett root cause, recovery limits, and verified single-source routing.
