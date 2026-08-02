@@ -93,3 +93,24 @@ Pre-change OBS profiles and scene collections are backed up under:
 `/Users/muhammad/ContentCreating/tools/60-day-command-center/.secrets/obs-backups/2026-08-01_pre-desktop-live-routing/`
 
 Do not publish that backup or copy its contents into a handoff.
+
+## Durable crash recovery
+
+An OBS crash later restored the July 31 scene collection and removed all four per-application audio inputs from the running configuration. WebSocket repairs worked in memory but did not mark the scene collection for persistence, and even a normal application exit left the old file unchanged.
+
+The durable correction was applied with OBS fully closed by parsing and updating the saved scene collection as structured JSON. The repair preserved the latest camera binding, 1080p layout, scoreboard, and follower-overlay defaults while restoring:
+
+- `Desktop Audio` plus all four application sources on Main Scene, Command Center, Privacy / BRB, and Just Camera.
+- The exact Track 1 live, Tracks 2-4 recording, mute, volume, and monitoring assignments documented above.
+- The single Scarlett microphone on Tracks 1, 2, and 3 with monitoring disabled.
+- Privacy / BRB as the saved startup scene.
+
+Pre-repair rollback files are stored under:
+
+`/Users/muhammad/ContentCreating/tools/60-day-command-center/.secrets/obs-backups/2026-08-01_pre-durable-recovery/`
+
+The verified post-repair scene collection and profile are stored under:
+
+`/Users/muhammad/ContentCreating/tools/60-day-command-center/.secrets/obs-backups/2026-08-01_verified-durable-audio-routing/`
+
+Post-restart verification proved the restored sources loaded from disk. A private eight-second test at `/Volumes/Storage/AI with Murda/OBS Recordings/2026-08-01 23-54-31.mp4` received the licensed playlist on live-only Desktop Audio, wrote 1920x1080 video plus three AAC recording tracks, and measured `-91.0 dB` on all three recording tracks. OBS was left offline, not recording, on Privacy / BRB with Music paused.

@@ -4,6 +4,8 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-08-02_day-1-troubleshooting-continuity.md`](memory/2026-08-02_day-1-troubleshooting-continuity.md) - Keeps August 1 as Day 1, records it honestly as broadcast troubleshooting, and opens August 2 as the first real build-stream day.
+- [`memory/2026-08-01_obs-1080-live-recovery.md`](memory/2026-08-01_obs-1080-live-recovery.md) - Verified 1080p quality, camera rebind, overlay cleanup, and stable no-feedback microphone ordering for the August 1 live launch.
 - [`memory/2026-08-01_streambeats-launch-music.md`](memory/2026-08-01_streambeats-launch-music.md) - Licensed local StreamBeats library, Music playlist, and final OBS live/recording isolation verification.
 - [`memory/2026-08-01_official-launch-reset.md`](memory/2026-08-01_official-launch-reset.md) - August 1 production clock, protected Day 1 baseline, deployment verification, and licensed-music launch gate.
 - [`memory/2026-08-01_obs-facecam-rebind.md`](memory/2026-08-01_obs-facecam-rebind.md) - Elgato Facecam recovery after a USB reconnect changed the macOS device ID, with duplicate-source cleanup and restart verification.
@@ -27,6 +29,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 - Repository: `mmdahche/aiwithmurda-site`
 - Hosting: Render service `aiwithmurda-web`
 - Primary launch date: August 1, 2026
+- Current campaign day: Day 2 on August 2, 2026; Day 1 remains part of the official record as the troubleshooting and stabilization day.
 - Current daily command console release: `dfde1cd`
 - Current course and member rebuild commit: `4e3bca3`
 - Current Operator Toolkit release commit: `40d5e0a` (QA follow-up `1d48f94`)
