@@ -1,14 +1,14 @@
-# Day 2 Live Run Sheet - Backbone POS Transactions
+# Day 2 Live Run Sheet - Backbone POS Shift Sync
 
 ## Today's Public Goal
 
-Build the Backbone POS Transactions screen and ship the strongest tested slice we can complete today.
+Move Backbone POS forward by starting durable shift and cash-log sync from the register to the server.
 
 ## Success Levels
 
-- **Floor:** Prove the transaction server logic with tests for payments, refunds, voids, filters, and search.
-- **Target:** Connect the POS app to that transaction data and pass the client tests.
-- **Stretch:** Show a working Transactions screen with type filters and search.
+- **Floor:** Lock the shift-sync data contract and prove the database and security rules with tests.
+- **Target:** Build the server path that safely stores a closed shift and returns its cash log.
+- **Stretch:** Add the register retry queue so a failed internet connection cannot erase shift events.
 
 The stream is successful when the floor is complete. Target and stretch are upside, not promises.
 
@@ -20,7 +20,9 @@ Yesterday became a full troubleshooting day. I spent most of it stabilizing the 
 
 My software journey started with an inventory management system. Running a retail business showed me how much damage bad inventory causes, so inventory felt like the obvious place to begin. But as I kept building, I realized inventory cannot operate by itself. The point of sale is the transaction layer. It records what is sold, changes inventory, handles payments and refunds, feeds reporting, and eventually connects the rest of the Backbone platform.
 
-So today we are moving the Backbone POS forward. The server side of a transaction history is partly built. Over the next few hours, I want to prove that logic with tests, connect it to the app, and see how far we can get toward a working Transactions screen for payments, refunds, voids, filters, and search.
+So today we are moving Backbone POS forward. The Transactions screen and real gross-profit reporting were completed earlier today. The next missing layer is shift and cash-log sync. When a register closes, the cash count, card totals, refunds, pay-ins, pay-outs, and other shift events cannot live only on that device. They need to reach the server, and they need to retry safely if the internet fails.
+
+Over the next few hours, I want to lock that data path, prove its security rules, build as much of the server sync as we can, and then see whether we can begin the register-side retry system.
 
 I am building with Claude Code and Codex beside me. I will explain the decisions and the problems in plain English, but this is not a polished tutorial. It is the real build. By the end, we will either have a working screen or a clear tested milestone that moves the product forward.
 
@@ -43,16 +45,17 @@ Chat prompt: "What is the worst part of the POS system you use today?"
 
 ### 0:20-0:30 - Current State and Build Map
 
-- Open the locked POS build notes.
-- Explain what already exists: the server half of the transaction ledger.
-- Explain today's order: server tests, app connection, then the Transactions screen.
+- Show that Transactions and gross-profit reporting are already built.
+- Open the locked Phase 5 plan and explain the next missing layer in plain English.
+- Explain today's order: data contract and security, server sync, then the register retry queue.
 - State the floor, target, and stretch goals again for late arrivals.
 
-### 0:30-1:10 - Build Block 1: Prove the Server
+### 0:30-1:10 - Build Block 1: Lock the Shift-Sync Foundation
 
-- Add tests for date range, tender type, transaction type, and search validation.
-- Test payments, refunds, voids, and partial-refund rows.
-- Run the focused tests and fix the first real failure.
+- Define the closed-shift and cash-event records.
+- Protect every record by business, location, and register.
+- Define how cash and non-cash payment totals reconcile at close.
+- Add the first database and server tests before trusting the implementation.
 
 Narration rule: explain what the test protects and why a store owner would care. Do not narrate every line of code.
 
@@ -63,12 +66,12 @@ Narration rule: explain what the test protects and why a store owner would care.
 - Read chat and answer two or three questions.
 - Restate the next target in one sentence.
 
-### 1:20-2:00 - Build Block 2: Connect the POS App
+### 1:20-2:00 - Build Block 2: Store and Read Closed Shifts
 
-- Wire the app request to the transaction filters.
-- Normalize the transaction data safely for the mobile app.
-- Add and run the client tests.
-- Keep the result honest if the server works but the app connection is not complete.
+- Build the safe shift-upload path.
+- Make repeated uploads harmless while rejecting a conflicting second close.
+- Build the cash-log read path with date and location filters.
+- Test cross-business access, invalid events, bad time windows, and payment-mode math.
 
 ### 2:00-2:10 - Privacy Break
 
@@ -76,14 +79,14 @@ Narration rule: explain what the test protects and why a store owner would care.
 - Keep licensed stream music available.
 - Check Restream chat, OBS health, camera, microphone, and dropped frames.
 
-### 2:10-2:50 - Build Block 3: Make It Visible
+### 2:10-2:50 - Build Block 3: Survive a Failed Connection
 
-- Add the Transactions tab.
-- Add Payments, Refunds, and Voids controls.
-- Add search and transaction rows.
-- Test the strongest visible path available in the remaining time.
+- Queue the full close payload before the device removes old event details.
+- Send the queued shift to the server and remove it only after success.
+- Keep failed shifts available for retry with a clear status.
+- Test the strongest durable-retry path available in the remaining time.
 
-If Build Block 2 is incomplete, stay there. Do not rush into UI just to create the appearance of progress.
+If Build Block 2 is incomplete, stay there. Do not rush into the device queue just to create the appearance of progress.
 
 ### 2:50-3:05 - Test, Commit, and Capture Proof
 
@@ -103,7 +106,7 @@ If Build Block 2 is incomplete, stay there. Do not rush into UI just to create t
 
 ## Checkpoint Script
 
-If you are just joining, this is Day 2 of my 60-day build in public. I started with inventory software, realized the POS has to become the transaction layer for the full platform, and today we are building the POS transaction history. Right now we have completed [say the finished milestone], and next we are working on [say the active milestone].
+If you are just joining, this is Day 2 of my 60-day build in public. I started with inventory software, realized the POS has to become the transaction layer for the full platform, and today we are making register close data survive beyond the device. Right now we have completed [say the finished milestone], and next we are working on [say the active milestone].
 
 ## Closing Script
 
