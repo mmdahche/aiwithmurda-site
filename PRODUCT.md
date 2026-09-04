@@ -1,5 +1,7 @@
 # Product
 
+> Direction update, September 4, 2026: Murad wants an ongoing personal brand and sales funnel for scripts, skills, and setup folders. The current redesign brief is `SALES-FUNNEL-REDESIGN.md`. The campaign positioning below documents the previous website and is superseded for the redesign; do not carry its scoreboard-first or daily-streaming promises into new selling pages.
+
 ## Register
 
 brand
