@@ -294,7 +294,7 @@ const checkoutProducts = new Map(
       subtitle: operatorBundleProduct.subtitle,
       priceCents: operatorBundleProduct.priceCents,
       priceEnvKey: "STRIPE_LIVE_BUILDS_PRICE_ID",
-      successPath: "/live-builds",
+      successPath: "/members",
       cancelPath: "/live-builds",
     },
     {

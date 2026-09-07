@@ -42,13 +42,12 @@ async function capture(page, name) {
 async function verifySalesPage(page, label) {
   await page.goto(`${siteUrl}/operator-toolkit`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { level: 1, name: "The Operator Toolkit", exact: true }).waitFor({ timeout: 20_000 });
-  await page.getByText("$297 setup + $30/month", { exact: true }).waitFor();
-  await page.getByText("$327 due today, then $30/month", { exact: true }).waitFor();
-  await page.getByText("Three flagship systems ride inside a $297 tier.", { exact: true }).waitFor();
-  assert((await page.locator("#compare-tiers .tool-card").count()) === 3, `${label} tier comparison is incomplete`);
-  assert((await page.locator(".operator-toolkit-path article").count()) === 5, `${label} install path is incomplete`);
-  assert((await page.locator("#toolkit-collections .kit-asset-list article").count()) === 4, `${label} skill collections are incomplete`);
-  await page.getByRole("heading", { name: "No hidden ownership rules." }).waitFor();
+  await page.getByText("Setup + $30/month updates", { exact: true }).waitFor();
+  await page.getByText("$327 due today.", { exact: true }).waitFor();
+  assert((await page.locator(".sf-contents-list li").count()) === 14, `${label} downloadable contents are incomplete`);
+  await page.getByRole("heading", { name: "Your first useful step." }).waitFor();
+  await page.getByRole("heading", { name: "Before you buy." }).waitFor();
+  assert((await page.locator(".sf-billing-note").innerText()).includes("Keep your purchased edition"), "Cancellation ownership disclosure missing");
   await auditLayout(page, label);
 }
 
@@ -61,14 +60,14 @@ try {
   watchPage(desktopPage, "desktop");
   await verifySalesPage(desktopPage, "desktop sales page");
   await capture(desktopPage, "01-operator-toolkit-desktop");
-  const checkoutButton = desktopPage.getByRole("button", { name: "Create profile to continue" }).first();
+  const checkoutButton = desktopPage.getByRole("link", { name: "Sign in to buy" });
   await checkoutButton.waitFor();
   await checkoutButton.click();
   await desktopPage.waitForURL((url) => {
     const normalizedPath = url.pathname.replace(/\/+$/, "") || "/";
-    return normalizedPath === "/members" && url.searchParams.get("next") === "operator-toolkit";
+    return normalizedPath === "/members" && url.searchParams.get("next") === "store-operator-toolkit";
   });
-  await desktopPage.getByRole("heading", { name: "Set up. Build. Verify." }).waitFor();
+  await desktopPage.getByRole("heading", { name: "My Downloads", exact: true }).waitFor();
   await desktop.close();
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
@@ -78,7 +77,7 @@ try {
   await mobilePage.getByRole("button", { name: "Open navigation" }).click();
   await mobilePage
     .getByRole("navigation", { name: "Public navigation" })
-    .getByRole("link", { name: "Full System" })
+    .getByRole("link", { name: "Tools", exact: true })
     .waitFor();
   await mobilePage.getByRole("button", { name: "Close navigation" }).click();
   await capture(mobilePage, "02-operator-toolkit-mobile");
@@ -93,9 +92,9 @@ try {
         checks: {
           transparentInitialCharge: true,
           transparentRenewal: true,
-          threeTierComparison: true,
-          fiveStageInstallation: true,
-          fourSkillCollections: true,
+          fourteenDownloadsListed: true,
+          firstActionExplained: true,
+          requirementsDisclosed: true,
           ownershipBoundary: true,
           profileHandoff: true,
           desktopOverflow: false,

@@ -52,7 +52,7 @@ async function auditLayout(page, label) {
 }
 
 async function signIn(page) {
-  await page.goto(`${siteUrl}/members`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${siteUrl}/members?product=future-method`, { waitUntil: "domcontentloaded" });
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.locator("form").getByRole("button", { name: "Sign in", exact: true }).click();
@@ -124,7 +124,7 @@ try {
   await desktopPage.getByText("Premium lesson", { exact: true }).waitFor();
   await saveScreenshot(desktopPage, "04-module-one-expanded-desktop");
 
-  await desktopPage.goto(`${siteUrl}/members`, { waitUntil: "domcontentloaded" });
+  await desktopPage.goto(`${siteUrl}/members?product=future-method`, { waitUntil: "domcontentloaded" });
   await desktopPage.getByRole("heading", { name: "Build a small web tool" }).waitFor({ timeout: 20_000 });
   await desktopPage.getByRole("button", { name: /Script vault/ }).click();
   const search = desktopPage.getByRole("searchbox", { name: "Search member scripts and skills" });
@@ -191,7 +191,7 @@ try {
   });
   const mobilePage = await mobile.newPage();
   watchPage(mobilePage, "mobile");
-  await mobilePage.goto(`${siteUrl}/members`, { waitUntil: "domcontentloaded" });
+  await mobilePage.goto(`${siteUrl}/members?product=future-method`, { waitUntil: "domcontentloaded" });
   await mobilePage.getByRole("heading", { name: "Build a small web tool" }).waitFor({ timeout: 20_000 });
   await mobilePage.getByRole("button", { name: "Open navigation" }).click();
   await mobilePage.getByRole("navigation", { name: "Public navigation" }).getByRole("link", { name: "Tools" }).waitFor();

@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-09-07_storefront-preview.md`](memory/2026-09-07_storefront-preview.md) - Personal storefront and download-first member library implemented locally; browser/structural checks passed, publication and real buyer/install rehearsals pending.
 - [`memory/2026-09-04_personal-storefront-pivot.md`](memory/2026-09-04_personal-storefront-pivot.md) - Current direction: personal brand and digital product storefront; replaces the streaming-first homepage goal. Includes verified catalog state and the redesign roadmap.
 - [`memory/2026-08-02_day-1-troubleshooting-continuity.md`](memory/2026-08-02_day-1-troubleshooting-continuity.md) - Keeps August 1 as Day 1, records it honestly as broadcast troubleshooting, and opens August 2 as the first real build-stream day.
 - [`memory/2026-08-01_obs-1080-live-recovery.md`](memory/2026-08-01_obs-1080-live-recovery.md) - Verified 1080p quality, camera rebind, overlay cleanup, and stable no-feedback microphone ordering for the August 1 live launch.
@@ -27,6 +28,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 ## Current Project
 
 - Current direction (September 4, 2026): ongoing personal storefront for scripts, skills, and setup folders; see `SALES-FUNNEL-REDESIGN.md`. The campaign dates and release notes below are historical, not evidence of a current stream.
+- September 7 implementation is a local preview only; see `STOREFRONT-IMPLEMENTATION.md`. No production deployment or price/subscription change was made.
 - Production: `https://aiwithmurda.com`
 - Repository: `mmdahche/aiwithmurda-site`
 - Hosting: Render service `aiwithmurda-web`

@@ -61,10 +61,13 @@ import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
-import { KitPage } from "./pages/KitPage.jsx";
-import { StorePage } from "./pages/StorePage.jsx";
+import { StorefrontShop, StorefrontProduct } from "./pages/StorefrontShop.jsx";
+import { StorefrontHome, AboutMurad } from "./pages/StorefrontHome.jsx";
+import { StarterPackPage } from "./pages/StarterPackPage.jsx";
+import { getStorefrontReturnPath } from "./data/storefront.js";
+import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
+import { metadataForPath } from "./data/siteMetadata.js";
 import { BundlePage } from "./pages/BundlePage.jsx";
-import { ToolkitPage } from "./pages/ToolkitPage.jsx";
 import { ArsenalPage } from "./pages/ArsenalPage.jsx";
 import { OperatorToolkitCheckoutButton } from "./components/checkout/OperatorToolkitCheckoutButton.jsx";
 import { OperatorArsenalCheckoutButton } from "./components/checkout/OperatorArsenalCheckoutButton.jsx";
@@ -864,6 +867,11 @@ function getMemberModuleRouteKey(route) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function routeNeedsCampaignData() {
+  const route = getRoute();
+  return ["/admin", "/60", "/live", "/tools"].includes(route) || route.startsWith("/day/") || directOverlayRoutes.has(route);
+}
+
 function App() {
   const [logs, setLogs] = useState(() => loadLogs(seedLogs));
   const [authSession, setAuthSession] = useState(null);
@@ -932,7 +940,7 @@ function App() {
       }
     }
 
-    loadStreamConfig();
+    if (routeNeedsCampaignData()) loadStreamConfig();
     return () => {
       mounted = false;
     };
@@ -954,7 +962,7 @@ function App() {
       }
     }
 
-    refreshCampaignStatus();
+    if (routeNeedsCampaignData()) refreshCampaignStatus();
     return () => {
       mounted = false;
       if (timer) window.clearTimeout(timer);
@@ -1012,13 +1020,14 @@ function App() {
       }
     }
 
-    loadRemoteLogs();
+    if (routeNeedsCampaignData()) loadRemoteLogs();
     return () => {
       mounted = false;
     };
   }, []);
 
   useEffect(() => {
+    if (!routeNeedsCampaignData()) return undefined;
     let mounted = true;
     let timer = null;
     let eventSource = null;
@@ -1774,22 +1783,34 @@ function AdminGate({ authSession, authReady, children }) {
 }
 
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus, liveFollowers }) {
+  useEffect(() => {
+    const meta = metadataForPath(route);
+    document.title = meta.title;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://aiwithmurda.com${meta.path === "/" ? "/" : meta.path}`);
+    for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) document.querySelector(selector)?.setAttribute("content", meta.title);
+    for (const selector of ['meta[property="og:description"]', 'meta[name="twitter:description"]']) document.querySelector(selector)?.setAttribute("content", meta.description);
+    document.querySelector('meta[property="og:url"]')?.setAttribute("content", `https://aiwithmurda.com${meta.path}`);
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
+    robots.content = meta.noindex ? "noindex, nofollow" : "index, follow";
+  }, [route]);
   const dayRouteDay = getDayRouteDay(route);
   const memberModuleKey = getMemberModuleRouteKey(route);
-  const knownRoute = dayRouteDay
+  const storeSlug = route.startsWith("/store/") ? route.slice("/store/".length) : null;
+  const knownRoute = storeSlug ? "/store/product" : dayRouteDay
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/60", "/live", "/tools", "/start", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
+      : ["/", "/about", "/60", "/live", "/tools", "/start", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
         ? route
         : "/";
 
   return (
-    <div className="public-site">
+    <div className="public-site storefront-shell">
       <PublicNav activeRoute={knownRoute} />
-      {knownRoute === "/" && (
-        <PublicHome config={config} logs={logs} latest={latest} liveFollowers={liveFollowers} />
-      )}
+      {knownRoute === "/" && <StorefrontHome />}
+      {knownRoute === "/about" && <AboutMurad />}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
       {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
       {knownRoute === "/live" && (
@@ -1801,11 +1822,14 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
         />
       )}
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
-      {knownRoute === "/start" && <StartPage />}
-      {knownRoute === "/kit" && <KitPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/store" && <StorePage />}
-      {knownRoute === "/live-builds" && <BundlePage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/operator-toolkit" && <ToolkitPage authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/start" && <StarterPackPage />}
+      {knownRoute === "/kit" && <StorefrontProduct slug="future-proof-method" authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/store" && <StorefrontShop />}
+      {knownRoute === "/store/product" && <StorefrontProduct slug={storeSlug} authSession={authSession} authReady={authReady} />}
+      {knownRoute === "/live-builds" && (new URLSearchParams(window.location.search).has("session_id")
+        ? <BundlePage authSession={authSession} authReady={authReady} />
+        : <StorefrontProduct slug="operator-bundle" authSession={authSession} authReady={authReady} />)}
+      {knownRoute === "/operator-toolkit" && <StorefrontProduct slug="operator-toolkit" authSession={authSession} authReady={authReady} />}
       {knownRoute === "/operator-arsenal" && <ArsenalPage authSession={authSession} authReady={authReady} />}
       {knownRoute === "/members" && (
         <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
@@ -1820,15 +1844,9 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
 function PublicNav({ activeRoute }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/60", label: "Dashboard" },
-    { href: "/live", label: "Live" },
-    { href: "/kit", label: "Kit" },
-    { href: "/store", label: "Store" },
-    { href: "/live-builds", label: "Operator Bundle" },
-    { href: "/operator-toolkit", label: "Full System" },
-    { href: "/tools", label: "Tools" },
-    { href: "/start", label: "Start" },
+    { href: "/store", label: "Tools" },
+    { href: "/about", label: "About Murad" },
+    { href: "/start", label: "Free Starter Pack" },
   ];
 
   return (
@@ -1852,13 +1870,13 @@ function PublicNav({ activeRoute }) {
       </button>
       <nav id="public-navigation-links" className={menuOpen ? "open" : ""} aria-label="Public navigation">
         {links.map((link) => (
-          <a key={link.href} className={activeRoute === link.href ? "active" : ""} href={link.href}>
+          <a key={link.href} className={activeRoute === link.href || (link.href === "/store" && activeRoute === "/store/product") ? "active" : ""} href={link.href}>
             {link.label}
           </a>
         ))}
       </nav>
-      <a className="nav-cta" href="/60">
-        View score
+      <a className="nav-cta" href="/members">
+        <FolderDown size={17} aria-hidden="true" /> My Downloads
       </a>
     </header>
   );
@@ -1869,6 +1887,7 @@ function PublicFooter() {
     <footer className="public-footer">
       <span>AI with Murda</span>
       <nav aria-label="Legal navigation">
+        <a href="/60">Build log archive</a>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="mailto:murad@aiwithmurda.com">Contact</a>
@@ -2821,7 +2840,9 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
     const productParam = new URLSearchParams(window.location.search).get("product");
     if (productParam === "operator-toolkit") return "operator-toolkit";
     if (productParam === "operator-arsenal") return "operator-arsenal";
-    return "future-method";
+    if (productParam === "operator-bundle") return "operator-bundle";
+    if (productParam === "future-method" || activeModuleKey) return "future-method";
+    return "library";
   });
   const accessToken = authSession?.access_token;
   const requestedNext = new URLSearchParams(window.location.search).get("next");
@@ -2861,6 +2882,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       setActiveMemberProduct("future-method");
       return;
     }
+    if (activeMemberProduct === "library") return;
     if (activeMemberProduct === "future-method" && futureMethodEntitled) return;
     if (activeMemberProduct === "operator-bundle" && operatorBundleEntitled) return;
     if (activeMemberProduct === "operator-toolkit" && operatorToolkitEntitled) return;
@@ -2875,6 +2897,11 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       setActiveMemberProduct("operator-toolkit");
     }
   }, [activeMemberProduct, activeModuleKey, futureMethodEntitled, operatorBundleEntitled, operatorToolkitEntitled, operatorArsenalEntitled]);
+
+  useEffect(() => {
+    const returnPath = getStorefrontReturnPath(window.location.search);
+    if (authSession && status === "ready" && returnPath) window.location.replace(returnPath);
+  }, [authSession, status]);
 
   const refreshMemberAccess = useCallback(
     async ({ verifyCheckout = true } = {}) => {
@@ -2894,15 +2921,8 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           });
           const result = await verifyCheckoutSession(sessionId, accessToken);
           verifiedAccess = result.access || null;
-          const verifiedProduct =
-            result.product_key === operatorToolkitProduct.key
-              ? "&product=operator-toolkit"
-              : result.product_key === operatorArsenalProduct.key
-                ? "&product=operator-arsenal"
-                : "";
-          window.history.replaceState({}, "", `/members?checkout=success${verifiedProduct}`);
-          if (result.product_key === operatorToolkitProduct.key) setActiveMemberProduct("operator-toolkit");
-          if (result.product_key === operatorArsenalProduct.key) setActiveMemberProduct("operator-arsenal");
+          window.history.replaceState({}, "", "/members?checkout=success");
+          setActiveMemberProduct("library");
           setNotice({ tone: "success", text: "Payment verified. Your profile is unlocked." });
           setAccessCheck({
             status: "success",
@@ -2971,14 +2991,15 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
 
   return (
     <main className={`public-page members-page ${hasAnyPaidAccess ? "has-access" : ""}`}>
+      {authSession && (
       <section className={`member-entry-header ${hasAnyPaidAccess ? "paid" : ""}`}>
         <div>
-          <span className="member-entry-kicker">{hasAnyPaidAccess ? "Member build lab" : "Future Proof Method"}</span>
-          <h1>{hasAnyPaidAccess ? "Pick up where you stopped." : "Set up. Build. Verify."}</h1>
+          <span className="member-entry-kicker">AI with Murda / Member access</span>
+          <h1>{hasAnyPaidAccess ? "My Downloads" : "Your tools are here."}</h1>
           <p>
             {hasAnyPaidAccess
-              ? "The workspace keeps one next action in front of you and the deeper course, scripts, and skills one click away."
-              : `Sign in to access ${productName}, your progress, build scripts, starter skills, and first-build lab.`}
+              ? "Your purchased files, setup guides, and optional lessons."
+              : "Sign in for your purchased downloads, or create an account to complete your purchase."}
           </p>
           {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
         </div>
@@ -2996,19 +3017,20 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
                 Sign out
               </button>
             )}
-            <a href="/60">
+            <a href="/store">
               <ExternalLink size={16} aria-hidden="true" />
-              Public scoreboard
+              Browse tools
             </a>
           </div>
         </aside>
       </section>
+      )}
 
       {!authReady && <MemberStateCard title="Checking profile" body="Loading Supabase session..." />}
       {authReady && !isSupabaseConfigured() && (
         <MemberStateCard
-          title="Supabase env needed"
-          body="Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable member login."
+          title="Member sign-in is unavailable here"
+          body="This environment is not connected to member accounts. Your existing account remains available on aiwithmurda.com."
         />
       )}
       {authReady && isSupabaseConfigured() && !authSession && <AuthPanel />}
@@ -3024,8 +3046,12 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
         <MemberStateCard title="Loading your workspace" body="Checking products, progress, and member assets." />
       )}
 
-      {authSession && status === "ready" && entitledProductCount > 1 && !activeModuleKey && (
+      {authSession && status === "ready" && entitledProductCount > 0 && !activeModuleKey && (
         <nav className="member-product-switcher" aria-label="Your products">
+          <button type="button" className={activeMemberProduct === "library" ? "active" : ""} onClick={() => setActiveMemberProduct("library")}>
+            <FolderDown size={19} aria-hidden="true" /><span><strong>My Downloads</strong><small>Files and start guides</small></span>
+          </button>
+          {futureMethodEntitled && (
           <button
             type="button"
             className={activeMemberProduct === "future-method" ? "active" : ""}
@@ -3035,6 +3061,8 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             <span><strong>The Future Proof Method</strong><small>Starter course and core skills</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
+          )}
+          {operatorBundleEntitled && (
           <button
             type="button"
             className={activeMemberProduct === "operator-bundle" ? "active" : ""}
@@ -3044,6 +3072,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             <span><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
             <Check size={16} aria-hidden="true" />
           </button>
+          )}
           {operatorArsenalEntitled && (
             <button
               type="button"
@@ -3067,6 +3096,10 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
             </button>
           )}
         </nav>
+      )}
+
+      {authSession && status === "ready" && hasAnyPaidAccess && activeMemberProduct === "library" && (
+        <DownloadLibrary memberData={memberData} accessToken={accessToken} access={{ starter: futureMethodEntitled, bundle: operatorBundleEntitled, toolkit: operatorToolkitEntitled, arsenal: operatorArsenalEntitled, updates: operatorUpdatesEntitled }} onOpenCourse={() => setActiveMemberProduct(futureMethodEntitled ? "future-method" : operatorArsenalEntitled ? "operator-arsenal" : "operator-toolkit")} />
       )}
 
       {authSession && status === "ready" && operatorBundleEntitled && activeMemberProduct === "operator-bundle" && (
@@ -3642,6 +3675,8 @@ function AuthPanel() {
   const [mode, setMode] = useState("signin");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const returnPath = getStorefrontReturnPath(window.location.search);
+  const memberRedirect = `${window.location.origin}/members${returnPath ? `?next=store-${returnPath.split("/").pop()}` : ""}`;
 
   async function handlePasswordAuth(event) {
     event.preventDefault();
@@ -3663,7 +3698,7 @@ function AuthPanel() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/members` },
+        options: { emailRedirectTo: memberRedirect },
       });
       if (error) throw error;
       setStatus("success");
@@ -3687,7 +3722,7 @@ function AuthPanel() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/members` },
+        options: { emailRedirectTo: memberRedirect },
       });
       if (error) throw error;
       setStatus("success");
@@ -3702,8 +3737,8 @@ function AuthPanel() {
     <section className="member-auth-shell">
       <div>
         <span>Member access</span>
-        <h2>Continue to your workspace.</h2>
-        <p>Sign in with the profile connected to your purchase, or create one before checkout.</p>
+        <h1>My Downloads</h1>
+        <p>Sign in for your files. New here? Create an account to finish your purchase.</p>
       </div>
       <div className="member-auth-panel">
         <div className="member-auth-modes" aria-label="Member access mode">

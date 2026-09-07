@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "@fontsource-variable/archivo";
 import App from "./App.jsx";
 import "./styles.css";
+import "./storefront.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -3,6 +3,8 @@
 Date: 2026-09-04
 Status: discovery complete; proposed experience and implementation roadmap. No production changes in this pass.
 
+September 7 update: the public storefront and download-first member library are implemented locally. See `STOREFRONT-IMPLEMENTATION.md` for verified scope and remaining publication gates. The discovery findings below describe September 4, not the new preview. Standalone checkout and optional subscription changes remain separate decisions.
+
 ## Direction From Murad
 
 Murad has not streamed since the second day. The website should become an ongoing sales funnel where people learn about him and buy useful scripts, skills, and setup folders. Sales must not depend on a livestream schedule or completing the original 60-day challenge.

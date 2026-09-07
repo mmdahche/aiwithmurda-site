@@ -1,7 +1,7 @@
 {
   "name": "AI with Murda",
   "short_name": "AIWM",
-  "description": "60-day AI operator sprint with live builds, proof receipts, and public scoreboard.",
+  "description": "Murad's scripts, skills, and project setups for building with Claude Code and Codex.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#060a09",
