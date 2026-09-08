@@ -33,8 +33,16 @@ const STORE_PRODUCTS = [
 ];
 
 // Free products ship as PUBLIC static downloads (no entitlement gate).
-const PUBLIC_PRODUCTS = [{ slug: "operator-sampler", zip: "operator-sampler.zip" }];
+const PUBLIC_PRODUCTS = [
+  { slug: "operator-sampler", zip: "operator-sampler.zip" },
+  { slug: "email-cleanup-kit", zip: "email-cleanup-kit.zip" },
+];
 const publicDownloadDir = path.join(rootDir, "public", "downloads");
+const inboxKitFiles = new Set([
+  ".gitignore", "00-START-HERE.md", "README.md", "QUICKSTART.txt", "INDEX.md",
+  "LICENSE", "CHANGELOG.md", "VERIFY.md", "install/SETUP.md",
+  "payload/email_cleanup.py", "tests/test_kit.py",
+]);
 
 const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);
 
@@ -80,7 +88,16 @@ for (const { slug, zip, dir } of [
   ...PUBLIC_PRODUCTS.map((p) => ({ ...p, dir: publicDownloadDir })),
 ]) {
   const folder = path.join(rootDir, "products", slug);
-  const { errors } = await verifyProductFolder(folder);
+  const { errors, files } = await verifyProductFolder(folder);
+  if (slug === "email-cleanup-kit") {
+    // Never package runtime mailbox data, passwords, or private review notes.
+    for (const file of files) {
+      if (!inboxKitFiles.has(file) || (await fs.lstat(path.join(folder, file))).isSymbolicLink()) {
+        errors.push("unapproved inbox-kit file: " + file);
+      }
+    }
+    for (const file of inboxKitFiles) if (!files.includes(file)) errors.push("missing inbox-kit file: " + file);
+  }
   if (errors.length) {
     console.error(`REFUSING to build ${slug} — verification failed:`);
     for (const error of errors) console.error(`  - ${error}`);

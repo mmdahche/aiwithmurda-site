@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-09-08_inbox-cleanup-freebie.md`](memory/2026-09-08_inbox-cleanup-freebie.md) - Approved second free download; Delete defaults to Trash, exact previews and typed approval required. Unsubscribes are manual pending a trustworthy automation path. Latest shared handoff records live deployment verification.
 - [`memory/2026-09-07_storefront-publication.md`](memory/2026-09-07_storefront-publication.md) - Publication approved; retain the full private admin dashboard and both OBS overlays while public/member navigation is product-focused. Latest shared handoff records deployment verification.
 - [`memory/2026-09-07_product-first-storefront.md`](memory/2026-09-07_product-first-storefront.md) - Approved reference strategy implemented locally: free/paid browsing, plain-English tools, source-checked previews, and later package comparison. Commercial terms and member access unchanged.
 - [`memory/2026-09-07_storefront-reference-direction.md`](memory/2026-09-07_storefront-reference-direction.md) - Latest feedback: product-first browsing, clearer free/paid distinctions, and real previews, informed by four inspected reference stores. Research only; commercial terms unchanged.

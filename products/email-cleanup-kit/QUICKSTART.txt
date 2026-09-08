@@ -1,0 +1,22 @@
+INBOX CLEANUP KIT
+
+Read README.md and install/SETUP.md first. Work from the payload folder.
+Mac: python3. Windows: replace python3 with py.
+
+1. python3 email_cleanup.py add-account
+2. python3 email_cleanup.py scan --account personal --limit 100
+3. python3 email_cleanup.py review --account personal
+4. python3 email_cleanup.py unsub --account personal
+5. python3 email_cleanup.py apply --account personal
+6. Read the preview. Use its printed --from-plan command with --execute.
+7. Type the exact MOVE confirmation only after checking the plan.
+
+Use your actual nickname instead of personal.
+Enter = Delete (move to Trash), for every reviewed sender.
+k = Keep | f = Folder | a = Archive | d = Trash
+u = manual unsubscribe checklist + Trash | s = Skip | q = Quit
+
+Nothing moves during scan, review, or preview.
+Unsub writes a checklist; finish each unsubscribe in your mail app.
+Trash retention is controlled by your provider. Make a backup first.
+Start with a small group and check the results before doing more.

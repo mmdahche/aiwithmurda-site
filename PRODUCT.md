@@ -35,7 +35,7 @@ Murad is a business owner who started with inventory problems and progressed int
 ## Design Principles
 
 - Explain the useful job before the bundle: plain-English names, concrete contents, and source-backed previews.
-- Make access explicit: one existing free pack with three parts; paid tools link to their containing package until standalone checkout is approved.
+- Make access explicit: two approved free downloads, the three-part Starter Pack and Inbox Cleanup Kit. Paid tools link to their containing package until standalone checkout is approved.
 - Keep the first screen useful: short founder introduction, direct browsing, and no oversized biography ahead of shopping.
 - Keep pricing honest: $47/$97 once; Toolkit $327 today including its first update month, then $30/month until canceled. No fake discounts or social proof.
 - Preserve trust with clear prerequisites and limitations, protected member access, and recoverable account/checkout states.

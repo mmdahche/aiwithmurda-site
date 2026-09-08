@@ -142,11 +142,11 @@ try {
 
   await visit("/store");
   assert.equal(await page.locator(".sf-tool-card").count(), 17);
-  assert.equal(await page.locator("[data-catalog-item]").count(), 18, "One pack plus 17 paid tools; no double counting");
+  assert.equal(await page.locator("[data-catalog-item]").count(), 19, "Two free downloads plus 17 paid tools; no double counting");
   await page.getByRole("button", { name: "Free Tools", exact: true }).click();
   assert.equal(new URL(page.url()).searchParams.get("view"), "free");
   assert.equal(await page.locator(".sf-tool-card, .sf-offer").count(), 0);
-  assert.equal(await page.locator("[data-catalog-item]").count(), 1);
+  assert.equal(await page.locator("[data-catalog-item]").count(), 2);
   await page.getByRole("button", { name: "Paid Packages", exact: true }).click();
   assert.equal(await page.locator(".sf-offer").count(), 3);
   assert.equal(await page.locator(".sf-free-pack, .sf-tool-card").count(), 0);
@@ -185,6 +185,33 @@ try {
   await visit("/store/not-a-product");
   await page.getByRole("heading", { name: "That tool isn't on the shelf." }).waitFor();
 
+  await visit("/start");
+  for (const width of [360, 390, 768, 1440, 1920]) {
+    await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
+    await visit("/free/inbox-cleanup");
+    await page.getByRole("heading", { name: "Inbox Cleanup Kit", exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Delete Default", exact: true }).getAttribute("aria-pressed"), "true");
+    for (const name of ["Keep", "Archive", "Folder", "Unsubscribe + Trash", "Delete Default"]) {
+      await page.getByRole("button", { name, exact: true }).click();
+      assert.equal(await page.getByRole("button", { name, exact: true }).getAttribute("aria-pressed"), "true");
+      await auditLayout("inbox choice " + name + " at " + width);
+    }
+    await page.getByText("Read the included quickstart", { exact: true }).click();
+    assert((await page.locator(".sf-inbox-guide pre").innerText()).includes("Enter = Delete (move to Trash)"));
+    await auditLayout("inbox quickstart at " + width);
+    if ([390, 1440].includes(width)) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await screenshot("inbox-kit-" + width);
+    }
+  }
+  const inboxDownloadEvent = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download the free inbox kit", exact: true }).click();
+  const inboxDownload = await inboxDownloadEvent;
+  assert.equal(inboxDownload.suggestedFilename(), "email-cleanup-kit.zip");
+  assert.equal(await inboxDownload.failure(), null);
+  const inboxBytes = await fs.readFile(await inboxDownload.path());
+  assert.equal(inboxBytes.subarray(0, 2).toString(), "PK");
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await visit("/start");
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download the free starter pack", exact: true }).click();
