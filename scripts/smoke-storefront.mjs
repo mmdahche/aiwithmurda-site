@@ -52,6 +52,7 @@ let failCheckout = false;
 let failDownload = false;
 let failSubscribe = false;
 let checkoutState = "paid";
+let adminAllowed = false;
 const memberFixture = () => ({
   profile: { email: "buyer@example.com" },
   entitlements: entitlements.map((key) => ({ product_key: key, status: "active" })),
@@ -71,6 +72,10 @@ await context.route("**/*", async (route) => {
   if (url.pathname === "/__checkout_test") return route.fulfill({ contentType: "text/html", body: "<h1>Checkout redirect verified</h1>" });
   if (!url.pathname.startsWith("/api/")) return route.continue();
   requests.push({ path: url.pathname, method: request.method(), auth: request.headers().authorization });
+  if (url.pathname === "/api/admin/session") {
+    assert.equal(request.headers().authorization, "Bearer storefront-test-token");
+    return route.fulfill(adminAllowed ? { json: { ok: true, admin: { email: "owner@example.com" } } } : { status: 403, json: { error: "admin_email_not_allowed" } });
+  }
   if (url.pathname === "/api/me") return route.fulfill({ json: memberFixture() });
   if (url.pathname.startsWith("/api/access/session/")) {
     assert.equal(request.headers().authorization, "Bearer storefront-test-token");
@@ -275,7 +280,39 @@ try {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await visit("/");
   await auditLayout("reduced motion homepage");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => localStorage.removeItem("sf-test-auth"));
+  await visit("/admin?view=overlay");
+  await page.getByRole("heading", { name: "Admin login required" }).waitFor();
+  assert.equal(await page.locator(".app-shell, .overlay-route").count(), 0, "Admin overlay must stay behind login");
+  await page.getByLabel("Admin email").fill("buyer@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("Test-only-password-123!");
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  await page.getByText("This Supabase profile is signed in, but it is not on the admin allowlist.").waitFor();
+  assert.equal(await page.locator(".app-shell").count(), 0, "A paid customer is not an admin");
+  adminAllowed = true;
+  await visit("/admin?view=overlay");
+  await page.getByRole("heading", { name: "OBS Overlay", exact: true }).waitFor();
+  assert.equal(await page.locator(".overlay-showcase").count(), 2, "Both scoreboard and follower overlays remain available");
+  await screenshot("admin-overlay-desktop");
+  const adminNav = page.getByRole("navigation", { name: "Main navigation", exact: true });
+  assert.equal(await adminNav.getByRole("button").count(), 5);
+  await adminNav.getByRole("button", { name: "Dashboard", exact: true }).click();
+  await page.locator(".dashboard-grid").waitFor();
+  await screenshot("admin-dashboard-desktop");
+  for (const [label, heading] of [["Daily Log", "Today’s Command"], ["Deck", "Proof Deck"], ["Settings", "Settings"]]) {
+    await adminNav.getByRole("button", { name: label, exact: true }).click();
+    await page.getByRole("heading", { name: heading, exact: true }).waitFor();
+  }
+  for (const path of ["/obs", "/overlay", "/obs/followers", "/overlay/followers", "/?view=overlay"]) {
+    const from = requests.length;
+    await visit(path);
+    assert.equal(await page.locator(".overlay-route").count(), 1);
+    assert(requests.slice(from).some((request) => request.path === "/api/daily-logs"), `${path}: broadcast data still loads`);
+  }
+  await visit("/");
+  assert.equal(await page.locator(".app-shell, .overlay-route").count(), 0, "Owner's public homepage remains the shop");
   assert.deepEqual(pageErrors, [], "No browser runtime errors");
-  await fs.writeFile(`${output}/report.json`, JSON.stringify({ result: "PASS", publicLayouts: widths.length * layoutRoutes.length, tests: ["responsive layouts", "free/paid filters and history", "honest catalog counts", "source-verified previews and files", "all 17 product details", "file preview", "FAQ", "search and filters", "free ZIP", "signup error and retry", "login continuation", "checkout routing and retry", "owned-product protection", "library filtering and pagination", "download retry", "existing course access", "mobile navigation"], requests, pageErrors, scope: "Local UI tests with mocked auth/API. No real payment or production mutation." }, null, 2));
+  await fs.writeFile(`${output}/report.json`, JSON.stringify({ result: "PASS", publicLayouts: widths.length * layoutRoutes.length, tests: ["responsive layouts", "free/paid filters and history", "honest catalog counts", "source-verified previews and files", "all 17 product details", "file preview", "FAQ", "search and filters", "free ZIP", "signup error and retry", "login continuation", "checkout routing and retry", "owned-product protection", "library filtering and pagination", "download retry", "existing course access", "mobile navigation", "admin login and customer denial", "full owner dashboard navigation", "both admin overlays", "existing OBS routes and data feeds"], requests, pageErrors, scope: "Local UI tests with mocked auth/API. No real payment or production mutation." }, null, 2));
   console.log(`PASS: Storefront UI contracts and ${widths.length * layoutRoutes.length} responsive layouts. Report: ${output}/report.json`);
 } finally { await browser.close(); }

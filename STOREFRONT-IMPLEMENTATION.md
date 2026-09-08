@@ -1,7 +1,7 @@
-# Personal Storefront Preview
+# Personal Storefront Release
 
 Date: 2026-09-07
-Status: implemented and locally verified; not pushed or deployed.
+Status: implemented and locally verified. Murad approved publishing on September 7, with the complete admin dashboard and OBS overlays preserved. Check the latest shared handoff for the final deployment result.
 
 ## Experience Delivered
 
@@ -78,3 +78,16 @@ Murad approved the recommendations from `STOREFRONT-REFERENCE-STUDY.md`. The Sep
 Public catalog metadata now lives in `src/data/storefrontCatalog.js`; it deliberately drops the old unconfigured standalone prices and marketing promises. Established product keys, payloads, backend routes, library, entitlements, and commercial terms are unchanged by this follow-up. Display headings are not formal Stripe product renames.
 
 The earlier source-sanitization and fresh-install gates still apply. Limited preview verification establishes that the snippets and filenames exist, not that every shipped tool has passed a fresh buyer installation.
+
+## Admin Preservation and Publication
+
+The publication request explicitly keeps the full admin workspace: Dashboard, Daily Log (Today's Command), Overlay, Deck, and Settings. Public and customer navigation stays focused on the store and purchased downloads.
+
+- Owner entry: `https://aiwithmurda.com/admin/`. Render's approved admin email remains `mmdahche@icloud.com`, verified September 7. Email/password authentication and the existing server-side allowlist remain required.
+- Fixed a route collision: `/admin?view=overlay` now opens the protected admin Overlay tab, not the standalone broadcast output.
+- Existing `/obs`, `/overlay`, `/obs/followers`, `/overlay/followers`, and legacy `/?view=overlay` broadcast URLs remain available with their data feeds. These read-only outputs must remain usable by OBS without an interactive admin login.
+- Added isolated browser checks for signed-out admin denial, rejection of a signed-in customer, full approved-admin navigation, both overlay previews, all five broadcast URLs, and a storefront homepage even when the owner is signed in.
+- Full `npm run build`, including all asset generators and postbuild metadata, passed. Generated ZIP contents were compared entry-by-entry with the committed archives; payloads were identical, so packaging-only binary churn was discarded.
+- No production credentials, Stripe configuration, prices, entitlements, source product files, campaign dates, stream settings, or stored daily records are changed by this release.
+
+Deployment target is the existing Render service `aiwithmurda-web`, tracking GitHub `main` with automatic deploy enabled. Production checks are read-only: rendering, route protection, service configuration, and continuity of existing campaign data. A new card charge, email signup, or customer account is not part of this publication request.

@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-09-07_storefront-publication.md`](memory/2026-09-07_storefront-publication.md) - Publication approved; retain the full private admin dashboard and both OBS overlays while public/member navigation is product-focused. Latest shared handoff records deployment verification.
 - [`memory/2026-09-07_product-first-storefront.md`](memory/2026-09-07_product-first-storefront.md) - Approved reference strategy implemented locally: free/paid browsing, plain-English tools, source-checked previews, and later package comparison. Commercial terms and member access unchanged.
 - [`memory/2026-09-07_storefront-reference-direction.md`](memory/2026-09-07_storefront-reference-direction.md) - Latest feedback: product-first browsing, clearer free/paid distinctions, and real previews, informed by four inspected reference stores. Research only; commercial terms unchanged.
 - [`memory/2026-09-07_storefront-preview.md`](memory/2026-09-07_storefront-preview.md) - Personal storefront and download-first member library implemented locally; browser/structural checks passed, publication and real buyer/install rehearsals pending.
@@ -30,7 +31,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 ## Current Project
 
 - Current direction (September 4, 2026): ongoing personal storefront for scripts, skills, and setup folders; see `SALES-FUNNEL-REDESIGN.md`. The campaign dates and release notes below are historical, not evidence of a current stream.
-- September 7 implementation is a local preview only; see `STOREFRONT-IMPLEMENTATION.md`. No production deployment or price/subscription change was made.
+- September 7 storefront publication is approved with the complete admin workspace preserved; see `STOREFRONT-IMPLEMENTATION.md` and the latest shared handoff for deployment status. Prices, subscriptions, and account ownership are unchanged.
 - Production: `https://aiwithmurda.com`
 - Repository: `mmdahche/aiwithmurda-site`
 - Hosting: Render service `aiwithmurda-web`

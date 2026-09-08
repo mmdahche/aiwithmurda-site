@@ -867,9 +867,13 @@ function getMemberModuleRouteKey(route) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function isLegacyOverlayRoute() {
+  return getRoute() === "/" && new URLSearchParams(window.location.search).get("view") === "overlay";
+}
+
 function routeNeedsCampaignData() {
   const route = getRoute();
-  return ["/admin", "/60", "/live", "/tools"].includes(route) || route.startsWith("/day/") || directOverlayRoutes.has(route);
+  return isLegacyOverlayRoute() || ["/admin", "/60", "/live", "/tools"].includes(route) || route.startsWith("/day/") || directOverlayRoutes.has(route);
 }
 
 function App() {
@@ -906,7 +910,7 @@ function App() {
   const [activeView, setActiveView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedView = params.get("view");
-    if (requestedView === "overlay") return "overlay-only";
+    if (isLegacyOverlayRoute()) return "overlay-only";
     if (navItems.some((item) => item.key === requestedView)) return requestedView;
     return "dashboard";
   });
@@ -1717,8 +1721,8 @@ function AdminGate({ authSession, authReady, children }) {
           <span className="public-label">Private control room</span>
           <h1>Admin login required</h1>
           <p>
-            The public dashboard stays open. The control room now requires your Supabase profile and
-            the server-side admin allowlist before anything renders.
+            Your shop is public. Your dashboard, daily controls, and overlay workspace are reserved
+            for your approved admin account.
           </p>
           <p className="admin-gate-note">
             Typing an email is not enough. The server only opens this page for the admin email
