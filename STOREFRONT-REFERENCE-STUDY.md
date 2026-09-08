@@ -2,7 +2,7 @@
 
 Reviewed: September 7, 2026
 Scope: public-site design and product presentation, not a purchase or product-performance audit.
-Status: research and proposed next iteration. Website, prices, free entitlement scope, and billing are unchanged.
+Status: approved by Murad and implemented in the local preview on September 7. See `STOREFRONT-IMPLEMENTATION.md` for verification. Prices, free entitlement scope, and billing are unchanged; not deployed.
 
 ## What Murad Asked For
 

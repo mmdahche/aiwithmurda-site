@@ -5,15 +5,33 @@ import fs from "node:fs/promises";
 import { chromium } from "playwright";
 import { coreMemberAssets, operatorBundleAssets, operatorToolkitAssets } from "../src/data/memberAssets.js";
 import { getStorefrontReturnPath } from "../src/data/storefront.js";
+import { catalogViews, featuredToolKeys, getCatalogView, storefrontShelf } from "../src/data/storefrontCatalog.js";
 
 const base = process.env.STOREFRONT_TEST_URL || "http://127.0.0.1:5173";
 assert(["127.0.0.1", "localhost"].includes(new URL(base).hostname), "Tests must target a local preview");
 const output = process.env.STOREFRONT_TEST_OUTPUT || "/private/tmp/aiwm-storefront-tests";
 const widths = process.env.STOREFRONT_SKIP_LAYOUTS ? [] : [1440, 1920, 768, 390, 360];
+const layoutRoutes = ["/", "/store", "/store?view=free", "/store?view=paid", "/about", "/start", "/store/future-proof-method", "/store/operator-bundle", "/store/operator-toolkit", "/store/memory-os", "/members"];
 await fs.mkdir(output, { recursive: true });
 assert.equal(getStorefrontReturnPath("?next=store-operator-bundle"), "/store/operator-bundle");
 assert.equal(getStorefrontReturnPath("?next=https://example.com"), null);
 assert.equal(getStorefrontReturnPath("?next=store-../../admin"), null);
+assert.equal(getCatalogView("?view=not-a-view"), "all");
+for (const { key } of catalogViews) assert.equal(getCatalogView(`?view=${key}`), key);
+assert.equal(storefrontShelf.length, 17);
+assert.equal(new Set(storefrontShelf.map((file) => file.key)).size, 17);
+for (const file of storefrontShelf) {
+  assert.equal(file.includes.length, 3, `${file.key}: three concise inclusions`);
+  assert(!Object.hasOwn(file, "price"), "Unconfigured standalone prices must not enter the public catalog");
+  for (const path of file.files) await fs.access(new URL(`../products/${file.key}/${path}`, import.meta.url));
+  if (file.preview) {
+    const source = await fs.readFile(new URL(`../products/${file.key}/${file.preview.source}`, import.meta.url), "utf8");
+    const normalize = (text) => text.replace(/\s+/g, " ").trim();
+    assert(normalize(source).includes(normalize(file.preview.excerpt)), `${file.key}: preview must match its actual source`);
+    assert(file.preview.excerpt.length < 250, "Paid previews must stay limited, not publish full payloads");
+  }
+}
+assert(featuredToolKeys.every((key) => storefrontShelf.find((file) => file.key === key)?.preview));
 
 const mockAuth = `
 let listener;
@@ -95,34 +113,70 @@ async function screenshot(name) { await page.screenshot({ path: `${output}/${nam
 try {
   for (const width of widths) {
     await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
-    for (const path of ["/", "/store", "/about", "/start", "/store/future-proof-method", "/store/operator-bundle", "/store/operator-toolkit", "/store/memory-os", "/members"]) {
+    for (const path of layoutRoutes) {
       await visit(path);
       await auditLayout(`${width} ${path}`);
-      if ([1440, 390].includes(width)) await screenshot(`${width}-${path.replaceAll("/", "_") || "home"}`);
+      if ([1440, 390].includes(width)) await screenshot(`${width}-${path.replace(/[/?=]/g, "_") || "home"}`);
       assert(!(await page.title()).includes("60-Day AI Operator Sprint"));
     }
     console.log(`PASS: ${width}px layouts`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await visit("/");
+  await page.screenshot({ path: `${output}/home-first-viewport.png` });
+  await page.locator(".sf-free-pack").screenshot({ path: `${output}/free-pack-desktop.png` });
+  await page.locator(".sf-tool-grid").screenshot({ path: `${output}/featured-tools-desktop.png` });
+  await page.locator(".sf-offer-grid").screenshot({ path: `${output}/packages-desktop.png` });
   assert(!(await page.locator("main").innerText()).includes("LIVE NOW"));
   assert(!requests.some((request) => /followers|campaign|daily-logs/.test(request.path)), "Shop must not poll campaign metrics");
-  await page.getByRole("button", { name: /Check the work/ }).click();
-  assert.equal(await page.getByRole("button", { name: /Check the work/ }).getAttribute("aria-pressed"), "true");
-  await page.getByRole("button", { name: /Keep your place/ }).click();
-  await page.getByLabel("Contents of daily-operator-checklist.md").waitFor();
+  assert.equal(await page.locator(".sf-tool-card").count(), 3);
+  assert.equal(await page.locator("[data-catalog-item='free-pack']").count(), 1);
+  assert.equal(await page.locator(".sf-sample-grid article").count(), 3);
   await page.locator("summary").filter({ hasText: "Is there a monthly charge?" }).click();
   assert((await page.locator("details[open]").innerText()).includes("$327 today"));
 
   await visit("/store");
+  assert.equal(await page.locator(".sf-tool-card").count(), 17);
+  assert.equal(await page.locator("[data-catalog-item]").count(), 18, "One pack plus 17 paid tools; no double counting");
+  await page.getByRole("button", { name: "Free Tools", exact: true }).click();
+  assert.equal(new URL(page.url()).searchParams.get("view"), "free");
+  assert.equal(await page.locator(".sf-tool-card, .sf-offer").count(), 0);
+  assert.equal(await page.locator("[data-catalog-item]").count(), 1);
+  await page.getByRole("button", { name: "Paid Packages", exact: true }).click();
+  assert.equal(await page.locator(".sf-offer").count(), 3);
+  assert.equal(await page.locator(".sf-free-pack, .sf-tool-card").count(), 0);
+  assert((await page.locator(".sf-offer.sf-yellow").innerText()).includes("$327 today"));
+  assert((await page.locator(".sf-offer.sf-yellow").innerText()).includes("Then $30/month"));
+  await page.reload({ waitUntil: "networkidle" });
+  assert.equal(await page.getByRole("button", { name: "Paid Packages", exact: true }).getAttribute("aria-pressed"), "true");
+  await page.goBack();
+  assert.equal(await page.getByRole("button", { name: "Free Tools", exact: true }).getAttribute("aria-pressed"), "true");
+  await page.getByRole("button", { name: "All Tools", exact: true }).click();
   await page.getByRole("searchbox", { name: "Search tools" }).fill("memory");
-  assert.equal(await page.locator(".sf-catalog-row").count(), 1);
+  assert.equal(await page.locator(".sf-tool-card").count(), 1);
+  assert.equal(await page.locator(".sf-free-pack").count(), 0, "A nonmatching free pack must not remain in search results");
   await page.getByRole("searchbox", { name: "Search tools" }).fill("no-matching-tool");
   await page.getByRole("heading", { name: "No matching tools." }).waitFor();
   await page.getByRole("button", { name: "Reset filters" }).click();
-  assert.equal(await page.locator(".sf-catalog-row").count(), 17);
+  assert.equal(await page.locator(".sf-tool-card").count(), 17);
   await page.getByRole("button", { name: "Business and content", exact: true }).click();
-  assert.equal(await page.locator(".sf-catalog-row").count(), 5);
+  assert.equal(await page.locator(".sf-tool-card").count(), 5);
+  await visit("/store?view=free");
+  await page.getByRole("link", { name: "Read the sample", exact: true }).nth(2).click();
+  await page.getByLabel("Contents of daily-operator-checklist.md").waitFor();
+  await page.getByRole("button", { name: /Make AI check its work/ }).click();
+  assert.equal(await page.getByRole("button", { name: /Make AI check its work/ }).getAttribute("aria-pressed"), "true");
+  await page.getByLabel("Contents of verify-before-claiming.md").waitFor();
+  await visit("/start?file=999#preview");
+  await page.getByLabel("Contents of inspect-before-edit.md").waitFor();
+  for (const file of storefrontShelf) {
+    await visit(`/store/${file.key}`);
+    await page.getByRole("heading", { level: 1, name: file.name, exact: true }).waitFor();
+    const packageLink = page.getByRole("link", { name: "Review the package", exact: true });
+    assert.equal(await packageLink.getAttribute("href"), file.offer ? `/store/${file.offer.slug}` : "/operator-arsenal");
+    assert.equal(await page.getByRole("button", { name: /Continue to checkout/ }).count(), 0);
+    await auditLayout(`detail ${file.key}`);
+  }
   await visit("/store/not-a-product");
   await page.getByRole("heading", { name: "That tool isn't on the shelf." }).waitFor();
 
@@ -222,6 +276,6 @@ try {
   await visit("/");
   await auditLayout("reduced motion homepage");
   assert.deepEqual(pageErrors, [], "No browser runtime errors");
-  await fs.writeFile(`${output}/report.json`, JSON.stringify({ result: "PASS", publicLayouts: widths.length * 9, tests: ["responsive layouts", "file preview", "FAQ", "search and filters", "free ZIP", "signup error and retry", "login continuation", "checkout routing and retry", "owned-product protection", "library filtering and pagination", "download retry", "existing course access", "mobile navigation"], requests, pageErrors, scope: "Local UI tests with mocked auth/API. No real payment or production mutation." }, null, 2));
-  console.log(`PASS: Storefront UI contracts and ${widths.length * 9} responsive layouts. Report: ${output}/report.json`);
+  await fs.writeFile(`${output}/report.json`, JSON.stringify({ result: "PASS", publicLayouts: widths.length * layoutRoutes.length, tests: ["responsive layouts", "free/paid filters and history", "honest catalog counts", "source-verified previews and files", "all 17 product details", "file preview", "FAQ", "search and filters", "free ZIP", "signup error and retry", "login continuation", "checkout routing and retry", "owned-product protection", "library filtering and pagination", "download retry", "existing course access", "mobile navigation"], requests, pageErrors, scope: "Local UI tests with mocked auth/API. No real payment or production mutation." }, null, 2));
+  console.log(`PASS: Storefront UI contracts and ${widths.length * layoutRoutes.length} responsive layouts. Report: ${output}/report.json`);
 } finally { await browser.close(); }

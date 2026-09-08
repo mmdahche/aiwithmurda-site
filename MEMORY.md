@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-09-07_product-first-storefront.md`](memory/2026-09-07_product-first-storefront.md) - Approved reference strategy implemented locally: free/paid browsing, plain-English tools, source-checked previews, and later package comparison. Commercial terms and member access unchanged.
 - [`memory/2026-09-07_storefront-reference-direction.md`](memory/2026-09-07_storefront-reference-direction.md) - Latest feedback: product-first browsing, clearer free/paid distinctions, and real previews, informed by four inspected reference stores. Research only; commercial terms unchanged.
 - [`memory/2026-09-07_storefront-preview.md`](memory/2026-09-07_storefront-preview.md) - Personal storefront and download-first member library implemented locally; browser/structural checks passed, publication and real buyer/install rehearsals pending.
 - [`memory/2026-09-04_personal-storefront-pivot.md`](memory/2026-09-04_personal-storefront-pivot.md) - Current direction: personal brand and digital product storefront; replaces the streaming-first homepage goal. Includes verified catalog state and the redesign roadmap.

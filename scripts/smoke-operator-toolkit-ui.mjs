@@ -41,8 +41,8 @@ async function capture(page, name) {
 
 async function verifySalesPage(page, label) {
   await page.goto(`${siteUrl}/operator-toolkit`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("heading", { level: 1, name: "The Operator Toolkit", exact: true }).waitFor({ timeout: 20_000 });
-  await page.getByText("Setup + $30/month updates", { exact: true }).waitFor();
+  await page.getByRole("heading", { level: 1, name: "Organize your full AI setup", exact: true }).waitFor({ timeout: 20_000 });
+  await page.getByText("$297 setup + $30/month updates", { exact: true }).waitFor();
   await page.getByText("$327 due today.", { exact: true }).waitFor();
   assert((await page.locator(".sf-contents-list li").count()) === 14, `${label} downloadable contents are incomplete`);
   await page.getByRole("heading", { name: "Your first useful step." }).waitFor();

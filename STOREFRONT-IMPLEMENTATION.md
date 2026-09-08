@@ -5,8 +5,11 @@ Status: implemented and locally verified; not pushed or deployed.
 
 ## Experience Delivered
 
-- Homepage leads with AI with Murda, Murad's real portrait, a plain product description, and three existing purchase packages.
-- Tools shop has searchable, filterable detail pages for the 17 existing paid product folders. Individual folders currently link to their containing packages; no unconfigured standalone checkout is advertised.
+- Homepage leads with a short AI with Murda introduction and Murad's real portrait, followed by Free Tools / Paid Packages / All Tools browsing. The free pack and three useful paid-tool examples precede the package comparison.
+- Tools shop has searchable, task-filtered cards and detail pages for the 17 existing paid product folders. Each uses a plain-English job title, existing product name, three concrete inclusions, format, prerequisites, containing package, and billing. Individual folders are not sold separately.
+- Free Starter Pack is counted as one free pack with three parts, never four separate giveaways. Each part has a literal excerpt and a deep link into the actual free-file preview. Search does not count the free pack when it is not a match.
+- Access filters update the URL and support reload/back/forward. Paid mode shows three featured packages; free mode does not show paid catalog cards. Task filters and search apply to the paid-tool shelf, not the package prices.
+- Featured Skill Authoring Kit, Verification & QA Pack, and Memory OS previews are short excerpts verified against local product files. The QA example is explicitly fictional. Other cards show three real filenames, not invented screenshots or fabricated results. No full paid payload is imported publicly.
 - About page uses the confirmed inventory-to-POS story. Streaming is optional history, not a customer requirement.
 - Free Starter Pack has an interactive preview of the actual sampler files, a working public ZIP download, and an optional email signup.
 - My Downloads is the default paid-member view, with a first guide, owned collections, search, pagination, and protected download actions. Existing course workspaces, module URLs, progress, and account access remain available.
@@ -36,7 +39,7 @@ Passed on September 7:
 - `npm run verify:products`: all 18 folders passed manifest, structure, executable flags, and configured content checks.
 - `unzip -t public/downloads/operator-sampler.zip`: archive valid.
 - Generated HTML title/canonical checks for every public route; member HTML is noindex.
-- `node scripts/smoke-storefront.mjs`: 45 page/viewport layout checks at 360, 390, 768, 1440, and 1920 pixels; no horizontal or tested text overflow, missing images, or browser runtime errors.
+- `node scripts/smoke-storefront.mjs`: 55 page/viewport layout checks at 360, 390, 768, 1440, and 1920 pixels; no horizontal or tested text overflow, missing images, or browser runtime errors. Also checks all 17 detail routes, package links, source-preview correspondence, real file paths, honest counts, and free/paid filter history.
 - Browser interactions: real local free ZIP download, previews, FAQ, search/filter empty states, newsletter retry, safe login continuation, correct checkout endpoints, checkout retry, owned-product protection, entitled-only library, pagination, download retry, existing course access, mobile menu, and reduced motion.
 - Payment-return UI contracts: unpaid payment and wrong-account responses retain a retryable session and never report a successful payment; a verified response opens the purchased library, and a page refresh does not replay the checkout callback.
 
@@ -67,3 +70,11 @@ The preview is frontend-only. Live member, email, and purchase actions require t
 7. Deploy through Render only after approval and perform a production smoke check.
 
 Streaming records, social connectors, OBS, and campaign dates are outside this release.
+
+## Reference-Based Iteration
+
+Murad approved the recommendations from `STOREFRONT-REFERENCE-STUDY.md`. The September 7 follow-up changes presentation, not commerce: clearer names, smaller founder intro, literal previews, clear free/paid choices, and packages explained after individual jobs.
+
+Public catalog metadata now lives in `src/data/storefrontCatalog.js`; it deliberately drops the old unconfigured standalone prices and marketing promises. Established product keys, payloads, backend routes, library, entitlements, and commercial terms are unchanged by this follow-up. Display headings are not formal Stripe product renames.
+
+The earlier source-sanitization and fresh-install gates still apply. Limited preview verification establishes that the snippets and filenames exist, not that every shipped tool has passed a fresh buyer installation.

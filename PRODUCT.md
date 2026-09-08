@@ -1,6 +1,6 @@
 # Product
 
-> Direction update, September 4, 2026: Murad wants an ongoing personal brand and sales funnel for scripts, skills, and setup folders. The current redesign brief is `SALES-FUNNEL-REDESIGN.md`. The campaign positioning below documents the previous website and is superseded for the redesign; do not carry its scoreboard-first or daily-streaming promises into new selling pages.
+> Current direction, September 7, 2026: an ongoing personal storefront for useful scripts, skills, and setup folders. See `SALES-FUNNEL-REDESIGN.md`, `STOREFRONT-REFERENCE-STUDY.md`, and `STOREFRONT-IMPLEMENTATION.md`. The streaming challenge is preserved history, not the storefront's purpose or a customer requirement.
 
 ## Register
 
@@ -8,40 +8,41 @@ brand
 
 ## Users
 
-Primary users are people watching or discovering Murad's 60-day AI operator sprint: aspiring operators, creators, small-business owners, and AI-curious builders who want to see real proof instead of polished theory. They arrive from livestreams, clips, social posts, and direct links during a public build season.
+Primary users are people learning to build with Claude Code and Codex: beginners, hands-on builders, and small-business owners. They need to understand what a download does, what they actually receive, what it requires, and whether it is free or paid without decoding internal package names.
 
-Secondary users are Murad and the AI operator stack inside `/admin`, using the same product as a control room for daily logs, public scoreboard sync, subscriber visibility, and proof-deck generation.
+Secondary users are existing buyers accessing their owned files and course workspaces. Murad's protected admin, historical build log, social metrics, and stream overlays remain separate existing surfaces.
 
 ## Product Purpose
 
-AI with Murda turns the 60-day family-overseas window into a public entertainment-first proof engine: build in public, track every meaningful number, sell the first digital product, and show the receipts as the sprint unfolds.
+AI with Murda introduces Murad and makes the useful parts of his AI-assisted work available as downloadable tools, instructions, and project setups.
 
-Success means the site can capture email demand, sell The Future Proof Method, unlock member assets, publish the public scoreboard, and give Murad a private operator workflow that is ready for the August 1, 2026 launch.
+Success means a visitor can try the existing free sampler, understand the tools and package differences, buy through the existing Backbone Stripe flow, and find their purchased files without a chaotic dashboard. Do not add products, freebies, or billing changes as a side effect of design work.
 
 ## Brand Personality
 
-Restless, transparent, operator-minded.
+Practical, personal, transparent.
 
-The brand should feel like a live control room for the next internet boom: practical, ambitious, slightly raw, and accountable. The voice is not guru polish or classroom energy. It is a streamed grind with numbers, lessons, failed attempts, product drops, and visible receipts.
+Murad is a business owner who started with inventory problems and progressed into building inventory and point-of-sale software with AI. Show the person, real files, and useful habits. Keep Archivo typography, restrained green with secondary blue/yellow, clear spacing, and an honest plain-English voice.
 
 ## Anti-references
 
 - Generic AI SaaS landing pages with abstract gradients, vague "unlock your potential" copy, and no concrete proof.
-- Classroom/course pages that make the stream feel like a webinar.
+- Long tier explanations before a visitor understands a single useful tool.
 - Fake luxury creator funnels that hide the actual work behind polish.
-- Dashboards that show vanity metrics without daily context or source receipts.
+- Catalogs that confuse a free preview with a free paid product, or instructions with a finished app.
 - Any payment, checkout, or product language that mixes AI with Murda revenue into Haas Stripe or Haas product boundaries.
 
 ## Design Principles
 
-- Make the scoreboard the main character: every public surface should point back to the numbers, proof, or daily receipts.
-- Entertain first, teach through evidence: the stream is a show, and education comes from watching the work happen.
-- Preserve trust with operational clarity: label preview data, protect private admin paths, and make paid/member states recoverable.
-- Sell the method as an artifact of the sprint: product assets should feel extracted from real work, not invented as a disconnected course.
+- Explain the useful job before the bundle: plain-English names, concrete contents, and source-backed previews.
+- Make access explicit: one existing free pack with three parts; paid tools link to their containing package until standalone checkout is approved.
+- Keep the first screen useful: short founder introduction, direct browsing, and no oversized biography ahead of shopping.
+- Keep pricing honest: $47/$97 once; Toolkit $327 today including its first update month, then $30/month until canceled. No fake discounts or social proof.
+- Preserve trust with clear prerequisites and limitations, protected member access, and recoverable account/checkout states.
 - Keep the Backbone boundary clean: AI with Murda payments use Backbone Solutions Stripe only.
 
 ## Accessibility & Inclusion
 
 Target WCAG AA for public pages and admin surfaces. Text must remain readable on dark backgrounds, form states must be visible without relying on color alone, buttons need clear disabled/loading states, and the interface should stay usable on mobile because Murad often works from a phone.
 
-Motion should be restrained and support the live-control-room feel. Respect reduced-motion preferences for any future animation.
+Motion should be restrained and support navigation or feedback. Respect reduced-motion preferences. Product previews must remain readable without animation.

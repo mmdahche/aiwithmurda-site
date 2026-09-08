@@ -1,5 +1,5 @@
 import { storefrontOffers } from "./storefront.js";
-import { storeProducts } from "./storeCatalog.js";
+import { storefrontShelf } from "./storefrontCatalog.js";
 
 export const publicPageMetadata = {
   "/": { title: "AI with Murda | Scripts, Skills & Project Setups", description: "Meet Murad and explore the scripts, skills, and project setups he uses to build with Claude Code and Codex. Try the free starter pack." },
@@ -16,7 +16,7 @@ export const publicPageMetadata = {
     [`/store/${offer.slug}`, { title: `${offer.name} | AI with Murda`, description: offer.description }],
     [offer.legacyHref, { title: `${offer.name} | AI with Murda`, description: offer.description }],
   ])),
-  ...Object.fromEntries(storeProducts.filter((product) => !storefrontOffers.some((offer) => offer.slug === product.key)).map((product) => [`/store/${product.key}`, { title: `${product.name} | AI with Murda`, description: `Explore ${product.name}: product-folder contents, license information, and the package that includes it.` }])),
+  ...Object.fromEntries(storefrontShelf.map((product) => [`/store/${product.key}`, { title: `${product.name} | AI with Murda`, description: product.description }])),
 };
 
 export function metadataForPath(pathname) {

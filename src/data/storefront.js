@@ -4,7 +4,9 @@ import { operatorToolkitProduct } from "./operatorToolkit.js";
 export const storefrontOffers = [
   {
     slug: "future-proof-method", key: "future_proof_method", name: "The Future Proof Method",
-    shortName: "Start building", category: "Get set up", price: "$47", billing: "One-time purchase",
+    shortName: "Learn to build with Claude Code and Codex", category: "Get set up", price: "$47", billing: "One-time purchase",
+    cardIncludes: ["Five written setup and build modules", "Prompt scripts and starter skills", "Council tool + Skill Authoring Kit"],
+    previewKey: "skill-authoring-kit",
     description: "Get Claude Code and Codex working on your own project, with guided setup, reusable prompts, and your first small build.",
     audience: "You want a clear starting point, not another folder of prompts you never open.",
     color: "green", memberProduct: "future-method", legacyHref: "/kit",
@@ -15,7 +17,9 @@ export const storefrontOffers = [
   },
   {
     slug: "operator-bundle", key: "new_wave_live_builds", name: "New Wave Operator Bundle",
-    shortName: "Build with a system", category: "Build and verify", price: "$97", billing: "One-time purchase",
+    shortName: "Build, debug, and check your work", category: "Build and verify", price: "$97", billing: "One-time purchase",
+    cardIncludes: ["Everything in the $47 starter", "Guardrails + Verification & QA Pack", "Eight workflows, scripts, and blueprints"],
+    previewKey: "verification-qa-pack",
     description: "Add a repeatable way to plan, debug, review, and deliver work. Includes the entire Future Proof Method.",
     audience: "You already build with AI and want better checks, clearer handoffs, and reusable project starting points.",
     color: "blue", memberProduct: "operator-bundle", legacyHref: "/live-builds",
@@ -26,9 +30,11 @@ export const storefrontOffers = [
   },
   {
     slug: "operator-toolkit", key: "operator_toolkit", name: "The Operator Toolkit",
-    shortName: "Connect your setup", category: "Organize your projects", price: "$297", billing: "Setup + $30/month updates",
+    shortName: "Organize your full AI setup", category: "Organize your projects", price: "$297", billing: "$297 setup + $30/month updates",
+    cardIncludes: ["Everything in the $97 bundle", "24-skill pack + Memory OS", "Model router and collaboration guides"],
+    previewKey: "memory-os",
     dueToday: operatorToolkitProduct.initialTotalCents / 100,
-    description: "Bring project instructions, memory, skills, and two-agent collaboration into one customer-safe setup. Includes both lower tiers.",
+    description: "Bring project instructions, memory, skills, and two-agent collaboration into a setup you can adapt. Includes both lower tiers.",
     audience: "You work across projects and want a structured setup you can adapt to the way you build.",
     color: "yellow", memberProduct: "operator-toolkit", legacyHref: "/operator-toolkit",
     includes: ["Everything in the $47 and $97 packages", "24-Skill Installation Pack", "Memory OS and the Three-Tier LLM Router", "Autonomous Operator Kit", "Project instructions, collaboration rules, and system guides"],
