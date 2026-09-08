@@ -5,13 +5,25 @@ Source: RubyX. September 8, 2026. Product version: 1.2.0.
 ## Status
 
 The guided menu, practice inbox, AI workflow and two-route page are implemented.
-Offline rehearsals and an independent AI-guidance trial passed. Finished videos,
-Higgsfield narration, live-mail acceptance and native Windows testing are NOT done.
+Offline rehearsals and an independent AI-guidance trial passed. Tutorial 1 now has
+six generated Fraser narration segments arranged and cleaned in an editable
+ChatCut draft, about 4 minutes 47 seconds long. Finished videos, screen footage,
+live-mail acceptance and native Windows testing are NOT done.
 Do not publish Watch buttons or placeholder videos until real media is approved.
 
-Next: capture real software footage, then use the owner's connected Higgsfield
-account for supported narration/presentation after checking credits. Do not assume
-every connector/API feature is included in a web subscription. No credits used yet.
+Private draft: https://app.chatcut.io/editor/bb77fec8-0cfe-4b2c-89ef-4bd0f1dccd99
+
+Narration generation used 24.7 Higgsfield credits after cost estimation. Six WAV
+originals and the exact generated script are saved outside the public site in
+`/Users/muhammad/ContentCreating/production/inbox-cleanup/tutorial-01/`.
+The draft has six chapter markers and audio only; its video track is empty.
+Computer Use denied Terminal access, so no screen recording was captured. Do not
+bypass that denial or replace real UI footage with generated terminal screens.
+
+Next: obtain an owner-recorded walkthrough of the offline practice flow, then
+import the footage and edit it against the narration. Listen end to end, check
+brand pronunciation and the sentence about two messages left in the inbox,
+add readable captions, and export privately for review. Tutorial 2 has not started.
 
 ## Production rules
 
@@ -43,7 +55,8 @@ numbered menu. Show the Windows filename as an alternative, not a tested Windows
 
 ## Tutorial 1: Without AI
 
-Target: 3-4 minutes with setup. Record the real menu or `python3 -B start.py --demo`.
+Initial target: 3-4 minutes with setup; the current narration draft is about 4:47.
+Record the real menu or `python3 -B start.py --demo`.
 Sample-only inputs: `1`, `d`, `a`, `f`, `Receipts`, `k`, `y`, `y`, `MOVE 6`.
 Never reuse that input sequence against a real mailbox.
 
