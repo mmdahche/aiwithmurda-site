@@ -1,7 +1,22 @@
 INBOX CLEANUP KIT
 
-Read README.md and install/SETUP.md first. Work from the payload folder.
-Mac: python3. Windows: replace python3 with py.
+Read README.md and install/SETUP.md first. Extract the ZIP fully.
+
+EASIEST START
+Open Start on Mac.command or Start on Windows.cmd.
+Menu 1: Practice with eight sample messages. No account, AI or internet needed.
+Menu 2: Without AI - connect, scan, review, preview, confirm.
+Menu 3: Export a limited sender report for AI; inspect it before sharing.
+Menu 4: Review an AI suggestions JSON file. It never applies automatically.
+Menu 5: Change existing saved sender choices without starting cleanup.
+Menu 0: Exit.
+
+Manual opening, from the extracted kit folder:
+Mac: python3 -B start.py
+Windows: py -3 -B start.py
+
+INDIVIDUAL COMMANDS (OPTIONAL)
+Work from the payload folder. Windows: replace python3 with py -3.
 
 1. python3 email_cleanup.py add-account
 2. python3 email_cleanup.py scan --account personal --limit 100
@@ -15,6 +30,8 @@ Use your actual nickname instead of personal.
 Enter = Delete (move to Trash), for every reviewed sender.
 k = Keep | f = Folder | a = Archive | d = Trash
 u = manual unsubscribe checklist + Trash | s = Skip | q = Quit
+Skip preserves a previous choice. To leave that sender alone, choose Keep.
+In the AI route, Enter still means Delete, NOT accept the recommendation.
 
 Nothing moves during scan, review, or preview.
 Unsub writes a checklist; finish each unsubscribe in your mail app.

@@ -6,7 +6,7 @@ export const publicPageMetadata = {
   "/store": { title: "The Tool Shop | AI with Murda", description: "Browse AI workflow packages, reusable scripts, skills, and setup folders. See the files and requirements before you buy." },
   "/about": { title: "Meet Murad | AI with Murda", description: "From running a retail business to building inventory and point-of-sale software with AI. Meet the person behind the tools." },
   "/start": { title: "Free Starter Pack | AI with Murda", description: "Download a free prompt script, verification skill, and daily checklist for your next AI-assisted project. No email required." },
-  "/free/inbox-cleanup": { title: "Free Inbox Cleanup Kit | AI with Murda", description: "Review inbox clutter by sender with a free local Python script. Keep, archive, file, or move to Trash after a saved preview. Gmail and iCloud." },
+  "/free/inbox-cleanup": { title: "Free Inbox Cleanup Kit, With or Without AI | AI with Murda", description: "Clean inbox clutter with a guided local menu or AI-assisted sender review. Includes a practice inbox, Mac/Windows setup and previews. Gmail and iCloud." },
   "/60": { title: "Build Log Archive | AI with Murda", description: "The original AI with Murda build-in-public challenge, daily records, and project history." },
   "/live": { title: "Streams & Replays | AI with Murda", description: "AI with Murda stream links, replays, and build notes." },
   "/tools": { title: "Build Resources | AI with Murda", description: "Resources and tools from the AI with Murda build log." },

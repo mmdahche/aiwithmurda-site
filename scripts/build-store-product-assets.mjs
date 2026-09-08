@@ -41,7 +41,10 @@ const publicDownloadDir = path.join(rootDir, "public", "downloads");
 const inboxKitFiles = new Set([
   ".gitignore", "00-START-HERE.md", "README.md", "QUICKSTART.txt", "INDEX.md",
   "LICENSE", "CHANGELOG.md", "VERIFY.md", "install/SETUP.md",
-  "payload/email_cleanup.py", "tests/test_kit.py",
+  "ADVANCED.md", "start.py", "Start on Mac.command", "Start on Windows.cmd",
+  "ai/SKILL.md", "ai/START-WITH-AI.md", "ai/SUGGESTIONS.md", "ai/STARTER-PROMPT.txt",
+  "payload/__init__.py", "payload/email_cleanup.py", "payload/guided.py", "payload/ai_review.py", "payload/practice.py",
+  "tests/test_kit.py", "tests/test_guided.py",
 ]);
 
 const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);

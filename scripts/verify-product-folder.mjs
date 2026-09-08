@@ -40,7 +40,7 @@ const FORBIDDEN_SOURCES = [
   { pattern: /uncaged-operator/i, label: "reference course folder" },
 ];
 
-const TEXT_EXTENSIONS = new Set([".md", ".txt", ".sh", ".py", ".mjs", ".js", ".cjs", ".json", ".yaml", ".yml", ".example", ".env"]);
+const TEXT_EXTENSIONS = new Set([".md", ".txt", ".sh", ".command", ".cmd", ".py", ".mjs", ".js", ".cjs", ".json", ".yaml", ".yml", ".example", ".env"]);
 
 const IGNORED_NAMES = new Set([".DS_Store", "__pycache__", ".pytest_cache"]);
 
@@ -135,7 +135,7 @@ export async function verifyProductFolder(folder) {
         }
       }
     }
-    if (rel.endsWith(".sh")) {
+    if (rel.endsWith(".sh") || rel.endsWith(".command")) {
       const stat = await fs.stat(path.join(folder, rel));
       if (!(stat.mode & 0o111)) errors.push(`${rel}: shell script is not executable (chmod +x)`);
     }

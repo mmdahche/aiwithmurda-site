@@ -17,7 +17,7 @@ Trash may be automatically emptied by your provider. This is not a backup or und
 App passwords and mail-header reports stay in this folder; keep it private.
 """
 
-import argparse, email, getpass, glob, hashlib, imaplib, json, os, re, shutil, ssl, sys, time
+import argparse, email, getpass, glob, hashlib, html, imaplib, json, os, re, shutil, ssl, sys, time, warnings
 from collections import defaultdict
 from datetime import datetime, timezone
 from email.header import decode_header, make_header
@@ -62,7 +62,14 @@ def dec(s):
     try: out = str(make_header(decode_header(s)))
     except Exception: out = str(s)
     out = re.sub(r"\s+", " ", out).strip()
-    return re.sub(r"[\x00-\x1f\x7f-\x9f]", "", out)   # senders control these strings; never let them drive the terminal
+    return re.sub(r"[\x00-\x1f\x7f-\x9f\ud800-\udfff\u200e\u200f\u202a-\u202e\u2066-\u2069]", "", out)
+
+def md_cell(value):
+    text = html.escape(dec(str(value)), quote=False)
+    return re.sub(r"([\\`*_{}\[\]()#+.!|>\-])", r"\\\1", text)
+
+def actionable_sender(addr):
+    return isinstance(addr, str) and "@" in addr and parseaddr(addr)[1] == addr
 def disk_ok():
     free = shutil.disk_usage(os.path.expanduser("~")).free
     if free < 500 * 1024 * 1024:
@@ -302,7 +309,7 @@ def write_scan(acc, which, ranked, total, skipped_self, uidvalidity, box):
                    "total": total, "skipped_self": skipped_self, "scanned_at": stamp, "senders": ranked}, f, indent=1)
     known = [s for s in ranked if s["known_action"]]; new = [s for s in ranked if not s["known_action"]]
     with open(mpath, "w", encoding="utf-8") as f:
-        f.write(f"# Sender scan — {acc['email']} — {box} — {stamp}\n\n")
+        f.write(f"# Sender scan — {md_cell(acc['email'])} — {md_cell(box)} — {stamp}\n\n")
         f.write(f"Messages: {total} (own sent skipped: {skipped_self}) · Senders: {len(ranked)} · Already decided: {len(known)} · New: {len(new)}\n\n")
         for title, rows in (("New senders (need a decision)", new), ("Known senders (rule auto-applies)", known)):
             f.write(f"## {title}\n\n| # | Sender | Count | Unread | Starred | Last | Bulk | Unsub | Rule | Sample subject |\n|---|---|---|---|---|---|---|---|---|---|\n")
@@ -311,7 +318,7 @@ def write_scan(acc, which, ranked, total, skipped_self, uidvalidity, box):
                 unsub = "1-click" if s["one_click"] else ("mailto" if s["unsub_mailto"] else ("link" if s["unsub_https"] else ""))
                 rule = (s["known_action"] or "") + (f":{s['known_folder']}" if s.get("known_folder") else "")
                 subj = (s["subjects"][0] if s["subjects"] else "").replace("|", "/")
-                f.write(f"| {i} | {who} | {s['count']} | {s['unread']} | {s['starred']} | {s['last'] or ''} | {'Y' if s['bulk'] else ''} | {unsub} | {rule} | {subj} |\n")
+                f.write(f"| {i} | {md_cell(who)} | {s['count']} | {s['unread']} | {s['starred']} | {md_cell(s['last'] or '')} | {'Y' if s['bulk'] else ''} | {unsub} | {md_cell(rule)} | {md_cell(subj)} |\n")
             f.write("\n")
     return jpath, mpath
 
@@ -451,6 +458,9 @@ def build_plan(M, acc, folder, rules, only=None):
     own = {acc["email"].lower(), *(a.lower() for a in acc.get("self", []))}
     for sender in sc["senders"]:
         addr = sender["email"]
+        if not actionable_sender(addr):
+            print("Leaving messages with missing or malformed senders untouched. Review those in your mail app.")
+            continue
         rule = rule_for(rules, addr)
         if not rule or rule["action"] == "keep" or addr in own or (only and addr not in only): continue
         target = safe_destination(acc, rule["action"], rule.get("folder"))
@@ -469,6 +479,8 @@ def read_plan(M, acc, folder, path, rules):
         raise RuntimeError("Your choices changed since the preview. Preview again.")
     seen = set()
     for item in saved["plan"]:
+        if not actionable_sender(item["sender"]):
+            raise RuntimeError("Malformed sender in the plan. Create a fresh preview; those messages will be left alone.")
         rule = rule_for(rules, item["sender"])
         if not rule or rule["action"] != item["action"] or item["folder"] != safe_destination(acc, rule["action"], rule.get("folder")):
             raise RuntimeError("Saved plan no longer matches your choices.")
@@ -512,7 +524,7 @@ def apply(acc, folder="INBOX", only=None, execute=False, from_plan=None):
                 print(f"\nPreview saved: {path}\nRead this plan before running:\n"
                       f'{PY} email_cleanup.py apply --account {acc["name"]} --from-plan "{path}" --execute')
             print("Nothing moved. New arrivals need another scan and preview.")
-            return
+            return from_plan if from_plan else path
         if not total: print("Nothing to move."); return
         if not ({"MOVE", "UIDPLUS"} & acc["_caps"]):
             raise RuntimeError("The server does not advertise MOVE or UIDPLUS. No messages changed.")
@@ -626,7 +638,9 @@ def add_account():
     if not guess: print("  Choose gmail for Google/Workspace, or icloud for Apple. Other providers are not supported in this release.")
     prov = ask("Provider: gmail or icloud", default=guess, valid=lambda x: x in ("gmail", "icloud"))
     while True:
-        pw = getpass.getpass("Paste the app password (nothing will appear as you paste — that's normal): ").replace(" ", "").strip()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", getpass.GetPassWarning)
+            pw = getpass.getpass("Paste the app password (nothing will appear as you paste — that's normal): ").replace(" ", "").strip()
         if len(pw) >= 8: break
         print("  That looks too short for an app password. Try again.")
     os.makedirs(SECRETS_DIR, mode=0o700, exist_ok=True)
@@ -673,14 +687,16 @@ CHOICES = {"u": "unsub_delete", "d": "delete", "f": "folder", "a": "archive", "k
 def suggest(s):
     return "d"  # Product default: an explicit review choice, never automatic execution.
 
-def review(acc, folder="INBOX"):
+def review(acc, folder="INBOX", include_known=False, recommendations=None):
     sc = latest_scan(acc, folder)
     if not sc: sys.exit(f"no scan found — run:  {PY} email_cleanup.py scan --account {acc['name']}")
     rules = load_rules(acc)
-    pending = [s for s in sc["senders"] if not rule_for(rules, s["email"])]
+    pending = [s for s in sc["senders"] if actionable_sender(s["email"]) and (include_known or not rule_for(rules, s["email"]))]
+    if any(not actionable_sender(s["email"]) for s in sc["senders"]):
+        print("Messages with missing or malformed senders are left alone. Review those in your mail app.")
     pending.sort(key=lambda s: (0 if s["bulk"] else 1, -s["count"], s["email"]))
     if not pending:
-        print(f"Every sender already has a decision. Next step:  {PY} email_cleanup.py apply --account {acc['name']}"); return
+        print(f"Every sender already has a decision. Next step:  {PY} email_cleanup.py apply --account {acc['name']}"); return True
     print(f"\n{len(pending)} senders need a decision. Newsletters and bulk mail come first, people last.\n"
           "For each one, type a letter and press Enter. Just pressing Enter chooses Delete (move to Trash), including personal senders.\n"
           "  u = manual unsubscribe checklist + move mail to Trash     d = move their mail to Trash\n"
@@ -693,16 +709,26 @@ def review(acc, folder="INBOX"):
         kind = "newsletter / bulk" if s["bulk"] else "looks like a person or a receipt"
         un = "unsubscribe is completed manually in your mail app"
         star = f", {s['starred']} starred (rechecked and skipped)" if s.get("starred") else ""
-        print(f"[{i}/{len(pending)}] {who}")
+        print(f"[{i}/{len(pending)}] {dec(who)}")
         print(f"      {s['count']} emails ({s['unread']} unread{star}) · last {s['last']} · {kind} · {un}")
-        for subj in s["subjects"][:2]: print(f"      e.g. \"{subj}\"")
+        for subj in s["subjects"][:2]: print(f"      e.g. \"{dec(subj)}\"")
+        previous = rule_for(rules, s["email"])
+        if previous:
+            destination = f" -> {dec(previous['folder'])}" if previous.get("folder") else ""
+            print(f"      Saved choice: {dec(previous['action'])}{destination}. Choose again to change it; s leaves it unchanged.")
+        proposed = (recommendations or {}).get(s["email"])
+        if proposed:
+            print(f"      AI suggestion (not applied): {dec(proposed['action'])}" +
+                  (f" -> {dec(proposed['folder'])}" if proposed.get("folder") else ""))
+            print(f"      Reason (untrusted suggestion text): {dec(proposed['reason'])}")
+            print("      Choose its letter to accept it. Enter still means Delete, NOT accept the AI suggestion.")
         sug = suggest(s)
         while True:
             try: ans = input(f"      choice [{sug}]: ").strip().lower() or sug
             except (EOFError, KeyboardInterrupt): print(); ans = "q"
             if ans in ("u", "d", "f", "a", "k", "s", "q"): break
             print("      type one of: u d f a k s q")
-        if ans == "q": break
+        if ans == "q": return False
         if ans == "s": print(); continue
         if ans == "f":
             while True:
@@ -710,7 +736,7 @@ def review(acc, folder="INBOX"):
                 except (EOFError, KeyboardInterrupt): print(); fname = None; break
                 if fname and "&" not in fname and all(32 <= ord(ch) < 127 for ch in fname): break
                 print("      use plain letters, numbers and spaces; no '&' or accents")
-            if fname is None: break
+            if fname is None: return False
             decide(acc, sender=s["email"], action="folder", folder_name=fname)
         else:
             decide(acc, sender=s["email"], action=CHOICES[ans])
@@ -718,6 +744,7 @@ def review(acc, folder="INBOX"):
     left = len(pending) - done
     print(f"Recorded {done} decision(s)." + (f" {left} sender(s) still undecided — run review again any time." if left else ""))
     print(f"Next step (dry run, changes nothing):  {PY} email_cleanup.py apply --account {acc['name']}")
+    return True
 
 # ---------- main ----------
 def main():
@@ -769,7 +796,8 @@ def main():
         unsub(acc, only)
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(errors="backslashreplace")
     try: main()
     except (KeyboardInterrupt, EOFError): sys.exit("\nStopped. Choices are saved. If execution started, inspect the mailbox and log before retrying.")
-    except (RuntimeError, imaplib.IMAP4.error, OSError, ValueError, KeyError) as error:
+    except (RuntimeError, imaplib.IMAP4.error, OSError, ValueError, KeyError, getpass.GetPassWarning) as error:
         sys.exit(f"Stopped: {dec(str(error))}\nIf execution started, some moves may already have completed. Check the mailbox and local log before retrying.")

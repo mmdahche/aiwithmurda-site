@@ -1,5 +1,28 @@
 # Inbox Cleanup Release - September 8, 2026
 
+## Version 1.2: guided routes
+
+Murad approved simplifying setup, adding an AI-assisted route, testing both,
+then producing two accurate tutorials. One ZIP now offers two ways to use the
+same engine; no new paid product or account connection is introduced.
+
+- Numbered menu, Mac/Windows launchers, offline practice with eight fictional messages.
+- Minimal AI report, explicit sharing consent, portable guide and starter prompt.
+- Scan-bound suggestions are data only, checked before local review. No auto-accept.
+- Saved-choice editing includes earlier senders/domain rules and folder destinations.
+- Invalid Unicode, duplicate keys and deeply nested suggestions rejected. Terminal
+  controls removed; mailbox-derived Markdown escaped; unknown senders left alone.
+- 93 offline tests pass in source. Mac launcher rehearsed without credentials.
+- Independent security findings reproduced and covered by regression tests.
+- Independent AI skill trial preserved protected/uncertain mail and prepared only
+  suggestions, ignoring instruction-like sender data, with no mailbox access.
+- Public page has two route views, shared download and clipboard fallback.
+- Tutorial scripts: content/inbox-cleanup-tutorials/PRODUCTION.md. No finished
+  recordings, Higgsfield generation or public videos yet.
+
+Live-provider and native Windows acceptance remain outstanding. Latest shared
+handoff records final fresh-download tests and production deployment verification.
+
 ## Approved scope
 
 Publish the new kit for free. Default Delete to move-to-Trash, retain all review
@@ -22,13 +45,14 @@ release is maintained in products/email-cleanup-kit; the Desktop copy is untouch
 - Non-INBOX cleanup sources and unsafe destinations are refused.
 - Unsubscribe is a manual checklist, not a sender-controlled HTTP/SMTP action.
 - Error output acknowledges partial moves and does not claim that nothing can be lost.
-- Public archive permits exactly the eleven documented files; private notes/data cannot ship.
+- Public archive permits exactly the 24 documented files; private notes/data cannot ship.
 
 ## Verification
 
-- 54 offline Python tests passed in source and after a fresh extraction.
+- Initial version 1.1: 54 offline Python tests passed in source and after extraction.
 - No real credentials, mailbox sessions, unsubscribe requests, or mail mutations were used.
-- Build and product-folder verification passed. All eleven archive entries inspected.
+- Build and product-folder verification passed. The download verifier compares
+  each packed file with source, extracts the ZIP and tests the shipped copy.
 - Existing generated ZIP payloads were compared entry-by-entry with HEAD and preserved.
 - Local Playwright storefront suite passed: 55 existing responsive layouts, all paid
   product pages, member login/library mocks, all five admin views and broadcast routes.
