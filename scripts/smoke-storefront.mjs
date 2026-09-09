@@ -11,7 +11,7 @@ const base = process.env.STOREFRONT_TEST_URL || "http://127.0.0.1:5173";
 assert(["127.0.0.1", "localhost"].includes(new URL(base).hostname), "Tests must target a local preview");
 const output = process.env.STOREFRONT_TEST_OUTPUT || "/private/tmp/aiwm-storefront-tests";
 const widths = process.env.STOREFRONT_SKIP_LAYOUTS ? [] : [1440, 1920, 768, 390, 360];
-const layoutRoutes = ["/", "/store", "/store?view=free", "/store?view=paid", "/about", "/start", "/store/future-proof-method", "/store/operator-bundle", "/store/operator-toolkit", "/store/memory-os", "/members"];
+const layoutRoutes = ["/", "/store", "/store?view=free", "/store?view=paid", "/about", "/start", "/free/check-it-first", "/store/future-proof-method", "/store/operator-bundle", "/store/operator-toolkit", "/store/memory-os", "/members"];
 await fs.mkdir(output, { recursive: true });
 assert.equal(getStorefrontReturnPath("?next=store-operator-bundle"), "/store/operator-bundle");
 assert.equal(getStorefrontReturnPath("?next=https://example.com"), null);
@@ -142,14 +142,15 @@ try {
 
   await visit("/store");
   assert.equal(await page.locator(".sf-tool-card").count(), 17);
-  assert.equal(await page.locator("[data-catalog-item]").count(), 19, "Two free downloads plus 17 paid tools; no double counting");
+  assert.equal(await page.locator("[data-catalog-item]").count(), 20, "Three free downloads plus 17 paid tools; no double counting");
+  assert.equal(await page.locator("[data-catalog-item]").first().getAttribute("data-catalog-item"), "check-it-first");
   await page.getByRole("button", { name: "Free Tools", exact: true }).click();
   assert.equal(new URL(page.url()).searchParams.get("view"), "free");
   assert.equal(await page.locator(".sf-tool-card, .sf-offer").count(), 0);
-  assert.equal(await page.locator("[data-catalog-item]").count(), 2);
+  assert.equal(await page.locator("[data-catalog-item]").count(), 3);
   await page.getByRole("button", { name: "Paid Packages", exact: true }).click();
   assert.equal(await page.locator(".sf-offer").count(), 3);
-  assert.equal(await page.locator(".sf-free-pack, .sf-tool-card").count(), 0);
+  assert.equal(await page.locator(".sf-check-free, .sf-inbox-free, .sf-free-pack, .sf-tool-card").count(), 0);
   assert((await page.locator(".sf-offer.sf-yellow").innerText()).includes("$327 today"));
   assert((await page.locator(".sf-offer.sf-yellow").innerText()).includes("Then $30/month"));
   await page.reload({ waitUntil: "networkidle" });
@@ -159,7 +160,7 @@ try {
   await page.getByRole("button", { name: "All Tools", exact: true }).click();
   await page.getByRole("searchbox", { name: "Search tools" }).fill("memory");
   assert.equal(await page.locator(".sf-tool-card").count(), 1);
-  assert.equal(await page.locator(".sf-free-pack").count(), 0, "A nonmatching free pack must not remain in search results");
+  assert.equal(await page.locator(".sf-check-free, .sf-inbox-free, .sf-free-pack").count(), 0, "Nonmatching free tools must not remain in search results");
   await page.getByRole("searchbox", { name: "Search tools" }).fill("no-matching-tool");
   await page.getByRole("heading", { name: "No matching tools." }).waitFor();
   await page.getByRole("button", { name: "Reset filters" }).click();

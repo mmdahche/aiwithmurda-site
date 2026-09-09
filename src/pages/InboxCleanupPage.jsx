@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Archive, ArrowRight, Check, Copy, Download, FileCode2, FolderOpen, Inbox, ListChecks, MailMinus, MessageSquare, Terminal, Trash2 } from "lucide-react";
+import { CheckItFirstNotice } from "./CheckItFirstPage.jsx";
 import quickstart from "../../products/email-cleanup-kit/QUICKSTART.txt?raw";
 import aiPrompt from "../../products/email-cleanup-kit/ai/STARTER-PROMPT.txt?raw";
 
@@ -43,6 +44,7 @@ export function InboxCleanupPage() {
       <p>Review your email one sender at a time. Choose for yourself or ask your AI for suggestions. Both routes use the same local tool, with a preview before any move.</p>
       <div className="sf-actions"><a className="sf-button" href="/downloads/email-cleanup-kit.zip" download><Download size={19} /> Download the free inbox kit</a><span className="sf-inbox-version">Both routes included / $0 / Version 1.2.0</span></div>
       <p className="sf-fine-print">Mac or Windows. Gmail or iCloud. Python 3.9+ and an app password required. No sign-up.</p>
+      <CheckItFirstNotice />
     </section>
     <section className="sf-container sf-inbox-routes" aria-labelledby="inbox-routes-title">
       <h2 id="inbox-routes-title">Pick the way you want to work.</h2>

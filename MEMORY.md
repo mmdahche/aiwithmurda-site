@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-09-08_check-it-first-freebie.md`](memory/2026-09-08_check-it-first-freebie.md) - Approved first recommended free download: readable review guide, copy-ready AI prompt, honest safety limits and optional notices; video remains separate.
 - [`memory/2026-09-08_inbox-cleanup-two-routes.md`](memory/2026-09-08_inbox-cleanup-two-routes.md) - Guided with/without-AI paths, sample inbox, limited sender reports and validated AI suggestions; tutorial scripts ready, actual videos pending.
 - [`memory/2026-09-08_inbox-cleanup-freebie.md`](memory/2026-09-08_inbox-cleanup-freebie.md) - Approved second free download; Delete defaults to Trash, exact previews and typed approval required. Unsubscribes are manual pending a trustworthy automation path. Latest shared handoff records live deployment verification.
 - [`memory/2026-09-07_storefront-publication.md`](memory/2026-09-07_storefront-publication.md) - Publication approved; retain the full private admin dashboard and both OBS overlays while public/member navigation is product-focused. Latest shared handoff records deployment verification.

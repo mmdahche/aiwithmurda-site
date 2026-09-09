@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Download, FileText, FolderOpen, Search } from "lucide-react";
+import { CheckItFirstNotice } from "../../pages/CheckItFirstPage.jsx";
 import { downloadMemberAsset, downloadOperatorBundleAsset, downloadOperatorToolkitAsset, downloadOperatorArsenalAsset, downloadOperatorUpdateAsset } from "../../lib/api.js";
 
 export function DownloadLibrary({ memberData, accessToken, access, onOpenCourse }) {
@@ -39,6 +40,7 @@ export function DownloadLibrary({ memberData, accessToken, access, onOpenCourse 
     return <div className="sf-library-download"><button type="button" onClick={() => download(file)} disabled={state === "loading"}><Download size={17} />{state === "loading" ? "Downloading..." : label}</button>{state === "error" && <span role="alert">Download failed. Try again or refresh your access.</span>}{state === "success" && <span role="status">Download started.</span>}</div>;
   }
   return <section className="sf-library" aria-label="Your download library">
+    <CheckItFirstNotice />
     {start && <div className="sf-library-start"><div><span><FolderOpen size={18} /> Start here</span><h2>{start.title}</h2><p>{start.group.key === "starter" ? "Your first session: choose a project, set up your tools, and make one small, checked change." : "Start with the setup instructions before installing files in your project."}</p></div>{button(start, "Download start guide")}</div>}
     <div className="sf-library-heading"><div><h2>Your files</h2><p>Purchased downloads, all in one place.</p></div><label className="sf-library-search"><Search size={17} /><input type="search" placeholder="Find a file..." aria-label="Search your downloads" value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} /></label></div>
     <div className="sf-library-filters" role="group" aria-label="Download collections"><button aria-pressed={collection === "all"} onClick={() => { setCollection("all"); setPage(0); }}>All files</button>{groups.map((group) => <button key={group.key} aria-pressed={collection === group.key} onClick={() => { setCollection(group.key); setPage(0); }}>{group.name}</button>)}</div>

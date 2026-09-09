@@ -2,6 +2,7 @@ import { storefrontOffers } from "./storefront.js";
 import { storefrontShelf } from "./storefrontCatalog.js";
 
 export const publicPageMetadata = {
+  "/free/check-it-first": { title: "Check It First: Free Download Review Guide | AI with Murda", description: "Review scripts, tools and AI skills before running them. A free plain-English checklist and copy-ready AI prompt, with clear limits. No sign-up." },
   "/": { title: "AI with Murda | Scripts, Skills & Project Setups", description: "Meet Murad and explore the scripts, skills, and project setups he uses to build with Claude Code and Codex. Try the free starter pack." },
   "/store": { title: "The Tool Shop | AI with Murda", description: "Browse AI workflow packages, reusable scripts, skills, and setup folders. See the files and requirements before you buy." },
   "/about": { title: "Meet Murad | AI with Murda", description: "From running a retail business to building inventory and point-of-sale software with AI. Meet the person behind the tools." },

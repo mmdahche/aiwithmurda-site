@@ -65,6 +65,7 @@ import { StorefrontShop, StorefrontProduct } from "./pages/StorefrontShop.jsx";
 import { StorefrontHome, AboutMurad } from "./pages/StorefrontHome.jsx";
 import { StarterPackPage } from "./pages/StarterPackPage.jsx";
 import { InboxCleanupPage } from "./pages/InboxCleanupPage.jsx";
+import { CheckItFirstPage } from "./pages/CheckItFirstPage.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
 import { metadataForPath } from "./data/siteMetadata.js";
@@ -1807,7 +1808,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     ? "/day"
     : memberModuleKey
       ? "/members"
-      : ["/", "/about", "/60", "/live", "/tools", "/start", "/free/inbox-cleanup", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
+      : ["/", "/about", "/60", "/live", "/tools", "/start", "/free/inbox-cleanup", "/free/check-it-first", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
         ? route
         : "/";
 
@@ -1829,6 +1830,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {knownRoute === "/tools" && <ToolsPage latest={latest} />}
       {knownRoute === "/start" && <StarterPackPage />}
       {knownRoute === "/free/inbox-cleanup" && <InboxCleanupPage />}
+      {knownRoute === "/free/check-it-first" && <CheckItFirstPage />}
       {knownRoute === "/kit" && <StorefrontProduct slug="future-proof-method" authSession={authSession} authReady={authReady} />}
       {knownRoute === "/store" && <StorefrontShop />}
       {knownRoute === "/store/product" && <StorefrontProduct slug={storeSlug} authSession={authSession} authReady={authReady} />}
