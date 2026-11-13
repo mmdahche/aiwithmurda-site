@@ -183,7 +183,7 @@ export function InboxCleanupPage() {
     <FreePanel index={5} total={5} pre="In the download" label="QUICKSTART.txt" labelledBy="inbox-guide-title" className="sf-inbox-guide mx-fr-last">
       <div className="mx-fr-split">
         <div className="mx-fr-side mx-fr-side--pin">
-          <h2 className="mx-display mx-fr-h" id="inbox-guide-title">Read the quickstart first.</h2>
+          <h2 className="mx-display mx-fr-h" id="inbox-guide-title">Read the quickstart.</h2>
         </div>
         <div className="mx-fr-body">
           <details className="mx-fr-well mx-fr-fold">

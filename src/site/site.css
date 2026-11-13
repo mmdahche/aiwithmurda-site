@@ -34,7 +34,7 @@
    each redesigned page <main>. Element rules sit behind :where() so they add
    no specificity; older pages inside .public-site are not touched. */
 :where(.mx), :where(.mx) *, :where(.mx) *::before, :where(.mx) *::after { box-sizing: border-box; }
-html:has(.public-site) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+html:has(.public-site) { -webkit-text-size-adjust: 100%; scroll-padding-top: 5.5rem; }
 .mx { color: var(--text-2); font: 400 var(--fs-body)/var(--lh-body) var(--font-sans); letter-spacing: 0;
   -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 /* A redesigned page: <main class="mx mx-page">. Flat reel navy; decorations that lean past the gutter are clipped, never scrolled. */

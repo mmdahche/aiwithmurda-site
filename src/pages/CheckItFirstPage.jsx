@@ -44,12 +44,16 @@ export function useLandOnHash() {
     try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { id = ""; }
     const target = id ? document.getElementById(id) : null;
     if (!target) return undefined;
+    // On reload or back/forward the browser restores where the reader was; keep that.
+    const navigation = window.performance?.getEntriesByType?.("navigation")?.[0]?.type;
+    if (navigation === "reload" || navigation === "back_forward") return undefined;
+    const land = () => { try { target.scrollIntoView({ block: "start" }); } catch { /* older engines: leave the scroll alone */ } };
     let active = true;
-    target.scrollIntoView({ behavior: "instant", block: "start" });
+    land();
     const landedAt = window.scrollY;
     // Web fonts can move the target a little; line up again unless the visitor has already scrolled.
     document.fonts?.ready.then(() => {
-      if (active && Math.abs(window.scrollY - landedAt) < 4) target.scrollIntoView({ behavior: "instant", block: "start" });
+      if (active && Math.abs(window.scrollY - landedAt) < 4) land();
     });
     return () => { active = false; };
   }, []);
@@ -145,7 +149,7 @@ export function CheckItFirstPage() {
   }
 
   function selectPrompt() {
-    promptRef.current?.focus();
+    promptRef.current?.focus({ preventScroll: true });
     promptRef.current?.select();
     setCopyState("selected");
   }

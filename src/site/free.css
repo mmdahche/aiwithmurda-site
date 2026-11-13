@@ -386,3 +386,8 @@
 .mx-fr-limits { gap: 0; }
 .mx-fr-limits p { max-width: none; padding-block: var(--sp-5); padding-right: max(0px, 100% - 35.5rem); border-top: 1px solid var(--hairline); }
 .mx-fr-limits p:last-child { padding-bottom: var(--sp-1); }
+
+/* The contents bar is stuck under the header: focusing one of its links must not scroll the page to make room. */
+@media (min-width: 64rem) { .mx-fr-toc a { scroll-margin-top: -2rem; } }
+/* /start: the product name is the descriptor, keep it at phone width too. */
+@media (max-width: 25.99rem) { .mx-fr--start .mx-fr-top .mx-desc-pre { display: inline; } }
