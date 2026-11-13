@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowRight, Check, Download } from "lucide-react";
 import { subscribeBuildLog } from "../lib/api.js";
 import { CheckItFirstNotice } from "./CheckItFirstPage.jsx";
-import { FolderPreview } from "../components/storefront/StorefrontParts.jsx";
+import { FolderPreview } from "../components/storefront/FolderPreview.jsx";
 
 export function StarterPackPage() {
   const [email, setEmail] = useState("");
