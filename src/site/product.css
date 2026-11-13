@@ -48,9 +48,11 @@
 @media (min-width: 64rem) and (min-height: 47rem) {
   .mx-pd-grid > .mx-pd-side { position: sticky; top: 5.5rem; }
 }
-/* a notice makes the box taller: on a short window let it scroll with the page so nothing is cut off */
+/* a notice that is there from page load (checkout canceled) makes the box taller: on a short window let it
+   scroll with the page so nothing is cut off. An error that appears after a click must NOT change the
+   positioning, or the button and its message would jump away from a reader who has scrolled. */
 @media (min-width: 64rem) and (max-height: 55.99rem) {
-  .mx-pd-grid > .mx-pd-side:has([role="alert"], [role="status"]) { position: static; }
+  .mx-pd-grid > .mx-pd-side:has([role="status"]) { position: static; }
 }
 
 /* 2. BUY BOX --------------------------------------------------------------- */

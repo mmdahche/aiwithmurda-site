@@ -75,14 +75,14 @@ function NotOnShelf() {
         <div className="mx-pd-missing">
           <div className="mx-pd-intro">
             <h1 className="mx-display mx-display--lg" id="pd-title">That tool isn't on the shelf.</h1>
-            <p className="mx-lede">The shop lists every tool, package and free download that is available right now.</p>
+            <p className="mx-lede">The shop has the free downloads, the paid tools and the packages.</p>
             <a className="mx-btn mx-btn--lg sf-button" href="/store">Browse the shop <ArrowRight className="mx-i" aria-hidden="true" /></a>
           </div>
           <nav className="mx-card mx-pd-ways" aria-label="What is on the shelf">
             <div className="mx-mock-head"><span>On the shelf</span><span>Right now</span></div>
             <ul>
               <li><a href="/store?view=free"><span className="mx-tile mx-tile--sm mx-tile--white"><Download className="mx-i" aria-hidden="true" /></span><span className="mx-pd-way-name">Free downloads</span><span className="mx-pd-way-meta">3 downloads, $0</span><ArrowRight className="mx-i mx-pd-way-go" aria-hidden="true" /></a></li>
-              <li><a href="/store#files"><span className="mx-tile mx-tile--sm"><FileText className="mx-i" aria-hidden="true" /></span><span className="mx-pd-way-name">Paid tools</span><span className="mx-pd-way-meta">{storefrontShelf.length} tools, inside the packages</span><ArrowRight className="mx-i mx-pd-way-go" aria-hidden="true" /></a></li>
+              <li><a href="/store#files"><span className="mx-tile mx-tile--sm"><FileText className="mx-i" aria-hidden="true" /></span><span className="mx-pd-way-name">Paid tools</span><span className="mx-pd-way-meta">{storefrontShelf.length} tools, each sold inside a package</span><ArrowRight className="mx-i mx-pd-way-go" aria-hidden="true" /></a></li>
               <li><a href="/store?view=paid"><span className="mx-tile mx-tile--sm"><FileArchive className="mx-i" aria-hidden="true" /></span><span className="mx-pd-way-name">Paid packages</span><span className="mx-pd-way-meta">{storefrontOffers.length} tiers, each includes the one before</span><ArrowRight className="mx-i mx-pd-way-go" aria-hidden="true" /></a></li>
             </ul>
           </nav>
