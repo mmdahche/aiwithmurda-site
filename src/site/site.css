@@ -198,6 +198,40 @@ a.mx-chip:hover { border-color: var(--blue-200); }
   .mx-account span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 }
 
+/* Surfaces by material: how free and paid differ before anyone reads a label.
+   Free things sit in a dashed navy outline (the dashed placeholders of the
+   reels). Paid things sit on the cream announcement card, the brightest
+   surface on the page. */
+.mx-card--free { background: transparent; border: 1.5px dashed rgba(156, 194, 255, .42); }
+.mx-cream { --surface: var(--cream); --text: var(--ink); --text-2: #3a4157; --text-3: #5b6278; --hairline: rgba(19, 23, 36, .14);
+  --hairline-blue: rgba(37, 99, 235, .3); --edge-control: #7c839b; --dot: rgba(37, 99, 235, .5); --accent: var(--blue-600); --on-accent: var(--white);
+  background: var(--cream); border: 1px solid var(--cream); border-radius: var(--r-lg); color: var(--text-2); }
+.mx-cream :where(.mx-title, .mx-display, .mx-price-num, .mx-link, h1, h2, h3, h4, strong, b) { color: var(--ink); }
+.mx-cream :where(.mx-lede, .mx-text, p) { color: var(--text-2); }
+.mx-cream :where(.mx-meta, .mx-tile-label, .mx-price-note, small) { color: var(--text-3); }
+.mx-cream :where(.mx-eyebrow, .mx-count) { color: var(--blue-600); }
+.mx-cream .mx-includes li { color: #2b3147; }
+.mx-cream .mx-includes .mx-i, .mx-cream .mx-link .mx-i { color: var(--blue-600); }
+.mx-cream .mx-link:hover { color: var(--blue-600); text-decoration-color: var(--blue-600); }
+.mx-cream .mx-btn { background: var(--blue-600); color: var(--white); }
+.mx-cream .mx-btn:hover { background: #1d4fd0; }
+.mx-cream .mx-btn:focus-visible { outline-color: var(--ink); }
+.mx-cream .mx-btn--ghost { background: transparent; border-color: var(--edge-control); color: var(--ink); }
+.mx-cream .mx-btn--ghost:hover { background: rgba(19, 23, 36, .06); border-color: var(--ink); }
+.mx-cream .mx-ticker-bar { background: var(--ink); color: var(--white); }
+.mx-cream .mx-chip { border-color: var(--hairline-blue); color: var(--ink); }
+.mx-cream :focus-visible { outline-color: var(--blue-600); }
+.mx-cream ::selection { background: var(--blue-600); color: var(--white); }
+
+/* Price as a ticker: the cadence is the tag, the amount is the bar. */
+.mx-ticker--price .mx-ticker-tag { font-size: .75rem; padding: .55rem .7rem; }
+.mx-ticker--price .mx-ticker-bar { padding: .2rem .8rem .15rem; font: 400 2.25rem/1.15 var(--font-display); letter-spacing: .01em; }
+.mx-cadence { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .2rem .6rem; border: 1.5px solid currentColor; border-radius: var(--r-xs);
+  font: 800 .6875rem/1 var(--font-ticker); letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+
+/* Caption highlight inside an excerpt: one key phrase in the blue box. */
+.mx-mark { padding: .05em .3em; border-radius: 3px; background: var(--blue-600); color: var(--white); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
 /* 3. SECTIONS -------------------------------------------------------------- */
 
 /* 01 Hero: first frame of a reel, turned into a storefront */
@@ -511,9 +545,9 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-footer-in { display: grid; gap: var(--sp-10); padding-block: var(--sp-12) var(--sp-8); }
 .mx-footer-brand { display: grid; gap: var(--sp-4); justify-items: start; align-content: start; }
 .mx-footer-brand p { max-width: 26em; font-size: var(--fs-sm); }
-.mx-built { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; padding: .4rem .875rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-pill);
-  font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: #e3e9fb; text-decoration: none; }
-.mx-built:hover { border-color: var(--blue-200); }
+.mx-footer-brand .mx-built { display: inline-flex; align-items: center; min-height: 2.75rem; font: 400 var(--fs-mono-sm)/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+.mx-built a { color: #e3e9fb; text-decoration: underline; text-underline-offset: .2em; }
+.mx-built a:hover { color: var(--blue-200); }
 .mx-footer-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-5); }
 .mx-foot-h { margin-bottom: var(--sp-2); font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--text-3); }
 .mx-footer-cols a { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; color: #e3e8f8; font-size: var(--fs-sm); text-decoration: none; }

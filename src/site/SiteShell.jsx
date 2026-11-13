@@ -110,7 +110,7 @@ export function SiteFooter() {
           <div className="mx-footer-brand">
             <Brand />
             <p>Practical downloads for building with Claude Code and Codex. Download it. Make it yours.</p>
-            <a className="mx-built" href="https://backbonesolutions.ai">Built by the founder of Backbone Solutions</a>
+            <p className="mx-built"><span>Built by the founder of&nbsp;<a href="https://backbonesolutions.ai">Backbone Solutions</a></span></p>
           </div>
           <nav className="mx-footer-cols" aria-label="Footer">
             <div>
