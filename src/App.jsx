@@ -2391,7 +2391,7 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
         </div>
         <div className="stream-command-grid">
           {commands.map((item) => (
-            <a key={item.command} href={item.href}>
+            <a key={`${item.command}-${item.href}`} href={item.href}>
               <strong>{item.command}</strong>
               <span>{item.label}</span>
             </a>
