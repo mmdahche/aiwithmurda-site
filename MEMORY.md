@@ -4,6 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
+- [`memory/2026-11-13_broll-storefront-redesign.md`](memory/2026-11-13_broll-storefront-redesign.md) - Complete visual redesign in the look of Murad's Instagram reels: reel navy and blue, Anton caps, numbered panels, ticker labels, dashed free cards and cream paid cards. Presentation only; routes, prices, checkout, login, admin and OBS overlays unchanged.
 - [`memory/2026-09-08_check-it-first-freebie.md`](memory/2026-09-08_check-it-first-freebie.md) - Approved first recommended free download: readable review guide, copy-ready AI prompt, honest safety limits and optional notices; video remains separate.
 - [`memory/2026-09-08_inbox-cleanup-two-routes.md`](memory/2026-09-08_inbox-cleanup-two-routes.md) - Guided with/without-AI paths, sample inbox, limited sender reports and validated AI suggestions; tutorial scripts ready, actual videos pending.
 - [`memory/2026-09-08_inbox-cleanup-freebie.md`](memory/2026-09-08_inbox-cleanup-freebie.md) - Approved second free download; Delete defaults to Trash, exact previews and typed approval required. Unsubscribes are manual pending a trustworthy automation path. Latest shared handoff records live deployment verification.
@@ -33,6 +34,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Current Project
 
+- Current look (November 13, 2026): the b-roll storefront redesign; see `memory/2026-11-13_broll-storefront-redesign.md`. The design system lives in `src/site/` (tokens scoped to `.public-site`, `mx-` components). Earlier notes that say to keep Archivo and the green palette describe the previous look.
 - Current direction (September 4, 2026): ongoing personal storefront for scripts, skills, and setup folders; see `SALES-FUNNEL-REDESIGN.md`. The campaign dates and release notes below are historical, not evidence of a current stream.
 - September 7 storefront publication is approved with the complete admin workspace preserved; see `STOREFRONT-IMPLEMENTATION.md` and the latest shared handoff for deployment status. Prices, subscriptions, and account ownership are unchanged.
 - Production: `https://aiwithmurda.com`
