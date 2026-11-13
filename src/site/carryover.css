@@ -6,7 +6,6 @@
 */
 .sf-library { color: #edf0f5; padding-block: 24px; }
 .sf-library-start { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 26px 0 32px; border-bottom: 1px solid #2f374c; }
-.sf-library-start > div > span { display: flex; align-items: center; gap: 8px; color: #6da8ff; font-size: 13px; margin-bottom: 16px; }
 .sf-library h2 { font-size: 25px; margin-bottom: 12px; }
 .sf-library p { color: #b3bbd2; line-height: 1.6; font-size: 14px; max-width: 64ch; }
 .sf-library button { border: 1px solid #5c698c; border-radius: 5px; padding: 12px 16px; background: #1e2752; color: #f0f5fe; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }

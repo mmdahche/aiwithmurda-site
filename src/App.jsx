@@ -1944,7 +1944,7 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
   }));
 
   return (
-    <main className="public-page control-room-page scoreboard-experience-page">
+    <main className="public-page control-room-page scoreboard-experience-page" id="main-content">
       <section className="scoreboard-arena">
         <div className="broadcast-ident">
           <span className="broadcast-live-state"><i />{isPrelaunch(config) ? "Prelaunch board" : "Live board"}</span>
@@ -2109,7 +2109,7 @@ function DayReceiptPage({ config, logs, day }) {
 
   if (!record) {
     return (
-      <main className="public-page">
+      <main className="public-page" id="main-content">
         <section className="public-section day-empty-state">
           <div>
             <span className="public-label">Daily receipt</span>
@@ -2154,7 +2154,7 @@ function DayReceiptPage({ config, logs, day }) {
     .join("\n");
 
   return (
-    <main className="public-page day-receipt-page">
+    <main className="public-page day-receipt-page" id="main-content">
       <section className="day-receipt-hero">
         <div>
           <span className="public-label">Daily receipt</span>
@@ -2324,7 +2324,7 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
   const primaryLabel = streamConfig?.primary?.configured ? "Open live room" : "Join build log";
 
   return (
-    <main className="public-page live-experience-page">
+    <main className="public-page live-experience-page" id="main-content">
       <section className="live-broadcast-stage">
         <div className="live-broadcast-copy">
           <div className="broadcast-ident">
@@ -2484,7 +2484,7 @@ function ToolsPage({ latest }) {
   ];
 
   return (
-    <main className="public-page">
+    <main className="public-page" id="main-content">
       <section className="public-section">
         <span className="public-label">Tools</span>
         <h1>Everything useful needs a command.</h1>
@@ -2557,7 +2557,7 @@ function StartPage() {
   }
 
   return (
-    <main className="public-page">
+    <main className="public-page" id="main-content">
       <section className="start-hero">
         <div className="start-copy">
           <span className="public-label">Build log</span>
