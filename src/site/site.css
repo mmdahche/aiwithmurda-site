@@ -182,7 +182,8 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-nav a { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: .875rem; border-radius: var(--r-sm); color: var(--text-2);
   font-size: var(--fs-sm); font-weight: 500; text-decoration: none; transition: color var(--dur-1) var(--ease); }
 .mx-nav a:hover { color: var(--white); }
-.mx-nav-toggle { display: none; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--edge-control);
+/* In the DOM the toggle sits before the menu it opens (keyboard order); on screen it stays last: brand, links, My Downloads, toggle. */
+.mx-nav-toggle { order: 1; display: none; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--edge-control);
   border-radius: var(--r-md); background: transparent; color: var(--white); cursor: pointer; }
 .mx-nav-toggle .mx-i { width: 1.25rem; height: 1.25rem; stroke-width: 2; }
 .mx-nav-toggle .mx-i--close, .mx-nav-toggle[aria-expanded="true"] .mx-i--open { display: none; }

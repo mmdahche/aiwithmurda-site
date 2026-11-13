@@ -69,6 +69,20 @@ export function SiteHeader({ activeRoute }) {
       <header className="mx mx-header">
         <div className="mx-container mx-header-in">
           <Brand />
+          {/* The toggle comes before the menu it opens, so Tab goes from the toggle straight into the open menu.
+              site.css keeps it last on screen with flex `order`. */}
+          <button
+            ref={toggleRef}
+            type="button"
+            className="mx-nav-toggle"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={menuOpen}
+            aria-controls="public-navigation-links"
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            <Menu className="mx-i mx-i--open" aria-hidden="true" />
+            <X className="mx-i mx-i--close" aria-hidden="true" />
+          </button>
           <nav
             id="public-navigation-links"
             className={`mx-nav${menuOpen ? " is-open" : ""}`}
@@ -84,18 +98,6 @@ export function SiteHeader({ activeRoute }) {
             <FolderDown className="mx-i" aria-hidden="true" />
             <span>My Downloads</span>
           </a>
-          <button
-            ref={toggleRef}
-            type="button"
-            className="mx-nav-toggle"
-            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={menuOpen}
-            aria-controls="public-navigation-links"
-            onClick={() => setMenuOpen((current) => !current)}
-          >
-            <Menu className="mx-i mx-i--open" aria-hidden="true" />
-            <X className="mx-i mx-i--close" aria-hidden="true" />
-          </button>
         </div>
       </header>
     </>

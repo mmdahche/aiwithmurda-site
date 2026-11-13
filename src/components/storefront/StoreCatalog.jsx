@@ -110,7 +110,7 @@ export function ToolCard({ file, flow = false }) {
   const position = storefrontShelf.findIndex((item) => item.key === file.key) + 1;
   return <article className="mx-card mx-tool sf-tool-card" data-catalog-item={file.key} aria-labelledby={titleId}>
     <div className="mx-tool-top">
-      <p className="mx-ticker mx-ticker--paid"><span className="mx-ticker-tag">Paid</span><span className="mx-ticker-bar">Included<span className="mx-ticker-more">&nbsp;in a package</span></span></p>
+      <p className="mx-ticker mx-ticker--paid"><span className="mx-ticker-tag">Paid</span><span className="mx-ticker-bar">In a package</span></p>
       <span className="mx-count">{pad2(position)} / {pad2(storefrontShelf.length)}</span>
     </div>
     <div className="mx-tool-head">
@@ -171,10 +171,18 @@ export function StoreCatalog({ featured = false }) {
   const layout = layoutFor(state, featured);
 
   useEffect(() => {
-    const restore = () => update({ view: getCatalogView(window.location.search), query: "", category: ALL_TASKS });
+    // Back and forward between views restore that view. In-page links (the skip link, #files, #pkg-...) fire
+    // popstate too: the view in the URL is unchanged then, so an active search or category is left alone.
+    const restore = () => {
+      const next = getCatalogView(window.location.search);
+      if (next !== catalog.view) update({ view: next, query: "", category: ALL_TASKS });
+    };
     window.addEventListener("popstate", restore);
     // The page renders after the browser has looked for the anchor, so settle links such as /store#files here.
-    const target = window.location.hash.length > 1 ? document.getElementById(decodeURIComponent(window.location.hash.slice(1))) : null;
+    // A fragment that is not valid percent-encoding (#100%) names no anchor: skip the scroll instead of throwing.
+    let anchor = "";
+    try { anchor = decodeURIComponent(window.location.hash.slice(1)); } catch { anchor = ""; }
+    const target = anchor ? document.getElementById(anchor) : null;
     if (target) target.scrollIntoView({ behavior: "instant", block: "start" });
     return () => window.removeEventListener("popstate", restore);
   }, []);
