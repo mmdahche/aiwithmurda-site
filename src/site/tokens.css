@@ -62,7 +62,7 @@
   --fs-sm: 0.9375rem;
   --fs-xs: 0.8125rem;
   --fs-mono: 0.75rem;
-  --fs-mono-sm: 0.6875rem;
+  --fs-mono-sm: 0.75rem; /* 12px: nothing on the site is set smaller */
   --lh-display: 1.03;
   --lh-body: 1.6;
   --track-mono: 0.12em;

@@ -114,31 +114,31 @@ export function SiteFooter() {
           </div>
           <nav className="mx-footer-cols" aria-label="Footer">
             <div>
-              <h2 className="mx-foot-h">Shop</h2>
-              <ul>
+              <p className="mx-foot-h" id="footer-shop">Shop</p>
+              <ul aria-labelledby="footer-shop">
                 <li><a href="/store">All tools</a></li>
                 <li><a href="/start">Starter pack</a></li>
                 <li><a href="/members">Your downloads</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="mx-foot-h">Murad</h2>
-              <ul>
+              <p className="mx-foot-h" id="footer-murad">Murad</p>
+              <ul aria-labelledby="footer-murad">
                 <li><a href="/about">Meet Murad</a></li>
                 <li><a href="/60">Build log archive</a></li>
                 <li><a href="mailto:murad@aiwithmurda.com">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="mx-foot-h">Follow</h2>
-              <ul>
+              <p className="mx-foot-h" id="footer-follow">Follow</p>
+              <ul aria-labelledby="footer-follow">
                 <li><a href="https://www.instagram.com/aiwithmurda/"><InstagramIcon />@aiwithmurda</a></li>
                 <li><a href="https://www.youtube.com/channel/UC9iGjtlA3R4vopdNLTGbnuw"><YouTubeIcon />YouTube</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="mx-foot-h">Fine print</h2>
-              <ul>
+              <p className="mx-foot-h" id="footer-fine-print">Fine print</p>
+              <ul aria-labelledby="footer-fine-print">
                 <li><a href="/terms">Terms</a></li>
                 <li><a href="/privacy">Privacy</a></li>
               </ul>
