@@ -4190,28 +4190,28 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   <title>${escapeCertificateHtml(courseCompletion.title)} Certificate</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; color: #f4fbf6; background: #06100a; }
+    body { margin: 0; color: #ffffff; background: #040923; }
     main { min-height: 100vh; display: grid; place-items: center; padding: 48px 24px; }
-    section { width: min(100%, 980px); padding: 48px; border: 1px solid rgba(97, 227, 109, 0.34); border-radius: 8px; background: radial-gradient(circle at 90% 10%, rgba(247, 201, 72, 0.18), transparent 30%), linear-gradient(135deg, rgba(97, 227, 109, 0.11), rgba(255, 255, 255, 0.035)); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); }
-    .kicker { margin: 0 0 18px; color: #61e36d; font-size: 12px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    section { width: min(100%, 980px); padding: 48px; border: 1px solid rgba(156, 194, 255, 0.34); border-radius: 16px; background: radial-gradient(circle at 12% 0%, rgba(38, 59, 137, 0.62), transparent 46%), #09122b; }
+    .kicker { margin: 0 0 18px; color: #9cc2ff; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
     h1 { margin: 0; max-width: 780px; font-size: clamp(44px, 8vw, 88px); line-height: 0.92; letter-spacing: 0; }
-    .operator { margin: 22px 0 0; color: #d8e6de; font-size: 21px; line-height: 1.45; }
-    .operator strong { color: #f7c948; }
+    .operator { margin: 22px 0 0; color: #c6cde4; font-size: 21px; line-height: 1.45; }
+    .operator strong { color: #ffffff; }
     .status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 34px 0; }
-    .status-grid div { padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; background: rgba(0, 0, 0, 0.22); }
-    .status-grid span { display: block; color: #9fb2a8; font-size: 12px; font-weight: 800; text-transform: uppercase; }
-    .status-grid strong { display: block; margin-top: 8px; color: #f4fbf6; font-size: 25px; line-height: 1; }
-    .certificate-copy { display: grid; gap: 10px; color: #d8e6de; font-size: 16px; line-height: 1.6; }
+    .status-grid div { padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: #060c24; }
+    .status-grid span { display: block; color: #9cc2ff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .status-grid strong { display: block; margin-top: 8px; color: #ffffff; font-size: 25px; line-height: 1; }
+    .certificate-copy { display: grid; gap: 10px; color: #c6cde4; font-size: 16px; line-height: 1.6; }
     .certificate-copy p { margin: 0; }
     ol { display: grid; gap: 10px; margin: 30px 0 0; padding: 0; list-style: none; }
-    li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 8px; background: rgba(255, 255, 255, 0.035); }
-    li.done { border-color: rgba(97, 227, 109, 0.28); background: rgba(97, 227, 109, 0.08); }
-    li strong { grid-row: span 2; align-self: start; justify-self: start; padding: 6px 8px; color: #061008; border-radius: 999px; background: #f7c948; font-size: 11px; text-transform: uppercase; }
-    li.done strong { background: #61e36d; }
-    li span { font-weight: 900; }
-    li p { margin: 0; color: #9fb2a8; line-height: 1.45; }
-    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #9fb2a8; font-size: 13px; }
-    @media print { body { background: white; } main { padding: 0; } section { min-height: 100vh; box-shadow: none; } }
+    li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: #0c1332; }
+    li.done { border-color: #629bf6; background: #16204a; }
+    li strong { grid-row: span 2; align-self: start; justify-self: start; padding: 6px 8px; color: #c6cde4; border: 1px solid #5f6b99; border-radius: 999px; background: transparent; font-size: 12px; text-transform: uppercase; }
+    li.done strong { color: #ffffff; border-color: #2563eb; background: #2563eb; }
+    li span { font-weight: 700; }
+    li p { margin: 0; color: #c6cde4; line-height: 1.45; }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #a6b0cc; font-size: 13px; }
+    @media print { body { background: white; } main { padding: 0; } section { min-height: 100vh; } }
     @media (max-width: 720px) { section { padding: 28px; } .status-grid, li { grid-template-columns: 1fr; } li strong { grid-row: auto; } footer { flex-direction: column; } }
   </style>
 </head>

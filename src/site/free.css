@@ -92,8 +92,10 @@
 .mx-fr-tree span { font-size: var(--fs-xs); line-height: 1.45; color: var(--text-2); }
 /* guide outline: the headings of the file, in two halves */
 .mx-fr-half { display: grid; gap: .625rem; padding-top: var(--sp-4); border-top: 1px solid var(--hairline); }
-.mx-fr-outline { display: grid; gap: .375rem; }
-.mx-fr-outline code { font: 400 var(--fs-xs)/1.5 var(--font-mono); color: var(--fr-code); overflow-wrap: anywhere; }
+.mx-fr-outline { display: grid; gap: .5rem; }
+.mx-fr-outline li { padding-left: 1.5rem; text-indent: -1.5rem; font-size: var(--fs-xs); line-height: 1.45; }
+.mx-fr-outline code { font: 400 var(--fs-xs)/1.45 var(--font-mono); color: var(--fr-code); overflow-wrap: anywhere; }
+.mx-fr-outline .mx-mark { text-indent: 0; }
 .mx-fr-outline .mx-mark { font-weight: 600; }
 /* kit contents */
 .mx-fr-kit { display: grid; }
@@ -129,8 +131,6 @@
 .mx-fr-read strong { font-weight: 600; color: var(--white); }
 .mx-fr-read a { color: var(--white); text-underline-offset: .25em; text-decoration-thickness: 1px; text-decoration-color: var(--blue-200); }
 .mx-fr-read a:hover { color: var(--blue-200); }
-/* on a phone, full lines read better than evened-out ones */
-@media (max-width: 39.99rem) { .mx-fr-read p, .mx-fr-steps--read p { text-wrap: wrap; } }
 
 /* numbered steps */
 .mx-fr-steps { display: grid; align-content: start; min-width: 0; }
@@ -138,10 +138,11 @@
 .mx-fr-steps > li:last-child { padding-bottom: 0; }
 .mx-fr-steps :is(h3, strong) { display: block; font: 600 1.25rem/1.25 var(--font-sans); letter-spacing: -.015em; color: var(--white); }
 .mx-fr-steps p { max-width: 35.5rem; margin-top: .5rem; font-size: var(--fs-body); line-height: 1.6; color: var(--text-2); }
-.mx-fr-steps code { padding: .1em .35em; border: 1px solid var(--hairline-blue); border-radius: var(--r-xs); font: 500 .875em/1.3 var(--font-mono); color: var(--fr-code); white-space: nowrap; }
 .mx-fr-steps--read p { font-size: 1.0625rem; line-height: 1.7; text-wrap: pretty; }
 @media (max-width: 39.99rem) {
   .mx-fr-steps > li { grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: var(--sp-2); }
+  /* on a phone, full lines read better than evened-out ones */
+  .mx-fr-read p, .mx-fr-steps--read p { text-wrap: wrap; }
 }
 
 /* three steps side by side, each led by the tile of the file it uses */
@@ -298,6 +299,7 @@
 .mx-fr-toc a { display: flex; align-items: center; gap: .75rem; min-height: 3rem; color: var(--white); font-weight: 500; font-size: var(--fs-sm); line-height: 1.3; text-decoration: none;
   transition: color var(--dur-1) var(--ease); }
 .mx-fr-toc a:hover { color: var(--blue-200); }
+.mx-fr-toc a[aria-current] { color: var(--blue-200); }
 @media (min-width: 40rem) and (max-width: 63.99rem) {
   .mx-fr-toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-8); }
   .mx-fr-toc li:nth-child(2) { border-top: 0; }
@@ -307,8 +309,11 @@
   .mx-fr-toc-in { grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-8); align-items: center; padding-block: .25rem; }
   .mx-fr-toc ol { grid-template-columns: repeat(4, auto); justify-content: end; column-gap: var(--sp-8); }
   .mx-fr-toc li + li { border-top: 0; }
+  /* the part being read is underlined on the bar's own bottom rule */
+  .mx-fr-toc a { position: relative; min-height: 3.25rem; }
+  .mx-fr-toc a[aria-current]::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(-.25rem - 1px); height: 2px; background: var(--blue-500); }
   /* room for the bar: anchors and the travelling headline sit below it */
-  .mx-fr--check .mx-fr-panel[id] { scroll-margin-top: calc(3.25rem - var(--panel-gap)); }
+  .mx-fr--check .mx-fr-panel[id] { scroll-margin-top: calc(3.75rem - var(--panel-gap)); }
 }
 @media (min-width: 64rem) and (min-height: 44rem) {
   .mx-fr--check .mx-fr-side--pin { top: 9.5rem; }

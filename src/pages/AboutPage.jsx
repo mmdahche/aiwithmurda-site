@@ -19,7 +19,7 @@ function InstagramIcon() {
 }
 
 const elsewhere = [
-  { name: "The original build log", meta: "Build log archive", href: "/60", Icon: History, Go: ArrowRight },
+  { name: "The original build log", meta: "Archive of the 60-day challenge", href: "/60", Icon: History, Go: ArrowRight },
   { name: "YouTube", meta: "Channel", href: "https://www.youtube.com/channel/UC9iGjtlA3R4vopdNLTGbnuw", Icon: YouTubeIcon, Go: ArrowUpRight },
   { name: "Instagram", meta: "@aiwithmurda", href: "https://www.instagram.com/aiwithmurda/", Icon: InstagramIcon, Go: ArrowUpRight },
 ];

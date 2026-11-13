@@ -64,6 +64,8 @@
 .mx-field input:focus-visible { border-color: var(--blue-200); outline: 2px solid var(--blue-200); outline-offset: 1px; border-radius: var(--r-md); }
 .mx-field input:-webkit-autofill { -webkit-text-fill-color: var(--white); box-shadow: inset 0 0 0 100px var(--raised); caret-color: var(--white); }
 .mx-auth-form .mx-btn--lg { margin-top: var(--sp-1); }
+/* pending: the submit button is only disabled while the request is in flight */
+.mx-auth-form button[type="submit"]:disabled::before { content: ""; width: 1rem; height: 1rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: mx-m-spin .8s linear infinite; }
 .mx-auth-or { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .75rem; font: 400 var(--fs-mono)/1 var(--font-mono); letter-spacing: var(--track-mono);
   text-transform: uppercase; color: var(--text-3); }
 .mx-auth-or::before, .mx-auth-or::after { content: ""; height: 1px; background: var(--hairline); }
@@ -464,6 +466,7 @@
 .mx-mcourse .onboarding-step-list article > :is(button, a) { white-space: nowrap; }
 @media (min-width: 761px) { .mx-mcourse .onboarding-step-list article { grid-template-columns: 2rem minmax(0, 1fr) minmax(7rem, auto); gap: var(--sp-4); } }
 @media (min-width: 40rem) { .mx-mcourse .member-onboarding { padding: var(--sp-6); } }
+@media (max-width: 39.99rem) { .mx-mcourse .member-onboarding { padding: 0; border: 0; } /* phone: one box around each step is enough */ }
 
 .mx-mcourse .member-build-track-picker { border-color: var(--hairline); }
 .mx-mcourse .member-build-track-copy h3 { margin: .625rem 0 0; font-size: 1.375rem; }
@@ -601,7 +604,7 @@
 .mx-mcourse .member-finish-view .course-completion-panel { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
 .mx-mcourse .completion-copy .public-label { margin: 0; }
 .mx-mcourse .completion-control { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
-.mx-mcourse .completion-meter-card { align-content: start; padding: var(--sp-5); }
+.mx-mcourse .completion-meter-card { align-content: start; align-self: start; padding: var(--sp-5); }
 .mx-mcourse .completion-builder { grid-template-columns: minmax(0, 1fr); padding: var(--sp-5) var(--sp-4); }
 @media (min-width: 48rem) {
   .mx-mcourse .completion-control { grid-template-columns: 17rem minmax(0, 1fr); }

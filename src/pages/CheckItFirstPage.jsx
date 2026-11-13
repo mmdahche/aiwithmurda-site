@@ -3,7 +3,8 @@ import { ArrowDown, ArrowLeft, ArrowRight, Ban, Check, CircleCheck, CircleHelp, 
 
 /*
   /free/check-it-first, plus the pieces the other two free pages share:
-  the numbered panel wrapper and the "Before you run it, check it." notice.
+  the numbered panel wrapper, landing on a #fragment after render, and the
+  "Before you run it, check it." notice.
 
   Hooks the Playwright suites pin, keep them as written: the h1 text, the
   links "Download the guide" and "Get the AI review prompt", #ai-review,
@@ -61,9 +62,9 @@ export function CheckItFirstNotice() {
   </aside>;
 }
 
-// Section headings of CHECK-IT-FIRST.md, in file order. The second half starts at "# FOR THE AI".
-const guideForYou = ["## The short version", "## How to ask your AI", "## What you'll get back", "## Things you can spot yourself, with no AI at all", "## After it passes"];
-const guideForAi = ["## Ground rules for this read-only review", "## Step 1 — Inventory: what is this, actually?", "## Step 2 — Security: could this hurt them?", "## Step 3 — Quality: is it actually any good?", "## Step 4 — The verdict"];
+// Every section heading of CHECK-IT-FIRST.md, in file order. The second half starts at "# FOR THE AI".
+const guideForYou = ["## The short version", "## Why this exists", "## How to ask your AI", "## What you'll get back", "## Things you can spot yourself, with no AI at all", "## After it passes", "## One honest note"];
+const guideForAi = ["## Ground rules for this read-only review", "## Step 1 — Inventory: what is this, actually?", "## Step 2 — Security: could this hurt them?", "## Step 3 — Quality: is it actually any good?", "## Step 4 — The verdict", "## How to keep this review honest"];
 
 // What the checklist covers and what it does not, in the words of "The boundaries".
 const scopeReadable = ["scripts", "source code", "package setup files", "AI skills", "prompts"];
@@ -88,8 +89,25 @@ export function CheckItFirstPage() {
   const [loadState, setLoadState] = useState("loading");
   const [attempt, setAttempt] = useState(0);
   const [copyState, setCopyState] = useState("idle");
+  const [section, setSection] = useState("");
   const promptRef = useRef(null);
   useLandOnHash();
+
+  // Mark the part of the guide that is on screen in the contents bar.
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return undefined;
+    const parts = contents.map((item) => document.getElementById(item.href.slice(1))).filter(Boolean);
+    const onScreen = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) onScreen.add(entry.target.id);
+        else onScreen.delete(entry.target.id);
+      }
+      setSection(parts.find((part) => onScreen.has(part.id))?.id || "");
+    }, { rootMargin: "-30% 0px -55% 0px" });
+    parts.forEach((part) => observer.observe(part));
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -190,7 +208,7 @@ export function CheckItFirstPage() {
       <div className="mx-container mx-fr-toc-in">
         <strong className="mx-eyebrow">In this guide</strong>
         <ol>{contents.map((item, index) => <li key={item.href}>
-          <a href={item.href}><span className="mx-count" aria-hidden="true">{pad(index + 2)}</span>{item.label}</a>
+          <a href={item.href} aria-current={section === item.href.slice(1) ? "location" : undefined}><span className="mx-count" aria-hidden="true">{pad(index + 2)}</span>{item.label}</a>
         </li>)}</ol>
       </div>
     </nav>

@@ -24,15 +24,17 @@
 .mx-about-copy .mx-lede { color: var(--white); }
 .mx-about-copy .mx-actions { width: 100%; margin-top: var(--sp-2); }
 
-.mx-about-photo { position: relative; min-width: 0; }
+.mx-about-photo { position: relative; min-width: 0; container-type: inline-size; }
 .mx-about-photo img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 38%; border-radius: var(--r-lg); border: 1px solid var(--hairline-blue); }
 .mx-about-photo .mx-ticker { position: absolute; left: -.375rem; bottom: 1rem; }
 
+/* the strap never clips: in a narrow frame (a small phone, the tablet column) it steps down a size */
+@container (max-width: 22rem) {
+  .mx-about-photo .mx-ticker-tag { padding: .5rem .55rem; font-size: .75rem; }
+  .mx-about-photo .mx-ticker-bar { padding: .5rem .6rem; font-size: .8125rem; }
+}
 @media (max-width: 39.99rem) {
   .mx-about-copy .mx-btn { width: 100%; }
-  /* the strap never clips on a narrow phone */
-  .mx-about-photo .mx-ticker-tag { padding: .5rem .6rem; font-size: .75rem; }
-  .mx-about-photo .mx-ticker-bar { padding: .5rem .7rem; font-size: .875rem; }
 }
 @media (min-width: 47.5rem) {
   .mx-about-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto 1fr; column-gap: clamp(2rem, 4.5vw, 4rem); row-gap: var(--sp-6); }
@@ -48,7 +50,7 @@
   background-color: var(--well); background-image: radial-gradient(color-mix(in srgb, var(--blue-200) 10%, transparent) 1px, transparent 1.3px); background-size: 18px 18px; }
 .mx-about-stops { --stop-gap: 1.5rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--stop-gap); }
 .mx-about-stops li { position: relative; display: grid; justify-items: center; align-content: start; gap: .625rem; min-width: 0; text-align: center; }
-.mx-about-stops .mx-tile { width: 3rem; height: 3rem; border-radius: .8rem; }
+.mx-about-stops .mx-tile { width: 3rem; height: 3rem; border-radius: var(--r-md); }
 .mx-about-stops .mx-tile .mx-i { width: 1.3rem; height: 1.3rem; }
 .mx-about-stops li + li::before { content: ""; position: absolute; left: calc(var(--stop-gap) / -2 - .5rem); top: 1rem; width: 1rem; height: 1rem; background: center / contain no-repeat;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239cc2ff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M14 5l7 7-7 7'/%3E%3C/svg%3E"); }
@@ -57,19 +59,20 @@
 .mx-about-route .mx-preview-cap { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--hairline); color: var(--text-2); }
 @media (min-width: 47.5rem) {
   .mx-about-route { padding: var(--sp-6); }
-  .mx-about-stops { --stop-gap: 3.5rem; }
-  .mx-about-stops li { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; column-gap: var(--sp-4); text-align: left; }
-  .mx-about-stops .mx-tile { width: 4rem; height: 4rem; border-radius: 1rem; }
+  .mx-about-stops { --stop-gap: 2.5rem; }
+  .mx-about-stops .mx-tile { width: 4rem; height: 4rem; border-radius: var(--r-lg); }
   .mx-about-stops .mx-tile .mx-i { width: 1.625rem; height: 1.625rem; }
   .mx-about-stops li + li::before { top: 1.375rem; left: calc(var(--stop-gap) / -2 - .625rem); width: 1.25rem; height: 1.25rem; }
-  .mx-about-stop-name { font: 600 1.0625rem/1.25 var(--font-sans); letter-spacing: -.012em; text-transform: none; }
   .mx-about-route .mx-preview-cap { margin-top: var(--sp-5); padding-top: var(--sp-4); text-align: left; }
 }
-@media (min-width: 64rem) {
-  .mx-about-stops .mx-tile { width: 4.5rem; height: 4.5rem; border-radius: 1.125rem; }
+/* wide: each stop reads as a line, tile then number and name */
+@media (min-width: 72rem) {
+  .mx-about-stops { --stop-gap: 3.5rem; }
+  .mx-about-stops li { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; column-gap: var(--sp-4); text-align: left; }
+  .mx-about-stops .mx-tile { width: 4.5rem; height: 4.5rem; }
   .mx-about-stops .mx-tile .mx-i { width: 1.875rem; height: 1.875rem; }
   .mx-about-stops li + li::before { top: 1.625rem; }
-  .mx-about-stop-name { font-size: 1.25rem; }
+  .mx-about-stop-name { font: 600 1.25rem/1.25 var(--font-sans); letter-spacing: -.012em; text-transform: none; }
 }
 
 /* 02 Build at your own pace: the second half of the story, and where else to find him */
@@ -111,6 +114,9 @@
 @media (max-width: 59.99rem) {
   /* phone and tablet: the text lines up under the clause name, not under its number */
   .mx-legal-body p { padding-left: calc(1.75rem + var(--sp-3)); }
+}
+@media (max-width: 39.99rem) {
+  .mx-legal-body p { font-size: 1rem; line-height: 1.65; }
 }
 @media (min-width: 60rem) {
   .mx-legal-head { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--sp-12); }
