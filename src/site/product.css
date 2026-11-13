@@ -271,3 +271,5 @@ a.mx-tiers-item:not([aria-current]):hover .mx-tiers-name { color: var(--blue-200
 .mx-bundle-return .hero-actions { flex-wrap: wrap; }
 @media (max-width: 39.99rem) { .mx-bundle-return .hero-actions > * { flex: 1 1 100%; } }
 .mx-bundle-return :is(a, button, input):focus-visible { outline: 2px solid var(--blue-200); outline-offset: 3px; }
+/* text links on the old return page meet the 44px touch target */
+.mx-bundle-return .text-link { display: inline-flex; align-items: center; min-height: 2.75rem; }
