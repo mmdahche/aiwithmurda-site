@@ -78,25 +78,24 @@ export function StarterPackPage() {
     </section>
 
     <FreePanel index={2} total={4} label="First three steps" labelledBy="start-steps-title">
-      <div className="mx-fr-split">
-        <div className="mx-fr-side">
-          <h2 className="mx-display mx-fr-h" id="start-steps-title">Open it. Try it. <br />Check it.</h2>
-        </div>
-        <ol className="mx-fr-steps mx-fr-steps--tiles">
-          <li>
-            <span className="mx-tile mx-tile--sm mx-tile--white" aria-hidden="true"><FolderOpen className="mx-i" /></span>
-            <div><span className="mx-count" aria-hidden="true">01</span><h3>Open the folder</h3><p>Unzip the download and open <code>00-START-HERE.md</code>.</p></div>
-          </li>
-          <li>
-            <span className="mx-tile mx-tile--sm" aria-hidden="true"><FileText className="mx-i" /></span>
-            <div><span className="mx-count" aria-hidden="true">02</span><h3>Try the prompt</h3><p>Open <code>inspect-before-edit.md</code>. Fill in the placeholders for a small task in your project.</p></div>
-          </li>
-          <li>
-            <span className="mx-tile mx-tile--sm mx-tile--blue" aria-hidden="true"><ShieldCheck className="mx-i" /></span>
-            <div><span className="mx-count" aria-hidden="true">03</span><h3>Check what changed</h3><p>Use the verification skill and checklist to review the result before calling it done.</p></div>
-          </li>
-        </ol>
-      </div>
+      <h2 className="mx-display mx-display--lg mx-fr-wide-h" id="start-steps-title">Open it. Try it. <br className="mx-fr-br" />Check it.</h2>
+      <ol className="mx-fr-trio">
+        <li>
+          <div className="mx-fr-trio-top"><span className="mx-tile mx-tile--white" aria-hidden="true"><FolderOpen className="mx-i" /></span><span className="mx-count" aria-hidden="true">01 / 03</span></div>
+          <h3>Open the folder</h3>
+          <p>Unzip the download and open <code>00-START-HERE.md</code>.</p>
+        </li>
+        <li>
+          <div className="mx-fr-trio-top"><span className="mx-tile" aria-hidden="true"><FileText className="mx-i" /></span><span className="mx-count" aria-hidden="true">02 / 03</span></div>
+          <h3>Try the prompt</h3>
+          <p>Open <code>inspect-before-edit.md</code>. Fill in the placeholders for a small task in your project.</p>
+        </li>
+        <li>
+          <div className="mx-fr-trio-top"><span className="mx-tile mx-tile--blue" aria-hidden="true"><ShieldCheck className="mx-i" /></span><span className="mx-count" aria-hidden="true">03 / 03</span></div>
+          <h3>Check what changed</h3>
+          <p>Use the verification skill and checklist to review the result before calling it done.</p>
+        </li>
+      </ol>
     </FreePanel>
 
     <FreePanel index={3} total={4} pre="Actual files" label="operator-sampler / payload" labelledBy="start-files-title">

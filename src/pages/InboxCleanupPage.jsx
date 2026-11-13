@@ -156,8 +156,17 @@ export function InboxCleanupPage() {
 
     <FreePanel index={4} total={5} pre="Limits" label="Read before you connect" labelledBy="inbox-limits-title">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="inbox-limits-title">Before you connect.</h2>
+          <div className="mx-mock mx-fr-side-art mx-fr-reads" aria-hidden="true">
+            <p className="mx-mock-head"><span>What the kit reads</span><span>Headers only</span></p>
+            <dl>
+              <div><dt>From</dt><dd><code>offers@shop.example</code></dd><dd className="mx-fr-reads-flag">Read</dd></div>
+              <div><dt>Subject</dt><dd><code>Weekend deals</code></dd><dd className="mx-fr-reads-flag">Read</dd></div>
+              <div className="mx-fr-reads-off"><dt>Body</dt><dd><i /><i /><i /></dd><dd className="mx-fr-reads-flag">Not read</dd></div>
+            </dl>
+            <p className="mx-preview-cap">A made-up message from the practice inbox.</p>
+          </div>
         </div>
         <div className="mx-fr-body">
           <div className="mx-fr-read mx-fr-limits">
@@ -173,7 +182,7 @@ export function InboxCleanupPage() {
 
     <FreePanel index={5} total={5} pre="In the download" label="QUICKSTART.txt" labelledBy="inbox-guide-title" className="sf-inbox-guide mx-fr-last">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="inbox-guide-title">Read the quickstart first.</h2>
         </div>
         <div className="mx-fr-body">

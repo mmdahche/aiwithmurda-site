@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, Ban, Check, CircleCheck, CircleHelp, Copy, Download, FileSearch, MessageSquare, Pause, Plus, RefreshCw, SlidersHorizontal, TextSelect, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, Ban, Check, CircleCheck, CircleHelp, Copy, Download, FileSearch, FileText, MessageSquare, Pause, Plus, RefreshCw, SlidersHorizontal, TextSelect, TriangleAlert } from "lucide-react";
 
 /*
   /free/check-it-first, plus the pieces the other two free pages share:
@@ -64,6 +64,10 @@ export function CheckItFirstNotice() {
 // Section headings of CHECK-IT-FIRST.md, in file order. The second half starts at "# FOR THE AI".
 const guideForYou = ["## The short version", "## How to ask your AI", "## What you'll get back", "## Things you can spot yourself, with no AI at all", "## After it passes"];
 const guideForAi = ["## Ground rules for this read-only review", "## Step 1 — Inventory: what is this, actually?", "## Step 2 — Security: could this hurt them?", "## Step 3 — Quality: is it actually any good?", "## Step 4 — The verdict"];
+
+// What the checklist covers and what it does not, in the words of "The boundaries".
+const scopeReadable = ["scripts", "source code", "package setup files", "AI skills", "prompts"];
+const scopeFurther = ["compiled apps", "unseen dependencies", "updates", "runtime behavior"];
 
 const contents = [
   { href: "#before-you-run", label: "Before you run it" },
@@ -193,7 +197,7 @@ export function CheckItFirstPage() {
 
     <FreePanel index={2} total={6} label="The habit" id="before-you-run" labelledBy="check-habit-title">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="check-habit-title">Download. Pause. Review.</h2>
           <div className="mx-preview mx-fr-side-art" aria-hidden="true">
             <div className="mx-flow mx-flow--sm">
@@ -216,8 +220,14 @@ export function CheckItFirstPage() {
 
     <FreePanel index={3} total={6} label="The boundaries" id="review-limits" labelledBy="check-limits-title">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="check-limits-title">A checklist, not a safety certificate.</h2>
+          <div className="mx-preview mx-fr-side-art mx-fr-scope" aria-hidden="true">
+            <p className="mx-eyebrow">Start with readable files</p>
+            <ul className="mx-fr-tags">{scopeReadable.map((item) => <li key={item}><FileText className="mx-i" />{item}</li>)}</ul>
+            <p className="mx-eyebrow">Need further checks</p>
+            <ul className="mx-fr-tags mx-fr-tags--open">{scopeFurther.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
         </div>
         <div className="mx-fr-read">
           <p><strong>Start with readable files:</strong> scripts, source code, package setup files, AI skills and prompts. Check what they read, change, delete, install or send elsewhere.</p>
@@ -231,7 +241,7 @@ export function CheckItFirstPage() {
 
     <FreePanel index={4} total={6} label="The decision" id="read-the-verdict" labelledBy="check-verdict-title">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="check-verdict-title">What the answer means.</h2>
         </div>
         <div className="mx-fr-body">
@@ -278,7 +288,7 @@ export function CheckItFirstPage() {
 
     <FreePanel index={6} total={6} label="The same standard" labelledBy="check-finish-title" className="mx-fr-last">
       <div className="mx-fr-split">
-        <div className="mx-fr-side">
+        <div className="mx-fr-side mx-fr-side--pin">
           <h2 className="mx-display mx-fr-h" id="check-finish-title">Hold my tools to the same standard.</h2>
         </div>
         <div className="mx-fr-body">

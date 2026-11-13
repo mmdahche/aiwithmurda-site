@@ -33,8 +33,11 @@
 
   /* 1. PAGE FRAME ---------------------------------------------------------- */
   /* Full-width navy canvas with the site container as padding, so the old shell gradient cannot show through. */
-  position: relative; display: block; width: auto; max-width: none; min-height: 60vh; margin: 0; overflow-x: clip;
-  padding: clamp(.75rem, 2vw, 1.25rem) max(var(--gutter), calc((100% - var(--container)) / 2)) var(--panel-pad);
+  position: relative; display: block; width: auto; max-width: none; min-height: 60vh; overflow-x: clip;
+  /* The page runs down to the footer: its bottom margin cancels the footer's top margin, and the same space comes back
+     as navy padding, so the old shell gradient has no strip to show in. */
+  margin: 0 0 calc(-1 * var(--panel-gap));
+  padding: clamp(.75rem, 2vw, 1.25rem) max(var(--gutter), calc((100% - var(--container)) / 2)) calc(var(--panel-pad) + var(--panel-gap));
   background-color: var(--bg); background-repeat: no-repeat;
   background-image: radial-gradient(52rem 30rem at 14% -4rem, color-mix(in srgb, var(--royal-500) 62%, transparent), color-mix(in srgb, var(--royal-700) 30%, transparent) 46%, transparent 74%);
   color: var(--text-2); font: 400 var(--fs-body)/var(--lh-body) var(--font-sans); letter-spacing: 0; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
@@ -74,6 +77,8 @@
     color: var(--white); text-shadow: none; text-wrap: balance; }
   & :where(.scoreboard-arena h1, .live-broadcast-copy h1) { font-size: var(--fs-display-lg); }
   & :where(.public-section h1, .proofline-heading h2) { font-size: var(--fs-display-md); }
+  & .public-section h1 { max-width: 11em; }
+  & .proofline-heading h2 { text-wrap: wrap; } /* keeps "60-Day" together on a phone */
   & :where(.public-section h2, .live-control-tower > strong) { font-size: clamp(2rem, 1.55rem + 2vw, 3rem); }
 
   /* Headings that carry logged text (a day's goal, a proof line) stay in the sans face: they can run to a full sentence. */
@@ -322,9 +327,26 @@
     & .live-mission-board > div strong { font-size: 6rem; }
   }
 
-  /* Pinned commands, run of show, week arc, stream modes */
-  & :is(.stream-command-section, .stream-arc-section) { gap: var(--sp-6); }
-  & .stream-command-grid { gap: var(--sp-2); }
+  /* Pinned commands, run of show, week arc, stream modes: headline on top, the cards in one even grid below it,
+     so no column is left half empty beside a tall list. */
+  & :is(.stream-command-section, .stream-arc-section, .tool-command-section, .public-section.two-col) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  & :is(.stream-command-grid, .stream-arc-grid, .tool-link-grid, .plain-list) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  @media (min-width: 30rem) {
+    & :is(.stream-command-grid, .stream-arc-grid, .tool-link-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 40rem) {
+    & .plain-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 60rem) {
+    & :is(.stream-command-grid, .stream-arc-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    & .tool-link-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    /* week arc: headline left, its paragraph and link right, like the section heads of the new pages */
+    & .stream-arc-section > div:first-child { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--sp-12); align-items: start; }
+    & .stream-arc-section > div:first-child > .public-label { grid-column: 1 / -1; }
+    & .stream-arc-section > div:first-child > h2 { grid-column: 1; grid-row: 2 / span 2; }
+    & .stream-arc-section > div:first-child > p { grid-column: 2; margin-top: 0; }
+    & .stream-arc-section > div:first-child > .secondary-link { grid-column: 2; justify-self: start; margin-top: var(--sp-4); }
+  }
   & .stream-command-grid a { gap: .25rem; min-height: 4.25rem; padding: var(--sp-3) var(--sp-4); }
   & .stream-command-grid strong { color: var(--blue-200); font: 500 1rem/1.3 var(--font-mono); letter-spacing: 0; }
   & .run-of-show { gap: var(--sp-4); }
@@ -332,22 +354,18 @@
   & .run-of-show p { font-size: var(--fs-body); color: var(--text); }
   & .stream-arc-section > div:first-child > p { max-width: 34em; margin-top: var(--sp-4); font-size: var(--fs-body); }
   & .stream-arc-section .secondary-link { margin-top: var(--sp-5); }
-  & .stream-arc-grid { gap: var(--sp-2); }
   & .stream-arc-grid span { margin-bottom: var(--sp-2); }
   & .stream-arc-grid strong { margin-top: 0; color: var(--white); font: 600 1.0625rem/1.3 var(--font-sans); letter-spacing: -.012em; }
   & .stream-arc-grid p { margin-top: var(--sp-2); }
   /* the command a day points to: an outlined mono pill, so filled blue stays reserved for buttons */
   & .stream-arc-grid em { display: inline-flex; align-items: center; min-height: 1.5rem; margin-top: var(--sp-3); padding: .15rem .55rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-pill);
     background: transparent; color: var(--text); font: 500 var(--fs-mono)/1 var(--font-mono); font-style: normal; letter-spacing: .04em; }
-  & .plain-list { gap: var(--sp-2); }
   & .plain-list p { font-size: var(--fs-body); color: var(--text); }
 
   /* 8. /tools -------------------------------------------------------------- */
   /* The opening block is the page headline, not a card. */
   &:has(> .tool-command-section) > .public-section:first-of-type { padding: 0; border: 0; border-radius: 0; background: none; }
   &:has(> .tool-command-section) > .tool-command-section { margin-top: var(--panel-gap); }
-  & .tool-command-section { gap: var(--sp-6); }
-  & .tool-link-grid { gap: var(--sp-2); }
   & .tool-link-grid a { align-content: start; gap: .375rem; }
   & .tool-link-grid span { display: block; font: 500 .8125rem/1.3 var(--font-mono); letter-spacing: .02em; color: var(--blue-200); }
   & .tool-link-grid strong { color: var(--white); font: 600 1.0625rem/1.3 var(--font-sans); letter-spacing: -.012em; }
@@ -361,7 +379,14 @@
   /* 9. SMALL SCREENS ------------------------------------------------------- */
   @media (max-width: 39.99rem) {
     /* a full-width first action, the way the hero buttons stack on the new pages */
-    & :where(.experience-actions, .hero-actions) { flex-direction: column; align-items: stretch; }
+    & :where(.experience-actions, .hero-actions) { flex-direction: column; align-items: stretch; width: 100%; }
+    /* status strip: plain wrapped labels, no dangling dividers */
+    & .broadcast-ident { gap: .5rem .75rem; }
+    & .broadcast-ident > span:not(:last-child) { padding-right: 0; border-right: 0; }
+    /* week recap: the six figures in two columns; the bar chart repeats them and has no room for its labels here */
+    & .weekly-content { gap: 0; }
+    & .weekly-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+    & .bar-chart { display: none; }
     & :where(.experience-primary-action, .experience-secondary-action, .hero-actions .primary-link, .hero-actions .secondary-link) { width: 100%; }
   }
   @media (max-width: 29.99rem) {

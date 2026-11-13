@@ -743,7 +743,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-built a:hover { color: var(--blue-200); }
 .mx-footer-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-5); }
 .mx-foot-h { margin-bottom: var(--sp-2); font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--text-3); }
-.mx-footer-cols a { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; color: #e3e8f8; font-size: var(--fs-sm); text-decoration: none; }
+.mx-footer-cols a { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; min-width: 2.75rem; color: #e3e8f8; font-size: var(--fs-sm); text-decoration: none; }
 .mx-footer-cols a:hover { color: var(--blue-200); }
 .mx-footer-cols a .mx-i { width: 1.05rem; height: 1.05rem; color: var(--blue-200); }
 .mx-footer-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2) var(--sp-6); padding-block: var(--sp-5) var(--sp-8); border-top: 1px solid var(--hairline);

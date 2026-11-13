@@ -57,7 +57,7 @@ export function OfferCard({ offer }) {
   const index = storefrontOffers.findIndex((item) => item.slug === offer.slug);
   const titleId = `pkg-${offer.slug}-title`;
   return <article className={`mx-cream mx-pkg sf-offer sf-${offer.color}`} id={`pkg-${offer.slug}`} aria-labelledby={titleId}>
-    <div className="mx-pkg-top mx-ticker-box"><p className="mx-ticker"><span className="mx-ticker-tag">Paid package</span><span className="mx-ticker-bar">{offer.dueToday ? "Setup + monthly" : "One-time"}</span></p></div>
+    <div className="mx-pkg-top mx-ticker-box"><p className="mx-ticker"><span className="mx-ticker-tag">Paid package</span><span className="mx-ticker-bar">{offer.dueToday ? "Today + monthly" : "One-time"}</span></p></div>
     <div className="mx-pkg-name">
       <p className="mx-eyebrow">{offer.name}</p>
       <h3 id={titleId}><a href={`/store/${offer.slug}`}>{offer.shortName}</a></h3>
