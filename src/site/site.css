@@ -15,8 +15,7 @@
 :where(.mx), :where(.mx) *, :where(.mx) *::before, :where(.mx) *::after { box-sizing: border-box; }
 html:has(.public-site) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
 .mx { color: var(--text-2); font: 400 var(--fs-body)/var(--lh-body) var(--font-sans); letter-spacing: 0;
-  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
-  --fs-mono-sm: .75rem; /* nothing on a public page is set under 12px */ }
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 /* A redesigned page: <main class="mx mx-page">. Flat reel navy; decorations that lean past the gutter are clipped, never scrolled. */
 .mx-page { display: block; min-height: 60vh; background: var(--bg); overflow-x: clip; }
 :where(.mx) :where(img, svg) { display: block; max-width: 100%; }
@@ -113,6 +112,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 @media (max-width: 25.99rem) { .mx-desc-pre { display: none; } }
 .mx-section-head { display: grid; gap: var(--sp-5); margin-block: clamp(1.5rem, 3.5vw, 2.5rem) clamp(1.75rem, 4vw, 2.75rem); }
 .mx-section-side { display: grid; gap: var(--sp-3); align-content: end; }
+.mx-section-side .mx-meta { color: var(--text-2); } /* counts and price facts, not incidental labels */
 @media (min-width: 60rem) {
   .mx-section-head { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); align-items: end; }
   .mx-section-side { padding-bottom: .5rem; }
@@ -261,13 +261,14 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-hero-copy .mx-lede { margin-top: var(--sp-4); max-width: 30em; }
 .mx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); }
 .mx-hero-copy .mx-actions { margin-top: 1.625rem; width: 100%; }
-.mx-hero-copy .mx-meta { margin-top: var(--sp-4); }
+.mx-hero-copy .mx-meta { margin-top: var(--sp-4); color: var(--text-2); }
 @media (max-width: 39.99rem) {
   /* phone: the photo, the headline and the first button share the first screen */
   .mx-hero-grid { gap: var(--sp-4); margin-top: var(--sp-4); }
   .mx-hero-copy .mx-display, .mx-hero-copy .mx-lede { margin-top: var(--sp-3); }
   .mx-hero-copy .mx-actions { margin-top: var(--sp-5); }
   .mx-hero-copy .mx-btn { width: 100%; }
+  .mx-hero-copy .mx-chip { letter-spacing: .08em; }
 }
 
 /* Murad. On a phone he opens the page the way he opens a reel: a wide frame with the
@@ -285,7 +286,6 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-float--c { right: -.375rem; bottom: 1.25rem; transform: rotate(-6deg); }
 @media (min-width: 40rem) and (max-width: 59.99rem) {
   .mx-portrait { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); gap: var(--sp-6); align-items: end; }
-  .mx-portrait-frame { aspect-ratio: 4 / 3; }
   .mx-portrait figcaption { max-width: 22em; padding-bottom: var(--sp-2); font-size: var(--fs-body); }
 }
 @media (min-width: 60rem) and (max-width: 74.99rem) {
@@ -312,11 +312,11 @@ a.mx-chip:hover { border-color: var(--blue-200); }
    paid is the cream card; every row is a link to its own page. */
 .mx-shelf { margin-top: clamp(1.5rem, 3.6vw, 2rem); }
 .mx-shelf-groups { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
-.mx-shelf-group { min-width: 0; padding: var(--sp-4); }
+.mx-shelf-group { display: grid; grid-template-rows: auto 1fr; min-width: 0; padding: var(--sp-4); }
 .mx-shelf-grouphead { display: grid; gap: .5rem; justify-items: start; }
-.mx-shelf-note { font: 400 var(--fs-mono)/1.45 var(--font-mono); letter-spacing: .02em; color: var(--text-3); }
+.mx-shelf-note { font: 400 var(--fs-mono)/1.45 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
 .mx-shelf-note .mx-count { margin-right: .875em; text-transform: uppercase; }
-.mx-shelf-items { display: grid; gap: .125rem; margin-top: var(--sp-3); }
+.mx-shelf-items { display: grid; gap: .125rem; align-content: space-between; margin-top: var(--sp-3); }
 .mx-shelf-items li { position: relative; }
 .mx-shelf-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "tile name price go" "tile meta price go"; column-gap: .75rem; align-items: center;
   min-height: 3.75rem; padding: .375rem .5rem; margin-inline: -.5rem; border-radius: var(--r-md); text-decoration: none; transition: background-color var(--dur-1) var(--ease); }
@@ -325,18 +325,22 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-shelf-item .mx-tile { grid-area: tile; width: 2.75rem; height: 2.75rem; border-radius: .75rem; }
 .mx-shelf-item .mx-tile .mx-i { width: 1.3rem; height: 1.3rem; }
 .mx-shelf-name { grid-area: name; align-self: end; color: var(--text); font-weight: 600; font-size: var(--fs-sm); line-height: 1.25; letter-spacing: -.01em; }
-.mx-shelf-meta { grid-area: meta; align-self: start; font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .02em; color: var(--text-3); }
+.mx-shelf-meta { grid-area: meta; align-self: start; font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
 .mx-shelf-price { grid-area: price; display: inline-flex; align-items: center; min-height: 1.625rem; padding: .15rem .5rem; border: 1px solid var(--edge-control); border-radius: var(--r-xs);
   font: 500 var(--fs-mono)/1.25 var(--font-mono); letter-spacing: .01em; color: var(--text); }
 .mx-shelf-go { grid-area: go; color: var(--accent); width: 1.125rem; height: 1.125rem; stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
 .mx-shelf-item:hover .mx-shelf-go { transform: translateX(3px); }
 .mx-tile--price { font: 400 1.125rem/1 var(--font-display); letter-spacing: .02em; color: var(--white); }
-.mx-shelf-cap { margin-top: var(--sp-3); }
-@media (max-width: 39.99rem) {
-  /* a package price carries its cadence, so on a phone it takes the line under the name */
+.mx-shelf-cap { margin-top: var(--sp-3); color: var(--text-2); }
+@media (max-width: 74.99rem) {
+  /* a package price carries its cadence, so it takes the line under the name until there is room for a price column */
   .mx-shelf-item--paid { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile price go"; row-gap: .3rem; padding-block: .5rem; }
   .mx-shelf-item--paid .mx-shelf-meta { display: none; }
   .mx-shelf-item--paid .mx-shelf-price { justify-self: start; align-self: start; }
+}
+@media (max-width: 39.99rem) {
+  .mx-shelf-meta, .mx-shelf-price { letter-spacing: 0; }
+  .mx-shelf-note .mx-count { display: block; }
 }
 @media (min-width: 60rem) {
   .mx-shelf-groups { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-5); }
@@ -427,12 +431,14 @@ a.mx-chip:hover { border-color: var(--blue-200); }
   /* the action stays within a thumb of the title: what is inside moves under the price note */
   .mx-freecard > .mx-includes { order: 1; }
   .mx-freecard > .mx-note { order: 2; }
-  /* shorter previews on a phone: the names stay, the longer explanations wait for the product page */
-  .mx-verdict-list li span span, .mx-preview-block--wide, .mx-choices div + div { display: none; }
   /* the Starter Pack is a direct download, so its button comes before the three samples */
   .mx-freecard--pack > .mx-freecard-view { order: 1; }
 }
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+@media (max-width: 71.99rem) {
+  /* shorter previews below the three-up layout: the names stay, the longer explanations wait for the product page */
+  .mx-verdict-list li span span, .mx-preview-block--wide, .mx-choices div + div { display: none; }
+}
+@media (min-width: 40rem) and (max-width: 71.99rem) {
   .mx-freecard { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: var(--sp-8); grid-template-rows: auto auto auto auto auto 1fr;
     grid-template-areas: "top top" "intro view" "list view" "buy view" "zero view" "note view"; }
   .mx-freecard > .mx-free-top { grid-area: top; }
@@ -447,14 +453,13 @@ a.mx-chip:hover { border-color: var(--blue-200); }
   .mx-freecard--pack .mx-samples { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--sp-6); }
   .mx-freecard--pack .mx-samples article, .mx-freecard--pack .mx-samples article:first-child { padding-block: 0; border-top: 0; }
 }
-@media (min-width: 64rem) {
+@media (min-width: 72rem) {
   .mx-freecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .mx-freecard { padding: var(--sp-5); }
   .mx-samples article { padding-block: var(--sp-3); }
-  .mx-samples .mx-link { min-height: 2.25rem; }
 }
 @supports (grid-template-rows: subgrid) {
-  @media (min-width: 64rem) {
+  @media (min-width: 72rem) {
     /* seven shared rows keep the three buttons on one line */
     .mx-freecards { grid-template-rows: auto auto 1fr auto auto auto auto; row-gap: 0; }
     .mx-freecard { grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
@@ -499,7 +504,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 @container (max-width: 19.5rem) { .mx-ticker-more { display: none; } }
 .mx-tool-head { display: grid; gap: .5rem; justify-items: start; align-content: start; }
 .mx-tool-head h3 { font: 600 1.375rem/1.18 var(--font-sans); letter-spacing: -.02em; color: var(--white); text-wrap: balance; }
-.mx-tool-head h3 a { text-decoration: none; }
+.mx-tool-head h3 a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; text-decoration: none; } /* the padding makes the title a 44px target without moving it */
 .mx-tool-head h3 a:hover { color: var(--blue-200); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
 .mx-tool .mx-text { font-size: var(--fs-sm); }
 .mx-specs { display: grid; gap: .625rem; padding-top: var(--sp-4); border-top: 1px solid var(--hairline); }
@@ -514,6 +519,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-tool-terms { font-size: var(--fs-xs); line-height: 1.5; }
 .mx-comes .mx-link { margin-top: .125rem; }
 .mx-tools-more { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin-top: var(--sp-8); }
+.mx-tools-more .mx-meta { color: var(--text-2); }
 
 /* A product preview: real words from the product, in an illustration well.
    Stands alone on the product pages too. */
@@ -522,7 +528,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-preview-label .mx-i { width: .95rem; height: .95rem; margin-top: .05rem; color: var(--blue-200); }
 .mx-preview-title { display: block; font: 600 1.0625rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
 .mx-preview--file .mx-flow { padding-block: var(--sp-2); }
-.mx-preview-source { font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .01em; color: var(--text-3); overflow-wrap: anywhere; }
+.mx-preview-source { font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .01em; color: var(--text-2); overflow-wrap: anywhere; }
 .mx-preview--file:not(.mx-preview--compact) { gap: var(--sp-4); padding: var(--sp-5); }
 .mx-preview--file:not(.mx-preview--compact) .mx-preview-title { font-size: 1.25rem; }
 .mx-tree { display: grid; gap: .5rem; }
@@ -533,32 +539,35 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-tree .mx-tree-root .mx-i { color: var(--blue-200); }
 .mx-preview--file .mx-preview-cap { margin-top: auto; padding-top: var(--sp-2); text-align: left; }
 
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+@media (min-width: 40rem) and (max-width: 71.99rem) {
   /* home: three wide cards, preview beside the words */
-  .mx-tools:not(.mx-tools--shelf) .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-6); align-items: start;
+  .mx-tools:not(.mx-tools--shelf) .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto; column-gap: var(--sp-6); align-items: start;
     grid-template-areas: "top top" "head view" "list view" "specs view" "pkg pkg"; }
   .mx-tools:not(.mx-tools--shelf) .mx-tool-top { grid-area: top; }
   .mx-tools:not(.mx-tools--shelf) .mx-tool-head { grid-area: head; }
   .mx-tools:not(.mx-tools--shelf) .mx-preview--file { grid-area: view; }
   .mx-tools:not(.mx-tools--shelf) .mx-tool > .mx-includes { grid-area: list; }
   .mx-tools:not(.mx-tools--shelf) .mx-specs { grid-area: specs; }
-  .mx-tools:not(.mx-tools--shelf) .mx-comes { grid-area: pkg; justify-self: stretch; }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes { grid-area: pkg; justify-self: stretch; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-6); }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes > * { grid-column: 1; }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes > .mx-link { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
+  .mx-tools:not(.mx-tools--shelf) .mx-preview--file { align-self: stretch; }
   /* shop: two columns of cards */
   .mx-tools--shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
   .mx-tools--shelf .mx-tool { padding: var(--sp-5); }
 }
-@media (min-width: 64rem) {
+@media (min-width: 72rem) {
   .mx-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); }
   .mx-tool { padding: var(--sp-5); }
 }
 @supports (grid-template-rows: subgrid) {
   /* six shared rows per line of cards: label, name, preview, contents, needs, package */
-  @media (min-width: 64rem) {
+  @media (min-width: 72rem) {
     .mx-tools { row-gap: 0; margin-bottom: calc(-1 * var(--sp-5)); }
     .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr); grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; margin-bottom: var(--sp-5); }
     .mx-tool > * + * { margin-top: var(--sp-4); }
   }
-  @media (min-width: 40rem) and (max-width: 63.99rem) {
+  @media (min-width: 40rem) and (max-width: 71.99rem) {
     .mx-tools--shelf { row-gap: 0; margin-bottom: calc(-1 * var(--sp-4)); }
     .mx-tools--shelf .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr); grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; margin-bottom: var(--sp-4); }
     .mx-tools--shelf .mx-tool > * + * { margin-top: var(--sp-4); }
@@ -594,16 +603,17 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-cream .mx-stack .mx-preview-cap { color: var(--text-2); }
 .mx-pkg-name { display: grid; gap: .5rem; align-content: start; }
 .mx-pkg-name h3 { font: 600 var(--fs-title)/1.12 var(--font-sans); letter-spacing: -.022em; color: var(--text); text-wrap: balance; }
-.mx-pkg-name h3 a { text-decoration: none; }
+.mx-pkg-name h3 a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; text-decoration: none; }
 .mx-pkg-name h3 a:hover { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .18em; }
 .mx-pkg .mx-text { font-size: var(--fs-sm); }
 .mx-price { display: grid; gap: .3rem; padding-top: var(--sp-5); border-top: 1px solid var(--hairline); margin-top: auto; align-content: start; }
 .mx-price .mx-price-row { display: grid; justify-items: start; gap: .5rem; }
 .mx-price-num { display: flex; align-items: baseline; gap: .625rem; font: 400 var(--fs-price)/.95 var(--font-display); letter-spacing: .01em; color: var(--text); }
 .mx-price-num small { font: 500 var(--fs-xs)/1 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--blue-200); }
-.mx-price-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
+.mx-price-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); text-wrap: pretty; }
 .mx-price-note b { font-weight: 650; color: var(--text); }
 .mx-price-terms { display: grid; gap: .2rem; align-content: start; }
+.mx-price-terms .mx-meta { color: var(--text-2); }
 .mx-pkg-foot { margin-top: var(--sp-6); font-size: var(--fs-sm); color: var(--text-2); max-width: 46em; }
 .mx-pkg-foot a { color: var(--white); text-underline-offset: .25em; text-decoration-color: var(--edge-control); }
 .mx-pkg-foot a:hover { color: var(--blue-200); }
@@ -623,7 +633,7 @@ a.mx-chip:hover { border-color: var(--blue-200); }
   .mx-pkgs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); }
   /* connector node between tiers, sitting in the gutter */
   .mx-pkg + .mx-pkg .mx-stack::before { content: ""; position: absolute; left: calc(-1 * var(--sp-6) - var(--sp-6) / 2 - 1px - .875rem); top: 3.05rem; width: 1.75rem; height: 1.75rem;
-    border: 1px solid rgba(156, 194, 255, .45); border-radius: 50%; background: var(--navy-950) center / .95rem no-repeat;
+    border: 1px solid rgba(156, 194, 255, .42); border-radius: 50%; background: var(--navy-950) center / .95rem no-repeat;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239cc2ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h16M13 5l7 7-7 7'/%3E%3C/svg%3E"); }
 }
 @supports (grid-template-rows: subgrid) {
@@ -673,6 +683,8 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 .mx-cta-in { display: grid; gap: var(--sp-10); padding-block: clamp(2.75rem, 6vw, 4.25rem) clamp(5.5rem, 4rem + 6vw, 8.5rem); }
 .mx-cta-copy { display: grid; justify-items: start; gap: var(--sp-5); min-width: 0; }
 .mx-cta .mx-display .mx-hl { padding: 0 .14em .02em; border-radius: .08em; }
+/* when the band closes a page it sits directly on the footer */
+.mx-page > .mx-cta:last-child { margin-bottom: calc(-1 * var(--panel-gap)); border-bottom: 0; }
 .mx-cta .mx-lede { color: #dbe2f7; }
 .mx-cta .mx-meta { color: #c6cde4; }
 /* heavy caps caption with one highlighted word (kept from the mockup for one-off use) */

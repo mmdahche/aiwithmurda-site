@@ -77,7 +77,7 @@ export function StorefrontHome() {
                 <p className="mx-ticker"><span className="mx-ticker-tag">Paid package</span><span className="mx-ticker-bar">{storefrontOffers.length} tiers</span></p>
                 <p className="mx-shelf-note"><span className="mx-count">{storefrontShelf.length} paid tools on the shelf</span>Each tier includes the one before it.</p>
               </div>
-              <ul className="mx-shelf-items mx-shelf-items--path">{storefrontOffers.map((offer, index) => {
+              <ul className="mx-shelf-items">{storefrontOffers.map((offer, index) => {
                 const Tier = packageTiers[index].Icon;
                 return <li key={offer.slug}>
                   <a className="mx-shelf-item mx-shelf-item--paid" href={`/store/${offer.slug}`}>

@@ -7,9 +7,9 @@
 /* Browse control: All Tools / Free Tools / Paid Packages. Sits between the page
    opener and the catalogue panels it filters; #browse lands here. */
 .mx-catalog { scroll-margin-top: 4.5rem; }
-.mx-browse { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-8); padding-block: var(--sp-4);
-  border-block: 1px solid var(--hairline); }
-.mx-browse + .mx-section { padding-top: clamp(1.5rem, 3.5vw, 2.25rem); }
+.mx-browse { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-8); padding-top: var(--sp-4);
+  border-top: 1px solid var(--hairline); }
+.mx-browse + .mx-section { padding-top: clamp(1.75rem, 4vw, 2.5rem); }
 .mx-seg { display: inline-flex; gap: .25rem; max-width: 100%; padding: .25rem; border: 1px solid var(--edge-control); border-radius: 14px; background: var(--navy-850); }
 .mx-seg button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.125rem; border: 0; border-radius: 10px; background: transparent; color: var(--text-2);
   font: 600 var(--fs-sm)/1.15 var(--font-sans); letter-spacing: -.005em; white-space: nowrap; cursor: pointer;
@@ -46,10 +46,10 @@
 .mx-search { display: flex; align-items: center; gap: .625rem; min-height: 3rem; padding-inline: .875rem .25rem; border: 1px solid var(--edge-control); border-radius: var(--r-md);
   background: var(--navy-850); color: var(--text-2); cursor: text; transition: border-color var(--dur-1) var(--ease); }
 .mx-search:hover { border-color: var(--blue-200); }
-.mx-search:focus-within { border-color: var(--blue-200); outline: 2px solid var(--blue-200); outline-offset: 2px; }
+.mx-search:focus-within { border-color: var(--blue-200); outline: 2px solid var(--blue-200); outline-offset: -1px; }
 .mx-search > .mx-i { width: 1.125rem; height: 1.125rem; color: var(--blue-200); stroke-width: 2; }
 .mx-search input { flex: 1 1 auto; min-width: 0; height: 2.875rem; padding: 0; border: 0; outline: 0; background: transparent; color: var(--white); font-size: 1rem; line-height: 1.3; appearance: none; }
-.mx-search input::placeholder { color: #a6b0cc; opacity: 1; }
+.mx-search input::placeholder { color: var(--muted); opacity: 1; }
 .mx-search input::-webkit-search-cancel-button, .mx-search input::-webkit-search-decoration { appearance: none; display: none; }
 .mx-search input:focus-visible { outline: 0; }
 .mx-search button { display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text-2); cursor: pointer; }
@@ -65,7 +65,12 @@
 .mx-filter-n { font: 400 var(--fs-mono)/1 var(--font-mono); letter-spacing: .04em; color: var(--blue-200); }
 .mx-filters button[aria-pressed="true"] .mx-filter-n { color: var(--white); }
 .mx-result { font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .04em; color: var(--blue-200); }
-@media (min-width: 64rem) {
+@media (max-width: 39.99rem) {
+  /* phone: five filters in two or three rows; the counts come back from 40rem up */
+  .mx-filters button { padding-inline: .75rem; font-size: .875rem; }
+  .mx-filter-n { display: none; }
+}
+@media (min-width: 72rem) {
   .mx-toolbar { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); align-items: center; gap: var(--sp-4) var(--sp-5); }
   .mx-result { grid-column: 1 / -1; }
 }

@@ -56,11 +56,11 @@ function TierPath({ offer }) {
   const position = storefrontOffers.findIndex((item) => item.slug === offer.slug);
   return <nav className="mx-tiers" aria-label="The three paid packages">
     <div className="mx-mock-head"><span>{offer.category}</span><span>{position + 1} / {storefrontOffers.length}</span></div>
-    <ol className="mx-path-row">{storefrontOffers.map((item, index) => <li key={item.slug}>
-      <a className="mx-path-item" href={`/store/${item.slug}`} aria-current={index === position ? "page" : undefined}>
-        <span className={`mx-tile mx-tile--price${index === position ? " mx-tile--blue" : index < position ? " mx-tile--on" : ""}`}>{item.dueToday ? `$${item.dueToday}` : item.price}</span>
-        <span className="mx-shelf-name">{tierLabels[item.slug]}</span>
-        <span className="mx-shelf-meta">{item.dueToday ? "Today, then $30/month" : "One time"}</span>
+    <ol className="mx-tiers-row">{storefrontOffers.map((item, index) => <li key={item.slug}>
+      <a className="mx-tiers-item" href={`/store/${item.slug}`} aria-current={index === position ? "page" : undefined}>
+        <span className={`mx-tile${index === position ? " mx-tile--blue" : index < position ? " mx-tile--on" : ""}`}>{item.dueToday ? `$${item.dueToday}` : item.price}</span>
+        <span className="mx-tiers-name">{tierLabels[item.slug]}</span>
+        <span className="mx-tiers-meta">{item.dueToday ? "Today, then $30/month" : "One time"}</span>
       </a>
     </li>)}</ol>
     <p className="mx-preview-cap">{tierNotes[offer.slug]} Each tier includes the one before it.</p>
@@ -69,7 +69,7 @@ function TierPath({ offer }) {
 
 function NotOnShelf() {
   return <main className="mx mx-page mx-pd mx-pd--missing" id="main-content">
-    <section className="mx-hero mx-pd-top" aria-labelledby="pd-title">
+    <section className="mx-pd-top" aria-labelledby="pd-title">
       <div className="mx-container mx-panel">
         <PanelHead index={1} total={1} pre="Store" label="Not on the shelf" />
         <div className="mx-pd-missing">
@@ -96,7 +96,7 @@ function ToolPage({ file }) {
   const offer = file.offer;
   const packageName = offer?.name || "Operator Arsenal";
   return <main className="mx mx-page mx-pd mx-pd--tool" id="main-content">
-    <article className="mx-hero mx-pd-top" aria-labelledby="pd-title">
+    <article className="mx-pd-top" aria-labelledby="pd-title">
       <div className="mx-container mx-panel">
         <PanelHead index={1} total={5} pre="Paid tool" label={file.category} />
         <div className="mx-pd-grid">
@@ -143,8 +143,8 @@ function ToolPage({ file }) {
                   <p className="mx-pd-fine">Delivered in a ZIP with Start Here, installation guidance, a file index, license, and verification steps.</p>
                 </div>
                 <div className="mx-mock mx-zip">
-                  <div className="mx-mock-head"><span>{file.key}.zip</span><span>ZIP</span></div>
-                  <ul>{zipRows.map((row) => <li key={row.name}>{row.folder ? <Folder className="mx-i" aria-hidden="true" /> : <FileText className="mx-i" aria-hidden="true" />}<code>{row.name}</code><span>{row.label}</span></li>)}</ul>
+                  <div className="mx-mock-head"><span>Delivered as</span><span>ZIP</span></div>
+                  <ul>{zipRows.map((row) => <li key={row.name}>{row.folder ? <Folder className="mx-i" aria-hidden="true" /> : <FileText className="mx-i" aria-hidden="true" />}<span>{row.label}</span><code>{row.name}</code></li>)}</ul>
                 </div>
               </div>
             </Block>
@@ -184,7 +184,7 @@ export function StorefrontProduct({ slug, authSession, authReady }) {
   const canceled = new URLSearchParams(window.location.search).get("checkout") === "cancel";
   const example = storefrontShelf.find((item) => item.key === offer.previewKey);
   return <main className="mx mx-page mx-pd mx-pd--package" id="main-content">
-    <article className="mx-hero mx-pd-top" aria-labelledby="pd-title">
+    <article className="mx-pd-top" aria-labelledby="pd-title">
       <div className="mx-container mx-panel">
         <PanelHead index={1} total={7} pre="Paid package" label={offer.category} />
         <div className="mx-pd-grid">

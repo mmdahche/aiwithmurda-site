@@ -43,26 +43,26 @@ export function CheckItFirstFreeCard() {
       <p className="mx-text">Before a download touches your files or accounts, ask what it really does.</p>
     </div>
     <figure className="mx-preview mx-freecard-view">
-        <figcaption className="mx-mock-head"><span>CHECK-IT-FIRST.md</span><span>The guide</span></figcaption>
-        <div className="mx-preview-block">
-          <p className="mx-eyebrow">Before you run it</p>
-          <ol className="mx-steps">{checkSteps.map((step, index) => <li key={step}><span className="mx-count">0{index + 1}</span>{step}</li>)}</ol>
-        </div>
-        <div className="mx-preview-block mx-preview-block--wide">
-          <p className="mx-eyebrow">What it can check</p>
-          <p className="mx-preview-text">Start with readable files: scripts, source code, package setup files, AI skills and prompts. Check what they read, change, delete, install or send elsewhere.</p>
-        </div>
-        <div className="mx-preview-block">
-          <p className="mx-eyebrow">The verdict, in plain English</p>
-          <ul className="mx-verdict-list">{checkVerdicts.map(({ name, meaning, Icon }) => <li key={name}><Icon className="mx-i" aria-hidden="true" /><span><b>{name}</b><span>{meaning}</span></span></li>)}</ul>
-        </div>
-        <p className="mx-preview-cap">A checklist, not a safety certificate.</p>
-      </figure>
-      <ul className="mx-includes">
-        <li><FileSearch className="mx-i" aria-hidden="true" />Plain-English review checklist</li>
-        <li><Copy className="mx-i" aria-hidden="true" />Copy-ready AI review prompt</li>
-        <li><FileText className="mx-i" aria-hidden="true" />One downloadable guide</li>
-      </ul>
+      <figcaption className="mx-mock-head"><span>CHECK-IT-FIRST.md</span><span>The guide</span></figcaption>
+      <div className="mx-preview-block">
+        <p className="mx-eyebrow">Before you run it</p>
+        <ol className="mx-steps">{checkSteps.map((step, index) => <li key={step}><span className="mx-count">0{index + 1}</span>{step}</li>)}</ol>
+      </div>
+      <div className="mx-preview-block mx-preview-block--wide">
+        <p className="mx-eyebrow">What it can check</p>
+        <p className="mx-preview-text">Start with readable files: scripts, source code, package setup files, AI skills and prompts. Check what they read, change, delete, install or send elsewhere.</p>
+      </div>
+      <div className="mx-preview-block">
+        <p className="mx-eyebrow">The verdict, in plain English</p>
+        <ul className="mx-verdict-list">{checkVerdicts.map(({ name, meaning, Icon }) => <li key={name}><Icon className="mx-i" aria-hidden="true" /><span><b>{name}</b><span>{meaning}</span></span></li>)}</ul>
+      </div>
+      <p className="mx-preview-cap">A checklist, not a safety certificate.</p>
+    </figure>
+    <ul className="mx-includes">
+      <li><FileSearch className="mx-i" aria-hidden="true" />Plain-English review checklist</li>
+      <li><Copy className="mx-i" aria-hidden="true" />Copy-ready AI review prompt</li>
+      <li><FileText className="mx-i" aria-hidden="true" />One downloadable guide</li>
+    </ul>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/free/check-it-first">Read the guide <ArrowRight className="mx-i" aria-hidden="true" /></a></div>
     <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>
     <p className="mx-note"><Info className="mx-i" aria-hidden="true" /><span>Read it yourself or use your own AI assistant. Helps spot risks; does not certify a download as safe.</span></p>
@@ -77,28 +77,28 @@ export function InboxCleanupFreeCard() {
       <p className="mx-text">Clear old email by sender. Keep the important mail. Review every move.</p>
     </div>
     <figure className="mx-preview mx-freecard-view">
-        <figcaption className="mx-mock-head"><span>Practice inbox</span><span>8 made-up messages</span></figcaption>
-        <div className="mx-preview-block">
-          <p className="mx-eyebrow">One sender at a time</p>
-          <ul className="mx-senders">{practiceSenders.map((row) => <li key={row.sender}>
-            <span className="mx-senders-from"><code>{row.sender}</code><small>{row.count}</small></span>
-            <span className={`mx-pill${row.isDefault ? " mx-pill--on" : ""}`}>{row.choice}{row.isDefault && <small>Default</small>}</span>
-          </li>)}</ul>
-        </div>
-        <div className="mx-preview-block">
-          <p className="mx-eyebrow">You choose what happens</p>
-          <dl className="mx-choices">{inboxChoices.map((item) => <div key={item.label}>
-            <dt>{item.label}{item.note && <small>{item.note}</small>}</dt>
-            <dd>{item.result}</dd>
-          </div>)}</dl>
-        </div>
-        <p className="mx-preview-cap">Nothing moves during review.</p>
-      </figure>
-      <ul className="mx-includes">
-        <li><Terminal className="mx-i" aria-hidden="true" />Guided menu + practice inbox</li>
-        <li><MessageSquare className="mx-i" aria-hidden="true" />Optional AI-assisted review</li>
-        <li><ListChecks className="mx-i" aria-hidden="true" />Preview before any move</li>
-      </ul>
+      <figcaption className="mx-mock-head"><span>Practice inbox</span><span>8 made-up messages</span></figcaption>
+      <div className="mx-preview-block">
+        <p className="mx-eyebrow">One sender at a time</p>
+        <ul className="mx-senders">{practiceSenders.map((row) => <li key={row.sender}>
+          <span className="mx-senders-from"><code>{row.sender}</code><small>{row.count}</small></span>
+          <span className={`mx-pill${row.isDefault ? " mx-pill--on" : ""}`}>{row.choice}{row.isDefault && <small>Default</small>}</span>
+        </li>)}</ul>
+      </div>
+      <div className="mx-preview-block">
+        <p className="mx-eyebrow">You choose what happens</p>
+        <dl className="mx-choices">{inboxChoices.map((item) => <div key={item.label}>
+          <dt>{item.label}{item.note && <small>{item.note}</small>}</dt>
+          <dd>{item.result}</dd>
+        </div>)}</dl>
+      </div>
+      <p className="mx-preview-cap">Nothing moves during review.</p>
+    </figure>
+    <ul className="mx-includes">
+      <li><Terminal className="mx-i" aria-hidden="true" />Guided menu + practice inbox</li>
+      <li><MessageSquare className="mx-i" aria-hidden="true" />Optional AI-assisted review</li>
+      <li><ListChecks className="mx-i" aria-hidden="true" />Preview before any move</li>
+    </ul>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/free/inbox-cleanup">See the kit <ArrowRight className="mx-i" aria-hidden="true" /></a></div>
     <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>
     <p className="mx-note"><Info className="mx-i" aria-hidden="true" /><span>Use with or without AI. Gmail or iCloud, Python and an app password required. Unsubscribing is manual.</span></p>

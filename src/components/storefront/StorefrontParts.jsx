@@ -98,15 +98,15 @@ export function FreePack() {
       <p className="mx-text">Three simple habits for your next AI task. One download.</p>
     </div>
     <div className="mx-preview mx-freecard-view">
-        <p className="mx-mock-head"><span>operator-sampler / payload</span><span>Free edition</span></p>
-        <div className="mx-samples sf-sample-grid">{samplerParts.map((sample, index) => <article key={sample.name}>
-          <p className="mx-eyebrow">{pad2(index + 1)} / {sample.format}</p>
-          <h4>{sample.label}</h4>
-          <p>{sample.description}</p>
-          <blockquote className="mx-sample-line"><cite>{sample.name}</cite><span>{sample.excerpt}</span></blockquote>
-          <a className="mx-link" href={`/start?file=${index}#preview`}>Read the sample <ArrowRight className="mx-i" aria-hidden="true" /></a>
-        </article>)}</div>
-        <p className="mx-preview-cap">Actual lines from the three files.</p>
+      <p className="mx-mock-head"><span>operator-sampler / payload</span><span>Free edition</span></p>
+      <div className="mx-samples sf-sample-grid">{samplerParts.map((sample, index) => <article key={sample.name}>
+        <p className="mx-eyebrow">{pad2(index + 1)} / {sample.format}</p>
+        <h4>{sample.label}</h4>
+        <p>{sample.description}</p>
+        <blockquote className="mx-sample-line"><cite>{sample.name}</cite><span>{sample.excerpt}</span></blockquote>
+        <a className="mx-link" href={`/start?file=${index}#preview`}>Read the sample <ArrowRight className="mx-i" aria-hidden="true" /></a>
+      </article>)}</div>
+      <p className="mx-preview-cap">Actual lines from the three files.</p>
     </div>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/downloads/operator-sampler.zip" download><Download className="mx-i" aria-hidden="true" />Download free pack</a></div>
     <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>

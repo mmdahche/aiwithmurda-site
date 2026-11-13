@@ -44,7 +44,7 @@ export function ArsenalPage({ authSession, authReady }) {
 
   return (
     <main className="mx mx-page mx-pd mx-arsenal" id="main-content">
-      <section className="mx-hero mx-pd-top" aria-labelledby="arsenal-title">
+      <section className="mx-pd-top" aria-labelledby="arsenal-title">
         <div className="mx-container mx-panel">
           <PanelHead index={1} pre="Paid package" label={operatorArsenalProduct.status} />
           <div className="mx-pd-grid">
@@ -82,21 +82,21 @@ export function ArsenalPage({ authSession, authReady }) {
             <div className="mx-pd-body mx-arsenal-ladder">
               <nav className="mx-tiers mx-tiers--four" aria-label="The paid packages">
                 <div className="mx-mock-head"><span>{operatorArsenalProduct.status}</span><span>4 / 4</span></div>
-                <ol className="mx-path-row">
+                <ol className="mx-tiers-row">
                   {storefrontOffers.map((offer, index) => (
                     <li key={offer.slug}>
-                      <a className="mx-path-item" href={`/store/${offer.slug}`}>
-                        <span className="mx-tile mx-tile--price mx-tile--on">{offer.dueToday ? `$${offer.dueToday}` : offer.price}</span>
-                        <span className="mx-shelf-name">{tierLabels[index]}</span>
-                        <span className="mx-shelf-meta">{offer.dueToday ? "Today, then $30/month" : "One time"}</span>
+                      <a className="mx-tiers-item" href={`/store/${offer.slug}`}>
+                        <span className="mx-tile mx-tile--on">{offer.dueToday ? `$${offer.dueToday}` : offer.price}</span>
+                        <span className="mx-tiers-name">{tierLabels[index]}</span>
+                        <span className="mx-tiers-meta">{offer.dueToday ? "Today, then $30/month" : "One time"}</span>
                       </a>
                     </li>
                   ))}
                   <li>
-                    <span className="mx-path-item" aria-current="true">
-                      <span className="mx-tile mx-tile--price mx-tile--blue">$497</span>
-                      <span className="mx-shelf-name">Arsenal</span>
-                      <span className="mx-shelf-meta">Today, then $30/month</span>
+                    <span className="mx-tiers-item" aria-current="true">
+                      <span className="mx-tile mx-tile--blue">$497</span>
+                      <span className="mx-tiers-name">Arsenal</span>
+                      <span className="mx-tiers-meta">Today, then $30/month</span>
                     </span>
                   </li>
                 </ol>

@@ -1,1 +1,120 @@
-/* About and legal pages. */
+/*
+  About and legal pages, built on ./site.css.
+
+  1. About (/about): who is behind the files. Portrait with the lower-third
+     strap, the story in his words, the route from a store to these files.
+  2. Legal (/terms, /privacy): calm long-form reading. Clause name on the
+     left in mono caps, text on the right at a 65-75 character measure.
+
+  Nothing here is set under 12px.
+*/
+
+/* 1. ABOUT ----------------------------------------------------------------- */
+/* the royal glow of the reels, behind the headline */
+.mx-about-top { padding-top: clamp(.75rem, 2vw, 1.25rem); background-repeat: no-repeat;
+  background-image: radial-gradient(52rem 30rem at 14% -4rem, color-mix(in srgb, var(--royal-500) 62%, transparent), color-mix(in srgb, var(--royal-700) 30%, transparent) 46%, transparent 74%); }
+.mx-about-top .mx-panel { padding-bottom: clamp(2rem, 4vw, 2.75rem); }
+
+/* Phone: headline, then his face, then the story. Desktop: story left, portrait right at full height. */
+.mx-about-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); margin-top: clamp(1.25rem, 3vw, 1.75rem); }
+.mx-about-head { display: grid; justify-items: start; align-content: start; gap: var(--sp-4); min-width: 0; container-type: inline-size; }
+/* three short lines that always fit their column: the size follows the column, not the window */
+.mx-about-head .mx-display { font-size: clamp(2.5rem, 14.6cqi, 6.25rem); text-wrap: nowrap; }
+.mx-about-copy { display: grid; justify-items: start; align-content: start; gap: var(--sp-4); min-width: 0; }
+.mx-about-copy .mx-lede { color: var(--white); }
+.mx-about-copy .mx-actions { width: 100%; margin-top: var(--sp-2); }
+
+.mx-about-photo { position: relative; min-width: 0; }
+.mx-about-photo img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 38%; border-radius: var(--r-lg); border: 1px solid var(--hairline-blue); }
+.mx-about-photo .mx-ticker { position: absolute; left: -.375rem; bottom: 1rem; }
+
+@media (max-width: 39.99rem) {
+  .mx-about-copy .mx-btn { width: 100%; }
+  /* the strap never clips on a narrow phone */
+  .mx-about-photo .mx-ticker-tag { padding: .5rem .6rem; font-size: .75rem; }
+  .mx-about-photo .mx-ticker-bar { padding: .5rem .7rem; font-size: .875rem; }
+}
+@media (min-width: 47.5rem) {
+  .mx-about-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto 1fr; column-gap: clamp(2rem, 4.5vw, 4rem); row-gap: var(--sp-6); }
+  .mx-about-head { grid-column: 1; grid-row: 1; }
+  .mx-about-copy { grid-column: 1; grid-row: 2; }
+  .mx-about-photo { grid-column: 2; grid-row: 1 / span 2; min-height: 26rem; }
+  .mx-about-photo img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; object-position: 30% 50%; }
+  .mx-about-photo .mx-ticker { left: -.75rem; bottom: 1.75rem; }
+}
+
+/* The route: a store, inventory, point of sale, these files. Four tiles joined by arrows. */
+.mx-about-route { margin-top: clamp(1.75rem, 4vw, 2.5rem); padding: var(--sp-5) var(--sp-3) var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-lg);
+  background-color: var(--well); background-image: radial-gradient(color-mix(in srgb, var(--blue-200) 10%, transparent) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-about-stops { --stop-gap: 1.5rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--stop-gap); }
+.mx-about-stops li { position: relative; display: grid; justify-items: center; align-content: start; gap: .625rem; min-width: 0; text-align: center; }
+.mx-about-stops .mx-tile { width: 3rem; height: 3rem; border-radius: .8rem; }
+.mx-about-stops .mx-tile .mx-i { width: 1.3rem; height: 1.3rem; }
+.mx-about-stops li + li::before { content: ""; position: absolute; left: calc(var(--stop-gap) / -2 - .5rem); top: 1rem; width: 1rem; height: 1rem; background: center / contain no-repeat;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239cc2ff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M14 5l7 7-7 7'/%3E%3C/svg%3E"); }
+.mx-about-stop { display: grid; gap: .2rem; min-width: 0; }
+.mx-about-stop-name { font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text); text-wrap: balance; }
+.mx-about-route .mx-preview-cap { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--hairline); color: var(--text-2); }
+@media (min-width: 47.5rem) {
+  .mx-about-route { padding: var(--sp-6); }
+  .mx-about-stops { --stop-gap: 3.5rem; }
+  .mx-about-stops li { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; column-gap: var(--sp-4); text-align: left; }
+  .mx-about-stops .mx-tile { width: 4rem; height: 4rem; border-radius: 1rem; }
+  .mx-about-stops .mx-tile .mx-i { width: 1.625rem; height: 1.625rem; }
+  .mx-about-stops li + li::before { top: 1.375rem; left: calc(var(--stop-gap) / -2 - .625rem); width: 1.25rem; height: 1.25rem; }
+  .mx-about-stop-name { font: 600 1.0625rem/1.25 var(--font-sans); letter-spacing: -.012em; text-transform: none; }
+  .mx-about-route .mx-preview-cap { margin-top: var(--sp-5); padding-top: var(--sp-4); text-align: left; }
+}
+@media (min-width: 64rem) {
+  .mx-about-stops .mx-tile { width: 4.5rem; height: 4.5rem; border-radius: 1.125rem; }
+  .mx-about-stops .mx-tile .mx-i { width: 1.875rem; height: 1.875rem; }
+  .mx-about-stops li + li::before { top: 1.625rem; }
+  .mx-about-stop-name { font-size: 1.25rem; }
+}
+
+/* 02 Build at your own pace: the second half of the story, and where else to find him */
+.mx-about-pace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); margin-top: clamp(1.5rem, 3.5vw, 2.5rem); }
+.mx-about-pace-copy { display: grid; justify-items: start; align-content: start; gap: var(--sp-4); min-width: 0; }
+.mx-about-pace-copy .mx-display { margin-bottom: var(--sp-2); }
+.mx-about-links { display: grid; align-content: start; min-width: 0; border-top: 1px solid var(--hairline); }
+.mx-about-links li { border-bottom: 1px solid var(--hairline); }
+.mx-about-links a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile meta go"; column-gap: var(--sp-4); align-items: center;
+  min-height: 5rem; padding-block: var(--sp-3); text-decoration: none; }
+.mx-about-links .mx-tile { grid-area: tile; transition: border-color var(--dur-1) var(--ease); }
+.mx-about-link-name { grid-area: name; align-self: end; color: var(--white); font-weight: 600; font-size: 1.0625rem; line-height: 1.25; letter-spacing: -.012em; }
+.mx-about-link-meta { grid-area: meta; align-self: start; font: 400 var(--fs-mono)/1.5 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-about-link-go { grid-area: go; width: 1.25rem; height: 1.25rem; color: var(--accent); stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
+.mx-about-links a:hover .mx-about-link-name { color: var(--blue-200); }
+.mx-about-links a:hover .mx-tile { border-color: var(--blue-400); }
+.mx-about-links a:hover .mx-about-link-go { transform: translateX(3px); }
+@media (min-width: 60rem) {
+  .mx-about-pace { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-16); align-items: end; }
+}
+
+/* 2. LEGAL ----------------------------------------------------------------- */
+.mx-legal { padding-top: clamp(.75rem, 2vw, 1.25rem); }
+.mx-legal-head { display: grid; gap: var(--sp-5); margin-block: clamp(1.5rem, 3.5vw, 2.5rem) clamp(1.75rem, 4vw, 2.75rem); }
+.mx-legal-meta { display: grid; gap: .25rem; font: 400 var(--fs-xs)/1.6 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+.mx-legal-meta p:first-child { color: var(--blue-200); }
+.mx-legal-meta a { letter-spacing: .02em; text-transform: none; }
+.mx-legal a:not(.mx-link) { color: var(--white); text-decoration: underline; text-decoration-color: var(--edge-control); text-decoration-thickness: 1px; text-underline-offset: .25em; overflow-wrap: anywhere; }
+.mx-legal a:not(.mx-link):hover { color: var(--blue-200); text-decoration-color: var(--blue-200); }
+
+/* One clause per row. The number comes from a counter, so the headings keep their exact words. */
+.mx-legal-body { counter-reset: clause; border-top: 1px solid var(--hairline); }
+.mx-legal-body section { counter-increment: clause; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); padding-block: var(--sp-6); border-bottom: 1px solid var(--hairline); }
+.mx-legal-body h2 { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: var(--sp-3); align-items: baseline;
+  font: 500 var(--fs-xs)/1.5 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--white); }
+.mx-legal-body h2::before { content: counter(clause, decimal-leading-zero); color: var(--blue-200); letter-spacing: .08em; }
+.mx-legal-body p { max-width: 36em; font-size: 1.0625rem; line-height: 1.7; color: var(--text-2); text-wrap: pretty; }
+.mx-legal-end { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-8); padding-top: var(--sp-5); }
+@media (max-width: 59.99rem) {
+  /* phone and tablet: the text lines up under the clause name, not under its number */
+  .mx-legal-body p { padding-left: calc(1.75rem + var(--sp-3)); }
+}
+@media (min-width: 60rem) {
+  .mx-legal-head { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--sp-12); }
+  .mx-legal-meta { padding-bottom: .5rem; text-align: right; }
+  .mx-legal-body section { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-16); padding-block: var(--sp-8); }
+  .mx-legal-body h2 { padding-top: .3rem; }
+}
