@@ -2390,8 +2390,8 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
           <h2>Chat can always find the receipts.</h2>
         </div>
         <div className="stream-command-grid">
-          {commands.map((item) => (
-            <a key={`${item.command}-${item.href}`} href={item.href}>
+          {commands.map((item, index) => (
+            <a key={`${item.command}-${item.href}-${index}`} href={item.href}>
               <strong>{item.command}</strong>
               <span>{item.label}</span>
             </a>
