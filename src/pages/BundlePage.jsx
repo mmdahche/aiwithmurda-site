@@ -130,7 +130,7 @@ export function BundlePage({ authSession, authReady }) {
   }
 
   return (
-    <main className="public-page">
+    <main className="public-page mx-bundle-return" id="main-content">
       {/* T — Transformation */}
       <section className="public-section live-builds-hero">
         <div>

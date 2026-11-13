@@ -1,1 +1,256 @@
-/* Product and package detail pages, buy panels, checkout states. */
+/*
+  Product, package and purchase pages ("mx-pd"), built on ./site.css.
+
+  1. Page frame: numbered panel, intro, buy column (sticky on desktop), numbered blocks
+  2. Buy box: always on the cream card, because it is the paid thing on the page
+  3. Purchase states (PurchaseAction) and the self-contained checkout buttons
+  4. Blocks: what you receive, tier path, ZIP listing, first step, requirements, library
+  5. Not-on-the-shelf state
+  6. Operator Arsenal
+  7. /live-builds?session_id= (old Stripe return page): shell look only
+
+  Type on these pages never drops under 12px; mono lines that carry a product
+  fact (billing cadence, file type, licence) use --blue-200, --text-2 or --text.
+*/
+
+/* 1. PAGE FRAME ------------------------------------------------------------ */
+.mx-pd-top .mx-panel { padding-bottom: clamp(3rem, 6vw, 4.5rem); }
+.mx-pd-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); margin-top: clamp(1.25rem, 3vw, 1.75rem); }
+.mx-pd-intro { display: grid; justify-items: start; align-content: start; gap: var(--sp-4); min-width: 0; }
+.mx-pd-intro .mx-display { text-wrap: balance; }
+.mx-pd-intro .mx-eyebrow { font-size: var(--fs-mono); }
+.mx-pd-intro .mx-text { max-width: 34em; }
+.mx-pd-back { margin-bottom: var(--sp-1); color: var(--text-2); font-weight: 500; }
+.mx-pd-back .mx-i { color: var(--blue-200); }
+.mx-pd-back:hover .mx-i { transform: translateX(-3px); }
+.mx-pd-facts { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: var(--sp-1); }
+.mx-pd-facts .mx-chip { max-width: 100%; min-height: 2rem; gap: .5rem; font-size: var(--fs-mono); letter-spacing: .08em; line-height: 1.3; color: var(--text); }
+.mx-pd-facts .mx-chip .mx-i { width: 1rem; height: 1rem; color: var(--blue-200); }
+.mx-pd-side { display: grid; gap: var(--sp-4); align-content: start; min-width: 0; }
+.mx-pd-body { display: grid; gap: clamp(2.5rem, 5vw, 3.5rem); min-width: 0; }
+
+/* numbered blocks inside the reading column: header dots on top only */
+.mx-pd-block.mx-panel { min-width: 0; padding-bottom: 0; }
+.mx-pd-block.mx-panel::after { content: none; }
+.mx-pd-h { margin-block: clamp(1.25rem, 3vw, 1.75rem) clamp(1.125rem, 2.5vw, 1.5rem); font-size: clamp(2rem, 1.55rem + 2vw, 3rem); text-wrap: balance; }
+
+@media (min-width: 64rem) {
+  .mx-pd-grid { grid-template-columns: minmax(0, 1fr) 23.5rem; grid-template-areas: "intro side" "body side"; column-gap: clamp(2.5rem, 4.5vw, 4.5rem); row-gap: clamp(2.75rem, 4vw, 3.5rem); }
+  .mx-pd-grid > .mx-pd-intro { grid-area: intro; }
+  .mx-pd-grid > .mx-pd-side { grid-area: side; align-self: start; }
+  .mx-pd-grid > .mx-pd-body { grid-area: body; }
+}
+@media (min-width: 80rem) { .mx-pd-grid { grid-template-columns: minmax(0, 1fr) 25rem; } }
+/* the buy column follows the reader down the page when the window is tall enough to hold it */
+@media (min-width: 64rem) and (min-height: 47rem) {
+  .mx-pd-grid > .mx-pd-side { position: sticky; top: 5.5rem; }
+}
+/* a notice makes the box taller: on a short window let it scroll with the page so nothing is cut off */
+@media (min-width: 64rem) and (max-height: 55.99rem) {
+  .mx-pd-grid > .mx-pd-side:has([role="alert"], [role="status"]) { position: static; }
+}
+
+/* 2. BUY BOX --------------------------------------------------------------- */
+.mx-buybox { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); min-width: 0; padding: var(--sp-5) var(--sp-4); }
+.mx-buybox-head { display: grid; gap: .5rem; justify-items: start; min-width: 0; }
+.mx-buybox-head .mx-ticker-box { width: 100%; }
+.mx-buybox-head .mx-ticker-box + * { margin-top: .5rem; }
+.mx-buybox-name { font: 600 1.375rem/1.15 var(--font-sans); letter-spacing: -.02em; text-wrap: balance; }
+.mx-buybox .mx-meta { font-size: var(--fs-mono); }
+.mx-buybox-text { font-size: var(--fs-sm); line-height: 1.5; }
+.mx-buybox-cost { display: grid; gap: .625rem; min-width: 0; }
+.mx-buybox-price { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem .75rem; }
+.mx-buybox-price .mx-ticker-tag { padding-inline: .75rem; font-size: .8125rem; }
+.mx-buybox-price .mx-ticker-bar { padding: .2rem 1rem .1rem; font-size: clamp(3rem, 2.7rem + 1.4vw, 3.5rem); line-height: 1.15; }
+.mx-buybox-billing { font: 500 var(--fs-xs)/1.45 var(--font-mono); letter-spacing: .01em; color: var(--text); }
+.mx-buybox-act { display: grid; gap: var(--sp-4); min-width: 0; padding-top: var(--sp-5); border-top: 1px solid var(--hairline); }
+.mx-buybox .mx-btn--lg { padding-inline: 1rem; text-wrap: balance; }
+@media (max-width: 24rem) { .mx-buybox .mx-btn--lg { font-size: 1rem; } }
+.mx-buybox-note { font-size: var(--fs-sm); line-height: 1.55; }
+.mx-buybox-note b { font-weight: 650; }
+.mx-buybox-fine { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-3); }
+.mx-buybox-fine a { color: var(--text); text-underline-offset: .2em; text-decoration-color: var(--edge-control); }
+.mx-buybox-fine a:hover { color: var(--accent); text-decoration-color: currentColor; }
+.mx-buybox-owned { display: flex; margin-bottom: calc(-1 * var(--sp-2)); padding-top: var(--sp-3); border-top: 1px solid var(--hairline); }
+.mx-buybox-status { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); gap: .625rem; align-items: start; padding: .75rem .875rem; border: 1px solid var(--hairline-blue);
+  border-radius: var(--r-sm); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.mx-buybox-status .mx-i { width: 1.125rem; height: 1.125rem; margin-top: .1rem; color: var(--accent); }
+@media (min-width: 40rem) { .mx-buybox { padding: var(--sp-6); } }
+/* tablet: one wide card, price on the left and the action on the right */
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .mx-buybox { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-8); align-items: start; }
+  .mx-buybox-head, .mx-buybox-cost { grid-column: 1; }
+  .mx-buybox-act { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; border-top: 0; }
+  .mx-buybox-owned, .mx-arsenal-sum { grid-column: 1 / -1; }
+}
+
+/* the free way in sits beside the paid box, on the dashed outline that means free */
+.mx-pd-free { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4); padding: var(--sp-3) var(--sp-4); }
+
+/* 3. PURCHASE STATES ------------------------------------------------------- */
+.mx-purchase, .mx-checkout { display: grid; gap: .75rem; min-width: 0; }
+.mx-purchase .mx-btn:disabled, .mx-checkout .mx-btn:disabled { opacity: .6; cursor: default; pointer-events: none; }
+.mx-purchase-alert, .mx-checkout-error { padding: .75rem .875rem; border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--text)); border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--danger) 12%, transparent); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); overflow-wrap: anywhere; }
+.mx-purchase-alert { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); gap: .625rem; align-items: start; }
+.mx-purchase-alert .mx-i { width: 1.125rem; height: 1.125rem; margin-top: .1rem; color: color-mix(in srgb, var(--danger) 55%, var(--text)); }
+/* checkout buttons used here and in the member area */
+.mx-checkout .mx-btn { min-height: 3.25rem; font-size: 1.0625rem; font-weight: 700; }
+.mx-checkout--compact .mx-btn { min-height: 3rem; font-size: 1rem; }
+.mx-checkout-note { display: block; font: 500 var(--fs-xs)/1.45 var(--font-mono); letter-spacing: .01em; color: var(--text-2); }
+.mx-checkout-error { margin: 0; }
+
+/* 4. BLOCKS ---------------------------------------------------------------- */
+.mx-pd-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); align-items: start; }
+.mx-pd-includes { gap: .875rem; }
+.mx-pd-includes li { font-size: var(--fs-body); color: var(--text); }
+.mx-pd-includes .mx-includes-plus .mx-i { color: var(--blue-200); }
+.mx-pd-receive { display: grid; gap: var(--sp-5); align-content: start; min-width: 0; }
+@media (min-width: 48rem) { .mx-pd-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-8); } }
+
+/* where this package sits: the three tiers, the current one in blue */
+.mx-tiers { min-width: 0; padding: .875rem .875rem 1rem; border: 1px solid var(--hairline); border-radius: var(--r-md); background-color: var(--well);
+  background-image: radial-gradient(color-mix(in srgb, var(--blue-200) 10%, transparent) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-tiers .mx-mock-head { margin-bottom: var(--sp-4); font-size: var(--fs-mono); letter-spacing: .06em; }
+.mx-tiers .mx-path-item { min-height: 2.75rem; }
+.mx-tiers .mx-shelf-meta { font-size: var(--fs-mono); color: var(--blue-200); text-wrap: balance; }
+.mx-tiers .mx-path-item:not([aria-current]):hover .mx-shelf-name { color: var(--blue-200); }
+.mx-tiers .mx-preview-cap { margin-top: var(--sp-4); font-size: var(--fs-mono); color: var(--text-2); }
+/* four tiers (Arsenal): a row from tablet up, a list on a phone */
+.mx-tiers--four { width: 100%; max-width: 36rem; }
+.mx-tiers--four .mx-path-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mx-tiers--four .mx-preview-cap { text-align: left; }
+@media (max-width: 33.99rem) {
+  .mx-tiers--four .mx-path-row { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); }
+  .mx-tiers--four .mx-path-row li + li::before { content: none; }
+  .mx-tiers--four .mx-path-item { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "tile name" "tile meta"; justify-items: start; column-gap: var(--sp-4); align-items: center; text-align: left; }
+  .mx-tiers--four .mx-path-item .mx-tile { grid-area: tile; width: 3rem; height: 3rem; margin-bottom: 0; border-radius: .8rem; font-size: 1.125rem; }
+  .mx-tiers--four .mx-path-item .mx-shelf-name { grid-area: name; align-self: end; }
+  .mx-tiers--four .mx-path-item .mx-shelf-meta { grid-area: meta; align-self: start; }
+}
+
+/* how a tool ZIP is organised */
+.mx-zip .mx-mock-head { font-size: var(--fs-mono); letter-spacing: .02em; text-transform: none; }
+.mx-zip ul { display: grid; gap: .55rem; }
+.mx-zip li { display: grid; grid-template-columns: 1rem auto minmax(0, 1fr); gap: .5rem; align-items: baseline; font-size: var(--fs-xs); line-height: 1.4; }
+.mx-zip li .mx-i { align-self: center; width: 1rem; height: 1rem; color: var(--blue-200); }
+.mx-zip code { font: 500 var(--fs-mono)/1.4 var(--font-mono); color: var(--text); }
+.mx-zip li span { color: var(--text-2); text-align: right; }
+.mx-pd-fine { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-2); }
+
+/* the preview itself belongs to the catalogue; this only places it */
+.mx-pd-look { display: grid; gap: var(--sp-3); justify-items: start; min-width: 0; }
+.mx-pd-look > figure { width: 100%; min-width: 0; margin: 0; }
+
+.mx-pd-step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-4) var(--sp-5); align-items: center; }
+.mx-pd-step .mx-tile { width: 3.5rem; height: 3.5rem; }
+.mx-pd-step p { max-width: 36em; font-size: var(--fs-lede); line-height: 1.5; color: var(--text); }
+.mx-pd-step--need p { font-size: var(--fs-body); line-height: 1.55; }
+@media (max-width: 29.99rem) {
+  .mx-pd-step { grid-template-columns: minmax(0, 1fr); }
+  .mx-pd-step .mx-tile { width: 3rem; height: 3rem; border-radius: .8rem; }
+}
+
+.mx-pd-needs { display: grid; padding-block: var(--sp-1); }
+.mx-pd-need { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--sp-3); align-items: baseline; padding-block: var(--sp-4); line-height: 1.55; color: var(--text); }
+.mx-pd-need + .mx-pd-need { border-top: 1px solid var(--hairline); }
+.mx-pd-need .mx-count { font: 400 var(--fs-mono)/1 var(--font-mono); }
+.mx-pd-note { margin-top: var(--sp-5); border-top: 0; padding-top: 0; font-size: var(--fs-sm); }
+.mx-pd-note .mx-i { color: var(--blue-200); }
+
+.mx-pd-plus { margin-bottom: var(--sp-4); }
+.mx-contents { padding: .875rem 1rem .25rem; }
+.mx-contents .mx-mock-head { margin-bottom: .75rem; font-size: var(--fs-mono); letter-spacing: .06em; }
+.mx-contents .mx-mock-head > :last-child { white-space: nowrap; }
+@media (max-width: 39.99rem) { .mx-pd-wide { display: none; } }
+.mx-contents ul { display: grid; grid-template-columns: minmax(0, 1fr); }
+.mx-contents li { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; min-height: 3rem; padding-block: .625rem;
+  border-top: 1px solid var(--hairline); font-size: var(--fs-sm); line-height: 1.35; color: var(--text); }
+.mx-contents li .mx-i { width: 1.125rem; height: 1.125rem; color: var(--blue-200); }
+.mx-contents small { padding: .25rem .45rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-xs); font: 500 var(--fs-mono)/1 var(--font-mono);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--blue-200); }
+@media (min-width: 48rem) { .mx-contents ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-8); } }
+
+/* 5. NOT ON THE SHELF ------------------------------------------------------ */
+.mx-pd-missing { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); align-items: center; margin-top: clamp(1.5rem, 3vw, 2rem); }
+.mx-pd-missing .mx-pd-intro { gap: var(--sp-5); }
+.mx-pd-ways .mx-mock-head { margin-bottom: var(--sp-2); font-size: var(--fs-mono); letter-spacing: .06em; }
+.mx-pd-ways a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile meta go"; column-gap: var(--sp-4); align-items: center;
+  min-height: 4.5rem; padding-block: var(--sp-3); border-top: 1px solid var(--hairline); text-decoration: none; }
+.mx-pd-ways li:first-child a { border-top: 0; }
+.mx-pd-ways .mx-tile { grid-area: tile; }
+.mx-pd-way-name { grid-area: name; align-self: end; font-weight: 600; line-height: 1.25; color: var(--white); }
+.mx-pd-way-meta { grid-area: meta; align-self: start; font: 400 var(--fs-mono)/1.4 var(--font-mono); color: var(--text-2); }
+.mx-pd-way-go { grid-area: go; width: 1.125rem; height: 1.125rem; color: var(--blue-500); stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
+.mx-pd-ways a:hover .mx-pd-way-name { color: var(--blue-200); }
+.mx-pd-ways a:hover .mx-pd-way-go { transform: translateX(3px); }
+@media (max-width: 39.99rem) { .mx-pd-missing .mx-btn { width: 100%; } }
+@media (min-width: 60rem) { .mx-pd-missing { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); } }
+
+/* 6. OPERATOR ARSENAL ------------------------------------------------------ */
+.mx-arsenal .mx-section-head .mx-display { text-wrap: balance; }
+.mx-arsenal-ladder { justify-items: start; gap: var(--sp-3); }
+@media (min-width: 64rem) { .mx-arsenal .mx-pd-grid { row-gap: var(--sp-6); } }
+.mx-arsenal-sum { display: grid; gap: .375rem; padding-top: var(--sp-4); border-top: 1px solid var(--hairline); font: 400 var(--fs-xs)/1.4 var(--font-mono); }
+.mx-arsenal-sum div { display: flex; justify-content: space-between; gap: var(--sp-4); }
+.mx-arsenal-sum dt { color: var(--text-3); }
+.mx-arsenal-sum dd { color: var(--text); font-weight: 500; }
+
+.mx-arsenal-shelf { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.mx-arsenal-shelf li { display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.mx-arsenal-shelf-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); font: 400 var(--fs-mono)/1.3 var(--font-mono); }
+.mx-arsenal-tag { letter-spacing: .04em; color: var(--text-2); }
+.mx-arsenal-shelf h3 { font: 600 1.125rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
+.mx-arsenal-shelf h3 a { display: flex; align-items: center; min-height: 2.75rem; text-decoration: none; }
+.mx-arsenal-shelf h3 a:hover { color: var(--blue-200); text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 1px; }
+.mx-arsenal-shelf li > p:last-child { font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); }
+@media (min-width: 40rem) { .mx-arsenal-shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); } }
+@media (min-width: 64rem) { .mx-arsenal-shelf { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); } }
+
+.mx-arsenal-steps { display: grid; grid-template-columns: minmax(0, 1fr); }
+.mx-arsenal-steps li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: var(--sp-3); align-items: baseline; padding-block: var(--sp-5); border-top: 1px solid var(--hairline); }
+.mx-arsenal-steps .mx-count { font: 400 var(--fs-mono)/1 var(--font-mono); }
+.mx-arsenal-steps h3 { font: 600 1.25rem/1.2 var(--font-sans); letter-spacing: -.015em; color: var(--white); }
+.mx-arsenal-steps p { margin-top: .5rem; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); }
+@media (min-width: 40rem) { .mx-arsenal-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-8); } }
+@media (min-width: 64rem) {
+  .mx-arsenal-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--sp-6); }
+  .mx-arsenal-steps li { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); align-content: start; padding-bottom: 0; }
+}
+.mx-arsenal-plan { gap: var(--sp-4); }
+.mx-arsenal-plan-head { align-items: start; margin-bottom: 0; }
+.mx-arsenal-plan-head .mx-section-side { padding-bottom: 0; }
+
+.mx-arsenal-final { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-6) var(--sp-4); }
+.mx-arsenal-final-copy { display: grid; gap: var(--sp-4); justify-items: start; min-width: 0; }
+.mx-arsenal-final-copy .mx-ticker-box { width: 100%; }
+.mx-arsenal-final-copy .mx-display { text-wrap: balance; }
+.mx-arsenal-final-act { display: grid; gap: var(--sp-4); min-width: 0; }
+@media (min-width: 40rem) { .mx-arsenal-final { padding: var(--sp-8); } }
+@media (min-width: 60rem) { .mx-arsenal-final { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); align-items: center; padding: var(--sp-10) var(--sp-12); } }
+
+/* 7. OLD STRIPE RETURN PAGE -------------------------------------------------
+   /live-builds?session_id=... still renders the pre-storefront bundle page so
+   that old checkout returns can be verified. Its markup, logic and copy are
+   untouched; these rules only bring its type, surfaces and controls into the
+   system. */
+.mx-bundle-return { padding-top: clamp(1.5rem, 4vw, 2.5rem); }
+.mx-bundle-return .public-section { margin-top: var(--panel-gap); border-color: var(--hairline); border-radius: var(--r-lg); background: var(--surface); }
+.mx-bundle-return .public-section:first-child { margin-top: 0; }
+.mx-bundle-return .public-section :is(h1, h2) { font-family: var(--font-display); font-weight: 400; line-height: var(--lh-display); letter-spacing: .008em; text-transform: uppercase; color: var(--white); }
+.mx-bundle-return .public-section h1 { font-size: var(--fs-display-md); }
+.mx-bundle-return .public-section h2 { max-width: none; font-size: clamp(2rem, 1.55rem + 2vw, 3rem); }
+.mx-bundle-return .public-label { margin-bottom: var(--sp-4); font: 500 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: var(--track-mono); color: var(--blue-200); }
+.mx-bundle-return .kit-onboarding-section { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+.mx-bundle-return .public-cards { margin-top: var(--panel-gap); }
+.mx-bundle-return :is(.primary-link, .secondary-link, .tool-card a, .start-form button) { min-height: 3rem; border-radius: var(--r-md); font-weight: 650; text-align: center; }
+.mx-bundle-return :is(.primary-link, .tool-card a, .start-form button) { background: var(--accent); color: var(--on-accent); }
+.mx-bundle-return .secondary-link { border-color: var(--edge-control); background: transparent; color: var(--white); }
+.mx-bundle-return :is(.kit-asset-list, .kit-module-list, .kit-onboarding-list, .kit-faq-list) article, .mx-bundle-return .tool-card, .mx-bundle-return .live-builds-positioning,
+.mx-bundle-return .kit-final-cta { border-color: var(--hairline); border-radius: var(--r-md); }
+.mx-bundle-return .live-builds-ticket { border-color: var(--hairline-blue); border-radius: var(--r-lg); background: var(--well); }
+.mx-bundle-return .start-form input { border-color: var(--edge-control); border-radius: var(--r-md); }
+.mx-bundle-return .live-builds-ticket > strong { font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; color: var(--white); }
+.mx-bundle-return .hero-actions { flex-wrap: wrap; }
+@media (max-width: 39.99rem) { .mx-bundle-return .hero-actions > * { flex: 1 1 100%; } }
+.mx-bundle-return :is(a, button, input):focus-visible { outline: 2px solid var(--blue-200); outline-offset: 3px; }

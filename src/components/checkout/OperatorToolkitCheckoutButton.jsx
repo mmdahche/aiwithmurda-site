@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { createOperatorToolkitCheckout } from "../../lib/api.js";
 
+// Self-contained in the site system (styles: src/site/product.css, "mx-checkout"),
+// so it reads the same on a storefront page and in the member area.
 export function OperatorToolkitCheckoutButton({ authSession, authReady, compact = false }) {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -23,14 +25,14 @@ export function OperatorToolkitCheckoutButton({ authSession, authReady, compact 
   }
 
   return (
-    <div className={`checkout-box operator-toolkit-checkout ${compact ? "compact" : ""}`}>
-      <button type="button" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
+    <div className={`mx mx-checkout${compact ? " mx-checkout--compact" : ""}`}>
+      <button type="button" className="mx-btn mx-btn--block" onClick={handleCheckout} disabled={!authReady || status === "loading"}>
         {authSession ? (status === "loading" ? "Opening Stripe..." : "Pay $327 and activate") : "Create profile to continue"}
       </button>
       {!compact && (
-        <small>$297 permanent setup + first $30 month. Then $30/month until canceled.</small>
+        <small className="mx-checkout-note">$297 permanent setup + first $30 month. Then $30/month until canceled.</small>
       )}
-      {message && <p className="form-message error">{message}</p>}
+      {message && <p className="mx-checkout-error" role="alert">{message}</p>}
     </div>
   );
 }
