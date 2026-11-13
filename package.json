@@ -36,6 +36,8 @@
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
     "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.89.0",
     "@vitejs/plugin-react": "^5.1.1",
