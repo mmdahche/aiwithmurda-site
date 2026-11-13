@@ -364,6 +364,8 @@ a.mx-chip:hover { border-color: var(--blue-200); }
 @media (max-width: 39.99rem) {
   .mx-shelf-meta, .mx-shelf-price { letter-spacing: 0; }
   .mx-shelf-note .mx-count { display: block; }
+  /* phone: the price and its cadence take the whole second line, so "$327 today, then $30/month" stays one line at 360 */
+  .mx-shelf-item--paid { grid-template-areas: "tile name go" "tile price price"; }
 }
 @media (min-width: 60rem) {
   .mx-shelf-groups { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-5); }
