@@ -129,6 +129,8 @@
 .mx-fr-read strong { font-weight: 600; color: var(--white); }
 .mx-fr-read a { color: var(--white); text-underline-offset: .25em; text-decoration-thickness: 1px; text-decoration-color: var(--blue-200); }
 .mx-fr-read a:hover { color: var(--blue-200); }
+/* on a phone, full lines read better than evened-out ones */
+@media (max-width: 39.99rem) { .mx-fr-read p, .mx-fr-steps--read p { text-wrap: wrap; } }
 
 /* numbered steps */
 .mx-fr-steps { display: grid; align-content: start; min-width: 0; }

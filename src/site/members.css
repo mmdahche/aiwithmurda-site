@@ -384,9 +384,9 @@
 .mx-mcourse .public-label { margin-bottom: var(--sp-3); }
 
 /* headings: view titles speak in Anton like the rest of the site, card titles in Geist */
-.mx-mcourse :is(.member-view-heading h2, .lesson-detail-copy h2, .proof-builder-copy h2, .completion-copy h2) { color: var(--white); font: 400 clamp(2rem, 1.55rem + 2vw, 3rem)/var(--lh-display) var(--font-display);
+.mx-mcourse :is(.member-view-heading h2, .lesson-detail-copy h2, .proof-builder-copy h2) { color: var(--white); font: 400 clamp(2rem, 1.55rem + 2vw, 3rem)/var(--lh-display) var(--font-display);
   letter-spacing: .008em; text-transform: uppercase; text-wrap: balance; }
-.mx-mcourse :is(.member-workspace-title h2, .member-next-action h3, .member-onboarding-copy h3, .member-build-track-copy h3, .member-module-copy h3, .member-resource-list article h3, .completion-builder-copy h3,
+.mx-mcourse :is(.member-workspace-title h2, .member-next-action h3, .member-onboarding-copy h3, .member-build-track-copy h3, .member-module-copy h3, .member-resource-list article h3, .completion-copy h2, .completion-builder-copy h3,
   .premium-lesson-hero h3, .premium-lesson-blocks h4) { color: var(--white); font-family: var(--font-sans); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
 .mx-mcourse :is(.member-workspace-title p, .member-view-heading > p, .member-onboarding-copy p, .member-build-track-copy p, .member-module-copy > p, .member-resource-list article p, .lesson-detail-copy > p,
   .proof-builder-copy p, .completion-copy > p, .completion-builder-copy p) { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
@@ -445,7 +445,9 @@
 .mx-mcourse .member-next-action-copy small { max-width: 44em; margin-top: .5rem; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
 .mx-mcourse .member-next-action-cta { gap: var(--sp-3); padding: var(--sp-5) var(--sp-4); border-color: var(--hairline-blue); }
 .mx-mcourse .member-next-action-cta > span { color: var(--blue-200); font: 400 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.mx-mcourse .member-next-action-cta :is(a, button) { white-space: nowrap; }
 @media (min-width: 40rem) { .mx-mcourse .member-next-action-copy, .mx-mcourse .member-next-action-cta { padding: var(--sp-6); } }
+@media (min-width: 1041px) { .mx-mcourse .member-next-action { grid-template-columns: minmax(0, 1fr) 17rem; } }
 
 .mx-mcourse .member-onboarding { padding: var(--sp-5) var(--sp-4); border-color: var(--hairline); border-radius: var(--r-lg); background: transparent; }
 .mx-mcourse .member-onboarding.fresh { border-color: var(--hairline-blue); }
@@ -459,6 +461,8 @@
 .mx-mcourse .onboarding-step-list article.done > strong { border-color: var(--blue-400); background: var(--blue-400); color: var(--navy-950); }
 .mx-mcourse .onboarding-step-list span { color: var(--white); font: 600 var(--fs-body)/1.3 var(--font-sans); letter-spacing: -.01em; }
 .mx-mcourse .onboarding-step-list p { margin: .25rem 0 0; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.45; }
+.mx-mcourse .onboarding-step-list article > :is(button, a) { white-space: nowrap; }
+@media (min-width: 761px) { .mx-mcourse .onboarding-step-list article { grid-template-columns: 2rem minmax(0, 1fr) minmax(7rem, auto); gap: var(--sp-4); } }
 @media (min-width: 40rem) { .mx-mcourse .member-onboarding { padding: var(--sp-6); } }
 
 .mx-mcourse .member-build-track-picker { border-color: var(--hairline); }
@@ -535,6 +539,7 @@
 .mx-mcourse .premium-lesson-hero p { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
 .mx-mcourse .premium-lesson-hero em { padding: .3rem .75rem; border: 1px solid var(--hairline-blue); background: transparent; color: var(--text); font: 500 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .04em; }
 .mx-mcourse .premium-lesson-blocks h4 { font-size: 1.125rem; }
+.mx-mcourse .premium-lesson-blocks p { margin-top: .375rem; }
 .mx-mcourse :is(.premium-framework-grid p, .premium-workshop-grid li, .premium-example-card p, .premium-example-card li, .premium-lesson-blocks p, .premium-lesson-blocks li) { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
 .mx-mcourse .premium-example-card strong { color: var(--white); font-weight: 600; }
 .mx-mcourse .module-done { padding-top: .75rem; color: var(--text); border-top-color: var(--hairline); font-size: var(--fs-sm); line-height: 1.5; }
@@ -553,6 +558,16 @@
 .mx-mcourse .lesson-download-list small { color: var(--blue-200); font: 500 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: .06em; }
 
 /* Build log and Ship: forms, previews, the finish line */
+/* the log's heading runs across the top like the other views, instead of down a narrow column */
+.mx-mcourse .member-proof-builder { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+.mx-mcourse .proof-builder-copy { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); justify-items: start; padding-bottom: var(--sp-5); border-bottom: 1px solid var(--hairline); }
+.mx-mcourse .proof-builder-copy .public-label { margin: 0; }
+.mx-mcourse .proof-builder-copy h2 { margin: 0; }
+@media (min-width: 1041px) {
+  .mx-mcourse .proof-builder-copy { grid-template-columns: minmax(0, 1fr) minmax(280px, .65fr); column-gap: 42px; align-items: end; }
+  .mx-mcourse .proof-builder-copy .public-label { grid-column: 1 / -1; }
+  .mx-mcourse .proof-builder-copy h2 { grid-row: 2 / span 2; }
+}
 .mx-mcourse .proof-builder-form, .mx-mcourse .completion-builder { border-color: var(--hairline); border-radius: var(--r-lg); background: transparent; }
 .mx-mcourse .field span { color: var(--text); font: 500 var(--fs-sm)/1.3 var(--font-sans); letter-spacing: 0; text-transform: none; }
 .mx-mcourse .field :is(input, select, textarea) { border: 1px solid var(--edge-control); border-radius: var(--r-md); background: var(--raised); color: var(--white); font: 400 1rem/1.4 var(--font-sans); }
@@ -581,3 +596,20 @@
 .mx-mcourse .completion-criteria-list article.done > strong { border-color: var(--blue-600); background: var(--blue-600); color: var(--white); }
 .mx-mcourse .completion-criteria-list span { color: var(--white); font: 600 var(--fs-sm)/1.3 var(--font-sans); }
 .mx-mcourse .completion-builder-copy h3 { font-size: 1.375rem; }
+.mx-mcourse .completion-copy h2 { font-size: var(--fs-title); }
+/* finish line: the promise on top, then the meter beside the five criteria */
+.mx-mcourse .member-finish-view .course-completion-panel { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+.mx-mcourse .completion-copy .public-label { margin: 0; }
+.mx-mcourse .completion-control { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.mx-mcourse .completion-meter-card { align-content: start; padding: var(--sp-5); }
+.mx-mcourse .completion-builder { grid-template-columns: minmax(0, 1fr); padding: var(--sp-5) var(--sp-4); }
+@media (min-width: 48rem) {
+  .mx-mcourse .completion-control { grid-template-columns: 17rem minmax(0, 1fr); }
+  .mx-mcourse .completion-builder { padding: var(--sp-6); }
+}
+@media (min-width: 75rem) {
+  .mx-mcourse .completion-copy { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-8); align-items: start; }
+  .mx-mcourse .completion-copy > :is(.public-label, h2, p) { grid-column: 1; }
+  .mx-mcourse .completion-capstone { grid-column: 2; grid-row: 1 / span 3; }
+  .mx-mcourse .completion-builder { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
