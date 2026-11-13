@@ -15,7 +15,6 @@ import {
   ListTodo,
   LockKeyhole,
   LogOut,
-  Menu,
   PackageCheck,
   Play,
   Plus,
@@ -61,8 +60,12 @@ import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
-import { StorefrontShop, StorefrontProduct } from "./pages/StorefrontShop.jsx";
-import { StorefrontHome, AboutMurad } from "./pages/StorefrontHome.jsx";
+import { StorefrontShop } from "./pages/StorefrontShop.jsx";
+import { StorefrontProduct } from "./pages/StorefrontProduct.jsx";
+import { StorefrontHome } from "./pages/StorefrontHome.jsx";
+import { AboutMurad } from "./pages/AboutPage.jsx";
+import { LegalPage } from "./pages/LegalPage.jsx";
+import { SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
 import { StarterPackPage } from "./pages/StarterPackPage.jsx";
 import { InboxCleanupPage } from "./pages/InboxCleanupPage.jsx";
 import { CheckItFirstPage } from "./pages/CheckItFirstPage.jsx";
@@ -1814,7 +1817,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
 
   return (
     <div className="public-site storefront-shell">
-      <PublicNav activeRoute={knownRoute} />
+      <SiteHeader activeRoute={knownRoute} />
       {knownRoute === "/" && <StorefrontHome />}
       {knownRoute === "/about" && <AboutMurad />}
       {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
@@ -1844,215 +1847,8 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       )}
       {knownRoute === "/terms" && <LegalPage type="terms" />}
       {knownRoute === "/privacy" && <LegalPage type="privacy" />}
-      <PublicFooter />
+      <SiteFooter />
     </div>
-  );
-}
-
-function PublicNav({ activeRoute }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const links = [
-    { href: "/store", label: "Tools" },
-    { href: "/about", label: "About Murad" },
-    { href: "/start", label: "Free Starter Pack" },
-  ];
-
-  return (
-    <header className="public-nav">
-      <a className="public-brand" href="/">
-        <span>
-          <Icon name="code" />
-        </span>
-        <strong>AI with Murda</strong>
-      </a>
-      <button
-        type="button"
-        className="public-nav-toggle"
-        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-        aria-expanded={menuOpen}
-        aria-controls="public-navigation-links"
-        title={menuOpen ? "Close navigation" : "Open navigation"}
-        onClick={() => setMenuOpen((current) => !current)}
-      >
-        {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
-      </button>
-      <nav id="public-navigation-links" className={menuOpen ? "open" : ""} aria-label="Public navigation">
-        {links.map((link) => (
-          <a key={link.href} className={activeRoute === link.href || (link.href === "/store" && activeRoute === "/store/product") ? "active" : ""} href={link.href}>
-            {link.label}
-          </a>
-        ))}
-      </nav>
-      <a className="nav-cta" href="/members">
-        <FolderDown size={17} aria-hidden="true" /> My Downloads
-      </a>
-    </header>
-  );
-}
-
-function PublicFooter() {
-  return (
-    <footer className="public-footer">
-      <span>AI with Murda</span>
-      <nav aria-label="Legal navigation">
-        <a href="/60">Build log archive</a>
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="mailto:murad@aiwithmurda.com">Contact</a>
-      </nav>
-    </footer>
-  );
-}
-
-function LegalPage({ type }) {
-  const isPrivacy = type === "privacy";
-
-  return (
-    <main className="legal-page">
-      <header className="legal-page-header">
-        <span>{isPrivacy ? "Data and account access" : "Service agreement"}</span>
-        <h1>{isPrivacy ? "Privacy Policy" : "Terms of Service"}</h1>
-        <p>Effective July 10, 2026</p>
-      </header>
-
-      {isPrivacy ? (
-        <div className="legal-page-body">
-          <section>
-            <h2>Overview</h2>
-            <p>
-              AI with Murda operates public dashboards, streaming overlays, educational products, and
-              member tools. This policy explains what information we collect and how it is used when
-              you visit the site, join a product, or connect a social account.
-            </p>
-          </section>
-          <section>
-            <h2>Information we collect</h2>
-            <p>
-              We may collect contact information you submit, purchase and membership records, basic
-              service usage data, and information you authorize through a connected platform. For a
-              TikTok connection, this may include an account identifier, display name, username,
-              avatar or profile link, and follower statistics covered by the scopes you approve.
-            </p>
-          </section>
-          <section>
-            <h2>How information is used</h2>
-            <p>
-              We use this information to operate the site, provide purchased access, display verified
-              social metrics, maintain the combined follower ticker, prevent abuse, support users, and
-              improve the service. We do not sell connected social account data.
-            </p>
-          </section>
-          <section>
-            <h2>Connected accounts and security</h2>
-            <p>
-              Social access tokens are stored server-side in encrypted form and are not exposed on the
-              public dashboard. You can revoke a platform authorization through that platform or ask us
-              to disconnect the account. Disconnecting removes the account from the combined total and
-              stops future metric refreshes.
-            </p>
-          </section>
-          <section>
-            <h2>Service providers</h2>
-            <p>
-              We use infrastructure and payment providers such as Render, Supabase, Stripe, and Resend,
-              plus the social platforms you choose to connect. These providers process information only
-              as needed to deliver their services and are governed by their own terms and policies.
-            </p>
-          </section>
-          <section>
-            <h2>Retention and choices</h2>
-            <p>
-              We retain information while it is needed to provide the service, maintain transaction
-              records, meet legal obligations, or resolve disputes. You may request access, correction,
-              disconnection, or deletion by contacting us. Some transaction records may be retained when
-              required by law.
-            </p>
-          </section>
-          <section>
-            <h2>Children and policy changes</h2>
-            <p>
-              The service is not directed to children under 13. We may update this policy as the service
-              changes. Material updates will be posted here with a revised effective date.
-            </p>
-          </section>
-          <section>
-            <h2>Contact</h2>
-            <p>Email privacy questions or requests to <a href="mailto:murad@aiwithmurda.com">murad@aiwithmurda.com</a>.</p>
-          </section>
-        </div>
-      ) : (
-        <div className="legal-page-body">
-          <section>
-            <h2>Agreement</h2>
-            <p>
-              By accessing AI with Murda, creating an account, purchasing a product, or connecting a
-              social account, you agree to these terms. If you do not agree, do not use the service.
-            </p>
-          </section>
-          <section>
-            <h2>The service</h2>
-            <p>
-              AI with Murda provides public progress dashboards, streaming tools, educational material,
-              downloadable resources, member workspaces, and optional social metric integrations.
-              Features may change as the products and live build evolve.
-            </p>
-          </section>
-          <section>
-            <h2>Accounts and social authorization</h2>
-            <p>
-              You are responsible for your account credentials and for activity performed through your
-              account. When you connect a social platform, you authorize only the permissions shown on
-              that platform's consent screen. You may revoke that authorization at any time.
-            </p>
-          </section>
-          <section>
-            <h2>Purchases and access</h2>
-            <p>
-              Prices and billing terms are shown before checkout. Digital access is personal and may not
-              be resold, shared, or redistributed unless the offer explicitly permits it. Subscription
-              access continues until canceled under the terms shown at purchase.
-            </p>
-          </section>
-          <section>
-            <h2>Acceptable use</h2>
-            <p>
-              Do not misuse the service, interfere with its operation, attempt unauthorized access,
-              scrape private areas, upload malicious material, impersonate others, or use the service in
-              violation of law or another platform's rules.
-            </p>
-          </section>
-          <section>
-            <h2>Ownership</h2>
-            <p>
-              The site, course material, software, branding, and original resources remain the property
-              of their respective owners. Purchasing access grants a limited, non-transferable right to
-              use the included material for your own work.
-            </p>
-          </section>
-          <section>
-            <h2>Availability and responsibility</h2>
-            <p>
-              The service is provided as available. We do not guarantee uninterrupted operation,
-              specific income, follower growth, or business results. To the extent allowed by law, AI
-              with Murda is not liable for indirect or consequential losses arising from use of the
-              service or third-party platforms.
-            </p>
-          </section>
-          <section>
-            <h2>Termination and changes</h2>
-            <p>
-              Access may be suspended for abuse, fraud, nonpayment, or material violations of these
-              terms. We may update these terms as the service changes and will post the revised version
-              here with a new effective date.
-            </p>
-          </section>
-          <section>
-            <h2>Contact</h2>
-            <p>Questions about these terms can be sent to <a href="mailto:murad@aiwithmurda.com">murad@aiwithmurda.com</a>.</p>
-          </section>
-        </div>
-      )}
-    </main>
   );
 }
 
@@ -2148,7 +1944,7 @@ function PublicDashboard({ config, logs, latest, weeks, liveFollowers }) {
   }));
 
   return (
-    <main className="public-page control-room-page scoreboard-experience-page">
+    <main className="public-page control-room-page scoreboard-experience-page" id="main-content">
       <section className="scoreboard-arena">
         <div className="broadcast-ident">
           <span className="broadcast-live-state"><i />{isPrelaunch(config) ? "Prelaunch board" : "Live board"}</span>
@@ -2313,7 +2109,7 @@ function DayReceiptPage({ config, logs, day }) {
 
   if (!record) {
     return (
-      <main className="public-page">
+      <main className="public-page" id="main-content">
         <section className="public-section day-empty-state">
           <div>
             <span className="public-label">Daily receipt</span>
@@ -2358,7 +2154,7 @@ function DayReceiptPage({ config, logs, day }) {
     .join("\n");
 
   return (
-    <main className="public-page day-receipt-page">
+    <main className="public-page day-receipt-page" id="main-content">
       <section className="day-receipt-hero">
         <div>
           <span className="public-label">Daily receipt</span>
@@ -2528,7 +2324,7 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
   const primaryLabel = streamConfig?.primary?.configured ? "Open live room" : "Join build log";
 
   return (
-    <main className="public-page live-experience-page">
+    <main className="public-page live-experience-page" id="main-content">
       <section className="live-broadcast-stage">
         <div className="live-broadcast-copy">
           <div className="broadcast-ident">
@@ -2594,8 +2390,8 @@ function LiveHub({ latest, streamConfig, streamConfigStatus, liveFollowers }) {
           <h2>Chat can always find the receipts.</h2>
         </div>
         <div className="stream-command-grid">
-          {commands.map((item) => (
-            <a key={item.command} href={item.href}>
+          {commands.map((item, index) => (
+            <a key={`${item.command}-${item.href}-${index}`} href={item.href}>
               <strong>{item.command}</strong>
               <span>{item.label}</span>
             </a>
@@ -2688,7 +2484,7 @@ function ToolsPage({ latest }) {
   ];
 
   return (
-    <main className="public-page">
+    <main className="public-page" id="main-content">
       <section className="public-section">
         <span className="public-label">Tools</span>
         <h1>Everything useful needs a command.</h1>
@@ -2761,7 +2557,7 @@ function StartPage() {
   }
 
   return (
-    <main className="public-page">
+    <main className="public-page" id="main-content">
       <section className="start-hero">
         <div className="start-copy">
           <span className="public-label">Build log</span>
@@ -2998,48 +2794,60 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
   }
 
   return (
-    <main className={`public-page members-page ${hasAnyPaidAccess ? "has-access" : ""}`}>
+    <main id="main-content" className={`mx mx-page mx-members members-page ${hasAnyPaidAccess ? "has-access" : ""}`}>
+      <div className="mx-container mx-members-in">
       {authSession && (
-      <section className={`member-entry-header ${hasAnyPaidAccess ? "paid" : ""}`}>
-        <div>
-          <span className="member-entry-kicker">AI with Murda / Member access</span>
-          <h1>{hasAnyPaidAccess ? "My Downloads" : "Your tools are here."}</h1>
-          <p>
-            {hasAnyPaidAccess
-              ? "Your purchased files, setup guides, and optional lessons."
-              : "Sign in for your purchased downloads, or create an account to complete your purchase."}
-          </p>
-          {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
+      <section className={`mx-panel mx-mhead ${hasAnyPaidAccess ? "paid" : ""}`}>
+        <div className="mx-panel-head">
+          <span className="mx-count">{status === "ready" ? "01 / 02" : "01 / 01"}</span>
+          <span className="mx-desc"><span className="mx-desc-pre">AI with Murda / </span>Member access</span>
         </div>
-        <aside className="member-account-panel">
-          <div className="member-account-state">
-            <i className={hasAnyPaidAccess ? "active" : ""} aria-hidden="true" />
-            <span>{hasAnyPaidAccess ? "Access active" : status === "loading" ? "Checking access" : authSession ? "Profile active" : "Secure login"}</span>
+        <div className="mx-mhead-grid">
+          <div className="mx-mhead-copy">
+            <h1 className="mx-display mx-display--lg">{hasAnyPaidAccess ? "My Downloads" : "Your tools are here."}</h1>
+            <p className="mx-lede">
+              {hasAnyPaidAccess
+                ? "Your purchased files, setup guides, and optional lessons."
+                : "Sign in for your purchased downloads, or create an account to complete your purchase."}
+            </p>
+            {notice?.text && <p className={`form-message ${notice.tone}`}>{notice.text}</p>}
           </div>
-          <strong>{authSession?.user?.email || "Your member profile"}</strong>
-          <p>{hasAnyPaidAccess ? "Progress syncs to this account." : "Use the same email for login and checkout."}</p>
-          <div className="member-account-actions">
-            {authSession && (
-              <button type="button" onClick={handleMemberSignOut}>
-                <LogOut size={16} aria-hidden="true" />
-                Sign out
-              </button>
-            )}
-            <a href="/store">
-              <ExternalLink size={16} aria-hidden="true" />
-              Browse tools
-            </a>
-          </div>
-        </aside>
+          <aside className="mx-card mx-acct" aria-label="Your account">
+            <div className="mx-chip mx-acct-state">
+              <i className={`mx-chip-dot ${hasAnyPaidAccess ? "active" : ""}`} aria-hidden="true" />
+              <span>{hasAnyPaidAccess ? "Access active" : status === "loading" ? "Checking access" : authSession ? "Profile active" : "Secure login"}</span>
+            </div>
+            <strong className="mx-acct-email">{authSession?.user?.email || "Your member profile"}</strong>
+            <p className="mx-acct-note">{hasAnyPaidAccess ? "Progress syncs to this account." : "Use the same email for login and checkout."}</p>
+            <div className="mx-acct-actions">
+              {authSession && (
+                <button type="button" className="mx-btn mx-btn--ghost mx-btn--sm" onClick={handleMemberSignOut}>
+                  <LogOut className="mx-i" aria-hidden="true" />
+                  Sign out
+                </button>
+              )}
+              <a className="mx-btn mx-btn--ghost mx-btn--sm" href="/store">
+                Browse tools
+                <ArrowRight className="mx-i" aria-hidden="true" />
+              </a>
+            </div>
+          </aside>
+        </div>
       </section>
       )}
 
-      {!authReady && <MemberStateCard title="Checking profile" body="Loading Supabase session..." />}
+      {!authReady && <MemberStateCard lead busy title="Checking profile" body="Loading Supabase session..." />}
       {authReady && !isSupabaseConfigured() && (
         <MemberStateCard
+          lead
           title="Member sign-in is unavailable here"
           body="This environment is not connected to member accounts. Your existing account remains available on aiwithmurda.com."
-        />
+        >
+          <a className="mx-btn mx-btn--ghost" href="/store">
+            Browse tools
+            <ArrowRight className="mx-i" aria-hidden="true" />
+          </a>
+        </MemberStateCard>
       )}
       {authReady && isSupabaseConfigured() && !authSession && <AuthPanel />}
       {authSession && (
@@ -3051,56 +2859,62 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       )}
 
       {authSession && status === "loading" && (
-        <MemberStateCard title="Loading your workspace" body="Checking products, progress, and member assets." />
+        <MemberStateCard busy title="Loading your workspace" body="Checking products, progress, and member assets." />
       )}
 
       {authSession && status === "ready" && entitledProductCount > 0 && !activeModuleKey && (
-        <nav className="member-product-switcher" aria-label="Your products">
-          <button type="button" className={activeMemberProduct === "library" ? "active" : ""} onClick={() => setActiveMemberProduct("library")}>
-            <FolderDown size={19} aria-hidden="true" /><span><strong>My Downloads</strong><small>Files and start guides</small></span>
+        <nav className="mx-mswitch" aria-label="Your products">
+          <button
+            type="button"
+            className={activeMemberProduct === "library" ? "active" : ""}
+            aria-current={activeMemberProduct === "library" ? "page" : undefined}
+            onClick={() => setActiveMemberProduct("library")}
+          >
+            <span className="mx-tile mx-tile--sm" aria-hidden="true"><FolderDown className="mx-i" /></span>
+            <span className="mx-mswitch-name"><strong>My Downloads</strong><small>Files and start guides</small></span>
           </button>
           {futureMethodEntitled && (
           <button
             type="button"
             className={activeMemberProduct === "future-method" ? "active" : ""}
+            aria-current={activeMemberProduct === "future-method" ? "page" : undefined}
             onClick={() => setActiveMemberProduct("future-method")}
           >
-            <BookOpenText size={19} aria-hidden="true" />
-            <span><strong>The Future Proof Method</strong><small>Starter course and core skills</small></span>
-            <Check size={16} aria-hidden="true" />
+            <span className="mx-tile mx-tile--sm" aria-hidden="true"><BookOpenText className="mx-i" /></span>
+            <span className="mx-mswitch-name"><strong>The Future Proof Method</strong><small>Starter course and core skills</small></span>
           </button>
           )}
           {operatorBundleEntitled && (
           <button
             type="button"
             className={activeMemberProduct === "operator-bundle" ? "active" : ""}
+            aria-current={activeMemberProduct === "operator-bundle" ? "page" : undefined}
             onClick={() => setActiveMemberProduct("operator-bundle")}
           >
-            <RadioTower size={19} aria-hidden="true" />
-            <span><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
-            <Check size={16} aria-hidden="true" />
+            <span className="mx-tile mx-tile--sm" aria-hidden="true"><RadioTower className="mx-i" /></span>
+            <span className="mx-mswitch-name"><strong>{operatorBundleProduct.name}</strong><small>Advanced skills, scripts, and blueprints</small></span>
           </button>
           )}
           {operatorArsenalEntitled && (
             <button
               type="button"
               className={activeMemberProduct === "operator-arsenal" ? "active" : ""}
+              aria-current={activeMemberProduct === "operator-arsenal" ? "page" : undefined}
               onClick={() => setActiveMemberProduct("operator-arsenal")}
             >
-              <FolderDown size={19} aria-hidden="true" />
-              <span><strong>{operatorArsenalProduct.name}</strong><small>All shelf zips and toolkit access</small></span>
-              <Check size={16} aria-hidden="true" />
+              <span className="mx-tile mx-tile--sm" aria-hidden="true"><PackageCheck className="mx-i" /></span>
+              <span className="mx-mswitch-name"><strong>{operatorArsenalProduct.name}</strong><small>All shelf zips and toolkit access</small></span>
             </button>
           )}
           {operatorToolkitEntitled && (
             <button
               type="button"
               className={activeMemberProduct === "operator-toolkit" ? "active" : ""}
+              aria-current={activeMemberProduct === "operator-toolkit" ? "page" : undefined}
               onClick={() => setActiveMemberProduct("operator-toolkit")}
             >
-              <Layers3 size={19} aria-hidden="true" />
-              <span><strong>{operatorToolkitProduct.name}</strong><small>Full setup and versioned updates</small></span>
-              <Check size={16} aria-hidden="true" />
+              <span className="mx-tile mx-tile--sm" aria-hidden="true"><Layers3 className="mx-i" /></span>
+              <span className="mx-mswitch-name"><strong>{operatorToolkitProduct.name}</strong><small>Full setup and versioned updates</small></span>
             </button>
           )}
         </nav>
@@ -3130,33 +2944,51 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
       )}
 
       {authSession && status === "ready" && !futureMethodEntitled && !operatorBundleEntitled && !operatorToolkitEntitled && !operatorArsenalEntitled && (
-        <section className="public-section unlock-section">
-          <div>
-            <span className="public-label">Unlock required</span>
-            <h2>
-              {requestedNext === "operator-arsenal"
-                ? operatorArsenalProduct.name
-                : requestedNext === "operator-toolkit"
-                  ? operatorToolkitProduct.name
-                  : productName}
-            </h2>
-            {requestedNext === "operator-arsenal" ? (
-              <p>
-                Your profile is active. Continue to the transparent mixed checkout: $497 today ($467 permanent library plus first $30 update month), then $30/month. Every shelf zip and the full toolkit remain yours if updates are canceled.
-              </p>
-            ) : requestedNext === "operator-toolkit" ? (
-              <p>Your profile is active. Continue to the transparent mixed checkout: $327 today, then $30/month. The $297 launch edition remains yours if updates are canceled.</p>
-            ) : (
-              <p>Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules, core prompt scripts, starter skills, and the first-build lab.</p>
-            )}
+        <section className="mx-panel mx-mview">
+          <div className="mx-panel-head">
+            <span className="mx-count">02 / 02</span>
+            <span className="mx-desc">Unlock required</span>
           </div>
-          {requestedNext === "operator-arsenal" ? (
-            <OperatorArsenalCheckoutButton authSession={authSession} authReady={authReady} compact />
-          ) : requestedNext === "operator-toolkit" ? (
-            <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
-          ) : (
-            <CheckoutButton authSession={authSession} authReady={authReady} />
-          )}
+          <div className="mx-cream mx-unlock">
+            <div className="mx-unlock-copy">
+              <p className="mx-ticker">
+                <span className="mx-ticker-tag">Paid package</span>
+                <span className="mx-ticker-bar">{requestedNext === "operator-arsenal" || requestedNext === "operator-toolkit" ? "Today + monthly" : "One-time"}</span>
+              </p>
+              <h2 className="mx-title">
+                {requestedNext === "operator-arsenal"
+                  ? operatorArsenalProduct.name
+                  : requestedNext === "operator-toolkit"
+                    ? operatorToolkitProduct.name
+                    : productName}
+              </h2>
+              {requestedNext === "operator-arsenal" ? (
+                <p className="mx-text">
+                  Your profile is active. Continue to the transparent mixed checkout: $497 today ($467 permanent library plus first $30 update month), then $30/month. Every shelf zip and the full toolkit remain yours if updates are canceled.
+                </p>
+              ) : requestedNext === "operator-toolkit" ? (
+                <p className="mx-text">Your profile is active. Continue to the transparent mixed checkout: $327 today, then $30/month. The $297 launch edition remains yours if updates are canceled.</p>
+              ) : (
+                <p className="mx-text">Your profile is active. Buy the $47 starter course to unlock both-agent setup, guided modules, core prompt scripts, starter skills, and the first-build lab.</p>
+              )}
+            </div>
+            <div className="mx-unlock-buy">
+              <div className="mx-price-row">
+                <span className="mx-ticker mx-ticker--price">
+                  <span className="mx-ticker-tag">{requestedNext === "operator-arsenal" || requestedNext === "operator-toolkit" ? "Today" : "One time"}</span>
+                  <span className="mx-ticker-bar">{requestedNext === "operator-arsenal" ? "$497" : requestedNext === "operator-toolkit" ? "$327" : "$47"}</span>
+                </span>
+                <span className="mx-cadence">{requestedNext === "operator-arsenal" || requestedNext === "operator-toolkit" ? "Then $30/month" : "No monthly charge"}</span>
+              </div>
+              {requestedNext === "operator-arsenal" ? (
+                <OperatorArsenalCheckoutButton authSession={authSession} authReady={authReady} compact />
+              ) : requestedNext === "operator-toolkit" ? (
+                <OperatorToolkitCheckoutButton authSession={authSession} authReady={authReady} compact />
+              ) : (
+                <CheckoutButton authSession={authSession} authReady={authReady} />
+              )}
+            </div>
+          </div>
         </section>
       )}
 
@@ -3168,6 +3000,7 @@ function MembersPage({ authSession, authReady, activeModuleKey }) {
           profile={memberData?.profile}
         />
       )}
+      </div>
     </main>
   );
 }
@@ -3198,54 +3031,60 @@ function OperatorBundleMemberPanel({ accessToken, bundle }) {
   }
 
   return (
-    <section className="live-build-member-panel">
-      <article className="live-build-member-hero">
-        <div>
-          <span className="public-label">{accessPlan.label}</span>
-          <h2>Your advanced operator vault is active.</h2>
-          <p>{accessPlan.accessNote}</p>
+    <section className="mx-panel mx-mview mx-mpanel">
+      <div className="mx-panel-head">
+        <span className="mx-count">02 / 02</span>
+        <span className="mx-desc">{accessPlan.label}</span>
+      </div>
+      <article className="mx-mpanel-hero">
+        <div className="mx-mpanel-intro">
+          <p className="mx-ticker mx-ticker--paid">
+            <strong className="mx-ticker-tag">{accessPlan.tier}</strong>
+            <span className="mx-ticker-bar">{accessPlan.status}</span>
+          </p>
+          <h2 className="mx-display mx-display--md">Your advanced operator vault is active.</h2>
         </div>
-        <div className="live-build-ticket-strip">
-          <strong>{accessPlan.tier}</strong>
-          <span>{accessPlan.status}</span>
-          <a className="secondary-link" href="/live-builds">
+        <div className="mx-mpanel-side">
+          <p className="mx-lede">{accessPlan.accessNote}</p>
+          <a className="mx-link" href="/live-builds">
             Open bundle page
+            <ArrowRight className="mx-i" aria-hidden="true" />
           </a>
         </div>
       </article>
 
-      <div className="live-build-member-grid">
-        <article className="live-build-room-plan">
-          <span>Activation outcome</span>
-          <p>{accessPlan.activationPromise}</p>
-          <div className="live-build-buyer-path">
+      <div className="mx-mpanel-pair">
+        <article className="mx-card mx-mpanel-plan">
+          <span className="mx-eyebrow">Activation outcome</span>
+          <p className="mx-text">{accessPlan.activationPromise}</p>
+          <div className="mx-msteps">
             {accessPlan.buyerPath.map((step, index) => (
               <div key={step}>
-                <strong>{String(index + 1).padStart(2, "0")}</strong>
+                <strong className="mx-count">{String(index + 1).padStart(2, "0")}</strong>
                 <span>{step}</span>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="live-build-prep-list">
-          <span>Install discipline</span>
-          <ul>
+        <article className="mx-card mx-mpanel-plan">
+          <span className="mx-eyebrow">Install discipline</span>
+          <ul className="mx-includes">
             {accessPlan.setupChecklist.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}><Check className="mx-i" aria-hidden="true" /><span>{item}</span></li>
             ))}
           </ul>
         </article>
       </div>
 
-      <section className="live-build-candidates">
-        <div>
-          <span className="public-label">Skill collections</span>
-          <h2>Choose the workflow you need now.</h2>
+      <section className="mx-mblock">
+        <div className="mx-mblock-head">
+          <span className="mx-eyebrow">Skill collections</span>
+          <h2 className="mx-display mx-mblock-h">Choose the workflow you need now.</h2>
         </div>
-        <div className="live-build-candidate-list">
+        <div className="mx-mcollections">
           {operatorBundleCollections.map((collection) => (
-            <article key={collection.key}>
+            <article className="mx-card" key={collection.key}>
               <strong>{collection.title}</strong>
               <p>{collection.outcome}</p>
               <em>{collection.reuseMove}</em>
@@ -3254,27 +3093,31 @@ function OperatorBundleMemberPanel({ accessToken, bundle }) {
         </div>
       </section>
 
-      <section className="live-build-asset-section">
-        <div>
-          <span className="public-label">Operator assets</span>
-          <h2>The advanced vault is ready.</h2>
-          <p>Download only the collection tied to your current project so the larger bundle stays useful instead of noisy.</p>
+      <section className="mx-mblock">
+        <div className="mx-mblock-head">
+          <span className="mx-eyebrow">Operator assets</span>
+          <h2 className="mx-display mx-mblock-h">The advanced vault is ready.</h2>
+          <p className="mx-text">Download only the collection tied to your current project so the larger bundle stays useful instead of noisy.</p>
         </div>
-        <div className="live-build-asset-list">
+        <div className="mx-massets">
           {assets.map((asset) => (
-            <article key={asset.key}>
-              <span>{asset.kind}</span>
+            <article className="mx-card" key={asset.key}>
+              <span className="mx-massets-kind">{asset.kind}</span>
               <strong>{asset.title}</strong>
               <p>{asset.description}</p>
-              <button
-                type="button"
-                onClick={() => handleDownload(asset)}
-                disabled={downloadState[asset.key] === "loading"}
-              >
-                {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
-              </button>
-              {downloadState[asset.key] === "success" && <em>Saved</em>}
-              {downloadState[asset.key] === "error" && <em>Retry</em>}
+              <div className="mx-massets-act">
+                <button
+                  type="button"
+                  className="mx-btn mx-btn--ghost mx-btn--sm"
+                  onClick={() => handleDownload(asset)}
+                  disabled={downloadState[asset.key] === "loading"}
+                >
+                  <Download className="mx-i" aria-hidden="true" />
+                  {downloadState[asset.key] === "loading" ? "Downloading..." : "Download"}
+                </button>
+                {downloadState[asset.key] === "success" && <em className="mx-massets-ok">Saved</em>}
+                {downloadState[asset.key] === "error" && <em className="mx-massets-err">Retry</em>}
+              </div>
             </article>
           ))}
         </div>
@@ -3309,46 +3152,57 @@ function OperatorArsenalMemberPanel({ accessToken, arsenal }) {
   }
 
   return (
-    <section className="operator-arsenal-member-panel">
-      <article className="operator-arsenal-member-hero">
-        <div>
-          <span className="public-label">{accessPlan.label}</span>
-          <h2>The complete shelf is ready.</h2>
-          <p>{accessPlan.accessNote}</p>
+    <section className="mx-panel mx-mview mx-mpanel">
+      <div className="mx-panel-head">
+        <span className="mx-count">02 / 02</span>
+        <span className="mx-desc">{accessPlan.label}</span>
+      </div>
+      <article className="mx-mpanel-hero">
+        <div className="mx-mpanel-intro">
+          <p className="mx-ticker mx-ticker--paid">
+            <strong className="mx-ticker-tag">{accessPlan.tier}</strong>
+            <span className="mx-ticker-bar">{accessPlan.status}</span>
+          </p>
+          <h2 className="mx-display mx-display--md">The complete shelf is ready.</h2>
         </div>
-        <div className="operator-arsenal-ticket-strip">
-          <strong>{accessPlan.tier}</strong>
-          <span>{accessPlan.status}</span>
-          <a className="secondary-link" href="/operator-arsenal">
+        <div className="mx-mpanel-side">
+          <p className="mx-lede">{accessPlan.accessNote}</p>
+          <a className="mx-link" href="/operator-arsenal">
             Open Arsenal page
+            <ArrowRight className="mx-i" aria-hidden="true" />
           </a>
         </div>
       </article>
 
-      <section className="operator-arsenal-shelf-section">
-        <div>
-          <span className="public-label">Shelf downloads</span>
-          <h2>Every standalone product, verified and zipped.</h2>
-          <p>{accessPlan.activationPromise}</p>
-          <a className="secondary-link" href="/members?product=operator-toolkit">
+      <section className="mx-mblock">
+        <div className="mx-mblock-head">
+          <span className="mx-eyebrow">Shelf downloads</span>
+          <h2 className="mx-display mx-mblock-h">Every standalone product, verified and zipped.</h2>
+          <p className="mx-text">{accessPlan.activationPromise}</p>
+          <a className="mx-link" href="/members?product=operator-toolkit">
             Open Operator Toolkit setup
+            <ArrowRight className="mx-i" aria-hidden="true" />
           </a>
         </div>
-        <div className="operator-arsenal-shelf-grid">
-          {shelfAssets.map((asset) => (
-            <article key={asset.key}>
+        <div className="mx-massets">
+          {shelfAssets.map((asset, index) => (
+            <article className="mx-card" key={asset.key}>
+              <span className="mx-massets-kind"><span className="mx-count">{String(index + 1).padStart(2, "0")} / {String(shelfAssets.length).padStart(2, "0")}</span>ZIP</span>
               <strong>{asset.title}</strong>
               <p>{asset.body}</p>
-              <button
-                type="button"
-                onClick={() => handleDownload(asset)}
-                disabled={downloadState[asset.key] === "loading"}
-              >
-                <Download size={16} aria-hidden="true" />
-                {downloadState[asset.key] === "loading" ? "Downloading..." : "Download zip"}
-              </button>
-              {downloadState[asset.key] === "success" && <em>Saved</em>}
-              {downloadState[asset.key] === "error" && <em>Retry</em>}
+              <div className="mx-massets-act">
+                <button
+                  type="button"
+                  className="mx-btn mx-btn--ghost mx-btn--sm"
+                  onClick={() => handleDownload(asset)}
+                  disabled={downloadState[asset.key] === "loading"}
+                >
+                  <Download className="mx-i" aria-hidden="true" />
+                  {downloadState[asset.key] === "loading" ? "Downloading..." : "Download zip"}
+                </button>
+                {downloadState[asset.key] === "success" && <em className="mx-massets-ok">Saved</em>}
+                {downloadState[asset.key] === "error" && <em className="mx-massets-err">Retry</em>}
+              </div>
             </article>
           ))}
         </div>
@@ -3493,72 +3347,86 @@ function OperatorToolkitMemberPanel({ accessToken, toolkit, profile, updatesEnti
     : null;
 
   return (
-    <section className={`operator-toolkit-member active-view-${activeView}`}>
-      <header className="operator-toolkit-member-header">
-        <div>
-          <span className="public-label">{accessPlan.label}</span>
-          <h2>Your full operator system is ready.</h2>
-          <p>{accessPlan.accessNote}</p>
+    <section className={`mx-panel mx-mview mx-mpanel mx-kit operator-toolkit-member active-view-${activeView}`}>
+      <div className="mx-panel-head">
+        <span className="mx-count">02 / 02</span>
+        <span className="mx-desc">{accessPlan.label}</span>
+      </div>
+      <header className="mx-mpanel-hero">
+        <div className="mx-mpanel-intro">
+          <p className="mx-ticker mx-ticker--paid">
+            <span className="mx-ticker-tag">{accessPlan.tier}</span>
+            <strong className="mx-ticker-bar">{accessPlan.status}</strong>
+          </p>
+          <h2 className="mx-display mx-display--md">Your full operator system is ready.</h2>
         </div>
-        <aside>
-          <span>{accessPlan.tier}</span>
-          <strong>{accessPlan.status}</strong>
-          <em>{updatesEntitled ? "Updates active" : "Updates paused"}</em>
-        </aside>
+        <div className="mx-mpanel-side">
+          <p className="mx-lede">{accessPlan.accessNote}</p>
+          <em className={`mx-chip mx-kit-updates${updatesEntitled ? " active" : ""}`}>
+            <i className="mx-chip-dot" aria-hidden="true" />
+            {updatesEntitled ? "Updates active" : "Updates paused"}
+          </em>
+        </div>
       </header>
 
-      <nav className="operator-toolkit-member-nav" aria-label="Operator Toolkit sections">
+      <nav className="mx-kit-nav" aria-label="Operator Toolkit sections">
         {[
           ["setup", "Setup", Layers3],
           ["system", "System files", PackageCheck],
           ["updates", "Updates", RefreshCw],
           ["billing", "Billing", ShieldCheck],
         ].map(([key, label, ViewIcon]) => (
-          <button key={key} type="button" className={activeView === key ? "active" : ""} onClick={() => setActiveView(key)}>
-            <ViewIcon size={18} aria-hidden="true" />
+          <button
+            key={key}
+            type="button"
+            className={activeView === key ? "active" : ""}
+            aria-current={activeView === key ? "page" : undefined}
+            onClick={() => setActiveView(key)}
+          >
+            <ViewIcon className="mx-i" aria-hidden="true" />
             <span>{label}</span>
           </button>
         ))}
       </nav>
 
       <section className="operator-toolkit-setup-view toolkit-member-view setup-view">
-        <header>
-          <div><span>Guided setup</span><h3>Build the system around your actual work.</h3></div>
-          <strong>{completedSetupSteps}/{accessPlan.setupChecklist.length} setup checks</strong>
-        </header>
+        <div className="mx-kit-head">
+          <div><span className="mx-eyebrow">Guided setup</span><h3 className="mx-display mx-mblock-h">Build the system around your actual work.</h3></div>
+          <strong className="mx-kit-tally">{completedSetupSteps}/{accessPlan.setupChecklist.length} setup checks</strong>
+        </div>
 
-        <div className="operator-toolkit-configurator">
-          <fieldset>
+        <div className="mx-kit-config">
+          <fieldset className="mx-card">
             <legend>1. What are you operating?</legend>
-            <div className="operator-toolkit-choice-grid">
+            <div className="mx-kit-choices">
               {goalOptions.map((option) => (
-                <button key={option.key} type="button" className={goal === option.key ? "active" : ""} onClick={() => chooseGoal(option)}>
-                  {goal === option.key && <Check size={15} aria-hidden="true" />}
+                <button key={option.key} type="button" className={goal === option.key ? "active" : ""} aria-pressed={goal === option.key} onClick={() => chooseGoal(option)}>
+                  {goal === option.key && <Check className="mx-i" aria-hidden="true" />}
                   <span>{option.label}</span>
                 </button>
               ))}
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset className="mx-card">
             <legend>2. Which agent setup?</legend>
-            <div className="operator-toolkit-choice-grid compact">
+            <div className="mx-kit-choices mx-kit-choices--lead">
               {[
                 ["both", "Claude Code + Codex"],
                 ["claude", "Claude Code"],
                 ["codex", "Codex"],
               ].map(([key, label]) => (
-                <button key={key} type="button" className={agentMode === key ? "active" : ""} onClick={() => setAgentMode(key)}>
-                  {agentMode === key && <Check size={15} aria-hidden="true" />}
+                <button key={key} type="button" className={agentMode === key ? "active" : ""} aria-pressed={agentMode === key} onClick={() => setAgentMode(key)}>
+                  {agentMode === key && <Check className="mx-i" aria-hidden="true" />}
                   <span>{label}</span>
                 </button>
               ))}
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset className="mx-card mx-kit-config-wide">
             <legend>3. Select skill collections</legend>
-            <div className="operator-toolkit-collection-selector">
+            <div className="mx-kit-collections">
               {operatorToolkitCollections.map((collection) => (
                 <label key={collection.key} className={selectedCollections.includes(collection.key) ? "active" : ""}>
                   <input
@@ -3573,9 +3441,9 @@ function OperatorToolkitMemberPanel({ accessToken, toolkit, profile, updatesEnti
           </fieldset>
         </div>
 
-        <div className="operator-toolkit-setup-checks">
-          <div><span>4. Installation sequence</span><p>Mark a step complete only when its evidence exists outside the agent transcript.</p></div>
-          <div>
+        <div className="mx-kit-checks operator-toolkit-setup-checks">
+          <div className="mx-kit-checks-copy"><span className="mx-eyebrow">4. Installation sequence</span><p className="mx-text">Mark a step complete only when its evidence exists outside the agent transcript.</p></div>
+          <div className="mx-kit-checks-list">
             {accessPlan.setupChecklist.map((item, index) => (
               <label key={item} className={setupChecks[index] ? "complete" : ""}>
                 <input
@@ -3589,62 +3457,74 @@ function OperatorToolkitMemberPanel({ accessToken, toolkit, profile, updatesEnti
           </div>
         </div>
 
-        <div className="operator-toolkit-generated-plan">
-          <div><span>Your setup plan</span><strong>{selectedGoal.label} · {selectedCollectionDetails.length} collections</strong></div>
+        <div className="mx-card mx-kit-plan">
+          <div className="mx-kit-plan-head"><span className="mx-eyebrow">Your setup plan</span><strong>{selectedGoal.label} · {selectedCollectionDetails.length} collections</strong></div>
           <pre>{setupPlanMarkdown}</pre>
-          <button type="button" onClick={handleDownloadSetupPlan}>Download setup plan</button>
+          <button type="button" className="mx-btn" onClick={handleDownloadSetupPlan}>
+            <Download className="mx-i" aria-hidden="true" />
+            Download setup plan
+          </button>
         </div>
       </section>
 
       <section className="operator-toolkit-system-view toolkit-member-view system-view">
-        <header><div><span>Permanent launch edition</span><h3>Your owned system files.</h3></div><p>These remain available even if monthly updates end.</p></header>
-        <div className="operator-toolkit-asset-grid">
+        <div className="mx-kit-head">
+          <div><span className="mx-eyebrow">Permanent launch edition</span><h3 className="mx-display mx-mblock-h">Your owned system files.</h3></div>
+          <p className="mx-text">These remain available even if monthly updates end.</p>
+        </div>
+        <div className="mx-massets operator-toolkit-asset-grid">
           {assets.map((asset) => (
-            <article key={asset.key}>
-              <span>{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
-              <button type="button" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
-                {downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download"}
-              </button>
-              {downloadState[asset.key] === "error" && <em>Download failed. Retry.</em>}
+            <article className="mx-card" key={asset.key}>
+              <span className="mx-massets-kind">{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
+              <div className="mx-massets-act">
+                <button type="button" className="mx-btn mx-btn--ghost mx-btn--sm" onClick={() => handleDownload(asset)} disabled={downloadState[asset.key] === "loading"}>
+                  <Download className="mx-i" aria-hidden="true" />
+                  {downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download"}
+                </button>
+                {downloadState[asset.key] === "error" && <em className="mx-massets-err">Download failed. Retry.</em>}
+              </div>
             </article>
           ))}
         </div>
       </section>
 
       <section className="operator-toolkit-updates-view toolkit-member-view updates-view">
-        <header>
-          <div><span>Versioned releases</span><h3>{updatesEntitled ? "Your update channel is active." : "Your permanent toolkit is safe."}</h3></div>
-          <p>{updatesEntitled ? "Read migration and rollback notes before applying a release." : "Future update files are paused until the $30/month channel is restarted."}</p>
-        </header>
-        <div className="operator-toolkit-release-list">
+        <div className="mx-kit-head">
+          <div><span className="mx-eyebrow">Versioned releases</span><h3 className="mx-display mx-mblock-h">{updatesEntitled ? "Your update channel is active." : "Your permanent toolkit is safe."}</h3></div>
+          <p className="mx-text">{updatesEntitled ? "Read migration and rollback notes before applying a release." : "Future update files are paused until the $30/month channel is restarted."}</p>
+        </div>
+        <div className="mx-kit-releases">
           {releases.map((release) => (
-            <article key={release.version}>
-              <strong>v{release.version}</strong><span>{release.access}</span><h4>{release.title}</h4><p>{release.summary}</p><em>{release.date}</em>
+            <article className="mx-card" key={release.version}>
+              <strong className="mx-count">v{release.version}</strong><span className="mx-pill">{release.access}</span><h4>{release.title}</h4><p>{release.summary}</p><em>{release.date}</em>
             </article>
           ))}
         </div>
-        <div className={`operator-toolkit-update-assets ${updatesEntitled ? "active" : "locked"}`}>
+        <div className={`mx-massets operator-toolkit-update-assets ${updatesEntitled ? "active" : "locked"}`}>
           {updateAssets.map((asset) => (
-            <article key={asset.key}>
-              <span>{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
-              <button type="button" onClick={() => handleDownload(asset, true)} disabled={!updatesEntitled || downloadState[asset.key] === "loading"}>
-                {!updatesEntitled ? "Subscription required" : downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download update"}
-              </button>
+            <article className="mx-card" key={asset.key}>
+              <span className="mx-massets-kind">{asset.kind}</span><h4>{asset.title}</h4><p>{asset.description}</p>
+              <div className="mx-massets-act">
+                <button type="button" className="mx-btn mx-btn--ghost mx-btn--sm" onClick={() => handleDownload(asset, true)} disabled={!updatesEntitled || downloadState[asset.key] === "loading"}>
+                  {updatesEntitled ? <Download className="mx-i" aria-hidden="true" /> : <LockKeyhole className="mx-i" aria-hidden="true" />}
+                  {!updatesEntitled ? "Subscription required" : downloadState[asset.key] === "loading" ? "Downloading" : downloadState[asset.key] === "success" ? "Saved" : "Download update"}
+                </button>
+              </div>
             </article>
           ))}
         </div>
       </section>
 
       <section className="operator-toolkit-billing-view toolkit-member-view billing-view">
-        <header><div><span>Ownership and billing</span><h3>The toolkit and update channel are separate.</h3></div></header>
-        <div className="operator-toolkit-billing-grid">
-          <article className="owned"><PackageCheck size={24} aria-hidden="true" /><span>Permanent</span><h4>Operator Toolkit launch edition</h4><p>The $297 system remains attached to your profile.</p><strong>Owned</strong></article>
-          <article className={updatesEntitled ? "active" : "paused"}><RefreshCw size={24} aria-hidden="true" /><span>Recurring</span><h4>Operator System Updates</h4><p>{updatesEntitled ? `${subscription?.cancel_at_period_end ? "Scheduled to end" : "Active"}${periodEnd ? ` · through ${periodEnd}` : ""}` : "No active update entitlement."}</p><strong>{updatesEntitled ? "$30/month" : "Paused"}</strong></article>
+        <div className="mx-kit-head"><div><span className="mx-eyebrow">Ownership and billing</span><h3 className="mx-display mx-mblock-h">The toolkit and update channel are separate.</h3></div></div>
+        <div className="mx-kit-billing">
+          <article className="mx-card owned"><span className="mx-tile mx-tile--sm" aria-hidden="true"><PackageCheck className="mx-i" /></span><span className="mx-eyebrow">Permanent</span><h4>Operator Toolkit launch edition</h4><p>The $297 system remains attached to your profile.</p><strong className="mx-kit-status">Owned</strong></article>
+          <article className={`mx-card ${updatesEntitled ? "active" : "paused"}`}><span className="mx-tile mx-tile--sm" aria-hidden="true"><RefreshCw className="mx-i" /></span><span className="mx-eyebrow">Recurring</span><h4>Operator System Updates</h4><p>{updatesEntitled ? `${subscription?.cancel_at_period_end ? "Scheduled to end" : "Active"}${periodEnd ? ` · through ${periodEnd}` : ""}` : "No active update entitlement."}</p><strong className="mx-kit-status">{updatesEntitled ? "$30/month" : "Paused"}</strong></article>
         </div>
-        <div className="operator-toolkit-billing-actions">
-          {subscription && <button type="button" onClick={handleBillingPortal} disabled={billingState === "loading"}>Manage billing</button>}
-          {!updatesEntitled && <button type="button" onClick={handleRestartUpdates} disabled={billingState === "loading"}>Restart updates for $30/month</button>}
-          <button type="button" className="secondary-button" onClick={onRefresh} disabled={billingState === "loading"}>Refresh status</button>
+        <div className="mx-actions">
+          {!updatesEntitled && <button type="button" className="mx-btn" onClick={handleRestartUpdates} disabled={billingState === "loading"}>Restart updates for $30/month</button>}
+          {subscription && <button type="button" className="mx-btn mx-btn--ghost" onClick={handleBillingPortal} disabled={billingState === "loading"}>Manage billing</button>}
+          <button type="button" className="mx-btn mx-btn--ghost" onClick={onRefresh} disabled={billingState === "loading"}>Refresh status</button>
         </div>
         {billingMessage && <p className="form-message error">{billingMessage}</p>}
       </section>
@@ -3658,18 +3538,21 @@ function PurchaseRecoveryCard({ state, onRefresh, onProfileRefresh }) {
   const checking = state.status === "checking";
   const tone = state.status === "success" ? "success" : state.status === "pending" ? "pending" : "error";
 
+  const StateIcon = checking ? RefreshCw : state.status === "success" ? CheckCircle2 : state.status === "pending" ? CircleDot : LockKeyhole;
+
   return (
-    <section className={`access-recovery ${tone}`}>
-      <div>
-        <span className="public-label">Checkout recovery</span>
-        <h2>{state.title}</h2>
-        <p>{state.body}</p>
+    <section className={`mx-card mx-recovery ${tone}`} data-state={state.status}>
+      <span className="mx-tile mx-tile--sm mx-recovery-icon" aria-hidden="true"><StateIcon className="mx-i" /></span>
+      <div className="mx-recovery-copy">
+        <span className="mx-eyebrow">Checkout recovery</span>
+        <h2 className="mx-title">{state.title}</h2>
+        <p className="mx-text">{state.body}</p>
       </div>
-      <div className="recovery-actions">
-        <button type="button" onClick={onRefresh} disabled={checking}>
+      <div className="mx-recovery-actions">
+        <button type="button" className="mx-btn" onClick={onRefresh} disabled={checking}>
           {checking ? "Checking..." : "Refresh access"}
         </button>
-        <button type="button" className="secondary-button" onClick={onProfileRefresh} disabled={checking}>
+        <button type="button" className="mx-btn mx-btn--ghost" onClick={onProfileRefresh} disabled={checking}>
           Reload profile
         </button>
       </div>
@@ -3742,19 +3625,22 @@ function AuthPanel() {
   }
 
   return (
-    <section className="member-auth-shell">
-      <div>
-        <span>Member access</span>
-        <h1>My Downloads</h1>
-        <p>Sign in for your files. New here? Create an account to finish your purchase.</p>
+    <section className="mx-panel mx-auth">
+      <div className="mx-panel-head">
+        <span className="mx-count">01 / 01</span>
+        <span className="mx-desc">Member access</span>
       </div>
-      <div className="member-auth-panel">
-        <div className="member-auth-modes" aria-label="Member access mode">
-          <button type="button" className={mode === "signin" ? "active" : ""} onClick={() => setMode("signin")}>Sign in</button>
-          <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => setMode("signup")}>Create account</button>
+      <div className="mx-auth-copy">
+        <h1 className="mx-display mx-display--md">My Downloads</h1>
+        <p className="mx-lede">Sign in for your files. New here? Create an account to finish your purchase.</p>
+      </div>
+      <div className="mx-card mx-auth-card">
+        <div className="mx-auth-modes" role="group" aria-label="Member access mode">
+          <button type="button" className={mode === "signin" ? "active" : ""} aria-pressed={mode === "signin"} onClick={() => setMode("signin")}>Sign in</button>
+          <button type="button" className={mode === "signup" ? "active" : ""} aria-pressed={mode === "signup"} onClick={() => setMode("signup")}>Create account</button>
         </div>
-        <form className="member-auth-form" onSubmit={handlePasswordAuth}>
-          <label>
+        <form className="mx-auth-form" onSubmit={handlePasswordAuth}>
+          <label className="mx-field">
             <span>Email</span>
             <input
               type="email"
@@ -3765,7 +3651,7 @@ function AuthPanel() {
               required
             />
           </label>
-          <label>
+          <label className="mx-field">
             <span>Password</span>
             <input
               type="password"
@@ -3777,10 +3663,11 @@ function AuthPanel() {
               required
             />
           </label>
-          <button type="submit" disabled={status === "loading"}>
+          <button type="submit" className="mx-btn mx-btn--lg mx-btn--block" disabled={status === "loading"}>
             {status === "loading" ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}
           </button>
-          <button type="button" className="member-magic-link" onClick={handleMagicLink} disabled={status === "loading"}>
+          <span className="mx-auth-or" aria-hidden="true">or</span>
+          <button type="button" className="mx-btn mx-btn--ghost mx-btn--block" onClick={handleMagicLink} disabled={status === "loading"}>
             Email me a secure sign-in link
           </button>
           {message && <p className={`form-message ${status}`} role="status">{message}</p>}
@@ -3893,12 +3780,24 @@ function AdminPasswordPanel({ authSession }) {
   );
 }
 
-function MemberStateCard({ title, body }) {
+function MemberStateCard({ title, body, lead = false, busy = false, children }) {
+  // `lead`: the card is the whole page (signed out), so it carries the panel header and the h1.
+  const Heading = lead ? "h1" : "h2";
+
   return (
-    <section className="public-section">
-      <span className="public-label">Setup state</span>
-      <h2>{title}</h2>
-      <p>{body}</p>
+    <section className={`mx-mstate${lead ? " mx-panel mx-mstate--lead" : " mx-card"}`} aria-busy={busy ? "true" : undefined}>
+      {lead ? (
+        <div className="mx-panel-head">
+          <span className="mx-count">01 / 01</span>
+          <span className="mx-desc"><span className="mx-desc-pre">Member access / </span>Setup state</span>
+        </div>
+      ) : (
+        <span className="mx-eyebrow">Setup state</span>
+      )}
+      <Heading className={lead ? "mx-display mx-display--md" : "mx-title"}>{title}</Heading>
+      <p className={lead ? "mx-lede" : "mx-text"}>{body}</p>
+      {busy && <span className="mx-mstate-bar" aria-hidden="true" />}
+      {children && <div className="mx-actions">{children}</div>}
     </section>
   );
 }
@@ -4291,28 +4190,28 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   <title>${escapeCertificateHtml(courseCompletion.title)} Certificate</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; color: #f4fbf6; background: #06100a; }
+    body { margin: 0; color: #ffffff; background: #040923; }
     main { min-height: 100vh; display: grid; place-items: center; padding: 48px 24px; }
-    section { width: min(100%, 980px); padding: 48px; border: 1px solid rgba(97, 227, 109, 0.34); border-radius: 8px; background: radial-gradient(circle at 90% 10%, rgba(247, 201, 72, 0.18), transparent 30%), linear-gradient(135deg, rgba(97, 227, 109, 0.11), rgba(255, 255, 255, 0.035)); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); }
-    .kicker { margin: 0 0 18px; color: #61e36d; font-size: 12px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    section { width: min(100%, 980px); padding: 48px; border: 1px solid rgba(156, 194, 255, 0.34); border-radius: 16px; background: radial-gradient(circle at 12% 0%, rgba(38, 59, 137, 0.62), transparent 46%), #09122b; }
+    .kicker { margin: 0 0 18px; color: #9cc2ff; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
     h1 { margin: 0; max-width: 780px; font-size: clamp(44px, 8vw, 88px); line-height: 0.92; letter-spacing: 0; }
-    .operator { margin: 22px 0 0; color: #d8e6de; font-size: 21px; line-height: 1.45; }
-    .operator strong { color: #f7c948; }
+    .operator { margin: 22px 0 0; color: #c6cde4; font-size: 21px; line-height: 1.45; }
+    .operator strong { color: #ffffff; }
     .status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 34px 0; }
-    .status-grid div { padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; background: rgba(0, 0, 0, 0.22); }
-    .status-grid span { display: block; color: #9fb2a8; font-size: 12px; font-weight: 800; text-transform: uppercase; }
-    .status-grid strong { display: block; margin-top: 8px; color: #f4fbf6; font-size: 25px; line-height: 1; }
-    .certificate-copy { display: grid; gap: 10px; color: #d8e6de; font-size: 16px; line-height: 1.6; }
+    .status-grid div { padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: #060c24; }
+    .status-grid span { display: block; color: #9cc2ff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .status-grid strong { display: block; margin-top: 8px; color: #ffffff; font-size: 25px; line-height: 1; }
+    .certificate-copy { display: grid; gap: 10px; color: #c6cde4; font-size: 16px; line-height: 1.6; }
     .certificate-copy p { margin: 0; }
     ol { display: grid; gap: 10px; margin: 30px 0 0; padding: 0; list-style: none; }
-    li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 8px; background: rgba(255, 255, 255, 0.035); }
-    li.done { border-color: rgba(97, 227, 109, 0.28); background: rgba(97, 227, 109, 0.08); }
-    li strong { grid-row: span 2; align-self: start; justify-self: start; padding: 6px 8px; color: #061008; border-radius: 999px; background: #f7c948; font-size: 11px; text-transform: uppercase; }
-    li.done strong { background: #61e36d; }
-    li span { font-weight: 900; }
-    li p { margin: 0; color: #9fb2a8; line-height: 1.45; }
-    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #9fb2a8; font-size: 13px; }
-    @media print { body { background: white; } main { padding: 0; } section { min-height: 100vh; box-shadow: none; } }
+    li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: #0c1332; }
+    li.done { border-color: #629bf6; background: #16204a; }
+    li strong { grid-row: span 2; align-self: start; justify-self: start; padding: 6px 8px; color: #c6cde4; border: 1px solid #5f6b99; border-radius: 999px; background: transparent; font-size: 12px; text-transform: uppercase; }
+    li.done strong { color: #ffffff; border-color: #2563eb; background: #2563eb; }
+    li span { font-weight: 700; }
+    li p { margin: 0; color: #c6cde4; line-height: 1.45; }
+    footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #a6b0cc; font-size: 13px; }
+    @media print { body { background: white; } main { padding: 0; } section { min-height: 100vh; } }
     @media (max-width: 720px) { section { padding: 28px; } .status-grid, li { grid-template-columns: 1fr; } li strong { grid-row: auto; } footer { flex-direction: column; } }
   </style>
 </head>
@@ -4455,6 +4354,11 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
   }
 
   return (
+    <div className="mx-panel mx-mview mx-mcourse">
+    <div className="mx-panel-head">
+      <span className="mx-count">02 / 02</span>
+      <span className="mx-desc"><span className="mx-desc-pre">{productName} / </span>Starter course</span>
+    </div>
     <section className={`member-hub active-tab-${activeMemberTab}${activeModuleKey ? " has-active-module" : ""}`}>
       <header className="member-workspace-header">
         <div className="member-workspace-title">
@@ -4976,6 +4880,7 @@ ${completed.length ? completed.map((todo) => `- ${todo.label}`).join("\n") : "-"
         </div>
       </div>
     </section>
+    </div>
   );
 }
 

@@ -3136,30 +3136,30 @@ function baseEmailTemplate({ preheader, title, intro, bullets = [], primaryUrl, 
     ? `<ul style="margin:24px 0;padding:0;list-style:none;">${bullets
         .map(
           (item) =>
-            `<li style="margin:0 0 12px;padding:14px 16px;border:1px solid #24402c;border-radius:8px;background:#0f1914;color:#dff5e5;">${item}</li>`,
+            `<li style="margin:0 0 12px;padding:14px 16px;border:1px solid #232c52;border-radius:8px;background:#0c1332;color:#e3e9fb;">${item}</li>`,
         )
         .join("")}</ul>`
     : "";
 
   return `<!doctype html>
 <html>
-  <body style="margin:0;padding:0;background:#060a09;color:#f4fbf6;font-family:Inter,Arial,sans-serif;">
+  <body style="margin:0;padding:0;background:#040923;color:#ffffff;font-family:Inter,Arial,sans-serif;">
     <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">${preheader}</span>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#060a09;padding:32px 16px;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#040923;padding:32px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #26352f;border-radius:8px;background:#0d1311;overflow:hidden;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;border:1px solid #232c52;border-radius:8px;background:#09122b;overflow:hidden;">
             <tr>
               <td style="padding:28px 28px 0;">
-                <p style="margin:0 0 18px;color:#61e36d;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">AI with Murda</p>
-                <h1 style="margin:0;color:#f4fbf6;font-size:36px;line-height:1.02;letter-spacing:0;">${title}</h1>
-                <p style="margin:18px 0 0;color:#bfd0c7;font-size:16px;line-height:1.6;">${intro}</p>
+                <p style="margin:0 0 18px;color:#9cc2ff;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">AI with Murda</p>
+                <h1 style="margin:0;color:#ffffff;font-size:36px;line-height:1.02;letter-spacing:0;">${title}</h1>
+                <p style="margin:18px 0 0;color:#c6cde4;font-size:16px;line-height:1.6;">${intro}</p>
                 ${bulletMarkup}
-                <a href="${primaryUrl}" style="display:inline-block;margin:4px 0 26px;padding:14px 18px;border-radius:7px;background:#61e36d;color:#061008;font-weight:900;text-decoration:none;">${primaryLabel}</a>
+                <a href="${primaryUrl}" style="display:inline-block;margin:4px 0 26px;padding:14px 18px;border-radius:7px;background:#4f95ff;color:#040923;font-weight:900;text-decoration:none;">${primaryLabel}</a>
               </td>
             </tr>
             <tr>
-              <td style="padding:18px 28px 28px;border-top:1px solid #26352f;color:#9dafac;font-size:13px;line-height:1.5;">
+              <td style="padding:18px 28px 28px;border-top:1px solid #232c52;color:#a6b0cc;font-size:13px;line-height:1.5;">
                 ${footer}
               </td>
             </tr>

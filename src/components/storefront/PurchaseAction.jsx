@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CircleAlert } from "lucide-react";
 import { createFutureMethodCheckout, createOperatorBundleCheckout, createOperatorToolkitCheckout, getMemberProfile } from "../../lib/api.js";
 
 const checkoutFor = {
@@ -35,8 +35,17 @@ export function PurchaseAction({ offer, authSession, authReady }) {
       window.location.assign(result.url);
     } catch (failure) { setStatus("error"); setError(failure.message || "Checkout could not open. Please try again."); }
   }
-  if (authReady && !authSession) return <a className="sf-button" href={`/members?next=store-${offer.slug}`}>Sign in to buy <ArrowRight size={18} /></a>;
-  if (owned) return <a className="sf-button" href="/members">Already yours · Open downloads <ArrowRight size={18} /></a>;
-  if (accessError) return <div><p role="alert" className="sf-error">We couldn't check your existing purchases. Please retry before buying.</p><button className="sf-button" onClick={() => setAccessAttempt((value) => value + 1)}>Retry account check</button></div>;
-  return <div className="sf-purchase-action"><button className="sf-button" disabled={!authReady || owned === null || status === "loading"} onClick={buy}>{!authReady || owned === null ? "Checking account..." : status === "loading" ? "Opening checkout..." : `Continue to checkout · ${offer.dueToday ? `$${offer.dueToday}` : offer.price}`}<ArrowRight size={18} /></button>{error && <p role="alert" className="sf-error">{error}</p>}</div>;
+  // Presentation only from here down: the states, their order and their wording are unchanged.
+  const arrow = <ArrowRight className="mx-i" aria-hidden="true" />;
+  const busy = !authReady || owned === null || status === "loading";
+  if (authReady && !authSession) return <a className="mx-btn mx-btn--lg mx-btn--block sf-button" href={`/members?next=store-${offer.slug}`}>Sign in to buy {arrow}</a>;
+  if (owned) return <a className="mx-btn mx-btn--lg mx-btn--block sf-button" href="/members">Already yours · Open downloads {arrow}</a>;
+  if (accessError) return <div className="mx-purchase">
+    <p role="alert" className="mx-purchase-alert"><CircleAlert className="mx-i" aria-hidden="true" /><span>We couldn't check your existing purchases. Please retry before buying.</span></p>
+    <button type="button" className="mx-btn mx-btn--lg mx-btn--block" onClick={() => setAccessAttempt((value) => value + 1)}>Retry account check</button>
+  </div>;
+  return <div className="mx-purchase sf-purchase-action">
+    <button type="button" className="mx-btn mx-btn--lg mx-btn--block" disabled={busy} onClick={buy}>{!authReady || owned === null ? "Checking account..." : status === "loading" ? "Opening checkout..." : `Continue to checkout · ${offer.dueToday ? `$${offer.dueToday}` : offer.price}`}{arrow}</button>
+    {error && <p role="alert" className="mx-purchase-alert"><CircleAlert className="mx-i" aria-hidden="true" /><span>{error}</span></p>}
+  </div>;
 }

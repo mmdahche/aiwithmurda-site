@@ -107,7 +107,7 @@ async function auditLayout(label) {
   const result = await page.evaluate(() => ({
     viewport: innerWidth, width: document.documentElement.scrollWidth,
     brokenImages: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).map((img) => img.src),
-    overflows: [...document.querySelectorAll("h1,h2,h3,button,.sf-button,.nav-cta")].filter((element) => element.getBoundingClientRect().width && element.scrollWidth > element.clientWidth + 2).map((element) => element.textContent),
+    overflows: [...document.querySelectorAll("h1,h2,h3,button,.sf-button,.mx-btn,.mx-account")].filter((element) => element.getBoundingClientRect().width && element.scrollWidth > element.clientWidth + 2).map((element) => element.textContent),
   }));
   assert(result.width <= result.viewport + 1, `${label}: horizontal overflow`);
   assert.deepEqual(result.brokenImages, [], `${label}: broken images`);

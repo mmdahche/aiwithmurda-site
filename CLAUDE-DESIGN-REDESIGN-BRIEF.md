@@ -1,5 +1,7 @@
 # AI with Murda Site Redesign Brief
 
+> Superseded. This July brief describes the earlier control-room concept in green. The site was redesigned on November 13, 2026 in the look of Murad's Instagram reels; see `memory/2026-11-13_broll-storefront-redesign.md`. Only the "What Must Not Change" list below still applies.
+
 Use this as the master prompt for Claude Design, Claude Code, or any design/code agent rebuilding `aiwithmurda.com`.
 
 ## Project

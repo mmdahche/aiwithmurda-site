@@ -1,0 +1,409 @@
+/*
+  Build-log archive (/60, /day/N, /live, /tools): a CSS-only finish on top of
+  the recoloured rules in styles.css. These pages are history, not selling
+  pages. Their markup lives in App.jsx and is not touched; this file loads
+  last and restyles what is already there so the pages belong to the site.
+
+  Scope. Everything sits inside one block anchored to the archive page roots,
+  so the member area, the admin workspace and the OBS overlays never see it:
+    /60      .scoreboard-experience-page
+    /live    .live-experience-page
+    /day/N   .day-receipt-page                        (a logged day)
+             .public-page:has(> .day-empty-state)     (a day with no log)
+    /tools   .public-page:has(> .tool-command-section)
+
+  Specificity. The block selector weighs (0,3,0), more than any rule these
+  pages get from styles.css. Group rules use `& :where(...)`, so they stay at
+  exactly that weight; single rules (`& .name`) always outrank a group.
+
+  Kept as they are for the social-dashboard test: .public-follower-ticker,
+  .follower-source-strip and its direct children, and the <small> line.
+
+  1. Page frame and the "Build log archive" panel header
+  2. Type: labels, headlines, body copy
+  3. Actions: buttons and text links
+  4. Surfaces: cards, nested cards, status strip, audience block
+  5. /60    6. /day    7. /live    8. /tools
+  9. Small screens    10. Reduced motion
+
+  Nothing is set under 12px. Colours come from tokens.css only.
+*/
+
+.public-site :is(.scoreboard-experience-page, .live-experience-page, .day-receipt-page, .public-page:has(> .day-empty-state), .public-page:has(> .tool-command-section)) {
+
+  /* 1. PAGE FRAME ---------------------------------------------------------- */
+  /* Full-width navy canvas with the site container as padding, so the old shell gradient cannot show through. */
+  position: relative; display: block; width: auto; max-width: none; min-height: 60vh; overflow-x: clip;
+  /* The page runs down to the footer: its bottom margin cancels the footer's top margin, and the same space comes back
+     as navy padding, so the old shell gradient has no strip to show in. */
+  margin: 0 0 calc(-1 * var(--panel-gap));
+  padding: clamp(.75rem, 2vw, 1.25rem) max(var(--gutter), calc((100% - var(--container)) / 2)) calc(var(--panel-pad) + var(--panel-gap));
+  background-color: var(--bg); background-repeat: no-repeat;
+  background-image: radial-gradient(52rem 30rem at 14% -4rem, color-mix(in srgb, var(--royal-500) 62%, transparent), color-mix(in srgb, var(--royal-700) 30%, transparent) 46%, transparent 74%);
+  color: var(--text-2); font: 400 var(--fs-body)/var(--lh-body) var(--font-sans); letter-spacing: 0; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+
+  /* The numbered-panel header of the new pages, drawn without markup: what this is on the left, which page on the right. */
+  &::before { content: "Build log archive"; display: block; margin-bottom: clamp(1.25rem, 3vw, 1.75rem); padding: 1.375rem 0 .75rem; border-bottom: 1px solid var(--hairline);
+    background: radial-gradient(circle, var(--dot) 0 1.4px, transparent 1.6px) left top / 3px 3px no-repeat, radial-gradient(circle, var(--dot) 0 1.4px, transparent 1.6px) right top / 3px 3px no-repeat;
+    font: 400 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--blue-200); }
+  &::after { position: absolute; top: calc(clamp(.75rem, 2vw, 1.25rem) + 1.375rem); right: max(var(--gutter), calc((100% - var(--container)) / 2));
+    font: 400 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--text-3); pointer-events: none; }
+  &.scoreboard-experience-page::after { content: "Scoreboard"; content: "Scoreboard" / ""; }
+  &.live-experience-page::after { content: "Live hub"; content: "Live hub" / ""; }
+  &.day-receipt-page::after, &:has(> .day-empty-state)::after { content: "Daily receipt"; content: "Daily receipt" / ""; }
+  &:has(> .tool-command-section)::after { content: "Command shelf"; content: "Command shelf" / ""; }
+
+  & :where(h1, h2, h3, p, ul, ol, dl, dd) { margin: 0; }
+  & :focus-visible { outline: 2px solid var(--blue-200); outline-offset: 3px; border-radius: 4px; }
+  & ::selection { background: var(--blue-600); color: var(--white); }
+  /* vertical rhythm between the blocks of a page */
+  & > :where(*) { margin-block: 0; }
+  & > :where(* + *) { margin-top: var(--sp-5); }
+
+  /* 2. TYPE ---------------------------------------------------------------- */
+  /* Mono kickers above a headline or a card */
+  & :where(.public-label, .scoreboard-kicker, .proofline-heading span, .run-of-show span, .public-active-work > span, .stream-arc-grid span, .day-receipt-notes span) {
+    display: block; margin: 0 0 var(--sp-3); font: 500 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--blue-200); }
+  /* Mono captions: tile labels, table heads, timestamps. Never under 12px. */
+  & :where(.broadcast-metric-board article > span, .broadcast-metric-board article > em, .proofline-broadcast-bar, .proofline-day-lockup > span, .proofline-day-lockup > em, .proofline-receipt-story > span,
+      .proofline-receipt-stats dt, .scoreboard-day-monument > span, .live-control-tower > div:first-child, .live-mission-board > div span, .live-mission-board article > span,
+      .day-receipt-score span, .day-receipt-score em, .day-receipt-metrics span, .day-receipt-metrics em, .receipt-preview span, .follower-source-strip span, .follower-source-strip em,
+      .follower-source-strip small, .public-follower-ticker > small, .public-completed-work time, .public-active-work time, .panel-title, .key-value span, .bar-chart span) {
+    font: 500 var(--fs-mono)/1.35 var(--font-mono); font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+
+  /* Anton caps for the page headline and the short section headlines */
+  & :where(.scoreboard-arena h1, .live-broadcast-copy h1, .proofline-heading h2, .live-control-tower > strong, .public-section h1, .public-section h2) {
+    max-width: none; font-family: var(--font-display); font-weight: 400; font-synthesis: none; text-transform: uppercase; line-height: var(--lh-display); letter-spacing: .008em;
+    color: var(--white); text-shadow: none; text-wrap: balance; }
+  & :where(.scoreboard-arena h1, .live-broadcast-copy h1) { font-size: var(--fs-display-lg); }
+  & :where(.public-section h1, .proofline-heading h2) { font-size: var(--fs-display-md); }
+  & .public-section h1 { max-width: 11em; }
+  & .proofline-heading h2 { text-wrap: wrap; } /* keeps "60-Day" together on a phone */
+  & :where(.public-section h2, .live-control-tower > strong) { font-size: clamp(2rem, 1.55rem + 2vw, 3rem); }
+
+  /* Headings that carry logged text (a day's goal, a proof line) stay in the sans face: they can run to a full sentence. */
+  & :where(.day-receipt-hero h1, .proofline-receipt-story h3, .live-mission-board article > strong, .public-sprint-card h2, .spike-panel h2, .receipt-preview strong, .tool-card h2,
+      .public-active-work h3, .public-work-list h3, .public-completed-work h3) {
+    max-width: none; font-family: var(--font-sans); font-weight: 600; text-transform: none; line-height: 1.2; letter-spacing: -.02em; color: var(--white); text-wrap: balance; overflow-wrap: anywhere; }
+  & .day-receipt-hero h1 { max-width: 20em; font-size: clamp(1.875rem, 1.3rem + 2.6vw, 3.25rem); line-height: 1.08; letter-spacing: -.028em; }
+  & :where(.proofline-receipt-story h3, .live-mission-board article > strong) { font-size: clamp(1.375rem, 1.1rem + 1.2vw, 2rem); line-height: 1.14; }
+  & :where(.public-sprint-card h2, .spike-panel h2, .receipt-preview strong, .tool-card h2, .public-active-work h3) { font-size: 1.375rem; }
+  & :where(.public-work-list h3, .public-completed-work h3) { font-size: 1.0625rem; line-height: 1.3; letter-spacing: -.012em; }
+
+  /* Body copy: one lede under a headline, 15px inside cards */
+  & :where(.scoreboard-arena-layout > div:first-child > p, .live-broadcast-copy > p, .day-receipt-hero p, .proofline-heading p, .public-section:first-of-type > p, .day-empty-state p) {
+    max-width: 34em; margin-top: var(--sp-4); color: var(--text-2); font-size: var(--fs-lede); line-height: 1.5; text-wrap: pretty; }
+  & :where(.proofline-receipt-story p, .live-control-tower > p, .live-mission-board article > p, .run-of-show p, .stream-arc-section p, .tool-link-grid p, .tool-card p, .plain-list p,
+      .receipt-preview p, .public-sprint-card p, .spike-panel p, .spike-panel > span, .public-active-work p, .public-work-list p, .public-completed-work p, .day-receipt-notes p,
+      .public-follower-ticker p, .stream-command-grid span, .public-work-list li, .day-receipt-grid li) {
+    max-width: none; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
+
+  /* 3. ACTIONS ------------------------------------------------------------- */
+  /* One blue button, one outlined button: the same two as everywhere else on the site. */
+  & :where(.experience-primary-action, .experience-secondary-action, .primary-link, .secondary-link, .tool-card a) {
+    display: inline-flex; align-items: center; justify-content: center; gap: .625rem; width: auto; min-width: 0; min-height: 3rem; padding: .625rem 1.25rem; border: 1px solid transparent;
+    border-radius: var(--r-md); background: var(--accent); color: var(--on-accent); font: 650 1rem/1.15 var(--font-sans); letter-spacing: -.01em; text-align: center; text-decoration: none;
+    transform: none; transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease); }
+  & :where(.experience-primary-action, .primary-link):hover { background: var(--blue-200); color: var(--on-accent); transform: none; }
+  & :where(.experience-secondary-action, .secondary-link, .tool-card a) { border-color: var(--edge-control); background: transparent; color: var(--white); font-weight: 550; }
+  & :where(.experience-secondary-action, .secondary-link, .tool-card a):hover { border-color: var(--blue-200); background: var(--navy-700); color: var(--white); transform: none; }
+  & :where(.experience-primary-action, .experience-secondary-action, .primary-link, .secondary-link, .tool-card a):focus-visible { outline-color: var(--white); border-radius: var(--r-md); }
+  & :where(.experience-actions, .hero-actions) { display: flex; flex-flow: row wrap; align-items: center; gap: var(--sp-3) var(--sp-4); width: auto; margin-top: var(--sp-6); }
+
+  /* Text links: white, hairline underline, never smaller than a thumb */
+  & :where(.text-link, .proofline-receipt-story a, .live-mission-board article > a) {
+    display: inline-flex; align-items: center; gap: .5rem; width: max-content; max-width: 100%; min-height: 2.75rem; margin-top: var(--sp-2); color: var(--white);
+    font: 600 var(--fs-sm)/1.3 var(--font-sans); letter-spacing: 0; text-decoration: underline; text-decoration-color: var(--edge-control); text-decoration-thickness: 1px; text-underline-offset: .3em; }
+  & :where(.text-link, .proofline-receipt-story a, .live-mission-board article > a):hover { color: var(--blue-200); text-decoration-color: var(--blue-200); }
+  & :where(.proofline-receipt-story a, .live-mission-board article > a) span { color: var(--accent); }
+
+  /* 4. SURFACES ------------------------------------------------------------ */
+  /* A section is a flat navy card with a hairline, like every card on the new pages. */
+  & :where(.public-section, .panel, .receipt-preview, .public-follower-ticker, .run-of-show article, .day-receipt-score, .live-control-tower, .tool-card) {
+    padding: var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); box-shadow: none; color: var(--text-2); }
+  @media (min-width: 40rem) {
+    & :where(.public-section, .panel, .receipt-preview, .public-follower-ticker, .run-of-show article, .day-receipt-score, .live-control-tower, .tool-card) { padding: var(--sp-6); }
+  }
+  /* Cards inside a card step one shade up and tighten the radius. */
+  & :where(.follower-source-strip article, .follower-source-strip a, .signal-list a, .signal-list div, .stream-command-grid a, .stream-arc-grid article, .tool-link-grid a, .plain-list p,
+      .public-active-work, .public-work-list, .day-receipt-metrics article, .day-receipt-grid li, .day-receipt-notes article) {
+    min-width: 0; min-height: 0; padding: var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--navy-800); color: var(--text-2); transform: none; }
+  & :where(.follower-source-strip a, .signal-list a, .stream-command-grid a, .tool-link-grid a) { text-decoration: none; transition: border-color var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease); }
+  & :where(.follower-source-strip a, .signal-list a, .stream-command-grid a, .tool-link-grid a):hover { border-color: var(--blue-400); background: var(--navy-700); transform: none; }
+
+  /* Status strip at the top of /60 and /live. The red recording dot is gone: nothing here is on air. */
+  & .broadcast-ident { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.125rem; margin-bottom: var(--sp-5);
+    font: 500 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+  & .broadcast-ident::before { content: "Archive"; content: "Archive" / ""; display: inline-flex; align-items: center; padding: .5rem .625rem; border-radius: var(--r-xs); background: var(--blue-600); color: var(--white);
+    font: 800 .75rem/1 var(--font-ticker); letter-spacing: .03em; }
+  & .broadcast-ident > span:not(:last-child) { padding-right: 0; border-right: 0; } /* spaced labels, so a wrapped line never starts or ends on a divider */
+  & .broadcast-live-state { gap: .5rem; color: var(--text-2); }
+  & .broadcast-live-state i { width: .4rem; height: .4rem; border: 0; border-radius: 50%; background: var(--slate); box-shadow: none; animation: none; }
+
+  /* Combined audience block (on /60 and /live) */
+  & .public-follower-ticker { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+  & .public-follower-ticker > div:first-child strong { display: block; margin: 0; font: 400 clamp(3.5rem, 2.6rem + 4vw, 5.25rem)/1 var(--font-display); letter-spacing: .01em; color: var(--white); }
+  & .public-follower-ticker p { max-width: 34em; margin-top: var(--sp-3); }
+  & .public-follower-ticker > small { grid-column: 1 / -1; margin: 0; padding-top: var(--sp-4); border-top: 1px solid var(--hairline); letter-spacing: .02em; text-transform: none; color: var(--text-2); }
+  & .follower-source-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: var(--sp-2); align-content: start; }
+  & .follower-source-strip :is(article, a) { padding: var(--sp-3); }
+  & .follower-source-strip :is(article, a).live { border-color: var(--hairline-blue); background: var(--navy-700); }
+  & .follower-source-strip :is(article, a).connector-error { border-color: color-mix(in srgb, var(--danger) 55%, transparent); }
+  & .follower-source-strip strong { margin-top: var(--sp-2); font: 600 1.5rem/1.1 var(--font-sans); letter-spacing: -.02em; color: var(--white); }
+  & .follower-source-strip em { margin-top: var(--sp-2); }
+  & .follower-source-strip small { margin-top: .125rem; letter-spacing: .02em; text-transform: none; }
+  @media (min-width: 60rem) {
+    & .public-follower-ticker { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-5) var(--sp-12); }
+  }
+
+  /* 5. /60 ----------------------------------------------------------------- */
+  /* The hero loses its box and its ghost lettering: headline left, the day counter as one flat tile right. */
+  & .scoreboard-arena { min-height: 0; padding: 0; overflow: visible; border: 0; background: none; }
+  & .scoreboard-arena::after { content: none; }
+  & .scoreboard-arena-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: var(--sp-6); }
+  & .scoreboard-day-monument { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr auto; align-items: end; gap: 0 var(--sp-4); min-height: 0; padding: var(--sp-5);
+    border: 1px solid var(--hairline-blue); border-radius: var(--r-lg); background: var(--navy-700); color: var(--text-2); }
+  & .scoreboard-day-monument > span { grid-column: 1 / -1; align-self: start; margin-bottom: var(--sp-4); color: var(--blue-200); }
+  & .scoreboard-day-monument > strong { margin: 0; font: 400 clamp(6rem, 3rem + 10vw, 11rem)/.86 var(--font-display); letter-spacing: .01em; color: var(--white); }
+  & .scoreboard-day-monument > em { margin: 0 0 .625rem; font: 400 1.375rem/1 var(--font-mono); font-style: normal; letter-spacing: .04em; color: var(--blue-200); }
+  & .scoreboard-day-monument > p { grid-column: 1 / -1; margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--hairline); color: var(--white); font: 600 1.0625rem/1.3 var(--font-sans); letter-spacing: -.012em; }
+  @media (min-width: 60rem) {
+    & .scoreboard-arena-layout { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(2.5rem, 4.5vw, 4rem); }
+    & .scoreboard-day-monument { padding: var(--sp-6); }
+  }
+
+  /* Six goal tiles in one outlined grid */
+  & .broadcast-metric-board { gap: 1px; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--hairline); }
+  & .broadcast-metric-board article { min-height: 0; padding: var(--sp-5); border: 0; background: var(--surface); }
+  & .broadcast-metric-board article > strong { margin-top: var(--sp-3); font: 600 clamp(1.5rem, 1.2rem + 1.4vw, 2.125rem)/1.1 var(--font-sans); letter-spacing: -.02em; color: var(--white); }
+  & .broadcast-metric-board article > div { height: 4px; margin-top: var(--sp-4); border-radius: var(--r-pill); background: var(--hairline); overflow: hidden; }
+  & .broadcast-metric-board article > div i { background: var(--accent); }
+  & .broadcast-metric-board article > em { margin-top: var(--sp-3); }
+
+  /* Proofline: the 60-day scrubber */
+  & .proofline-section { width: 100%; margin-top: var(--panel-gap); padding: 0; }
+  & .proofline-heading { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; gap: var(--sp-5); padding-bottom: var(--sp-6); border-bottom: 1px solid var(--hairline); }
+  & .proofline-heading p { margin-top: 0; }
+  & .proofline-broadcast-bar { gap: var(--sp-4); margin-top: var(--sp-6); }
+  & .proofline-broadcast-bar > div { height: 3px; border-radius: var(--r-pill); background: var(--hairline); overflow: hidden; }
+  & .proofline-broadcast-bar i { background: var(--blue-200); box-shadow: none; }
+  & .proofline-track-shell { margin-top: var(--sp-4); scrollbar-color: var(--navy-600) transparent; }
+  & .proofline-track::before { background: var(--hairline); }
+  & .proofline-track button { min-height: 2.75rem; color: var(--text-3); }
+  & .proofline-track button > span { font: 500 .8125rem/1 var(--font-mono); letter-spacing: .04em; }
+  & .proofline-track button > em { font: 500 var(--fs-mono)/1 var(--font-mono); font-style: normal; letter-spacing: 0; text-transform: uppercase; }
+  & .proofline-track button > i { background: var(--bg); }
+  & .proofline-track button.complete { color: var(--blue-500); }
+  & .proofline-track button.current { color: var(--blue-200); }
+  & .proofline-track button.selected > i { background: currentColor; box-shadow: none; }
+  & .proofline-track button:focus-visible { outline: 2px solid var(--blue-200); outline-offset: 2px; }
+  & .proofline-receipt { gap: var(--sp-6); margin-top: var(--sp-5); padding: var(--sp-6) 0; border-color: var(--hairline); }
+  & .proofline-receipt.current { border-color: var(--hairline-blue); }
+  & .proofline-day-lockup > strong { margin-top: var(--sp-2); font: 400 clamp(4rem, 3rem + 3vw, 5.5rem)/1 var(--font-display); letter-spacing: .01em; color: var(--white); }
+  & .proofline-day-lockup > em { margin-top: var(--sp-2); color: var(--blue-200); }
+  & .proofline-receipt-story h3 { margin-top: var(--sp-3); }
+  & .proofline-receipt-story p { max-width: 38em; margin-top: var(--sp-3); }
+  & .proofline-receipt-stats { gap: 1px; align-self: start; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--hairline); }
+  & .proofline-receipt-stats > div { min-height: 5.5rem; padding: var(--sp-4); background: var(--surface); }
+  & .proofline-receipt-stats dd { font: 600 1.125rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
+  @media (min-width: 60rem) {
+    & .proofline-heading { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); }
+    & .proofline-heading p { padding-bottom: .5rem; }
+  }
+  @media (min-width: 68.76rem) {
+    & .proofline-receipt { grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 24rem); gap: var(--sp-10); }
+  }
+
+  /* Today, latest proof, spike detector, week recap */
+  & .public-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); margin-top: var(--panel-gap); }
+  & .public-dashboard-grid > * { grid-column: auto; grid-row: auto; min-width: 0; }
+  & .panel-title { margin-bottom: var(--sp-4); }
+  & .panel-title span { font: inherit; letter-spacing: inherit; color: inherit; }
+  & .panel-title em { font-style: normal; letter-spacing: .04em; text-transform: none; color: var(--text-2); }
+  & .panel-title svg { color: var(--blue-200); }
+  & :is(.public-sprint-card h2, .spike-panel h2) { margin-bottom: var(--sp-3); }
+  & .public-sprint-card p { margin-bottom: var(--sp-4); }
+  & .receipt-preview { display: grid; align-content: start; gap: var(--sp-3); }
+  & .spike-panel > span { display: block; margin-top: var(--sp-2); }
+  /* the follower sparkline gets two hairline axes, so a single logged day still reads as a chart */
+  & .mini-trend { overflow: visible; border-bottom: 1px solid var(--hairline); border-left: 1px solid var(--hairline); color: var(--blue-200); }
+  & .key-value strong { font: 600 1.25rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
+  & .key-value strong.positive { color: var(--blue-200); }
+  & .bar-chart { min-height: 0; }
+  & .bar-chart div { grid-template-rows: 5rem auto; }
+  & .bar-chart i { border-radius: var(--r-xs) var(--r-xs) 0 0; background: var(--accent); }
+  @media (min-width: 40rem) and (max-width: 59.99rem) {
+    & .public-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & .public-dashboard-grid > :is(.spike-panel, .public-week-card) { grid-column: 1 / -1; }
+  }
+  @media (min-width: 60rem) {
+    & .public-dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    & .public-dashboard-grid > .public-week-card { grid-column: 1 / -1; }
+  }
+
+  /* 6. /day ---------------------------------------------------------------- */
+  & .day-receipt-hero { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--sp-6); min-height: 0; }
+  & .day-receipt-score { display: grid; grid-template-columns: auto minmax(0, 1fr); place-items: end start; gap: 0 var(--sp-4); min-height: 0; border-color: var(--hairline-blue); background: var(--navy-700); }
+  & .day-receipt-score span { grid-column: 1 / -1; margin-bottom: var(--sp-4); color: var(--blue-200); }
+  & .day-receipt-score strong { font: 400 clamp(5rem, 3.5rem + 5vw, 7.5rem)/.86 var(--font-display); letter-spacing: .01em; color: var(--white); }
+  & .day-receipt-score em { margin-bottom: .5rem; color: var(--blue-200); }
+  @media (min-width: 60rem) {
+    & .day-receipt-hero { grid-template-columns: minmax(0, 1fr) 16rem; gap: var(--sp-12); }
+  }
+  & .day-work-board { display: grid; gap: var(--sp-5); }
+  & .day-work-board > header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-4) var(--sp-6); }
+  & .day-work-counts { justify-content: flex-start; gap: var(--sp-2); }
+  & .day-work-counts span { min-height: 1.875rem; padding: .3rem .75rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-pill); background: var(--navy-850);
+    font: 500 var(--fs-mono)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text); }
+  & .day-work-counts :is(i, i.active) { background: var(--slate); box-shadow: none; }
+  & .day-work-board-grid { gap: var(--sp-4); }
+  & .public-active-work.active { border-color: var(--hairline-blue); background: var(--navy-700); }
+  & .public-active-work > span { margin-bottom: var(--sp-2); }
+  & :is(.public-active-work p, .public-work-list p, .public-completed-work > p) { margin-top: var(--sp-2); }
+  & .public-active-work time { margin-top: var(--sp-3); }
+  & .public-work-list ol { margin-top: var(--sp-3); padding-left: 1.5rem; }
+  & .public-work-list li { border-bottom-color: var(--hairline); }
+  & .public-completed-work { padding-top: var(--sp-5); border-top: 1px solid var(--hairline); }
+  & .public-completed-work ul { margin-top: var(--sp-3); padding: 0; }
+  & .public-completed-work li { border-bottom-color: var(--hairline); }
+  & .public-completed-work li > svg { color: var(--blue-500); }
+  & .public-completed-work li p { margin-top: var(--sp-1); }
+  & .public-completed-work strong { color: var(--white); font-weight: 600; }
+  & .day-receipt-metrics { gap: var(--sp-3); }
+  & .day-receipt-metrics strong { margin: var(--sp-3) 0 var(--sp-1); font: 600 1.625rem/1.1 var(--font-sans); letter-spacing: -.02em; color: var(--white); }
+  & .day-receipt-metrics em { color: var(--blue-200); letter-spacing: .04em; }
+  & .day-receipt-grid { gap: var(--sp-6); }
+  & .day-receipt-grid ul { gap: var(--sp-2); margin-top: var(--sp-4); padding: 0; }
+  & .day-receipt-grid li { padding: var(--sp-3) var(--sp-4); color: var(--text); }
+  & .day-receipt-notes { gap: var(--sp-3); }
+  & .day-receipt-notes p { font-size: var(--fs-body); color: var(--text); }
+  & .day-share-copy { gap: var(--sp-6); }
+  & .day-share-copy pre { margin: 0; padding: var(--sp-4); border: 1px solid var(--hairline-blue); border-radius: var(--r-md); background: var(--well); color: var(--text); font: 400 var(--fs-xs)/1.7 var(--font-mono); }
+  & .day-empty-state { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; gap: var(--sp-6); }
+  & .day-empty-state .hero-actions { margin-top: 0; }
+  @media (min-width: 60rem) {
+    & .day-empty-state { grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-12); }
+  }
+
+  /* 7. /live --------------------------------------------------------------- */
+  /* Same treatment as /60: no box, no "ON AIR" lettering, no empty band above the headline. */
+  & .live-broadcast-stage { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--sp-6); min-height: 0; padding: 0; overflow: visible; border: 0; background: none; }
+  & .live-broadcast-stage::before, & .live-broadcast-stage::after { content: none; }
+  & .live-broadcast-copy { display: grid; align-content: start; justify-items: start; min-height: 0; padding-right: 0; }
+  & .live-broadcast-copy .broadcast-ident { margin-bottom: var(--sp-5); }
+  & .live-control-tower { display: grid; align-content: start; }
+  & .live-control-tower > div:first-child { padding-bottom: var(--sp-3); border-bottom: 1px solid var(--hairline); }
+  & .live-control-tower > div:first-child em { font-style: normal; color: var(--blue-200); }
+  & .live-control-tower > strong { margin-top: var(--sp-5); }
+  & .live-control-tower > p { margin-top: var(--sp-3); }
+  & .live-control-tower > .panel-note { margin-top: var(--sp-2); font: 400 var(--fs-mono)/1.5 var(--font-mono); letter-spacing: .02em; color: var(--text-3); }
+  /* destinations: name over status, two to a row, so the tower is no taller than the headline beside it */
+  & .live-control-tower .signal-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); margin-top: var(--sp-5); }
+  & .live-control-tower .signal-list :is(a, div) { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; gap: .125rem; min-height: 3.5rem; padding: var(--sp-2) var(--sp-3);
+    border-color: var(--hairline); border-radius: var(--r-md); background: var(--navy-800); }
+  & .live-control-tower .signal-list div.pending { border-style: dashed; border-color: var(--hairline-blue); background: transparent; }
+  & .live-control-tower .signal-list a:hover { border-color: var(--blue-400); background: var(--navy-700); }
+  & .signal-list span { color: var(--white); font: 600 var(--fs-sm)/1.3 var(--font-sans); letter-spacing: -.01em; }
+  & .signal-list strong { color: var(--text-2); font: 400 var(--fs-mono)/1.35 var(--font-mono); letter-spacing: .02em; }
+  /* The marquee becomes a ticker bar: label blue, white caps, in the flow under the hero instead of pinned over it. */
+  & .broadcast-ticker { position: static; grid-column: 1 / -1; height: 2.5rem; border-radius: var(--r-xs); background: var(--blue-600); color: var(--white); }
+  & .broadcast-ticker-track span { gap: 1.5rem; padding-left: 1.5rem; font: 800 .75rem/1 var(--font-ticker); letter-spacing: .04em; }
+  & .broadcast-ticker-track i { width: .3125rem; height: .3125rem; background: currentColor; opacity: .7; }
+  @media (min-width: 60rem) {
+    & .live-broadcast-stage { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--sp-6) clamp(2.5rem, 4.5vw, 4rem); }
+  }
+
+  /* Mission board: the day tile and two notes in one outlined row */
+  & .live-mission-board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--hairline); }
+  & .live-mission-board > div, & .live-mission-board article { min-height: 0; padding: var(--sp-5); border: 0; }
+  & .live-mission-board > div { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-4); background: var(--navy-700); color: var(--white); }
+  & .live-mission-board > div span { color: var(--blue-200); }
+  & .live-mission-board > div strong { font: 400 4.5rem/.86 var(--font-display); letter-spacing: .01em; color: var(--white); }
+  & .live-mission-board article { display: grid; align-content: start; background: var(--surface); }
+  & .live-mission-board article > strong { margin-top: var(--sp-3); }
+  & .live-mission-board article > p { margin-top: var(--sp-3); }
+  & .live-mission-board article > a { align-self: end; }
+  & .live-mission-board article:last-child { grid-column: auto; }
+  @media (min-width: 60rem) {
+    & .live-mission-board { grid-template-columns: 11rem repeat(2, minmax(0, 1fr)); }
+    & .live-mission-board > div { display: grid; align-content: space-between; justify-content: start; }
+    & .live-mission-board > div strong { font-size: 6rem; }
+  }
+
+  /* Pinned commands, run of show, week arc, stream modes: headline on top, the cards in one even grid below it,
+     so no column is left half empty beside a tall list. */
+  & :is(.stream-command-section, .stream-arc-section, .tool-command-section, .public-section.two-col) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  & :is(.stream-command-grid, .stream-arc-grid, .tool-link-grid, .plain-list) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  & .stream-command-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* a command and three words: two to a row even on a phone */
+  @media (min-width: 30rem) {
+    & :is(.stream-arc-grid, .tool-link-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 40rem) {
+    & .plain-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 60rem) {
+    & :is(.stream-command-grid, .stream-arc-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    & .tool-link-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    /* week arc: headline left, its paragraph and link right, like the section heads of the new pages */
+    & .stream-arc-section > div:first-child { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--sp-12); align-items: start; }
+    & .stream-arc-section > div:first-child > .public-label { grid-column: 1 / -1; }
+    & .stream-arc-section > div:first-child > h2 { grid-column: 1; grid-row: 2 / span 2; }
+    & .stream-arc-section > div:first-child > p { grid-column: 2; margin-top: 0; }
+    & .stream-arc-section > div:first-child > .secondary-link { grid-column: 2; justify-self: start; margin-top: var(--sp-4); }
+  }
+  & .stream-command-grid a { align-content: start; gap: .25rem; min-height: 4.25rem; padding: var(--sp-3); }
+  & .stream-command-grid strong { color: var(--blue-200); font: 500 .9375rem/1.3 var(--font-mono); letter-spacing: 0; overflow-wrap: anywhere; }
+  & .run-of-show { gap: var(--sp-4); }
+  & .run-of-show article { min-height: 0; }
+  & .run-of-show p { font-size: var(--fs-body); color: var(--text); }
+  & .stream-arc-section > div:first-child > p { max-width: 34em; margin-top: var(--sp-4); font-size: var(--fs-body); }
+  & .stream-arc-section .secondary-link { margin-top: var(--sp-5); }
+  & .stream-arc-grid span { margin-bottom: var(--sp-2); }
+  & .stream-arc-grid strong { margin-top: 0; color: var(--white); font: 600 1.0625rem/1.3 var(--font-sans); letter-spacing: -.012em; }
+  & .stream-arc-grid p { margin-top: var(--sp-2); }
+  /* the command a day points to: an outlined mono pill, so filled blue stays reserved for buttons */
+  & .stream-arc-grid em { display: inline-flex; align-items: center; min-height: 1.5rem; margin-top: var(--sp-3); padding: .15rem .55rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-pill);
+    background: transparent; color: var(--text); font: 500 var(--fs-mono)/1 var(--font-mono); font-style: normal; letter-spacing: .04em; }
+  & .plain-list p { font-size: var(--fs-body); color: var(--text); }
+
+  /* 8. /tools -------------------------------------------------------------- */
+  /* The opening block is the page headline, not a card. */
+  &:has(> .tool-command-section) > .public-section:first-of-type { padding: 0; border: 0; border-radius: 0; background: none; }
+  &:has(> .tool-command-section) > .tool-command-section { margin-top: var(--panel-gap); }
+  & .tool-link-grid a { align-content: start; gap: .375rem; }
+  & .tool-link-grid span { display: block; font: 500 .8125rem/1.3 var(--font-mono); letter-spacing: .02em; color: var(--blue-200); }
+  & .tool-link-grid strong { color: var(--white); font: 600 1.0625rem/1.3 var(--font-sans); letter-spacing: -.012em; }
+  & .public-cards { gap: var(--sp-5); }
+  & .tool-card { display: grid; align-content: start; justify-items: start; gap: var(--sp-3); min-height: 0; }
+  & .tool-card.live { border-color: var(--hairline-blue); }
+  & .tool-card svg { color: var(--blue-200); }
+  & .tool-card a { margin-top: var(--sp-2); }
+  & .tool-card span { margin-top: var(--sp-2); font: 400 var(--fs-mono)/1.5 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); }
+
+  /* 9. SMALL SCREENS ------------------------------------------------------- */
+  @media (max-width: 39.99rem) {
+    /* a full-width first action, the way the hero buttons stack on the new pages */
+    & :where(.experience-actions, .hero-actions) { flex-direction: column; align-items: stretch; width: 100%; }
+    & .broadcast-ident { gap: .5rem .75rem; }
+    /* week recap: the six figures in two columns; the bar chart repeats them and has no room for its labels here */
+    & .weekly-content { gap: 0; }
+    & .weekly-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+    & .bar-chart { display: none; }
+    & .proofline-receipt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* six short figures: two to a row instead of a six-screen column */
+    & .day-receipt-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & :where(.experience-primary-action, .experience-secondary-action, .hero-actions .primary-link, .hero-actions .secondary-link) { width: 100%; }
+  }
+  @media (max-width: 29.99rem) {
+    & .live-control-tower .signal-list { grid-template-columns: minmax(0, 1fr); }
+    & .live-control-tower .signal-list :is(a, div) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); min-height: 3rem; }
+    & .signal-list strong { text-align: right; }
+  }
+
+  /* 10. REDUCED MOTION ----------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    & .broadcast-ticker-track { animation: none; }
+    & :where(.experience-primary-action, .experience-secondary-action, .primary-link, .secondary-link, .tool-card a, .follower-source-strip a, .signal-list a, .stream-command-grid a, .tool-link-grid a),
+    & .proofline-track button > i { transition-duration: .01ms; }
+  }
+}

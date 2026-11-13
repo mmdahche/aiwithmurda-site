@@ -1,0 +1,91 @@
+/*
+  Home and shop additions that are not part of the shared system: the browse
+  control, the shop heading, search, category filters, the full tool shelf and
+  its empty state. Shared components live in ./site.css.
+*/
+
+/* Browse control: All Tools / Free Tools / Paid Packages. Sits between the page
+   opener and the catalogue panels it filters; #browse lands here. */
+.mx-catalog { scroll-margin-top: 4.5rem; }
+.mx-browse { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-8); padding-top: var(--sp-4);
+  border-top: 1px solid var(--hairline); }
+.mx-browse + .mx-section { padding-top: clamp(1.75rem, 4vw, 2.5rem); }
+.mx-seg { display: inline-flex; gap: .25rem; max-width: 100%; padding: .25rem; border: 1px solid var(--edge-control); border-radius: var(--r-md); background: var(--navy-850); }
+.mx-seg button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.125rem; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text-2);
+  font: 600 var(--fs-sm)/1.15 var(--font-sans); letter-spacing: -.005em; white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease); }
+.mx-seg button:hover { background: var(--navy-700); color: var(--white); }
+.mx-seg button[aria-pressed="true"] { background: var(--white); color: var(--ink); }
+.mx-seg button:focus-visible { border-radius: var(--r-sm); }
+.mx-browse-note { max-width: 32em; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
+@media (max-width: 39.99rem) {
+  .mx-seg { display: flex; width: 100%; }
+  .mx-seg button { flex: 1 1 auto; padding-inline: .5rem; }
+}
+
+/* Shop heading: the h1 runs the full width, the tally sits under the lede */
+.mx-shop-head { padding-top: clamp(.75rem, 2vw, 1.25rem);
+  background-image: radial-gradient(52rem 26rem at 14% -6rem, rgba(38, 59, 137, .55), rgba(19, 34, 102, .26) 46%, rgba(4, 9, 35, 0) 74%); background-repeat: no-repeat; }
+.mx-shop-head .mx-panel { padding-bottom: clamp(1.75rem, 3.5vw, 2.5rem); }
+.mx-shop-head .mx-section-head { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); margin-bottom: 0; }
+.mx-shop-head .mx-section-side { align-content: start; gap: var(--sp-5); padding-bottom: 0; }
+.mx-tally { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: var(--sp-5); }
+.mx-tally li { display: grid; gap: .25rem; align-content: start; font: 400 var(--fs-mono)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+.mx-tally b { font: 400 1.875rem/1 var(--font-display); letter-spacing: .02em; color: var(--white); }
+@media (min-width: 60rem) {
+  .mx-shop-head .mx-section-side { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--sp-12); }
+  .mx-tally { gap: var(--sp-8); }
+  .mx-tally li { display: flex; align-items: baseline; gap: .5rem; }
+}
+/* "A clearer way to build." breaks after "way" until the line fits */
+.mx-shop-head .mx-br-sm { display: inline; }
+@media (min-width: 60rem) { .mx-shop-head .mx-br-sm { display: none; } }
+
+/* Search and category filters above the full shelf */
+.mx-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-6); }
+.mx-search { display: flex; align-items: center; gap: .625rem; min-height: 3rem; padding-inline: .875rem .25rem; border: 1px solid var(--edge-control); border-radius: var(--r-md);
+  background: var(--navy-850); color: var(--text-2); cursor: text; transition: border-color var(--dur-1) var(--ease); }
+.mx-search:hover { border-color: var(--blue-200); }
+.mx-search:focus-within { border-color: var(--blue-200); outline: 2px solid var(--blue-200); outline-offset: -1px; }
+.mx-search > .mx-i { width: 1.125rem; height: 1.125rem; color: var(--blue-200); stroke-width: 2; }
+.mx-search input { flex: 1 1 auto; min-width: 0; height: 2.875rem; padding: 0; border: 0; outline: 0; background: transparent; color: var(--white); font-size: 1rem; line-height: 1.3; appearance: none; }
+.mx-search input::placeholder { color: var(--muted); opacity: 1; }
+.mx-search input::-webkit-search-cancel-button, .mx-search input::-webkit-search-decoration { appearance: none; display: none; }
+.mx-search input:focus-visible { outline: 0; }
+.mx-search button { display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text-2); cursor: pointer; }
+.mx-search button:hover { color: var(--white); background: var(--navy-700); }
+.mx-search button .mx-i { width: 1.125rem; height: 1.125rem; stroke-width: 2; }
+.mx-filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mx-filters button { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: .375rem .875rem; border: 1px solid var(--edge-control); border-radius: var(--r-pill);
+  background: transparent; color: var(--text-2); font: 500 var(--fs-sm)/1.2 var(--font-sans); white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease); }
+.mx-filters button:hover { border-color: var(--blue-200); color: var(--white); }
+.mx-filters button[aria-pressed="true"] { border-color: var(--blue-600); background: var(--blue-600); color: var(--white); font-weight: 600; }
+.mx-filters button:focus-visible { border-radius: var(--r-pill); }
+.mx-filter-n { font: 400 var(--fs-mono)/1 var(--font-mono); letter-spacing: .04em; color: var(--blue-200); }
+.mx-filters button[aria-pressed="true"] .mx-filter-n { color: var(--white); }
+.mx-result { font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .04em; color: var(--blue-200); }
+@media (max-width: 39.99rem) {
+  /* phone: five filters in two or three rows; the counts come back from 40rem up */
+  .mx-filters button { padding-inline: .75rem; font-size: .875rem; }
+  .mx-filter-n { display: none; }
+}
+@media (min-width: 72rem) {
+  .mx-toolbar { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); align-items: center; gap: var(--sp-4) var(--sp-5); }
+  .mx-result { grid-column: 1 / -1; }
+}
+
+/* Nothing matched */
+.mx-empty { display: grid; justify-items: start; gap: var(--sp-3); padding: var(--sp-8) var(--sp-5); border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); }
+.mx-empty h3 { font: 600 var(--fs-title)/1.12 var(--font-sans); letter-spacing: -.022em; color: var(--white); }
+.mx-empty p { color: var(--text-2); }
+.mx-empty .mx-btn { margin-top: var(--sp-2); }
+@media (min-width: 40rem) { .mx-empty { padding: var(--sp-10) var(--sp-8); } }
+
+/* The full shelf: denser cards than the three home examples */
+.mx-tools--shelf .mx-tool-head h3 { font-size: 1.25rem; }
+.mx-tools--shelf .mx-specs { gap: .5rem; }
+@media (max-width: 39.99rem) {
+  .mx-tools--shelf { gap: var(--sp-4); }
+  .mx-tools--shelf .mx-tool { gap: var(--sp-3); }
+}

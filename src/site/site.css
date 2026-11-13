@@ -1,0 +1,732 @@
+/*
+  AI with Murda site system ("mx"): base, components and the home/catalogue
+  sections. Ported from the approved "Broadcast desk" direction, which is built
+  from the vocabulary of Murad's reels: numbered panel headers, condensed caps
+  headlines, ticker labels, flat illustrated previews, one loud blue button.
+
+  Tokens live in ./tokens.css (scoped to .public-site). Fonts are imported in
+  src/main.jsx. Page-specific additions live beside this file.
+
+  Breakpoints (min-width unless noted; the matching max-width queries end .01rem lower):
+    40rem   tablet: card padding, two-column card interiors, full-width buttons end
+    60rem   desktop: two-column sections (hero, story, band, FAQ, footer)
+    72rem   three-up card grids (free cards, tool cards)
+  Layout-specific steps that are not part of the scale, each for one component:
+    47.5rem two-line headline breaks (.mx-br-*) and the story photo beside its copy
+    54rem   header: inline nav instead of the menu
+    64rem   package cards three-up
+    75rem   hero shelf: price column beside the package name
+    max 26rem / max 23.4rem  small phones: panel-header prefix and the "My Downloads" label give way
+  Fitting inside a component (ticker labels, the story headline) uses container queries and container units,
+  not more viewport ranges.
+*/
+
+/* Tokens added in the review round. They belong with the others in ./tokens.css (not open for editing in
+   that round): move them there when it is. */
+.public-site {
+  --text-bright: #e3e8f8; /* bright copy on navy: list items, excerpts, quoted lines, footer links (replaces six near-identical tints) */
+  --blue-700: #1d4ed8; /* small blue text on cream and on the tinted wells inside it (5.7:1 or better), button hover on cream */
+  --r-tile: 26%; /* icon tiles are square: the corner follows the size of the tile */
+}
+
+/* 1. BASE -------------------------------------------------------------------
+   `.mx` marks a root that uses this system: the site header, the footer and
+   each redesigned page <main>. Element rules sit behind :where() so they add
+   no specificity; older pages inside .public-site are not touched. */
+:where(.mx), :where(.mx) *, :where(.mx) *::before, :where(.mx) *::after { box-sizing: border-box; }
+html:has(.public-site) { -webkit-text-size-adjust: 100%; scroll-padding-top: 5.5rem; }
+.mx { color: var(--text-2); font: 400 var(--fs-body)/var(--lh-body) var(--font-sans); letter-spacing: 0;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+/* A redesigned page: <main class="mx mx-page">. Flat reel navy; decorations that lean past the gutter are clipped, never scrolled. */
+.mx-page { display: block; min-height: 60vh; background: var(--bg); overflow-x: clip; }
+:where(.mx) :where(img, svg) { display: block; max-width: 100%; }
+:where(.mx) a { color: inherit; text-decoration: underline; }
+:where(.mx) :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote) { margin: 0; }
+:where(.mx) :where(ul, ol) { padding: 0; list-style: none; }
+:where(.mx) :where(button, input, select, textarea) { font: inherit; color: inherit; }
+.mx :focus-visible, .mx-skip:focus-visible { outline: 2px solid var(--blue-200); outline-offset: 3px; border-radius: 4px; }
+.mx ::selection { background: var(--blue-600); color: var(--white); }
+.mx-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.mx-skip { position: absolute; left: var(--sp-4); top: -4rem; z-index: 100; padding: .75rem 1rem; border-radius: var(--r-sm);
+  background: var(--white); color: var(--ink); font-weight: 600; text-decoration: none; }
+.mx-skip:focus { top: var(--sp-4); }
+.mx-container { width: min(100% - 2 * var(--gutter), var(--container)); margin-inline: auto; }
+.mx-i { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 2. COMPONENTS ------------------------------------------------------------ */
+
+/* Display type: condensed caps, two short lines, full stop */
+.mx-display { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; color: var(--white);
+  line-height: var(--lh-display); letter-spacing: .008em; text-wrap: balance; }
+.mx-display--xl { font-size: var(--fs-display-xl); }
+.mx-display--lg { font-size: var(--fs-display-lg); }
+.mx-display--md { font-size: var(--fs-display-md); }
+.mx-lede { font-size: var(--fs-lede); line-height: 1.5; color: var(--text-2); max-width: 34em; text-wrap: pretty; }
+.mx-text { font-size: var(--fs-body); color: var(--text-2); max-width: 38em; text-wrap: pretty; }
+.mx-title { font: 600 var(--fs-title)/1.12 var(--font-sans); letter-spacing: -.022em; color: var(--white); }
+.mx-meta { font: 400 var(--fs-mono)/1.5 var(--font-mono); letter-spacing: .02em; color: var(--text-3); }
+.mx-eyebrow { font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--blue-200); }
+
+/* Highlight box: one caption word on blue */
+.mx-hl { display: inline-block; padding: .02em .2em .04em; border-radius: .14em; background: var(--blue-600); color: var(--white); }
+
+/* Button: the only loud element */
+.mx-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .625rem; min-height: 3rem;
+  padding: .625rem 1.25rem; border: 1px solid transparent; border-radius: var(--r-md); background: var(--accent); color: var(--on-accent);
+  font: 650 1rem/1.15 var(--font-sans); letter-spacing: -.01em; text-decoration: none; text-align: center; cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease); }
+.mx-btn:hover { background: var(--blue-200); }
+.mx-btn:active { transform: translateY(1px); }
+.mx-btn:focus-visible { outline-color: var(--white); border-radius: var(--r-md); }
+.mx-btn .mx-i { width: 1.125rem; height: 1.125rem; stroke-width: 2.25; }
+.mx-btn--lg { min-height: 3.75rem; padding-inline: 1.75rem; font-size: 1.125rem; font-weight: 700; }
+.mx-btn--sm { min-height: 2.75rem; padding-inline: 1rem; font-size: .9375rem; }
+.mx-btn--block { display: flex; width: 100%; }
+.mx-btn--ghost { background: transparent; border-color: var(--edge-control); color: var(--white); font-weight: 550; }
+.mx-btn--ghost:hover { background: var(--navy-700); border-color: var(--blue-200); }
+
+/* Text link with arrow */
+.mx-link { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; color: var(--white); font-weight: 600; font-size: var(--fs-sm);
+  text-decoration: underline; text-decoration-color: var(--edge-control); text-underline-offset: .3em; text-decoration-thickness: 1px; }
+.mx-link .mx-i { width: 1.05rem; height: 1.05rem; color: var(--blue-500); stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
+.mx-link:hover { color: var(--blue-200); text-decoration-color: var(--blue-200); }
+.mx-link:hover .mx-i { transform: translateX(3px); }
+
+/* Mono pill chip with live dot */
+.mx-chip { display: inline-flex; align-items: center; gap: .625rem; min-height: 1.875rem; padding: .3rem .875rem; border: 1px solid var(--hairline-blue);
+  border-radius: var(--r-pill); background: var(--navy-850); color: var(--text-bright); font: 500 var(--fs-mono-sm)/1.2 var(--font-mono);
+  letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
+.mx-chip-dot { width: .4rem; height: .4rem; border-radius: 50%; background: var(--live); flex: none; }
+a.mx-chip:hover { border-color: var(--blue-200); }
+
+/* Ticker label: blue tag joined to a white (free) or navy (paid) bar.
+   A label is never cut. Inside a ticker box (a container) it tightens first; when the two parts still do not fit
+   on one line the bar drops under the tag, and a bar that is longer than the line wraps its words. `overflow`
+   is here only to round the corners of the pair: nothing is `nowrap` except the short tag. */
+.mx-ticker { display: inline-flex; flex-wrap: wrap; align-items: stretch; max-width: 100%; overflow: hidden; border-radius: var(--r-xs);
+  font-family: var(--font-ticker); text-transform: uppercase; line-height: 1; }
+.mx-ticker-tag { display: flex; align-items: center; padding: .5rem .625rem; background: var(--blue-600); color: var(--white); font-size: .75rem; font-weight: 800; letter-spacing: .03em; white-space: nowrap; }
+.mx-ticker-bar { display: flex; align-items: center; min-width: 0; padding: .5rem .7rem; background: var(--white); color: var(--ink); font-size: .78rem; font-weight: 900; letter-spacing: .01em; overflow-wrap: anywhere; }
+.mx-ticker--paid .mx-ticker-bar { background: var(--navy-700); color: var(--white); box-shadow: inset 0 0 0 1px var(--hairline-blue); }
+.mx-ticker--tilt { transform: rotate(-2.5deg); }
+.mx-ticker--lg .mx-ticker-tag { font-size: .8125rem; padding: .6rem .75rem; }
+.mx-ticker--lg .mx-ticker-bar { font-size: 1rem; padding: .6rem .875rem; }
+.mx-ticker-box { container-type: inline-size; }
+@container (max-width: 18.5rem) {
+  .mx-ticker-tag { padding-inline: .45rem; letter-spacing: 0; }
+  .mx-ticker-bar { padding-inline: .5rem; font-size: .75rem; letter-spacing: 0; }
+}
+@container (max-width: 20rem) {
+  /* the large strap on a photo returns to the regular size on the narrowest phones, so it stays one line */
+  .mx-ticker--lg .mx-ticker-tag { font-size: .75rem; padding: .5rem .55rem; }
+  .mx-ticker--lg .mx-ticker-bar { font-size: .8125rem; padding: .5rem .6rem; }
+}
+
+/* Numbered panel: corner dots, mono counter, mono descriptor, hairline */
+.mx-section { padding-top: var(--panel-gap); scroll-margin-top: 4rem; }
+.mx-panel { position: relative; padding-block: 1.375rem clamp(2.25rem, 4.5vw, 3.25rem); }
+/* corner dots sit at the corners of the panel header and nowhere else */
+.mx-panel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; pointer-events: none;
+  background: radial-gradient(circle, var(--dot) 0 1.4px, transparent 1.6px) left center / 3px 3px no-repeat,
+              radial-gradient(circle, var(--dot) 0 1.4px, transparent 1.6px) right center / 3px 3px no-repeat; }
+.mx-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); padding-bottom: .75rem;
+  border-bottom: 1px solid var(--hairline); font: 400 var(--fs-mono)/1.3 var(--font-mono); }
+.mx-count { font: 400 var(--fs-mono)/1.3 var(--font-mono); color: var(--blue-200); letter-spacing: .08em; white-space: nowrap; }
+.mx-desc { color: var(--text-3); letter-spacing: var(--track-mono); text-transform: uppercase; text-align: right; }
+@media (max-width: 25.99rem) { .mx-desc-pre { display: none; } }
+.mx-section-head { display: grid; gap: var(--sp-5); margin-block: clamp(1.5rem, 3.5vw, 2.5rem) clamp(1.75rem, 4vw, 2.75rem); }
+.mx-section-side { display: grid; gap: var(--sp-3); align-content: end; }
+.mx-section-side .mx-meta { color: var(--text-2); } /* counts and price facts, not incidental labels */
+@media (min-width: 60rem) {
+  .mx-section-head { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); align-items: end; }
+  .mx-section-side { padding-bottom: .5rem; }
+}
+
+/* Card */
+.mx-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: var(--sp-4); }
+@media (min-width: 40rem) { .mx-card { padding: var(--sp-6); } }
+
+/* Icon tiles: white = free, navy = paid / neutral, blue = the one you are looking at */
+.mx-tile { display: grid; place-items: center; flex: none; width: 4rem; height: 4rem; border-radius: var(--r-tile); border: 1.5px solid var(--hairline-blue);
+  background: var(--navy-700); color: var(--blue-200); }
+.mx-tile .mx-i { width: 1.625rem; height: 1.625rem; stroke-width: 1.6; }
+.mx-tile--sm { width: 3rem; height: 3rem; }
+.mx-tile--sm .mx-i { width: 1.3rem; height: 1.3rem; }
+.mx-tile--on { border-color: var(--blue-400); background: #15234f; color: var(--white); }
+.mx-tile--white { background: var(--tile-white); border-color: var(--tile-white); color: var(--ink); }
+.mx-tile--blue { background: var(--blue-400); border-color: var(--blue-400); color: var(--navy-950); }
+.mx-tile--ghost { background: transparent; border-style: dashed; border-color: rgba(156, 194, 255, .42); color: var(--slate); }
+.mx-tile-label { font: 500 var(--fs-mono-sm)/1.25 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); text-align: center; }
+
+/* Illustration well + its parts (flat, drawn in DOM) */
+.mx-preview { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-5);
+  min-height: 15rem; padding: var(--sp-6) var(--sp-4) var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-md);
+  background-color: var(--well); background-image: radial-gradient(rgba(156, 194, 255, .1) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-preview-cap { font: 400 var(--fs-mono-sm)/1.4 var(--font-mono); letter-spacing: .03em; color: var(--text-3); text-align: center; }
+.mx-flow { display: flex; align-items: flex-start; justify-content: center; gap: .5rem; width: 100%; }
+.mx-node { display: grid; justify-items: center; gap: .5rem; min-width: 0; }
+.mx-join { display: grid; place-items: center; height: 4rem; flex: none; color: var(--blue-500); }
+.mx-join .mx-i { width: 1rem; height: 1rem; stroke-width: 2.25; }
+.mx-join--arrow { color: var(--blue-200); }
+.mx-join--arrow .mx-i { width: 1.375rem; height: 1.375rem; stroke-width: 1.75; }
+.mx-flow--sm { gap: .25rem; }
+.mx-flow--sm .mx-join { height: 3rem; }
+.mx-flow--sm .mx-tile-label { letter-spacing: .04em; }
+.mx-mock { min-width: 0; background: var(--navy-850); border: 1px solid var(--hairline-blue); border-radius: var(--r-md); padding: .75rem .875rem .875rem; }
+.mx-mock-head { display: flex; justify-content: space-between; gap: var(--sp-3); margin-bottom: .7rem; font: 500 var(--fs-mono-sm)/1.2 var(--font-mono);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.mx-mock-head > :last-child { color: var(--blue-200); }
+.mx-excerpt { width: 100%; padding: .75rem .875rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-md); background: var(--navy-850);
+  font: 400 var(--fs-xs)/1.6 var(--font-mono); color: var(--text-bright); overflow-wrap: anywhere; }
+.mx-excerpt b { display: block; margin-bottom: .1rem; font-weight: 500; font-size: var(--fs-mono-sm); letter-spacing: .1em; text-transform: uppercase; color: var(--blue-200); }
+.mx-excerpt span + b { margin-top: .5rem; }
+.mx-excerpt span { display: block; }
+
+/* "What is inside" list */
+.mx-includes { display: grid; gap: .55rem; }
+.mx-includes li { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: .625rem; align-items: start; font-size: var(--fs-sm); line-height: 1.45; color: var(--text-bright); }
+.mx-includes .mx-i { width: 1.125rem; height: 1.125rem; margin-top: .15rem; color: var(--blue-500); stroke-width: 2; }
+/* "Everything in the $47 starter": inherited from a lower tier, so a plus instead of a check */
+.mx-includes .mx-includes-plus { font-weight: 600; }
+.mx-includes .mx-includes-plus .mx-i { stroke-width: 2.5; }
+
+/* Safety / requirement note that stays beside its product */
+.mx-note { display: grid; grid-template-columns: 1.125rem minmax(0, 1fr); gap: .625rem; padding-top: var(--sp-4); border-top: 1px solid var(--hairline);
+  font-size: var(--fs-xs); line-height: 1.55; color: var(--text-2); }
+.mx-note .mx-i { width: 1.05rem; height: 1.05rem; margin-top: .15rem; color: var(--slate); }
+
+/* Header */
+.mx-header { position: sticky; top: 0; z-index: 50; background: var(--navy-950); border-bottom: 1px solid var(--hairline); }
+.mx-header-in { display: flex; align-items: center; gap: var(--sp-3); min-height: 4rem; }
+.mx-brand { display: inline-flex; align-items: center; gap: .4em; min-height: 2.75rem; margin-right: auto; color: var(--white);
+  font: 900 .9375rem/1 var(--font-ticker); letter-spacing: .01em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+.mx-brand .mx-hl { padding: .28em .4em .3em; border-radius: 4px; }
+.mx-account { white-space: nowrap; }
+.mx-nav { display: flex; align-items: center; gap: .25rem; }
+.mx-nav a { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: .875rem; border-radius: var(--r-sm); color: var(--text-2);
+  font-size: var(--fs-sm); font-weight: 500; text-decoration: none; transition: color var(--dur-1) var(--ease); }
+.mx-nav a:hover { color: var(--white); }
+/* In the DOM the toggle sits before the menu it opens (keyboard order); on screen it stays last: brand, links, My Downloads, toggle. */
+.mx-nav-toggle { order: 1; display: none; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--edge-control);
+  border-radius: var(--r-md); background: transparent; color: var(--white); cursor: pointer; }
+.mx-nav-toggle .mx-i { width: 1.25rem; height: 1.25rem; stroke-width: 2; }
+.mx-nav-toggle .mx-i--close, .mx-nav-toggle[aria-expanded="true"] .mx-i--open { display: none; }
+.mx-nav-toggle[aria-expanded="true"] .mx-i--close { display: block; }
+@media (max-width: 53.99rem) {
+  .mx-header-in { gap: var(--sp-2); }
+  .mx-brand { font-size: .8125rem; }
+  .mx-account { padding-inline: .75rem; gap: .5rem; font-size: .875rem; }
+  .mx-nav-toggle { display: inline-flex; }
+  .mx-nav { position: absolute; left: 0; right: 0; top: 100%; flex-direction: column; align-items: stretch; gap: 0; padding: var(--sp-2) var(--gutter) var(--sp-4);
+    background: var(--navy-900); border-bottom: 1px solid var(--hairline); }
+  .mx-nav:not(.is-open) { display: none; }
+  .mx-nav a { min-height: 3.25rem; padding-inline: .25rem; border-radius: 0; border-bottom: 1px solid var(--hairline); font-size: 1.0625rem; color: var(--white); }
+  .mx-nav a:last-child { border-bottom: 0; }
+}
+@media (max-width: 23.4rem) {
+  .mx-account { width: 2.75rem; padding-inline: 0; }
+  .mx-account span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+
+/* Surfaces by material: how free and paid differ before anyone reads a label.
+   Free things sit in a dashed navy outline (the dashed placeholders of the
+   reels). Paid things sit on the cream announcement card, the brightest
+   surface on the page. */
+.mx-card--free { background: transparent; border: 1.5px dashed rgba(156, 194, 255, .42); }
+.mx-cream { --surface: var(--cream); --text: var(--ink); --text-bright: #2b3147; --text-2: #3a4157; --text-3: #5b6278; --hairline: rgba(19, 23, 36, .14);
+  --hairline-blue: rgba(37, 99, 235, .3); --edge-control: #7c839b; --dot: rgba(37, 99, 235, .5); --accent: var(--blue-600); --on-accent: var(--white);
+  background: var(--cream); border: 1px solid var(--cream); border-radius: var(--r-lg); color: var(--text-2); }
+.mx-cream :where(.mx-title, .mx-display, .mx-link, h1, h2, h3, h4, strong, b) { color: var(--ink); }
+.mx-cream :where(.mx-lede, .mx-text, p) { color: var(--text-2); }
+.mx-cream :where(.mx-meta, .mx-tile-label, .mx-price-note, small) { color: var(--text-3); }
+/* small blue text on cream is the darker --blue-700: --blue-600 measures 4.42:1 at 12px on the tinted wells */
+.mx-cream :where(.mx-eyebrow, .mx-count) { color: var(--blue-700); }
+.mx-cream .mx-includes .mx-i, .mx-cream .mx-link .mx-i { color: var(--blue-600); }
+.mx-cream .mx-link:hover { color: var(--blue-700); text-decoration-color: var(--blue-700); }
+.mx-cream .mx-btn { background: var(--blue-600); color: var(--white); }
+.mx-cream .mx-btn:hover { background: var(--blue-700); }
+.mx-cream .mx-btn:focus-visible { outline-color: var(--ink); }
+.mx-cream .mx-btn--ghost { background: transparent; border-color: var(--edge-control); color: var(--ink); }
+.mx-cream .mx-btn--ghost:hover { background: rgba(19, 23, 36, .06); border-color: var(--ink); }
+.mx-cream .mx-ticker-bar { background: var(--ink); color: var(--white); }
+.mx-cream .mx-chip { border-color: var(--hairline-blue); color: var(--ink); }
+.mx-cream :focus-visible { outline-color: var(--blue-600); }
+.mx-cream ::selection { background: var(--blue-600); color: var(--white); }
+/* illustration parts on cream: ink tiles, one blue tile for the thing you are looking at */
+.mx-cream .mx-tile { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.mx-cream .mx-tile--blue { background: var(--blue-600); border-color: var(--blue-600); color: var(--white); }
+.mx-cream .mx-tile--white { background: var(--white); border-color: var(--hairline); color: var(--ink); }
+.mx-cream .mx-tile--ghost { background: transparent; border: 1.5px dashed rgba(19, 23, 36, .38); color: var(--text-3); }
+.mx-cream .mx-join { color: var(--blue-600); }
+.mx-cream .mx-mock-head { color: var(--text-3); }
+.mx-cream .mx-mock-head > :last-child { color: var(--blue-700); }
+.mx-cream .mx-preview-cap { color: var(--text-2); }
+
+/* Price as a ticker: the cadence is the tag, the amount is the bar. */
+.mx-ticker--price .mx-ticker-tag { font-size: .75rem; padding: .55rem .7rem; }
+.mx-ticker--price .mx-ticker-bar { padding: .2rem .8rem .15rem; font: 400 2.25rem/1.15 var(--font-display); letter-spacing: .01em; }
+.mx-ticker--price-sm .mx-ticker-tag { padding: .35rem .5rem; }
+.mx-ticker--price-sm .mx-ticker-bar { padding: .1rem .55rem .05rem; font-size: 1.375rem; }
+.mx-cadence { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .2rem .6rem; border: 1.5px solid currentColor; border-radius: var(--r-xs);
+  font: 800 .75rem/1 var(--font-ticker); letter-spacing: .03em; text-transform: uppercase; color: var(--text); }
+.mx-price-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .625rem; }
+
+/* Caption highlight inside an excerpt: one key phrase in the blue box. */
+.mx-mark { padding: .05em .3em; border-radius: 3px; background: var(--blue-600); color: var(--white); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* 3. SECTIONS -------------------------------------------------------------- */
+
+/* 01 Hero: first frame of a reel, turned into a storefront */
+.mx-hero { padding-top: clamp(.75rem, 2vw, 1.25rem);
+  background-image: radial-gradient(52rem 30rem at 14% -4rem, rgba(38, 59, 137, .62), rgba(19, 34, 102, .3) 46%, rgba(4, 9, 35, 0) 74%); background-repeat: no-repeat; }
+.mx-hero .mx-panel { padding-bottom: clamp(2rem, 4vw, 2.75rem); }
+.mx-hero-grid { display: grid; gap: var(--sp-6); margin-top: clamp(1.25rem, 3vw, 1.75rem); }
+.mx-hero-copy { display: grid; justify-items: start; align-content: start; min-width: 0; }
+.mx-hero-copy .mx-display { margin-top: var(--sp-4); }
+.mx-hero-copy .mx-lede { margin-top: var(--sp-4); max-width: 30em; }
+.mx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); }
+.mx-hero-copy .mx-actions { margin-top: 1.625rem; width: 100%; }
+.mx-hero-copy .mx-meta { margin-top: var(--sp-4); color: var(--text-2); }
+@media (max-width: 39.99rem) {
+  /* phone: the photo, the headline and the first button share the first screen */
+  .mx-hero-grid { gap: var(--sp-4); margin-top: var(--sp-4); }
+  .mx-hero-copy .mx-display, .mx-hero-copy .mx-lede { margin-top: var(--sp-3); }
+  .mx-hero-copy .mx-actions { margin-top: var(--sp-5); }
+  .mx-hero-copy .mx-btn { width: 100%; }
+  .mx-hero-copy .mx-chip { letter-spacing: .08em; }
+}
+
+/* Murad. On a phone he opens the page the way he opens a reel: a wide frame with the
+   lower-third strap. From 60rem up the portrait is framed beside the headline. */
+.mx-portrait { position: relative; order: -1; display: grid; gap: var(--sp-3); min-width: 0; }
+.mx-portrait-frame { position: relative; aspect-ratio: 4 / 3; }
+.mx-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 46%; border-radius: var(--r-lg); border: 1px solid var(--hairline-blue); }
+.mx-portrait figcaption { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
+.mx-portrait-strap { position: absolute; left: -.375rem; bottom: .875rem; }
+.mx-float { position: absolute; }
+.mx-float.mx-tile { width: 2.75rem; height: 2.75rem; }
+.mx-float.mx-tile .mx-i { width: 1.25rem; height: 1.25rem; }
+.mx-float--a { left: -.375rem; top: -.625rem; transform: rotate(-9deg); }
+.mx-float--b { right: 1rem; top: -.75rem; transform: rotate(7deg); }
+.mx-float--c { right: -.375rem; bottom: 1.25rem; transform: rotate(-6deg); }
+@media (min-width: 40rem) and (max-width: 59.99rem) {
+  .mx-portrait { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); gap: var(--sp-6); align-items: end; }
+  .mx-portrait figcaption { max-width: 22em; padding-bottom: var(--sp-2); font-size: var(--fs-body); }
+}
+@media (min-width: 60rem) {
+  /* the two hero buttons share one line beside the portrait: they grow with the column (compact at 60rem, full size from 75rem) instead of stepping */
+  .mx-hero-copy .mx-btn--lg { min-height: clamp(3.5rem, 1.67vw + 2.5rem, 3.75rem); padding-inline: clamp(1.125rem, 4.2vw - 1.395rem, 1.75rem); font-size: clamp(1rem, .84vw + .496rem, 1.125rem); }
+  .mx-hero-grid { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(2.5rem, 4.5vw, 4rem); align-items: stretch; margin-top: clamp(1.5rem, 3vw, 1.75rem); }
+  .mx-portrait { order: 0; grid-template-rows: minmax(0, 1fr) auto; gap: var(--sp-5); align-items: stretch; }
+  .mx-portrait-frame { aspect-ratio: auto; min-height: 21rem; }
+  .mx-portrait img { position: absolute; inset: 0; object-position: 38% 42%; }
+  .mx-portrait figcaption { max-width: 26em; }
+  .mx-portrait-strap { left: -.75rem; bottom: 1.25rem; }
+  .mx-float.mx-tile { width: 4rem; height: 4rem; }
+  .mx-float.mx-tile .mx-i { width: 1.625rem; height: 1.625rem; }
+  .mx-float.mx-tile--sm { width: 3rem; height: 3rem; }
+  .mx-float.mx-tile--sm .mx-i { width: 1.3rem; height: 1.3rem; }
+  .mx-float--a { left: -1.75rem; top: 1.75rem; }
+  .mx-float--b { right: 1.5rem; top: -1.25rem; }
+  .mx-float--c { right: -.6rem; top: 42%; bottom: auto; }
+}
+
+/* The shelf: everything for sale, as two price lists. Free is a dashed navy card,
+   paid is the cream card; every row is a link to its own page. */
+.mx-shelf { margin-top: clamp(1.5rem, 3.6vw, 2rem); }
+.mx-shelf-groups { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.mx-shelf-group { display: grid; grid-template-rows: auto 1fr; min-width: 0; padding: var(--sp-4); }
+.mx-shelf-grouphead { display: grid; gap: .5rem; justify-items: start; }
+.mx-shelf-note { font: 400 var(--fs-mono)/1.45 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-shelf-note .mx-count { margin-right: .875em; text-transform: uppercase; }
+.mx-shelf-items { display: grid; gap: .125rem; align-content: space-between; margin-top: var(--sp-3); }
+.mx-shelf-items li { position: relative; }
+.mx-shelf-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "tile name price go" "tile meta price go"; column-gap: .75rem; align-items: center;
+  min-height: 3.75rem; padding: .375rem .5rem; margin-inline: -.5rem; border-radius: var(--r-md); text-decoration: none; transition: background-color var(--dur-1) var(--ease); }
+.mx-shelf-item:hover { background: var(--navy-700); }
+.mx-cream .mx-shelf-item:hover { background: rgba(19, 23, 36, .07); }
+.mx-shelf-item .mx-tile { grid-area: tile; width: 2.75rem; height: 2.75rem; }
+.mx-shelf-item .mx-tile .mx-i { width: 1.3rem; height: 1.3rem; }
+.mx-shelf-name { grid-area: name; align-self: end; color: var(--text); font-weight: 600; font-size: var(--fs-sm); line-height: 1.25; letter-spacing: -.01em; }
+.mx-shelf-meta { grid-area: meta; align-self: start; font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-shelf-price { grid-area: price; display: inline-flex; align-items: center; min-height: 1.625rem; padding: .15rem .5rem; border: 1px solid var(--edge-control); border-radius: var(--r-xs);
+  font: 500 var(--fs-xs)/1.25 var(--font-mono); letter-spacing: .01em; color: var(--text); } /* "$327 today, then $30/month": purchase terms, 13px */
+.mx-shelf-go { grid-area: go; color: var(--accent); width: 1.125rem; height: 1.125rem; stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
+.mx-shelf-item:hover .mx-shelf-go { transform: translateX(3px); }
+.mx-tile--price { font: 400 1.125rem/1 var(--font-display); letter-spacing: .02em; color: var(--white); }
+.mx-shelf-cap { margin-top: var(--sp-3); color: var(--text-2); }
+@media (max-width: 74.99rem) {
+  /* a package price carries its cadence, so it takes the line under the name until there is room for a price column */
+  .mx-shelf-item--paid { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile price go"; row-gap: .3rem; padding-block: .5rem; }
+  .mx-shelf-item--paid .mx-shelf-meta { display: none; }
+  .mx-shelf-item--paid .mx-shelf-price { justify-self: start; align-self: start; }
+}
+@media (max-width: 39.99rem) {
+  .mx-shelf-meta, .mx-shelf-price { letter-spacing: 0; }
+  .mx-shelf-note .mx-count { display: block; }
+  /* phone: the price and its cadence take the whole second line, so "$327 today, then $30/month" stays one line at 360 */
+  .mx-shelf-item--paid { grid-template-areas: "tile name go" "tile price price"; }
+}
+@media (min-width: 60rem) {
+  .mx-shelf-groups { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-5); }
+  .mx-shelf-group { padding: var(--sp-5) var(--sp-6); }
+  .mx-shelf-item { column-gap: .875rem; }
+  .mx-tile--price { font-size: 1.375rem; }
+}
+
+/* Shared pieces of a free card: top row (ticker + counter), intro, buy row, the $0 line, pills. */
+.mx-free-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.mx-free-intro { display: grid; gap: .5rem; align-content: start; }
+.mx-buy { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-6); }
+/* "$0. No account or email needed." is one sentence of ordinary inline text (it reads and copies as written);
+   the amount is set large, the rest sits beside it and wraps beside it. */
+.mx-zero { font: 400 var(--fs-mono)/1.45 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-zero b { display: inline-block; vertical-align: middle; margin-right: .25rem; font: 400 2.5rem/1 var(--font-display); letter-spacing: .01em; color: var(--white); }
+.mx-zero span { display: inline-block; vertical-align: middle; max-width: calc(100% - 4.75rem); }
+@media (max-width: 39.99rem) { .mx-buy .mx-btn { width: 100%; } }
+.mx-pill { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.5rem; padding: .15rem .55rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-pill);
+  font: 500 var(--fs-mono-sm)/1 var(--font-mono); letter-spacing: .04em; color: var(--text-bright); white-space: nowrap; }
+.mx-pill small { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-200); }
+.mx-pill--on { border-color: var(--blue-400); background: #15234f; color: var(--white); }
+
+/* 02 Free downloads: three dashed cards. Reading order in each: label, name,
+   one line, preview, action, $0 note, disclaimer. */
+.mx-freecards { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+.mx-freecard { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--sp-4); min-width: 0; scroll-margin-top: 5.5rem; }
+.mx-freecard-view { align-items: stretch; justify-content: flex-start; gap: var(--sp-4); min-height: 0; padding: var(--sp-4); }
+.mx-freecard-view .mx-mock-head { margin: 0; padding-bottom: .625rem; border-bottom: 1px solid var(--hairline); letter-spacing: .06em; }
+.mx-freecard--pack .mx-mock-head { text-transform: none; letter-spacing: .02em; }
+.mx-freecard-view .mx-preview-cap { margin-top: auto; padding-top: .25rem; text-align: left; color: var(--text-2); }
+.mx-preview-block { display: grid; gap: .625rem; align-content: start; }
+.mx-preview-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-bright); }
+@media (max-width: 39.99rem) {
+  /* the action stays within a thumb of the title: what is inside moves under the price note */
+  .mx-freecard > .mx-includes { order: 1; }
+  .mx-freecard > .mx-note { order: 2; }
+  /* the Starter Pack is a direct download, so its button comes before the three samples */
+  .mx-freecard--pack > .mx-freecard-view { order: 1; }
+}
+@media (max-width: 71.99rem) {
+  /* shorter previews below the three-up layout: the names stay, the longer explanations wait for the product page */
+  .mx-verdict-list li span span, .mx-preview-block--wide, .mx-choices div + div { display: none; }
+}
+@media (min-width: 40rem) and (max-width: 71.99rem) {
+  .mx-freecard { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: var(--sp-8); grid-template-rows: auto auto auto auto auto 1fr;
+    grid-template-areas: "top top" "intro view" "list view" "buy view" "zero view" "note view"; }
+  .mx-freecard > .mx-free-top { grid-area: top; }
+  .mx-freecard > .mx-free-intro { grid-area: intro; }
+  .mx-freecard > .mx-freecard-view { grid-area: view; }
+  .mx-freecard > .mx-includes { grid-area: list; }
+  .mx-freecard > .mx-buy { grid-area: buy; }
+  .mx-freecard > .mx-zero { grid-area: zero; }
+  .mx-freecard > .mx-note { grid-area: note; align-self: start; }
+  .mx-freecard--pack { grid-template-rows: auto auto 1fr auto auto; grid-template-areas: "top top" "intro buy" "intro zero" "view view" "note note"; }
+  .mx-freecard--pack .mx-buy { align-self: end; }
+  .mx-freecard--pack .mx-samples { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--sp-6); }
+  .mx-freecard--pack .mx-samples article, .mx-freecard--pack .mx-samples article:first-child { padding-block: 0; border-top: 0; }
+}
+@media (min-width: 72rem) {
+  .mx-freecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mx-freecard { padding: var(--sp-5); }
+  .mx-samples article { padding-block: var(--sp-3); }
+}
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 72rem) {
+    /* seven shared rows keep the three buttons on one line */
+    .mx-freecards { grid-template-rows: auto auto 1fr auto auto auto auto; row-gap: 0; }
+    .mx-freecard { grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
+    .mx-freecard > * + * { margin-top: var(--sp-4); }
+    .mx-freecard--pack > .mx-freecard-view { grid-row: span 2; }
+  }
+}
+/* Check It First: the four steps and the four verdicts */
+.mx-steps { display: grid; gap: .5rem; }
+.mx-steps li { display: grid; grid-template-columns: 1.625rem minmax(0, 1fr); gap: .375rem; align-items: baseline; font-size: var(--fs-sm); line-height: 1.4; color: var(--text-bright); }
+.mx-verdict-list { display: grid; gap: .625rem; }
+.mx-verdict-list li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: .625rem; align-items: start; font-size: var(--fs-xs); line-height: 1.45; color: var(--text-2); }
+.mx-verdict-list .mx-i { width: 1rem; height: 1rem; margin-top: .15rem; color: var(--blue-200); stroke-width: 2; }
+.mx-verdict-list b { display: block; font-weight: 600; font-size: var(--fs-sm); line-height: 1.35; color: var(--text-bright); }
+/* Free Starter Pack: the three files, each with a line from the file itself */
+.mx-samples { display: grid; grid-template-columns: minmax(0, 1fr); }
+.mx-samples article { display: grid; gap: .3rem; align-content: start; padding-block: var(--sp-4); border-top: 1px solid var(--hairline); }
+.mx-samples article:first-child { padding-top: 0; border-top: 0; }
+.mx-samples article:last-child { padding-bottom: 0; }
+.mx-samples h4 { font: 600 1.0625rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
+.mx-samples article > p:not(.mx-eyebrow) { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
+.mx-sample-line { display: grid; gap: .125rem; margin-top: .25rem; font: 400 var(--fs-xs)/1.5 var(--font-mono); color: var(--text-bright); overflow-wrap: anywhere; }
+.mx-sample-line cite { font: 500 var(--fs-mono)/1.4 var(--font-mono); font-style: normal; letter-spacing: .02em; color: var(--blue-200); }
+.mx-samples .mx-link { justify-self: start; font-size: var(--fs-xs); }
+/* Inbox Cleanup Kit: the kit's own practice inbox */
+.mx-senders { display: grid; gap: .625rem; }
+.mx-senders li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .625rem; align-items: center; }
+.mx-senders-from { display: grid; gap: .05rem; min-width: 0; }
+.mx-senders-from code { font: 500 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .01em; color: var(--text-bright); overflow-wrap: anywhere; }
+.mx-senders-from small { font: 400 var(--fs-mono)/1.4 var(--font-mono); color: var(--text-3); }
+.mx-choices { display: grid; gap: .625rem; }
+.mx-choices div { display: grid; gap: .125rem; }
+.mx-choices dt { display: flex; align-items: baseline; gap: .5rem; font: 500 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .04em; color: var(--white); }
+.mx-choices dt small { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-200); }
+.mx-choices dd { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-2); }
+
+/* 03 Tools inside the paid packages. The card body stays navy (it holds the
+   excerpt); the box that names the package and its price is cream. */
+.mx-tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+.mx-tool { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.mx-tool-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); container-type: inline-size; } /* a ticker box: the label tightens in a narrow card */
+.mx-tool-head { display: grid; gap: .5rem; justify-items: start; align-content: start; }
+.mx-tool-head h3 { font: 600 1.375rem/1.18 var(--font-sans); letter-spacing: -.02em; color: var(--white); text-wrap: balance; }
+.mx-tool-head h3 a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; text-decoration: none; } /* the padding makes the title a 44px target without moving it */
+.mx-tool-head h3 a:hover { color: var(--blue-200); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.mx-tool .mx-text { font-size: var(--fs-sm); }
+.mx-specs { display: grid; gap: .625rem; padding-top: var(--sp-4); border-top: 1px solid var(--hairline); }
+.mx-specs div { display: grid; grid-template-columns: 3.75rem minmax(0, 1fr); gap: var(--sp-3); }
+.mx-specs dt { padding-top: .15rem; font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.mx-specs dd { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-2); }
+/* "Comes with <package>": the package, its price and cadence, on cream */
+.mx-comes { display: grid; gap: .375rem; justify-items: start; align-content: start; margin-top: auto; padding: var(--sp-4); border-radius: var(--r-md); }
+.mx-comes strong { font-weight: 600; font-size: var(--fs-body); line-height: 1.3; letter-spacing: -.01em; }
+.mx-comes .mx-price-row { margin-top: .25rem; gap: .375rem .5rem; }
+.mx-comes .mx-cadence { padding-inline: .45rem; letter-spacing: .02em; }
+.mx-tool-terms { font-size: var(--fs-xs); line-height: 1.5; }
+.mx-comes .mx-link { margin-top: .125rem; }
+.mx-tools-more { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin-top: var(--sp-8); }
+.mx-tools-more .mx-meta { color: var(--text-2); }
+
+/* A product preview: real words from the product, in an illustration well.
+   Stands alone on the product pages too. */
+.mx-preview--file { align-items: stretch; justify-content: flex-start; gap: var(--sp-3); min-height: 0; padding: var(--sp-4); }
+.mx-preview-label { display: flex; align-items: flex-start; gap: .4rem; font: 400 var(--fs-mono)/1.35 var(--font-mono); letter-spacing: 0; color: var(--text-2); }
+.mx-preview-label .mx-i { width: .95rem; height: .95rem; margin-top: .05rem; color: var(--blue-200); }
+.mx-preview-title { display: block; font: 600 1.0625rem/1.25 var(--font-sans); letter-spacing: -.012em; color: var(--white); }
+.mx-preview--file .mx-flow { padding-block: var(--sp-2); }
+.mx-preview-source { font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .01em; color: var(--text-2); overflow-wrap: anywhere; }
+.mx-preview--file:not(.mx-preview--compact) { gap: var(--sp-4); padding: var(--sp-5); }
+.mx-preview--file:not(.mx-preview--compact) .mx-preview-title { font-size: 1.25rem; }
+.mx-tree { display: grid; gap: .5rem; }
+.mx-tree li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: .5rem; align-items: start; padding-left: 1.125rem; font: 400 var(--fs-xs)/1.45 var(--font-mono); color: var(--text-bright); overflow-wrap: anywhere; }
+.mx-tree .mx-i { width: 1rem; height: 1rem; margin-top: .1rem; color: var(--slate); }
+.mx-tree i { font-style: normal; color: var(--text-3); }
+.mx-tree .mx-tree-root { padding-left: 0; color: var(--blue-200); }
+.mx-tree .mx-tree-root .mx-i { color: var(--blue-200); }
+.mx-preview--file .mx-preview-cap { margin-top: auto; padding-top: var(--sp-2); text-align: left; }
+
+@media (min-width: 40rem) and (max-width: 71.99rem) {
+  /* home: three wide cards, preview beside the words */
+  .mx-tools:not(.mx-tools--shelf) .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto; column-gap: var(--sp-6); align-items: start;
+    grid-template-areas: "top top" "head view" "list view" "specs view" "pkg pkg"; }
+  .mx-tools:not(.mx-tools--shelf) .mx-tool-top { grid-area: top; }
+  .mx-tools:not(.mx-tools--shelf) .mx-tool-head { grid-area: head; }
+  .mx-tools:not(.mx-tools--shelf) .mx-preview--file { grid-area: view; }
+  .mx-tools:not(.mx-tools--shelf) .mx-tool > .mx-includes { grid-area: list; }
+  .mx-tools:not(.mx-tools--shelf) .mx-specs { grid-area: specs; }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes { grid-area: pkg; justify-self: stretch; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-6); }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes > * { grid-column: 1; }
+  .mx-tools:not(.mx-tools--shelf) .mx-comes > .mx-link { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
+  .mx-tools:not(.mx-tools--shelf) .mx-preview--file { align-self: stretch; }
+  /* shop: two columns of cards */
+  .mx-tools--shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+  .mx-tools--shelf .mx-tool { padding: var(--sp-5); }
+}
+@media (min-width: 72rem) {
+  .mx-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); }
+  .mx-tool { padding: var(--sp-5); }
+}
+@supports (grid-template-rows: subgrid) {
+  /* six shared rows per line of cards: label, name, preview, contents, needs, package */
+  @media (min-width: 72rem) {
+    .mx-tools { row-gap: 0; margin-bottom: calc(-1 * var(--sp-5)); }
+    .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr); grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; margin-bottom: var(--sp-5); }
+    .mx-tool > * + * { margin-top: var(--sp-4); }
+  }
+  @media (min-width: 40rem) and (max-width: 71.99rem) {
+    .mx-tools--shelf { row-gap: 0; margin-bottom: calc(-1 * var(--sp-4)); }
+    .mx-tools--shelf .mx-tool { display: grid; grid-template-columns: minmax(0, 1fr); grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; margin-bottom: var(--sp-4); }
+    .mx-tools--shelf .mx-tool > * + * { margin-top: var(--sp-4); }
+  }
+}
+
+/* 04 Packages: three tiers on cream, each stacks on the one before */
+.mx-path { margin-bottom: var(--sp-5); padding: var(--sp-5) var(--sp-3) var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-lg);
+  background-color: var(--well); background-image: radial-gradient(rgba(156, 194, 255, .1) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-path-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); }
+.mx-path-row li { position: relative; }
+.mx-path-row li + li::before { content: ""; position: absolute; left: calc(-1 * var(--sp-6) / 2 - .5625rem); top: 1.1875rem; width: 1.125rem; height: 1.125rem; background: center / contain no-repeat;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239cc2ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M14 5l7 7-7 7'/%3E%3C/svg%3E"); }
+.mx-path-item { display: grid; justify-items: center; gap: .2rem; padding: .25rem; border-radius: var(--r-md); text-align: center; text-decoration: none; }
+.mx-path-item > * { grid-area: auto; align-self: auto; }
+.mx-path-item .mx-shelf-meta { font-size: var(--fs-xs); } /* purchase terms: 13px */
+.mx-path-item .mx-tile { width: 3.5rem; height: 3.5rem; margin-bottom: .375rem; font-size: 1.375rem; }
+.mx-path-item:hover .mx-tile { border-color: var(--blue-400); }
+.mx-path .mx-preview-cap { margin-top: var(--sp-4); color: var(--text-bright); }
+@media (min-width: 64rem) { .mx-path { display: none; } }
+.mx-pkgs { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+.mx-pkg { position: relative; display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; padding: var(--sp-4); scroll-margin-top: 5.5rem; }
+@media (min-width: 40rem) { .mx-pkg { padding: var(--sp-6); } }
+.mx-pkg-top { display: flex; }
+.mx-stack { position: relative; padding: .75rem .875rem .875rem; border: 1px solid var(--hairline); border-radius: var(--r-md);
+  background-color: var(--well); background-image: radial-gradient(rgba(156, 194, 255, .1) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-cream .mx-stack { background-color: rgba(19, 23, 36, .04); background-image: radial-gradient(rgba(19, 23, 36, .14) 1px, transparent 1.3px); }
+.mx-stack .mx-mock-head { margin-bottom: var(--sp-4); letter-spacing: .06em; }
+.mx-stack .mx-mock-head > :last-child { white-space: nowrap; }
+.mx-stack .mx-flow { justify-content: space-between; gap: .25rem; }
+.mx-stack .mx-node { flex: 0 1 auto; }
+.mx-stack .mx-join { height: 3rem; }
+.mx-stack .mx-preview-cap { margin-top: var(--sp-3); text-align: left; color: var(--text-bright); }
+.mx-cream .mx-stack .mx-preview-cap { color: var(--text-2); }
+.mx-pkg-name { display: grid; gap: .5rem; align-content: start; }
+.mx-pkg-name h3 { font: 600 var(--fs-title)/1.12 var(--font-sans); letter-spacing: -.022em; color: var(--text); text-wrap: balance; }
+.mx-pkg-name h3 a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; text-decoration: none; }
+.mx-pkg-name h3 a:hover { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .18em; }
+.mx-pkg .mx-text { font-size: var(--fs-sm); }
+/* price, then the billing terms it carries, then the button: the terms never sit below the action */
+.mx-price { display: grid; gap: .625rem; padding-top: var(--sp-5); border-top: 1px solid var(--hairline); margin-top: auto; align-content: start; }
+.mx-price .mx-price-row { display: grid; justify-items: start; gap: .5rem; }
+.mx-price-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); text-wrap: pretty; }
+.mx-price-note b { font-weight: 650; color: var(--text); }
+.mx-price-terms { display: grid; gap: .2rem; align-content: start; }
+.mx-price-terms .mx-meta { font-size: var(--fs-xs); color: var(--text-2); } /* purchase terms: 13px, never slate */
+.mx-pkg-foot { margin-top: var(--sp-6); font-size: var(--fs-sm); color: var(--text-2); max-width: 46em; }
+.mx-pkg-foot a { color: var(--white); text-underline-offset: .25em; text-decoration-color: var(--edge-control); }
+.mx-pkg-foot a:hover { color: var(--blue-200); }
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .mx-pkg { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--sp-8); align-items: start;
+    grid-template-areas: "top top" "name stack" "text stack" "price list" "cta list"; }
+  .mx-pkg-top { grid-area: top; }
+  .mx-stack { grid-area: stack; }
+  .mx-pkg-name { grid-area: name; }
+  .mx-pkg > .mx-text { grid-area: text; }
+  .mx-pkg > .mx-includes { grid-area: list; }
+  .mx-price { grid-area: price; margin-top: 0; }
+  .mx-pkg > .mx-btn { grid-area: cta; }
+}
+@media (min-width: 64rem) {
+  .mx-pkgs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); }
+  /* connector node between tiers, sitting in the gutter */
+  .mx-pkg + .mx-pkg .mx-stack::before { content: ""; position: absolute; left: calc(-1 * var(--sp-6) - var(--sp-6) / 2 - 1px - .875rem); top: 3.05rem; width: 1.75rem; height: 1.75rem;
+    border: 1px solid rgba(156, 194, 255, .42); border-radius: 50%; background: var(--navy-950) center / .95rem no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239cc2ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h16M13 5l7 7-7 7'/%3E%3C/svg%3E"); }
+}
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 64rem) {
+    /* seven shared rows: label, name, one line, tier stack, contents, price with its terms, action */
+    .mx-pkgs { grid-template-rows: repeat(7, auto); row-gap: 0; }
+    .mx-pkg { display: grid; grid-template-columns: minmax(0, 1fr); grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
+    .mx-pkg > * + * { margin-top: var(--sp-5); }
+    .mx-pkg > .mx-text { margin-top: var(--sp-3); }
+    .mx-pkg .mx-price { margin-top: var(--sp-5); }
+  }
+}
+
+/* 05 Murad. In one column the photo fills the width: square on a phone, a wide frame once a square would pass
+   32rem tall. From 47.5rem it stands beside the story, as tall as the copy; no canvas is left empty beside it. */
+.mx-story { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); margin-top: clamp(1.75rem, 4vw, 2.75rem); }
+.mx-story-photo { position: relative; container-type: inline-size; } /* a ticker box: the strap tightens on a narrow photo */
+.mx-story-photo img { width: 100%; height: auto; aspect-ratio: 1; max-height: 32rem; object-fit: cover; object-position: 50% 62%; border-radius: var(--r-lg); border: 1px solid var(--hairline-blue); }
+.mx-story-photo .mx-chip { position: absolute; left: .875rem; top: .875rem; min-height: 2.75rem; }
+.mx-story-photo .mx-ticker { position: absolute; left: -.375rem; bottom: 1.25rem; }
+.mx-story-copy { display: grid; gap: var(--sp-5); align-content: center; justify-items: start; min-width: 0; container-type: inline-size; }
+/* Two sentences, two lines: the size follows the width of the copy column, so neither sentence breaks.
+   (The longer line is 9.54em wide; the first declaration is for browsers without container units.) */
+.mx-story-copy .mx-display { font-size: clamp(1.75rem, 8.8vw, 4.25rem); font-size: clamp(1.75rem, 10cqi, 4.25rem); }
+.mx-story-copy p { max-width: 35em; font-size: clamp(1rem, .96rem + .25vw, 1.125rem); }
+.mx-route { width: 100%; max-width: 30rem; margin-top: var(--sp-2); padding: var(--sp-5) var(--sp-3) var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-md);
+  background-color: var(--well); background-image: radial-gradient(rgba(156, 194, 255, .1) 1px, transparent 1.3px); background-size: 18px 18px; }
+.mx-route .mx-flow { gap: .25rem; }
+.mx-route .mx-node { flex: 1 1 0; }
+.mx-route .mx-join { height: 3rem; }
+/* line breaks that only apply on a narrow (sm) or a wide (lg) screen, for two-line headlines */
+.mx-br-sm { display: inline; }
+.mx-br-lg { display: none; }
+@media (min-width: 47.5rem) { .mx-br-sm { display: none; } .mx-br-lg { display: inline; } }
+@media (min-width: 47.5rem) {
+  .mx-story { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  .mx-story-photo { min-height: 28rem; }
+  .mx-story-photo img { position: absolute; inset: 0; height: 100%; max-height: none; aspect-ratio: auto; object-position: 24% 50%; }
+  .mx-story-copy .mx-display { font-size: clamp(1.75rem, 4.3vw, 4.25rem); font-size: clamp(1.75rem, 10cqi, 4.25rem); }
+}
+@media (min-width: 60rem) {
+  .mx-story { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-16); }
+  .mx-story-photo img { object-position: 40% 50%; }
+  .mx-story-photo .mx-ticker { left: -.75rem; bottom: 1.75rem; }
+}
+
+/* "Start with something free." band: royal glow, grid floor, an Anton headline like
+   every other h2, and the three files of the Starter Pack as tilted tiles. */
+.mx-cta { position: relative; isolation: isolate; overflow: hidden; margin-top: var(--panel-gap); border-block: 1px solid var(--hairline);
+  background: radial-gradient(46rem 26rem at 24% 0%, var(--royal-500) 0%, var(--royal-700) 45%, rgba(19, 34, 102, 0) 100%), var(--navy-900); }
+.mx-cta-floor { position: absolute; z-index: -1; left: 50%; bottom: 0; width: 320%; height: 75rem; transform: translateX(-50%) perspective(clamp(22rem, 19rem + 14vw, 40rem)) rotateX(62deg); transform-origin: 50% 100%;
+  background-image: linear-gradient(to right, rgba(98, 155, 246, .62) 2px, transparent 2px), linear-gradient(to bottom, rgba(98, 155, 246, .62) 2px, transparent 2px);
+  background-size: 10rem 10rem; background-position: calc(50% + 5rem) 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 12%, transparent 46%); mask-image: linear-gradient(to top, #000 0%, #000 12%, transparent 46%); }
+.mx-cta-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-10); padding-block: clamp(2.75rem, 6vw, 4.25rem) clamp(5.5rem, 4rem + 6vw, 8.5rem); }
+.mx-cta-copy { display: grid; justify-items: start; gap: var(--sp-5); min-width: 0; }
+.mx-cta .mx-display .mx-hl { padding: 0 .14em .02em; border-radius: .08em; }
+/* when the band closes a page it sits directly on the footer */
+.mx-page > .mx-cta:last-child { margin-bottom: calc(-1 * var(--panel-gap)); border-bottom: 0; }
+.mx-cta .mx-lede { color: var(--text-bright); }
+.mx-cta .mx-meta { color: var(--text-2); }
+.mx-cta-tiles { display: flex; align-items: flex-start; justify-content: center; gap: clamp(1rem, 4vw, 2rem); }
+.mx-cta-tiles li { display: grid; justify-items: center; gap: var(--sp-3); flex: 0 1 6.5rem; } /* shrinks to its label on a narrow phone, never past it */
+.mx-cta-tiles .mx-tile { width: 4.75rem; height: 4.75rem; }
+.mx-cta-tiles .mx-tile .mx-i { width: 2rem; height: 2rem; }
+.mx-cta-tiles li:nth-child(1) .mx-tile { transform: rotate(-8deg); }
+.mx-cta-tiles li:nth-child(2) .mx-tile { transform: rotate(5deg) translateY(-.5rem); }
+.mx-cta-tiles li:nth-child(3) .mx-tile { transform: rotate(-4deg); }
+.mx-cta-tiles .mx-tile-label { color: var(--text-bright); }
+@media (max-width: 39.99rem) { .mx-cta .mx-actions .mx-btn { width: 100%; } }
+@media (min-width: 60rem) {
+  .mx-cta-in { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--sp-12); align-items: center; }
+  .mx-cta-tiles { justify-content: flex-end; gap: var(--sp-8); padding-top: var(--sp-8); }
+  .mx-cta-tiles li { flex-basis: 7.5rem; }
+  .mx-cta-tiles .mx-tile { width: 6.5rem; height: 6.5rem; }
+  .mx-cta-tiles .mx-tile .mx-i { width: 2.75rem; height: 2.75rem; stroke-width: 1.5; }
+  .mx-cta-tiles li:nth-child(2) .mx-tile { transform: rotate(5deg) translateY(-1.25rem); }
+}
+
+/* 06 FAQ */
+.mx-faq { display: grid; gap: var(--sp-8); margin-top: clamp(1.75rem, 4vw, 2.75rem); }
+.mx-faq-side { display: grid; gap: var(--sp-5); align-content: start; justify-items: start; }
+.mx-ask { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-4); align-items: center; width: 100%; max-width: 26rem;
+  padding: var(--sp-4); border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
+.mx-ask strong { display: block; color: var(--white); font-weight: 600; }
+.mx-ask a { color: var(--white); text-underline-offset: .25em; text-decoration-color: var(--edge-control); overflow-wrap: anywhere; }
+.mx-ask a:hover { color: var(--blue-200); }
+.mx-faq-list { border-top: 1px solid var(--hairline); }
+.mx-faq-item { border-bottom: 1px solid var(--hairline); }
+.mx-faq-item summary { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 1.5rem; gap: var(--sp-3); align-items: center; min-height: 4.25rem; padding-block: var(--sp-3);
+  color: var(--white); font: 600 clamp(1.0625rem, 1rem + .3vw, 1.25rem)/1.3 var(--font-sans); letter-spacing: -.012em; cursor: pointer; list-style: none; }
+.mx-faq-item summary::-webkit-details-marker { display: none; }
+.mx-faq-item summary:hover .mx-faq-q { color: var(--blue-200); }
+.mx-faq-n { font: 400 var(--fs-mono)/1 var(--font-mono); letter-spacing: .08em; color: var(--blue-200); }
+.mx-faq-ic { width: 1.25rem; height: 1.25rem; justify-self: end; color: var(--blue-500); stroke-width: 2.25; transition: transform var(--dur-2) var(--ease); }
+.mx-faq-item[open] .mx-faq-ic { transform: rotate(45deg); }
+.mx-faq-item p { padding: 0 2.25rem var(--sp-6) 2.75rem; max-width: 44em; color: var(--text-2); }
+.mx-faq-item p a { color: var(--white); }
+@media (min-width: 60rem) {
+  .mx-faq { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; gap: var(--sp-6) var(--sp-16); }
+  .mx-faq-list { grid-column: 2; grid-row: 1 / span 2; }
+  .mx-ask { grid-column: 1; grid-row: 2; align-self: start; }
+}
+
+/* Footer */
+.mx-footer { margin-top: var(--panel-gap); border-top: 1px solid var(--hairline); background: var(--navy-900); }
+.mx-footer-in { display: grid; gap: var(--sp-10); padding-block: var(--sp-12) var(--sp-8); }
+.mx-footer-brand { display: grid; gap: var(--sp-4); justify-items: start; align-content: start; }
+.mx-footer-brand p { max-width: 26em; font-size: var(--fs-sm); }
+.mx-footer-brand .mx-built { max-width: none; display: inline-flex; align-items: center; min-height: 2.75rem; font: 400 var(--fs-mono-sm)/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+.mx-built a { color: var(--text-bright); text-decoration: underline; text-underline-offset: .2em; }
+.mx-built a:hover { color: var(--blue-200); }
+.mx-footer-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-5); }
+.mx-foot-h { margin-bottom: var(--sp-2); font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--text-3); }
+.mx-footer-cols a { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; min-width: 2.75rem; color: var(--text-bright); font-size: var(--fs-sm); text-decoration: none; }
+.mx-footer-cols a:hover { color: var(--blue-200); }
+.mx-footer-cols a .mx-i { width: 1.05rem; height: 1.05rem; color: var(--blue-200); }
+.mx-footer-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2) var(--sp-6); padding-block: var(--sp-5) var(--sp-8); border-top: 1px solid var(--hairline);
+  font: 400 var(--fs-mono-sm)/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+@media (min-width: 40rem) { .mx-footer-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 60rem) { .mx-footer-in { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--sp-16); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.public-site) { scroll-behavior: auto; }
+  .mx, .mx *, .mx *::before, .mx *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}

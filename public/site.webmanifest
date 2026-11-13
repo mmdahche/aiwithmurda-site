@@ -4,8 +4,8 @@
   "description": "Murad's scripts, skills, and project setups for building with Claude Code and Codex.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#060a09",
-  "theme_color": "#060a09",
+  "background_color": "#040923",
+  "theme_color": "#040923",
   "icons": [
     {
       "src": "/favicon.svg",

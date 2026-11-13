@@ -1,0 +1,132 @@
+/*
+  AI with Murda design tokens ("mx" system).
+
+  Colours are sampled from Murad's own reels: reel navy, the blue of the big
+  button, the ticker-label blue, the cream announcement card.
+
+  Scope: `.public-site` wraps every public route (storefront, members, legal,
+  build-log archive). The admin workspace and the OBS overlays render outside
+  it and keep the original `:root` tokens in styles.css, so nothing here can
+  change a stream graphic.
+*/
+.public-site {
+  /* b-roll colour system */
+  --navy-950: #040923; /* reel background, default canvas */
+  --navy-900: #060c24; /* grid floor, illustration wells */
+  --navy-850: #09122b; /* panel and card fill */
+  --navy-800: #0c1332; /* dotted navy, nested cards */
+  --navy-700: #131d43; /* raised tile, input */
+  --navy-600: #16204a; /* hover, tile edge */
+  --royal-700: #132266; /* radial glow, outer */
+  --royal-500: #263b89; /* radial glow, core */
+  --blue-600: #2563eb; /* ticker tag, highlight box (white text on it) */
+  --blue-500: #4f95ff; /* the action colour (navy text on it) */
+  --blue-400: #629bf6; /* blue icon tile, active tile edge */
+  --blue-200: #9cc2ff; /* light-blue text on navy: counters, links */
+  --white: #ffffff;
+  --ink: #131724; /* text on white ticker bars, white tiles and cream cards */
+  --cream: #f7f6f2; /* announcement card */
+  --slate: #8a8e9e; /* mono captions; the floor for small text on navy */
+  --tile-white: #f1f3fc; /* light icon tile */
+  --live: #46d07f; /* dot inside the mono pill chip */
+  --danger: #ff8a80;
+
+  /* semantic roles */
+  --bg: var(--navy-950);
+  --surface: var(--navy-850);
+  --well: var(--navy-900);
+  --raised: var(--navy-700);
+  --text: var(--white);
+  --text-2: #c6cde4; /* body copy on navy */
+  --text-3: var(--slate); /* captions */
+  --accent: var(--blue-500);
+  --on-accent: var(--navy-950);
+  --hairline: rgba(255, 255, 255, 0.1); /* rules, card borders */
+  --hairline-blue: rgba(156, 194, 255, 0.22); /* illustration strokes */
+  --edge-control: #5f6b99; /* control borders, 3.5:1 on navy */
+  --dot: rgba(156, 194, 255, 0.55); /* panel corner dots */
+
+  /* type */
+  --font-display: "Anton", "Arial Narrow", Impact, sans-serif;
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-ticker: "Montserrat Variable", "Montserrat", "Geist Variable", sans-serif;
+  --fs-display-xl: clamp(3rem, 15vw, 7rem); /* hero h1 */
+  --fs-display-lg: clamp(2.5rem, 12.4vw, 5.25rem); /* section h2 */
+  --fs-display-md: clamp(2.5rem, 11vw, 4.25rem); /* long two-line h2 */
+  --fs-caption: clamp(2.25rem, 1.2rem + 5.2vw, 3.75rem); /* heavy caps caption */
+  --fs-price: clamp(3.5rem, 2.9rem + 2vw, 4.5rem);
+  --fs-title: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem); /* product names */
+  --fs-lede: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --fs-body: 1rem;
+  --fs-sm: 0.9375rem;
+  --fs-xs: 0.8125rem;
+  --fs-mono: 0.75rem;
+  --fs-mono-sm: 0.75rem; /* 12px: nothing on the site is set smaller */
+  --lh-display: 1.03;
+  --lh-body: 1.6;
+  --track-mono: 0.12em;
+
+  /* space (4px base) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-20: 5rem;
+  --container: 75rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --panel-gap: clamp(2rem, 5vw, 3.5rem); /* space above each numbered panel */
+  --panel-pad: clamp(3rem, 7vw, 5.5rem); /* space inside the panel, below content */
+  --header-h: 4.5rem;
+
+  /* radii */
+  --r-xs: 5px; /* ticker, highlight box */
+  --r-sm: 8px;
+  --r-md: 12px; /* buttons, wells */
+  --r-lg: 16px; /* cards, tiles */
+  --r-pill: 999px;
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+
+  /*
+    Bridge for the older token-based rules in styles.css (build-log archive,
+    live hub, member workspace, shared forms). Inside public pages they now
+    resolve to the navy/blue system; admin and overlays are unaffected.
+  */
+  --panel: var(--navy-850);
+  --panel-strong: var(--navy-700);
+  --panel-soft: var(--navy-900);
+  --border: #232c52;
+  --muted: #a6b0cc;
+  --dim: #7a84a6;
+  --green: var(--blue-500);
+  --green-strong: var(--blue-600);
+  --amber: var(--blue-200);
+  --blue: var(--blue-500);
+  --shadow: 0 16px 48px rgba(2, 5, 20, 0.45);
+}
+
+@media (min-width: 64rem) {
+  .public-site {
+    --fs-display-xl: clamp(4.75rem, 8.2vw, 6.75rem);
+    --fs-display-lg: clamp(3.5rem, 6.4vw, 5.25rem);
+    --fs-display-md: clamp(3rem, 5.4vw, 4.25rem);
+  }
+}
+
+/*
+  Overscroll colour behind public pages. The OBS overlay routes never contain
+  `.public-site`, so their transparent body is left alone.
+*/
+html:has(.public-site) body {
+  background: #040923;
+}
