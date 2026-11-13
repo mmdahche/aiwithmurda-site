@@ -10,17 +10,6 @@ export function CheckItFirstNotice() {
   </aside>;
 }
 
-export function CheckItFirstFreeCard() {
-  return <article className="sf-check-free" data-catalog-item="check-it-first" aria-labelledby="check-free-title">
-    <div className="sf-free-pack-heading">
-      <div><span className="sf-access-label sf-access-free">Start here / Free</span><h2 id="check-free-title">Check It First</h2><p>Before a download touches your files or accounts, ask what it really does.</p></div>
-      <div><a className="sf-button sf-button-dark" href="/free/check-it-first">Read the guide <ArrowRight size={18} /></a><p className="sf-fine-print">$0. No account or email needed.</p></div>
-    </div>
-    <ul className="sf-inbox-includes"><li><FileSearch size={20} /> Plain-English review checklist</li><li><Copy size={20} /> Copy-ready AI review prompt</li><li><FileText size={20} /> One downloadable guide</li></ul>
-    <p className="sf-inbox-note">Read it yourself or use your own AI assistant. Helps spot risks; does not certify a download as safe.</p>
-  </article>;
-}
-
 export function CheckItFirstPage() {
   const [prompt, setPrompt] = useState("");
   const [loadState, setLoadState] = useState("loading");

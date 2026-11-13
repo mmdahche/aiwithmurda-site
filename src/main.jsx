@@ -8,6 +8,13 @@ import App from "./App.jsx";
 import "./styles.css";
 import "./storefront.css";
 import "./site/tokens.css";
+import "./site/site.css";
+import "./site/catalog.css";
+import "./site/product.css";
+import "./site/free.css";
+import "./site/members.css";
+import "./site/pages.css";
+import "./site/legacy.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

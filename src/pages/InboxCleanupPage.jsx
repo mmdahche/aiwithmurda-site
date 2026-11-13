@@ -12,17 +12,6 @@ const choices = [
   { key: "unsub", label: "Unsubscribe + Trash", Icon: MailMinus, result: "Move messages to Trash and add the sender to a checklist. Complete the unsubscribe yourself in your mail app." },
 ];
 
-export function InboxCleanupFreeCard() {
-  return <article className="sf-inbox-free" data-catalog-item="email-cleanup-kit" aria-labelledby="inbox-free-title">
-    <div className="sf-free-pack-heading">
-      <div><span className="sf-access-label sf-access-free">Free download</span><h2 id="inbox-free-title">Inbox Cleanup Kit</h2><p>Clear old email by sender. Keep the important mail. Review every move.</p></div>
-      <div><a className="sf-button sf-button-dark" href="/free/inbox-cleanup">See the kit <ArrowRight size={18} /></a><p className="sf-fine-print">$0. No account or email needed.</p></div>
-    </div>
-    <ul className="sf-inbox-includes"><li><Terminal size={20} /> Guided menu + practice inbox</li><li><MessageSquare size={20} /> Optional AI-assisted review</li><li><ListChecks size={20} /> Preview before any move</li></ul>
-    <p className="sf-inbox-note">Use with or without AI. Gmail or iCloud, Python and an app password required. Unsubscribing is manual.</p>
-  </article>;
-}
-
 export function InboxCleanupPage() {
   const [choice, setChoice] = useState("delete");
   const [mode, setMode] = useState("manual");

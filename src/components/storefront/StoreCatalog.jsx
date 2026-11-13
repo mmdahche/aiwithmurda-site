@@ -3,8 +3,7 @@ import { ArrowRight, Check, FileText, Search, X } from "lucide-react";
 import { storefrontOffers } from "../../data/storefront.js";
 import { catalogViews, featuredToolKeys, getCatalogView, packagePrice, storefrontShelf, toolCategories } from "../../data/storefrontCatalog.js";
 import { FreePack, OfferCard } from "./StorefrontParts.jsx";
-import { CheckItFirstFreeCard } from "../../pages/CheckItFirstPage.jsx";
-import { InboxCleanupFreeCard } from "../../pages/InboxCleanupPage.jsx";
+import { CheckItFirstFreeCard, InboxCleanupFreeCard } from "./FreeCards.jsx";
 
 export function ProductPreview({ file, compact = false }) {
   const preview = file.preview;
