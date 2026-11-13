@@ -2,7 +2,7 @@ import React from "react";
 import { flushSync } from "react-dom";
 import { ArrowDown, ArrowRight, ArrowUpRight, Boxes, CreditCard, Download, FileSearch, Folder, FolderDown, ListChecks, Mail, Store, Terminal } from "lucide-react";
 import { storefrontOffers } from "../data/storefront.js";
-import { packagePrice, storefrontShelf } from "../data/storefrontCatalog.js";
+import { packagePrice } from "../data/storefrontCatalog.js";
 import { PanelHead, SamplerBand, StoreFaq, pad2, packageTiers } from "../components/storefront/StorefrontParts.jsx";
 import { StoreCatalog, showCatalogView, useCatalog, useCatalogPanelTotal } from "../components/storefront/StoreCatalog.jsx";
 
@@ -75,7 +75,7 @@ export function StorefrontHome() {
             <div className="mx-cream mx-shelf-group">
               <div className="mx-shelf-grouphead">
                 <p className="mx-ticker"><span className="mx-ticker-tag">Paid package</span><span className="mx-ticker-bar">{storefrontOffers.length} tiers</span></p>
-                <p className="mx-shelf-note"><span className="mx-count">{storefrontShelf.length} paid tools on the shelf</span>Each tier includes the one before it.</p>
+                <p className="mx-shelf-note">Each tier includes the one before it.</p>
               </div>
               <ul className="mx-shelf-items">{storefrontOffers.map((offer, index) => {
                 const Tier = packageTiers[index].Icon;
@@ -108,7 +108,7 @@ export function StorefrontHome() {
             <figcaption className="mx-ticker mx-ticker--lg mx-ticker--tilt"><span className="mx-ticker-tag">Murad Dahche</span><span className="mx-ticker-bar">AI with Murda</span></figcaption>
           </figure>
           <div className="mx-story-copy">
-            <h2 className="mx-display mx-display--md" id="story-title">I started <br className="mx-br-sm" />with a store. <br />Then I started <br className="mx-br-sm" />building.</h2>
+            <h2 className="mx-display mx-display--md" id="story-title">I started with a store. <br />Then I started building.</h2>
             <p>I wanted better ways to manage inventory. That led me into building business software with AI, and then into point of sale: the missing piece that connects the work.</p>
             <p>Along the way, I built up scripts, project folders, and repeatable workflows. This is where I share the useful parts, so you can put them to work on your own ideas.</p>
             <div className="mx-route" aria-hidden="true">
@@ -119,7 +119,7 @@ export function StorefrontHome() {
             </div>
             <div className="mx-actions">
               <a className="mx-link" href="/about">More about Murad <ArrowRight className="mx-i" aria-hidden="true" /></a>
-              <a className="mx-link" href="https://www.instagram.com/aiwithmurda/">Watch the reels <ArrowUpRight className="mx-i" aria-hidden="true" /></a>
+              <a className="mx-link" href="https://www.instagram.com/aiwithmurda/">Instagram <ArrowUpRight className="mx-i" aria-hidden="true" /></a>
             </div>
           </div>
         </div>

@@ -43,7 +43,7 @@ export function CheckItFirstFreeCard() {
       <p className="mx-text">Before a download touches your files or accounts, ask what it really does.</p>
     </div>
     <figure className="mx-preview mx-freecard-view">
-      <figcaption className="mx-mock-head"><span>CHECK-IT-FIRST.md</span><span>The guide</span></figcaption>
+      <figcaption className="mx-mock-head"><span>Check It First</span><span>The guide</span></figcaption>
       <div className="mx-preview-block">
         <p className="mx-eyebrow">Before you run it</p>
         <ol className="mx-steps">{checkSteps.map((step, index) => <li key={step}><span className="mx-count">0{index + 1}</span>{step}</li>)}</ol>
@@ -64,7 +64,7 @@ export function CheckItFirstFreeCard() {
       <li><FileText className="mx-i" aria-hidden="true" />One downloadable guide</li>
     </ul>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/free/check-it-first">Read the guide <ArrowRight className="mx-i" aria-hidden="true" /></a></div>
-    <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>
+    <p className="mx-zero"><b>$0.</b> <span>No account or email needed.</span></p>
     <p className="mx-note"><Info className="mx-i" aria-hidden="true" /><span>Read it yourself or use your own AI assistant. Helps spot risks; does not certify a download as safe.</span></p>
   </article>;
 }
@@ -100,7 +100,7 @@ export function InboxCleanupFreeCard() {
       <li><ListChecks className="mx-i" aria-hidden="true" />Preview before any move</li>
     </ul>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/free/inbox-cleanup">See the kit <ArrowRight className="mx-i" aria-hidden="true" /></a></div>
-    <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>
+    <p className="mx-zero"><b>$0.</b> <span>No account or email needed.</span></p>
     <p className="mx-note"><Info className="mx-i" aria-hidden="true" /><span>Use with or without AI. Gmail or iCloud, Python and an app password required. Unsubscribing is manual.</span></p>
   </article>;
 }

@@ -10,13 +10,13 @@
 .mx-browse { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-8); padding-top: var(--sp-4);
   border-top: 1px solid var(--hairline); }
 .mx-browse + .mx-section { padding-top: clamp(1.75rem, 4vw, 2.5rem); }
-.mx-seg { display: inline-flex; gap: .25rem; max-width: 100%; padding: .25rem; border: 1px solid var(--edge-control); border-radius: 14px; background: var(--navy-850); }
-.mx-seg button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.125rem; border: 0; border-radius: 10px; background: transparent; color: var(--text-2);
+.mx-seg { display: inline-flex; gap: .25rem; max-width: 100%; padding: .25rem; border: 1px solid var(--edge-control); border-radius: var(--r-md); background: var(--navy-850); }
+.mx-seg button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.125rem; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text-2);
   font: 600 var(--fs-sm)/1.15 var(--font-sans); letter-spacing: -.005em; white-space: nowrap; cursor: pointer;
   transition: background-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease); }
 .mx-seg button:hover { background: var(--navy-700); color: var(--white); }
 .mx-seg button[aria-pressed="true"] { background: var(--white); color: var(--ink); }
-.mx-seg button:focus-visible { border-radius: 10px; }
+.mx-seg button:focus-visible { border-radius: var(--r-sm); }
 .mx-browse-note { max-width: 32em; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); }
 @media (max-width: 39.99rem) {
   .mx-seg { display: flex; width: 100%; }

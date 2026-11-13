@@ -64,7 +64,7 @@ export function OfferCard({ offer }) {
     </div>
     <p className="mx-text">{offer.description}</p>
     <div className="mx-stack">
-      <div className="mx-mock-head"><span>{offer.category}</span><span>{pad2(index + 1)} / {pad2(storefrontOffers.length)}</span></div>
+      <div className="mx-mock-head"><span>{offer.category}</span><span className="mx-count">{pad2(index + 1)} / {pad2(storefrontOffers.length)}</span></div>
       <div className="mx-flow mx-flow--sm" aria-hidden="true">
         {packageTiers.map((tier, position) => <React.Fragment key={tier.short}>
           {position > 0 && <span className="mx-join"><Plus className="mx-i" /></span>}
@@ -78,13 +78,16 @@ export function OfferCard({ offer }) {
       const Icon = inherited ? Plus : Check;
       return <li key={item} className={inherited ? "mx-includes-plus" : undefined}><Icon className="mx-i" aria-hidden="true" />{item}</li>;
     })}</ul>
-    <div className="mx-price"><PriceTicker offer={offer} /></div>
-    <a className="mx-btn mx-btn--block" href={`/store/${offer.slug}`}>View package <ArrowRight className="mx-i" aria-hidden="true" /></a>
-    <div className="mx-price-terms">
-      {offer.dueToday
-        ? <><p className="mx-price-note"><b>${offer.dueToday} today.</b> Then $30/month until canceled.</p><p className="mx-meta">$297 setup + first $30 update month</p></>
-        : <p className="mx-price-note">{offer.billing}</p>}
+    {/* The billing terms stay with the price they apply to, above the button. */}
+    <div className="mx-price">
+      <PriceTicker offer={offer} />
+      <div className="mx-price-terms">
+        {offer.dueToday
+          ? <><p className="mx-price-note"><b>${offer.dueToday} today.</b> Then $30/month until canceled.</p><p className="mx-meta">$297 setup + first $30 update month</p></>
+          : <p className="mx-price-note">{offer.billing}</p>}
+      </div>
     </div>
+    <a className="mx-btn mx-btn--block" href={`/store/${offer.slug}`}>View package <ArrowRight className="mx-i" aria-hidden="true" /></a>
   </article>;
 }
 
@@ -109,7 +112,7 @@ export function FreePack() {
       <p className="mx-preview-cap">Actual lines from the three files.</p>
     </div>
     <div className="mx-buy"><a className="mx-btn mx-btn--block" href="/downloads/operator-sampler.zip" download><Download className="mx-i" aria-hidden="true" />Download free pack</a></div>
-    <p className="mx-zero"><b>$0</b><span>No account or email needed.</span></p>
+    <p className="mx-zero"><b>$0.</b> <span>No account or email needed.</span></p>
     <p className="mx-note"><Info className="mx-i" aria-hidden="true" /><span>For your own AI account. The prompt can be pasted into chat; the skill includes Claude Code and Codex install layouts.</span></p>
   </article>;
 }
@@ -162,7 +165,7 @@ export function StoreFaq({ count }) {
           <a className="mx-link" href="/terms">Read the purchase terms <ArrowRight className="mx-i" aria-hidden="true" /></a>
         </div>
         <div className="mx-faq-list">{storefrontFaq.map(([question, answer], index) => <details className="mx-faq-item" key={question}>
-          <summary><span className="mx-faq-n">{pad2(index + 1)}</span><span className="mx-faq-q">{question}</span><Plus className="mx-i mx-faq-ic" aria-hidden="true" /></summary>
+          <summary><span className="mx-faq-n" aria-hidden="true">{pad2(index + 1)}</span><span className="mx-faq-q">{question}</span><Plus className="mx-i mx-faq-ic" aria-hidden="true" /></summary>
           <p>{linkAnswer(answer)}</p>
         </details>)}</div>
         <div className="mx-ask">
