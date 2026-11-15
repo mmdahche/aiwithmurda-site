@@ -60,20 +60,12 @@ import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
-import { StorefrontShop } from "./pages/StorefrontShop.jsx";
-import { StorefrontProduct } from "./pages/StorefrontProduct.jsx";
-import { StorefrontHome } from "./pages/StorefrontHome.jsx";
-import { AboutMurad } from "./pages/AboutPage.jsx";
 import { LegalPage } from "./pages/LegalPage.jsx";
+import { SalesPage } from "./pages/SalesPage.jsx";
 import { SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
-import { StarterPackPage } from "./pages/StarterPackPage.jsx";
-import { InboxCleanupPage } from "./pages/InboxCleanupPage.jsx";
-import { CheckItFirstPage } from "./pages/CheckItFirstPage.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
 import { metadataForPath } from "./data/siteMetadata.js";
-import { BundlePage } from "./pages/BundlePage.jsx";
-import { ArsenalPage } from "./pages/ArsenalPage.jsx";
 import { OperatorToolkitCheckoutButton } from "./components/checkout/OperatorToolkitCheckoutButton.jsx";
 import { OperatorArsenalCheckoutButton } from "./components/checkout/OperatorArsenalCheckoutButton.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
@@ -878,7 +870,7 @@ function isLegacyOverlayRoute() {
 
 function routeNeedsCampaignData() {
   const route = getRoute();
-  return isLegacyOverlayRoute() || ["/admin", "/60", "/live", "/tools"].includes(route) || route.startsWith("/day/") || directOverlayRoutes.has(route);
+  return isLegacyOverlayRoute() || route === "/admin" || directOverlayRoutes.has(route);
 }
 
 function App() {
@@ -1804,49 +1796,14 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
     robots.content = meta.noindex ? "noindex, nofollow" : "index, follow";
   }, [route]);
-  const dayRouteDay = getDayRouteDay(route);
-  const memberModuleKey = getMemberModuleRouteKey(route);
-  const storeSlug = route.startsWith("/store/") ? route.slice("/store/".length) : null;
-  const knownRoute = storeSlug ? "/store/product" : dayRouteDay
-    ? "/day"
-    : memberModuleKey
-      ? "/members"
-      : ["/", "/about", "/60", "/live", "/tools", "/start", "/free/inbox-cleanup", "/free/check-it-first", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
-        ? route
-        : "/";
+  const page = route === "/terms" || route === "/privacy" ? route : "/";
 
   return (
     <div className="public-site storefront-shell">
-      <SiteHeader activeRoute={knownRoute} />
-      {knownRoute === "/" && <StorefrontHome />}
-      {knownRoute === "/about" && <AboutMurad />}
-      {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
-      {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
-      {knownRoute === "/live" && (
-        <LiveHub
-          latest={latest}
-          streamConfig={streamConfig}
-          streamConfigStatus={streamConfigStatus}
-          liveFollowers={liveFollowers}
-        />
-      )}
-      {knownRoute === "/tools" && <ToolsPage latest={latest} />}
-      {knownRoute === "/start" && <StarterPackPage />}
-      {knownRoute === "/free/inbox-cleanup" && <InboxCleanupPage />}
-      {knownRoute === "/free/check-it-first" && <CheckItFirstPage />}
-      {knownRoute === "/kit" && <StorefrontProduct slug="future-proof-method" authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/store" && <StorefrontShop />}
-      {knownRoute === "/store/product" && <StorefrontProduct slug={storeSlug} authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/live-builds" && (new URLSearchParams(window.location.search).has("session_id")
-        ? <BundlePage authSession={authSession} authReady={authReady} />
-        : <StorefrontProduct slug="operator-bundle" authSession={authSession} authReady={authReady} />)}
-      {knownRoute === "/operator-toolkit" && <StorefrontProduct slug="operator-toolkit" authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/operator-arsenal" && <ArsenalPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/members" && (
-        <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
-      )}
-      {knownRoute === "/terms" && <LegalPage type="terms" />}
-      {knownRoute === "/privacy" && <LegalPage type="privacy" />}
+      <SiteHeader />
+      {page === "/" && <SalesPage />}
+      {page === "/terms" && <LegalPage type="terms" />}
+      {page === "/privacy" && <LegalPage type="privacy" />}
       <SiteFooter />
     </div>
   );

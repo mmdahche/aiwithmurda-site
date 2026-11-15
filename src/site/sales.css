@@ -1,0 +1,127 @@
+/*
+  The Muse Control Kit sales page (sp-), its header and footer.
+
+  Plain on purpose (Murad's brief): the brand's navy, Anton headlines and Geist text, lots of space,
+  one reading column, and ONE strong colour: the buy button (--accent). Everything else is white,
+  grey or a hairline. Built for phones first; the column just grows on larger screens.
+*/
+
+.sp {
+  --sp-col: 44rem;
+  --sp-gap: clamp(3.25rem, 8vw, 5.5rem);
+  --sp-quiet: #c6cde4;      /* body copy */
+  --sp-muted: #a3abc4;      /* small print, 7:1 on the page */
+  --sp-line: rgba(255, 255, 255, .12);
+  padding-bottom: var(--sp-gap);
+}
+.sp-col { width: min(100% - 2 * var(--gutter), var(--sp-col)); margin-inline: auto; }
+
+/* Headings and text */
+.sp-kicker { font: 500 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sp-muted); }
+.sp-h1 { margin-top: var(--sp-3); font-size: clamp(2.75rem, 12.5vw, 5rem); line-height: 1; }
+.sp-h1 span { display: block; }
+.sp-h2 { font-size: clamp(2rem, 8.5vw, 3rem); line-height: 1.02; }
+.sp-h3 { font: 650 1.125rem/1.3 var(--font-sans); letter-spacing: -.01em; color: var(--white); }
+.sp-lede { margin-top: var(--sp-4); font-size: var(--fs-lede); line-height: 1.55; color: var(--sp-quiet); max-width: 36em; }
+.sp-text { margin-top: var(--sp-4); font-size: 1.0625rem; line-height: 1.65; color: var(--sp-quiet); max-width: 38em; }
+
+/* Sections: one column, a hairline between them, nothing else. */
+.sp-section { padding-top: var(--sp-gap); }
+.sp-section > .sp-col { padding-top: var(--sp-gap); border-top: 1px solid var(--sp-line); }
+.sp-section:first-of-type > .sp-col { border-top: 0; padding-top: 0; }
+
+/* 1. Hero */
+.sp-hero { padding-top: clamp(1.75rem, 6vw, 3.5rem); }
+.sp-video { position: relative; aspect-ratio: 16 / 9; margin-top: var(--sp-6); overflow: hidden; border-radius: var(--r-lg); background: var(--navy-900); }
+.sp-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.sp-video--placeholder { display: grid; place-content: center; justify-items: center; gap: .375rem; padding: var(--sp-4); text-align: center;
+  border: 1.5px dashed rgba(255, 255, 255, .28); background: var(--navy-900); }
+.sp-video-play { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; margin-bottom: var(--sp-2); border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, .4); color: var(--white); }
+.sp-video-play .mx-i { width: 1.375rem; height: 1.375rem; margin-left: .15rem; }
+.sp-buy-row { display: grid; justify-items: stretch; gap: var(--sp-3); margin-top: var(--sp-5); }
+.sp-buy-row--end { margin-top: var(--sp-8); }
+.sp-buy { width: 100%; }
+.sp-buy-meta { text-align: center; font: 500 var(--fs-sm)/1.4 var(--font-mono); letter-spacing: .02em; color: var(--sp-muted); }
+
+/* Placeholders: clearly marked, dashed, neutral. */
+.sp-placeholder { display: grid; gap: .375rem; margin-top: var(--sp-5); padding: var(--sp-5); border: 1.5px dashed rgba(255, 255, 255, .28); border-radius: var(--r-md); }
+.sp-placeholder-tag { justify-self: start; padding: .25rem .5rem; border-radius: var(--r-xs); background: var(--white); color: var(--ink);
+  font: 700 .75rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.sp-video .sp-placeholder-tag { justify-self: center; }
+.sp-placeholder-title { font: 650 1.0625rem/1.35 var(--font-sans); color: var(--white); }
+.sp-placeholder-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--sp-muted); }
+.sp-placeholder-inline { padding: .5rem .75rem; border: 1.5px dashed rgba(255, 255, 255, .28); border-radius: var(--r-sm);
+  font: 500 .8125rem/1.45 var(--font-mono); color: var(--sp-muted); text-align: left; }
+
+/* 3. Who it's for */
+.sp-list { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
+.sp-list li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .75rem; align-items: start; font-size: 1.0625rem; line-height: 1.5; color: var(--sp-quiet); }
+.sp-list .mx-i { width: 1.25rem; height: 1.25rem; margin-top: .2rem; color: var(--white); stroke-width: 2.25; }
+.sp-list--not .mx-i { color: var(--sp-muted); }
+.sp-section .sp-h3 { margin-top: var(--sp-8); }
+
+/* 4. What you get */
+.sp-product { margin-top: var(--sp-6); }
+.sp-product img { width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: var(--r-lg); border: 1px solid var(--sp-line); }
+.sp-pieces { display: grid; gap: 0; margin-top: var(--sp-5); counter-reset: piece; }
+.sp-pieces li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: baseline; padding-block: .875rem; border-bottom: 1px solid var(--sp-line);
+  font-size: 1.0625rem; line-height: 1.45; color: var(--white); counter-increment: piece; }
+.sp-pieces li::before { content: counter(piece, decimal-leading-zero); font: 500 var(--fs-mono)/1 var(--font-mono); color: var(--sp-muted); }
+
+/* 5. How it works */
+.sp-steps { display: grid; gap: var(--sp-6); margin-top: var(--sp-6); }
+.sp-steps li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+.sp-step-n { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .35);
+  font: 400 1.25rem/1 var(--font-display); color: var(--white); }
+.sp-steps .sp-h3 { margin-top: .375rem; }
+.sp-steps p { margin-top: .25rem; font-size: 1rem; line-height: 1.55; color: var(--sp-quiet); }
+
+/* 6. Which setup */
+.sp-setups { display: grid; gap: var(--sp-4); margin-top: var(--sp-6); }
+.sp-setup { padding: var(--sp-5); border: 1px solid var(--sp-line); border-radius: var(--r-lg); background: var(--navy-900); }
+.sp-setup .sp-h3 { margin-top: 0; font-size: 1.25rem; }
+.sp-setup p { margin-top: var(--sp-2); font-size: 1rem; line-height: 1.6; color: var(--sp-quiet); }
+
+/* 9. Price */
+.sp-price-card { display: grid; justify-items: center; gap: var(--sp-3); padding: clamp(1.5rem, 6vw, 2.75rem) clamp(1.25rem, 5vw, 2.5rem);
+  border: 1px solid var(--sp-line); border-radius: var(--r-lg); background: var(--navy-900); text-align: center; }
+.sp-price-name { font: 650 1.125rem/1.35 var(--font-sans); color: var(--white); max-width: 22em; }
+.sp-price-amount { display: grid; justify-items: center; gap: .25rem; }
+.sp-price-amount .mx-display { font-size: clamp(4rem, 18vw, 5.5rem); line-height: 1; }
+.sp-price-billing { font: 500 var(--fs-sm)/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sp-muted); }
+.sp-price-detail { font-size: 1rem; line-height: 1.5; color: var(--sp-quiet); }
+.sp-price-card .sp-buy { margin-top: var(--sp-2); }
+
+/* 11. Questions */
+.sp-faq { margin-top: var(--sp-5); border-top: 1px solid var(--sp-line); }
+.sp-faq details { border-bottom: 1px solid var(--sp-line); }
+.sp-faq summary { display: grid; grid-template-columns: minmax(0, 1fr) 1.5rem; gap: var(--sp-4); align-items: center; min-height: 3.5rem;
+  padding-block: var(--sp-4); cursor: pointer; list-style: none; font: 600 1.0625rem/1.4 var(--font-sans); color: var(--white); }
+.sp-faq summary::-webkit-details-marker { display: none; }
+.sp-faq summary .mx-i { width: 1.25rem; height: 1.25rem; color: var(--sp-muted); }
+.sp-faq details[open] .sp-faq-open, .sp-faq details:not([open]) .sp-faq-close { display: none; }
+.sp-faq-a { display: grid; gap: var(--sp-3); padding-bottom: var(--sp-5); }
+.sp-faq-a p { font-size: 1rem; line-height: 1.6; color: var(--sp-quiet); max-width: 38em; }
+.sp-faq-a .sp-placeholder-inline { justify-self: start; }
+
+/* Header: the logo and the buy button. Nothing else. */
+.sp-header .mx-header-in { justify-content: space-between; }
+.sp-header .sp-buy { width: auto; }
+
+/* Footer: three plain notes and the legal links. */
+.sp-footer { border-top: 1px solid var(--hairline); background: var(--navy-950); }
+.sp-footer-in { display: grid; gap: var(--sp-6); padding-block: var(--sp-10) var(--sp-8); }
+.sp-footer-notes { display: grid; gap: .375rem; font-size: var(--fs-sm); line-height: 1.5; color: #a3abc4; }
+.sp-footer-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-6);
+  padding-top: var(--sp-5); border-top: 1px solid var(--hairline); font: 400 .75rem/1.5 var(--font-mono); letter-spacing: .04em; color: #a3abc4; }
+.sp-footer-base nav { display: flex; flex-wrap: wrap; gap: 0 var(--sp-4); }
+.sp-footer-base a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--white); text-decoration: underline; text-underline-offset: .2em; }
+
+/* Larger screens: same single column, the hero button sits under the video at its natural width. */
+@media (min-width: 40rem) {
+  .sp-buy-row { justify-items: start; }
+  .sp-hero .sp-buy, .sp-buy-row--end .sp-buy { width: auto; min-width: 18rem; }
+  .sp-buy-meta { text-align: left; }
+  .sp-price-card .sp-buy { width: auto; min-width: 18rem; }
+}

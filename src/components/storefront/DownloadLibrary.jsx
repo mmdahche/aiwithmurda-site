@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Download, FileText, FolderArchive, Search } from "lucide-react";
-import { CheckItFirstNotice } from "../../pages/CheckItFirstPage.jsx";
 import { downloadMemberAsset, downloadOperatorBundleAsset, downloadOperatorToolkitAsset, downloadOperatorArsenalAsset, downloadOperatorUpdateAsset } from "../../lib/api.js";
 
 /*
@@ -75,7 +74,7 @@ export function DownloadLibrary({ memberData, accessToken, access, onOpenCourse 
         <span className="mx-desc">Download library</span>
       </div>
 
-      <CheckItFirstNotice />
+      
 
       {start && (
         <div className="mx-card mx-lib-start sf-library-start">

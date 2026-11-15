@@ -1,7 +1,7 @@
 {
   "name": "AI with Murda",
   "short_name": "AIWM",
-  "description": "Murad's scripts, skills, and project setups for building with Claude Code and Codex.",
+  "description": "Facebook Marketplace Muse Control Kit: a setup kit for Meta's Muse assistant.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#040923",

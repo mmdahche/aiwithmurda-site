@@ -5795,6 +5795,21 @@ app.get("/api/member-assets/operator-arsenal/:assetKey", requireUser, async (req
   }
 });
 
+// The site sells one product now (the Muse Control Kit sales page at /). Pages for the retired
+// products, free downloads, member area and 60-day sprint answer with a permanent redirect to it.
+// Only page paths match: files under them (the TikTok verification .txt files in /60/) are still served.
+const retiredPagePaths = [
+  /^\/(about|store|kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|tools)\/?$/,
+  /^\/store\/[^/]+\/?$/,
+  /^\/free\/[^/]+\/?$/,
+  /^\/members\/module\/[^/]+\/?$/,
+  /^\/day\/[^/]+\/?$/,
+  /^\/downloads\/[^/]+$/, // the retired free downloads
+];
+app.get(retiredPagePaths, (req, res) => {
+  res.redirect(301, "/");
+});
+
 app.use(express.static(distDir));
 
 app.get(/.*/, (req, res) => {
