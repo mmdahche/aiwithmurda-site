@@ -1,5 +1,5 @@
 /*
-  The Muse Control Kit sales page (sp-), its header and footer.
+  The Muse Control Kit sales page (sp-) at /tools/musekit, its header and footer (KitHeader, KitFooter).
 
   Plain on purpose (Murad's brief): the brand's navy, Anton headlines and Geist text, lots of space,
   one reading column, and ONE strong colour: the buy button (--accent). Everything else is white,
@@ -130,10 +130,6 @@
   .sp-hero .sp-video { width: min(100%, max(20rem, calc((100svh - 34rem) * 16 / 9))); }
 }
 
-/* One strong colour: keep the buy-button blue off everything that is not a buy button. */
-.public-site .mx :focus-visible { outline-color: var(--white); }
-.public-site .mx-legal .mx-link .mx-i,
-.public-site .mx-legal .mx-count,
-.public-site .mx-legal-meta p:first-child,
-.public-site .mx-legal-body h2::before { color: var(--sp-muted, #a3abc4); }
-.public-site .mx-legal a:hover { color: var(--white); text-decoration-color: var(--white); }
+/* One strong colour, on the kit page only: keep the buy-button blue off everything that is not a buy button.
+   The rest of the site (home, /tools, /about, Terms, Privacy) keeps the live look, blue focus rings included. */
+.public-site--kit .mx :focus-visible { outline-color: var(--white); }

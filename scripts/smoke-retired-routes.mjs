@@ -1,27 +1,36 @@
 // Route and metadata contract for the production Express server (server/index.mjs serving dist/).
-// The site sells one product now: retired page paths and the retired free downloads answer 301 -> "/",
-// the sales page, Terms, Privacy and the admin answer 200, and the prerendered heads carry the right metadata.
+// The home page, /tools, the Muse Control Kit page at /tools/musekit, /about, Terms, Privacy and the admin
+// answer 200. Case variants and aliases of the kit page answer 301 -> /tools/musekit, the old shop 301 -> /tools,
+// the other retired pages and free downloads 301 -> "/", and the prerendered heads carry the right metadata.
 // Read-only GET requests; safe against a local server or the live site.
 //
 //   ./node_modules/.bin/vite build && node scripts/postbuild.mjs
-//   PORT=18791 HOST=127.0.0.1 SITE_URL=http://127.0.0.1:18791 node server/index.mjs
-//   SITE_URL_TEST=http://127.0.0.1:18791 node scripts/smoke-retired-routes.mjs
+//   PORT=18801 HOST=127.0.0.1 node server/index.mjs
+//   SITE_URL_TEST=http://127.0.0.1:18801 node scripts/smoke-retired-routes.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { museKit } from "../src/data/museKit.js";
 import { metadataForPath, publicPageMetadata } from "../src/data/siteMetadata.js";
+import { tools } from "../src/data/tools.js";
 
-const base = (process.env.SITE_URL_TEST || "http://127.0.0.1:18791").replace(/\/+$/, "");
+const base = (process.env.SITE_URL_TEST || "http://127.0.0.1:18801").replace(/\/+$/, "");
 const canonicalOrigin = "https://aiwithmurda.com";
 const publicDir = new URL("../public/", import.meta.url);
 
+const kitPath = "/tools/musekit";
+// The Instagram bio link and anything a person might type for it: 301 to the one lower-case path.
+const kitAliases = [
+  "/tools/Musekit", "/tools/MuseKit", "/TOOLS/MUSEKIT", "/Tools/musekit", "/tools/musekit/", "/tools/Musekit/",
+  "/tools/muse-kit", "/tools/muse-kit/", "/tools/muse", "/tools/Muse/", "/musekit", "/musekit/", "/MuseKit", "/muse-kit", "/muse-kit/",
+];
+const shopPaths = ["/store", "/store/", "/STORE", "/store/memory-os", "/store/future-proof-method/", "/store?view=free"];
 const retiredPaths = [
-  "/about", "/store", "/store/", "/store/memory-os", "/store?view=free", "/kit", "/live-builds", "/operator-toolkit", "/operator-arsenal",
-  "/start", "/free/check-it-first", "/free/inbox-cleanup", "/members", "/members/module/setup-both-builders",
-  "/60", "/60/", "/live", "/tools", "/day/1",
+  "/kit", "/live-builds", "/operator-toolkit", "/operator-arsenal",
+  "/start", "/free", "/free/check-it-first", "/free/inbox-cleanup", "/members", "/members/module/setup-both-builders",
+  "/60", "/60/", "/live", "/day/1", "/downloads",
   "/downloads/operator-sampler.zip", "/downloads/CHECK-IT-FIRST.md", "/downloads/email-cleanup-kit.zip",
 ];
-const htmlPages = ["/", "/terms", "/terms/", "/privacy", "/privacy/", "/admin", "/admin/"];
+const htmlPages = ["/", "/tools", "/tools/", kitPath, "/about", "/about/", "/terms", "/terms/", "/privacy", "/privacy/", "/admin", "/admin/"];
 // Unchanged routes that fall through to the SPA: the OBS overlays and any unknown path.
 const spaPages = ["/overlay", "/obs", "/overlay/followers", "/obs/followers", "/nope"];
 
@@ -55,6 +64,9 @@ function parseHead(html) {
     ogTitle: meta("property", "og:title"),
     twitterTitle: meta("name", "twitter:title"),
     ogUrl: meta("property", "og:url"),
+    ogImage: meta("property", "og:image"),
+    ogImageAlt: meta("property", "og:image:alt"),
+    twitterImage: meta("name", "twitter:image"),
     robots: meta("name", "robots"),
     canonical: links.filter((l) => l.rel === "canonical").map((l) => l.href),
   };
@@ -70,15 +82,30 @@ await check(`server answers at ${base}`, async () => {
   assert.equal(response.status, 200);
 });
 
-await check(`${retiredPaths.length} retired page and download paths answer 301 with Location "/"`, async () => {
+async function expectRedirects(paths, target) {
   const wrong = [];
-  for (const route of retiredPaths) {
+  for (const route of paths) {
     const response = await get(route);
     await response.arrayBuffer();
-    if (response.status !== 301 || response.headers.get("location") !== "/") wrong.push(`${route}: ${describe(response)}`);
+    if (response.status !== 301 || response.headers.get("location") !== target) wrong.push(`${route}: ${describe(response)}`);
   }
-  assert(wrong.length === 0, `not a 301 to "/":\n${wrong.join("\n")}`);
+  assert(wrong.length === 0, `not a 301 to "${target}":\n${wrong.join("\n")}`);
+}
+await check(`${kitAliases.length} case variants and aliases of ${kitPath} answer 301 with Location "${kitPath}"`, () => expectRedirects(kitAliases, kitPath));
+await check(`${kitPath} itself answers 200, never a redirect to itself`, async () => {
+  const response = await get(kitPath);
+  await response.arrayBuffer();
+  assert.equal(response.status, 200, describe(response));
+  assert.equal(response.headers.get("location"), null);
 });
+await check("a kit alias keeps the query string (Instagram tracking parameters)", async () => {
+  const response = await get("/tools/Musekit?utm_source=instagram&utm_medium=bio");
+  await response.arrayBuffer();
+  assert.equal(response.status, 301, describe(response));
+  assert.equal(response.headers.get("location"), `${kitPath}?utm_source=instagram&utm_medium=bio`);
+});
+await check(`${shopPaths.length} old shop paths answer 301 with Location "/tools"`, () => expectRedirects(shopPaths, "/tools"));
+await check(`${retiredPaths.length} retired page and download paths answer 301 with Location "/"`, () => expectRedirects(retiredPaths, "/"));
 
 for (const route of htmlPages) {
   await check(`${route} answers 200 HTML`, async () => {
@@ -118,14 +145,15 @@ await check("TikTok verification files under /60/, /terms/ and /privacy/ answer 
   assert(count >= 3);
 });
 
-await check("/sitemap.xml lists exactly /, /terms and /privacy", async () => {
+await check("/sitemap.xml lists exactly /, /tools, /tools/musekit, /about, /terms and /privacy", async () => {
   const response = await get("/sitemap.xml");
   const body = await response.text();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") || "", /xml/);
   const locs = [...body.matchAll(/<loc>([^<]*)<\/loc>/g)].map(([, loc]) => loc.trim());
-  assert.deepEqual(locs.sort(), [`${canonicalOrigin}/`, `${canonicalOrigin}/privacy`, `${canonicalOrigin}/terms`]);
+  assert.deepEqual(locs.sort(), ["/", "/about", "/privacy", "/terms", "/tools", "/tools/musekit"].map((route) => `${canonicalOrigin}${route}`));
   assert.deepEqual(Object.keys(publicPageMetadata).map((route) => `${canonicalOrigin}${route}`).sort(), locs, "sitemap matches siteMetadata.js");
+  for (const tool of tools) assert(locs.includes(`${canonicalOrigin}${tool.href}`), `sitemap lists ${tool.href} (tools.js)`);
 });
 
 await check("/robots.txt references the sitemap", async () => {
@@ -136,16 +164,16 @@ await check("/robots.txt references the sitemap", async () => {
   assert(!/^Disallow:\s*\/\s*$/m.test(body), "robots must not block the whole site");
 });
 
-await check('/site.webmanifest has short_name "AIWM" and describes the kit', async () => {
+await check('/site.webmanifest has short_name "AIWM" and a site-level description', async () => {
   const response = await get("/site.webmanifest");
   assert.equal(response.status, 200);
   const manifest = JSON.parse(await response.text());
   assert.equal(manifest.short_name, "AIWM");
   assert.equal(manifest.start_url, "/");
-  assert(String(manifest.description).includes(museKit.name), "manifest description names the kit");
+  assert.equal(manifest.description, publicPageMetadata["/"].description, "manifest description is the home page description");
 });
 
-for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/images/muse-control-kit.png", null]]) {
+for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/og-muse-kit.png", { width: 1200, height: 630 }], ["/images/muse-control-kit.png", null]]) {
   await check(`${route} is a 200 PNG image${size ? ` (${size.width}x${size.height})` : " (16:9)"}`, async () => {
     const response = await get(route);
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -157,8 +185,8 @@ for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/
   });
 }
 
-for (const [route, metaPath] of [["/", "/"], ["/terms/", "/terms"], ["/privacy/", "/privacy"], ["/admin/", "/admin"]]) {
-  await check(`prerendered head of ${route}: title, description, canonical, og:url${metaPath === "/admin" ? ", noindex" : ""}`, async () => {
+for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kitPath], ["/about", "/about"], ["/terms/", "/terms"], ["/privacy/", "/privacy"], ["/admin/", "/admin"]]) {
+  await check(`prerendered head of ${route}: title, description, canonical, og:url, og:image${metaPath === "/admin" ? ", noindex" : ""}`, async () => {
     const response = await get(route);
     const html = await response.text();
     assert.equal(response.status, 200, `${route}: ${describe(response)}`);
@@ -173,16 +201,30 @@ for (const [route, metaPath] of [["/", "/"], ["/terms/", "/terms"], ["/privacy/"
     assert.deepEqual(head.twitterDescription, [meta.description], "twitter:description");
     assert.deepEqual(head.canonical, [canonical], "canonical");
     assert.deepEqual(head.ogUrl, [canonical], "og:url");
-    if (metaPath === "/") {
+    assert.deepEqual(head.ogImage, [`${canonicalOrigin}${meta.image}`], "og:image");
+    assert.deepEqual(head.twitterImage, [`${canonicalOrigin}${meta.image}`], "twitter:image");
+    assert.deepEqual(head.ogImageAlt, [meta.imageAlt], "og:image:alt");
+    assert.equal(meta.image, metaPath === kitPath ? "/og-muse-kit.png" : "/og-card.png", "the kit page shares the kit card, every other page the site card");
+    assert(!/[—–]/.test(head.titles[0] + head.description[0] + head.ogImageAlt[0]), "no em or en dash in the head copy");
+    if (metaPath === kitPath) {
       for (const value of [...head.description, ...head.ogDescription, ...head.twitterDescription]) {
         assert(value.includes(`${museKit.price}, one time`), `"${museKit.price}, one time" mangled in "${value}"`);
       }
-      assert(!/[—–]/.test(head.titles[0] + head.description[0]), "no em or en dash in the head copy");
+      assert.equal(head.titles[0], `${museKit.name} | AI with Murda`, "kit page title names the kit");
     }
     if (meta.noindex) assert.deepEqual(head.robots, ["noindex, nofollow"], "admin is noindex");
     else assert(!head.robots.some((value) => /noindex/i.test(value)), `${route} must be indexable`);
   });
 }
+
+await check("dist/downloads is not deployed; every public page has a prerendered dist/<route>/index.html", async () => {
+  const dist = new URL("../dist/", import.meta.url);
+  await assert.rejects(fs.stat(new URL("downloads", dist)), "dist/downloads must not exist");
+  for (const route of Object.keys(publicPageMetadata).filter((key) => key !== "/")) {
+    const stat = await fs.stat(new URL(`${route.slice(1)}/index.html`, dist));
+    assert(stat.isFile(), `dist${route}/index.html`);
+  }
+});
 
 const failed = results.filter((result) => result.result === "FAIL");
 if (failed.length) {

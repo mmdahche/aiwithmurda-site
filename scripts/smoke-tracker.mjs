@@ -147,6 +147,9 @@ const sitemapText = await sitemapResponse.text();
 if (
   !sitemapResponse.ok ||
   !sitemapText.includes("<loc>https://aiwithmurda.com/</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/tools</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/tools/musekit</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/about</loc>") ||
   !sitemapText.includes("<loc>https://aiwithmurda.com/terms</loc>") ||
   !sitemapText.includes("<loc>https://aiwithmurda.com/privacy</loc>")
 ) {
@@ -164,7 +167,7 @@ const adminHtml = await adminResponse.text();
 if (!adminResponse.ok || !adminHtml.includes("root")) {
   throw new Error(`Admin route failed: ${adminResponse.status}`);
 }
-// The admin workspace and the OBS overlays share the one entry bundle with the public sales page.
+// The admin workspace and the OBS overlays share the one entry bundle with the public pages.
 // Every string below comes from admin or overlay code (AdminGate, DailyLog, SettingsView, the admin panels,
 // FollowerOverlay, the stream config the admin edits), so it stays in the bundle while those routes exist.
 const adminBundle = await fetchClientBundle(adminHtml, "Admin route", siteUrl);

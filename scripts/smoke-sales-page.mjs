@@ -1,9 +1,11 @@
-// Local UI contract tests for the public site: the Muse Control Kit sales page at /, Terms and Privacy,
+// Local UI contract tests for the public site: the home page, /tools, /about, Terms and Privacy in the live
+// site look, the Muse Control Kit sales page at /tools/musekit with its own focused header and footer,
 // plus the admin workspace and OBS overlay routes that must stay as they were.
 // Runs against the Vite dev server. Auth and every /api route are mocked, cross-origin requests are blocked;
 // nothing here charges a card, creates a customer or contacts production.
 //
-//   SALES_TEST_URL=http://127.0.0.1:5173 node scripts/smoke-sales-page.mjs
+//   npx vite --port 5301 --host 127.0.0.1 --strictPort
+//   SALES_TEST_URL=http://127.0.0.1:5301 node scripts/smoke-sales-page.mjs
 //
 // Optional: SALES_TEST_OUTPUT (screenshots + report.json), PLAYWRIGHT_CHANNEL (default "chrome").
 import assert from "node:assert/strict";
@@ -13,8 +15,9 @@ import path from "node:path";
 import { chromium } from "playwright";
 import { checkoutHref, checkoutIsPlaceholder, faq, footerNotes, kitPieces, museKit, setups } from "../src/data/museKit.js";
 import { publicPageMetadata } from "../src/data/siteMetadata.js";
+import { featuredTool, tools } from "../src/data/tools.js";
 
-const base = (process.env.SALES_TEST_URL || "http://127.0.0.1:5173").replace(/\/+$/, "");
+const base = (process.env.SALES_TEST_URL || "http://127.0.0.1:5301").replace(/\/+$/, "");
 assert(["127.0.0.1", "localhost"].includes(new URL(base).hostname), "Tests must target a local dev server");
 const output = process.env.SALES_TEST_OUTPUT || path.join(os.tmpdir(), "aiwm-sales-tests");
 await fs.mkdir(output, { recursive: true });
@@ -31,6 +34,18 @@ const viewports = [
 ];
 const phone = { width: 390, height: 844 };
 const salesH1 = "Muse writes the listing. You say yes.";
+const homeH1 = "Download it. Make it yours.";
+const KIT = "/tools/musekit";
+// Site pages: the live look, with the site header (Tools, About Murad) and the site footer.
+const sitePages = [
+  { route: "/", h1: homeH1 },
+  { route: "/tools", h1: "Tools" },
+  { route: "/about", h1: "I'm Murad. I build around real problems." },
+  { route: "/terms", h1: "Terms of Service" },
+  { route: "/privacy", h1: "Privacy Policy" },
+];
+// Old products and pages taken off the site: their names may not appear in public text or links.
+const oldProductNames = ["Future Proof Method", "New Wave", "Operator Bundle", "Operator Toolkit", "Operator Arsenal", "Operator Sampler", "Starter Pack", "Check It First", "Inbox Cleanup", "Operator Updates", "My Downloads", "Build log archive"];
 
 // The owner's brief, section 6: the two setups, word for word.
 const briefSetups = [
@@ -63,9 +78,11 @@ const bannedCopy = [
   [/\b(earn|make) (\$|money|more money|extra money)/i, "income promise"],
 ];
 const allowedGuaranteeCopy = [/doesn['’]t guarantee sales/gi, /does this guarantee sales\?/gi, /refund or guarantee terms/gi];
-// Server-side redirects in server/index.mjs (retiredPagePaths); no public page may link to one.
+// Server-side redirects in server/index.mjs (the old shop, retiredPagePaths and the kit aliases); no public
+// page may link to one.
 const retiredPagePaths = [
-  /^\/(about|store|kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|tools)\/?$/,
+  /^\/(store|kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|free|day|downloads|musekit|muse-kit)\/?$/i,
+  /^\/tools\/(muse|muse-kit)\/?$/i,
   /^\/store\/[^/]+\/?$/,
   /^\/free\/[^/]+\/?$/,
   /^\/members\/module\/[^/]+\/?$/,
@@ -187,6 +204,8 @@ async function auditLayout(label, { tapTargets = false } = {}) {
     const smallTargets = [];
     for (const el of document.querySelectorAll("a[href],button,summary,input,select,textarea,[role=button],[tabindex]:not([tabindex='-1'])")) {
       if (!rendered(el)) continue;
+      // Links inside a sentence are exempt (WCAG 2.5.8): the email address in the legal text, the Backbone Solutions credit.
+      if (el.tagName === "A" && getComputedStyle(el).display === "inline" && el.closest("p")) continue;
       const b = box(el);
       if (b.width < 44 - 0.01 || b.height < 44 - 0.01) smallTargets.push(`${describe(el)} ${Math.round(b.width * 10) / 10}x${Math.round(b.height * 10) / 10}`);
     }
@@ -281,11 +300,11 @@ try {
   for (const viewport of viewports) {
     await setViewport(viewport);
     const label = `${viewport.width}x${viewport.height}`;
-    await check(`${label} layout of / (no overflow, no clipped text, no text under 12px${viewport.width === 390 ? ", tap targets 44x44" : ""}; 16:9 video)`, async () => {
-      await visit("/");
+    await check(`${label} layout of ${KIT} (no overflow, no clipped text, no text under 12px${viewport.width === 390 ? ", tap targets 44x44" : ""}; 16:9 video)`, async () => {
+      await visit(KIT);
       if ([390, 1440].includes(viewport.width)) {
-        await page.screenshot({ path: path.join(output, `${viewport.width}-home-first-viewport.png`) });
-        await screenshot(`${viewport.width}-home`);
+        await page.screenshot({ path: path.join(output, `${viewport.width}-kit-first-viewport.png`) });
+        await screenshot(`${viewport.width}-kit`);
       }
       const ratio = await videoRatio();
       assert(ratio, "video spot missing");
@@ -298,31 +317,33 @@ try {
       });
       assert(image, "product image missing");
       assert(Math.abs(image.natural / (16 / 9) - 1) <= 0.01 && Math.abs(image.rendered / (16 / 9) - 1) <= 0.01, `product image is not 16:9 (${JSON.stringify(image)})`);
-      await auditLayout(`${label} /`, { tapTargets: viewport.width === 390 });
+      await auditLayout(`${label} ${KIT}`, { tapTargets: viewport.width === 390 });
     });
-    for (const route of ["/terms", "/privacy"]) {
-      await check(`${label} layout of ${route}`, async () => {
+    for (const { route } of sitePages) {
+      await check(`${label} layout of ${route}${viewport.width === 390 ? " (tap targets 44x44)" : ""}`, async () => {
         await visit(route);
-        if ([390, 1440].includes(viewport.width)) await screenshot(`${viewport.width}-${route.slice(1)}`);
-        await auditLayout(`${label} ${route}`);
+        if ([390, 1440].includes(viewport.width)) await screenshot(`${viewport.width}-${route === "/" ? "home" : route.slice(1)}`);
+        await auditLayout(`${label} ${route}`, { tapTargets: viewport.width === 390 });
       });
     }
   }
 
-  // ---------- the sales page at phone width ----------
+  // ---------- the sales page (/tools/musekit) at phone width ----------
   await setViewport(phone);
-  const homeMark = mark();
-  await visit("/", { settle: 1500 });
-  const home = since(homeMark);
+  const kitMark = mark();
+  await visit(KIT, { settle: 1500 });
+  const kit = since(kitMark);
 
-  await check("/: one <main>, one <h1> with the result headline", async () => {
+  await check(`${KIT}: one <main>, one <h1> with the result headline`, async () => {
     const counts = await page.evaluate(() => ({ mains: document.querySelectorAll("main").length, h1s: [...document.querySelectorAll("h1")].map((h) => h.textContent.replace(/\s+/g, " ").trim()) }));
     assert.equal(counts.mains, 1, "exactly one <main>");
     assert.deepEqual(counts.h1s, [salesH1], "exactly one <h1>");
-    assert.equal(await page.title(), publicPageMetadata["/"].title);
+    assert.equal(await page.title(), publicPageMetadata[KIT].title);
+    assert.equal(await page.getAttribute('link[rel="canonical"]', "href"), `https://aiwithmurda.com${KIT}`);
+    assert.equal(await page.getAttribute('meta[property="og:image"]', "content"), "https://aiwithmurda.com/og-muse-kit.png");
   });
 
-  await check("/: sections in the brief's order (headline+video+button, problem, for/not for, what you get, how it works, which setup, story, price, refunds, questions)", async () => {
+  await check(`${KIT}: sections in the brief's order (headline+video+button, problem, for/not for, what you get, how it works, which setup, story, price, refunds, questions)`, async () => {
     const sections = await page.evaluate(() => [...document.querySelectorAll("main > section")].map((section) => {
       const video = section.querySelector(".sp-video");
       const h1 = section.querySelector("h1");
@@ -354,7 +375,7 @@ try {
     expected.forEach(([name, test], index) => assert(test(sections[index]), `section ${index + 1} (id "${sections[index].id}", heading "${sections[index].heading}") does not meet the contract for "${name}"`));
   });
 
-  await check("/: no proof, testimonial, rating or customer-count section", async () => {
+  await check(`${KIT}: no proof, testimonial, rating or customer-count section`, async () => {
     const found = await page.evaluate(() => {
       const hits = [];
       for (const el of document.querySelectorAll("main *")) {
@@ -372,7 +393,7 @@ try {
     none(found, "proof section");
   });
 
-  await check("/: every buy link has the same href, equal to museKit.js checkoutHref", async () => {
+  await check(`${KIT}: every buy link has the same href, equal to museKit.js checkoutHref`, async () => {
     const links = await linkInventory();
     const buy = links.filter(isBuyLink);
     assert(buy.length >= 4, `expected the header, hero, price and FAQ buy links, found ${buy.length}`);
@@ -383,7 +404,7 @@ try {
     }
   });
 
-  await check("/: a buy button above the fold at 390x844, right under the video", async () => {
+  await check(`${KIT}: a buy button above the fold at 390x844, right under the video`, async () => {
     const links = await linkInventory();
     const hero = links.filter((link) => isBuyLink(link) && link.inMain && link.section === "");
     assert(hero.length >= 1, "no buy link in the hero section");
@@ -393,7 +414,7 @@ try {
     assert(first.viewportTop >= video.bottom - 1 && first.viewportTop - video.bottom <= 48, `hero buy link is not right under the video (video bottom ${Math.round(video.bottom)}, button top ${Math.round(first.viewportTop)})`);
   });
 
-  await check("/: a buy link in the price section and one after the last FAQ answer", async () => {
+  await check(`${KIT}: a buy link in the price section and one after the last FAQ answer`, async () => {
     const links = await linkInventory();
     assert(links.some((link) => isBuyLink(link) && link.section === "price"), "no buy link in the price section");
     const afterLastAnswer = await page.evaluate(() => {
@@ -405,7 +426,7 @@ try {
     assert(afterLastAnswer, "no buy link under the last FAQ answer");
   });
 
-  await check("/: header has the logo link and one buy link, no other navigation", async () => {
+  await check(`${KIT}: header has the logo link and one buy link, no other navigation`, async () => {
     const header = await page.evaluate(() => {
       const headers = [...document.querySelectorAll("header")].filter((h) => !h.closest("main"));
       const h = headers[0];
@@ -424,7 +445,7 @@ try {
     none(header.other, "header navigation");
   });
 
-  await check("/: the price $27 and \"one time\" appear in the price section and under the hero button; no other price", async () => {
+  await check(`${KIT}: the price $27 and \"one time\" appear in the price section and under the hero button; no other price`, async () => {
     const price = norm(await page.locator("#price").innerText());
     assert(price.includes(museKit.price), "price section shows $27");
     assert(/one time/i.test(price), 'price section says "one time"');
@@ -434,7 +455,7 @@ try {
     assert.deepEqual(amounts, [museKit.price], `only one price on the page, found ${amounts.join(", ")}`);
   });
 
-  await check("/: the two setup texts appear word for word as in museKit.js", async () => {
+  await check(`${KIT}: the two setup texts appear word for word as in museKit.js`, async () => {
     const shown = await page.evaluate(() => [...document.querySelectorAll("#setups article, #setups [class*='setup']")].map((el) => ({
       name: (el.querySelector("h3, h4")?.textContent || "").replace(/\s+/g, " ").trim(),
       text: [...el.querySelectorAll("p")].map((p) => p.textContent.replace(/\s+/g, " ").trim()),
@@ -444,7 +465,7 @@ try {
     }
   });
 
-  await check("/: FAQ closed on load, each answer opens on click, required questions present", async () => {
+  await check(`${KIT}: FAQ closed on load, each answer opens on click, required questions present`, async () => {
     const items = page.locator("#faq details");
     const count = await items.count();
     assert.equal(count, faq.length, "one <details> per FAQ item");
@@ -473,7 +494,7 @@ try {
     assert.match(guarantee.a || "", /^No\b/, '"Does this guarantee sales?" is answered no');
   });
 
-  await check("/: copy rules (no em or en dash, no banned words or phrases, no Most Popular, no countdown or limited)", async () => {
+  await check(`${KIT}: copy rules (no em or en dash, no banned words or phrases, no Most Popular, no countdown or limited)`, async () => {
     const copy = await visibleCopy();
     none([...copy.matchAll(/.{0,30}[—–].{0,30}/g)].map((m) => m[0]), "em or en dash");
     const hits = bannedCopy.flatMap(([pattern, name]) => (copy.match(new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`)) || []).map((m) => `${name}: "${m}"`));
@@ -487,7 +508,7 @@ try {
     assert(/doesn't guarantee sales/i.test(footer) && /differ by phone and country/i.test(footer) && /isn't made by or connected to Meta or Facebook/i.test(footer), "footer carries the brief's three notes");
   });
 
-  await check("/: marked placeholders for the video, story, refunds and kit list", async () => {
+  await check(`${KIT}: marked placeholders for the video, story, refunds and kit list`, async () => {
     const placeholders = await page.evaluate(() => ({
       video: Boolean(document.querySelector("main .sp-video iframe")) || /placeholder/i.test(document.querySelector("main .sp-video")?.textContent || ""),
       story: /placeholder/i.test(document.querySelector("#story")?.textContent || ""),
@@ -498,63 +519,256 @@ try {
     assert(placeholders.refunds, "refunds placeholder is marked");
   });
 
-  await check("/: no /api/ request, no cross-origin request, no console error, no page error", async () => {
-    none(home.requests.filter((r) => r.path.startsWith("/api/")).map((r) => r.path), "/api/ requests from /");
-    none(home.requests.filter((r) => !r.sameOrigin && !allowedCrossOrigin.some((host) => host.test(r.host))).map((r) => r.url), "cross-origin requests from /");
-    none(home.consoleErrors.map((e) => e.text), "console errors on /");
-    none(home.pageErrors.map((e) => e.message), "page errors on /");
+  await check(`${KIT}: no /api/ request, no cross-origin request, no console error, no page error`, async () => {
+    none(kit.requests.filter((r) => r.path.startsWith("/api/")).map((r) => r.path), `/api/ requests from ${KIT}`);
+    none(kit.requests.filter((r) => !r.sameOrigin && !allowedCrossOrigin.some((host) => host.test(r.host))).map((r) => r.url), `cross-origin requests from ${KIT}`);
+    none(kit.consoleErrors.map((e) => e.text), `console errors on ${KIT}`);
+    none(kit.pageErrors.map((e) => e.message), `page errors on ${KIT}`);
   });
 
-  const homeChrome = await chromeHtml();
-  const homeLinks = await linkInventory();
+  const kitLinks = await linkInventory();
+  await check(`${KIT}: no link to a retired page; the footer is the short kit footer (notes, Terms, Privacy, Contact)`, async () => {
+    none(kitLinks.filter((link) => link.href && link.href.startsWith("/") && retiredPagePaths.some((p) => p.test(link.href.split(/[?#]/)[0]))).map((link) => `"${link.text}" -> ${link.href}`), `${KIT}: links to retired pages`);
+    const footerLinks = kitLinks.filter((link) => link.inFooter).map((link) => link.href);
+    assert.deepEqual(footerLinks, ["/terms", "/privacy", "mailto:murad@aiwithmurda.com"]);
+  });
+  await check(`${KIT}: no old product names`, async () => {
+    const copy = await visibleCopy();
+    none(oldProductNames.filter((name) => copy.includes(name)), `${KIT}: old product names`);
+  });
 
-  // ---------- Terms and Privacy ----------
-  for (const [route, heading] of [["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"]]) {
-    await check(`${route}: renders its h1 with the same header and footer as /`, async () => {
+  // ---------- site pages: home, /tools, /about, Terms, Privacy (the live look) ----------
+  const stripState = (html) => html.replace(/\s*aria-current="page"/g, "").replace(/\s*aria-expanded="(true|false)"/g, "").replace(/\s*class="mx-nav is-open"/g, ' class="mx-nav"');
+  const siteNav = async () => page.evaluate(() => {
+    const header = [...document.querySelectorAll("header")].find((h) => !h.closest("main"));
+    const nav = header?.querySelector("nav#public-navigation-links");
+    return {
+      label: nav?.getAttribute("aria-label") || null,
+      links: nav ? [...nav.querySelectorAll("a")].map((a) => ({ text: a.textContent.replace(/\s+/g, " ").trim(), href: a.getAttribute("href"), current: a.getAttribute("aria-current") })) : [],
+      headerLinks: header ? [...header.querySelectorAll("a")].map((a) => ({ text: a.textContent.replace(/\s+/g, " ").trim(), href: a.getAttribute("href"), checkout: a.hasAttribute("data-checkout-link") })) : [],
+      toggle: header?.querySelector("button.mx-nav-toggle")?.getAttribute("aria-label") || null,
+    };
+  });
+  let siteChrome = null;
+  for (const { route, h1 } of sitePages) {
+    await check(`${route}: one <main>, h1 "${h1}", the site header (Tools, About Murad) and the site footer`, async () => {
       const m = mark();
       await visit(route, { settle: 500 });
-      const h1s = await page.evaluate(() => [...document.querySelectorAll("h1")].map((h) => h.textContent.replace(/\s+/g, " ").trim()));
-      assert.deepEqual(h1s, [heading]);
+      const h1s = await page.evaluate(() => [...document.querySelectorAll("h1")].map((h) => h.innerText.replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim().toLowerCase()));
+      assert.deepEqual(h1s, [h1.toLowerCase()]);
       assert.equal(await page.locator("main").count(), 1);
       assert.equal(await page.title(), publicPageMetadata[route].title);
       assert.equal(await page.getAttribute('link[rel="canonical"]', "href"), `https://aiwithmurda.com${route}`);
+      assert.equal(await page.getAttribute('meta[property="og:image"]', "content"), "https://aiwithmurda.com/og-card.png");
+      const nav = await siteNav();
+      assert.equal(nav.label, "Public navigation");
+      assert.equal(nav.toggle, "Open navigation");
+      assert.deepEqual(nav.links.map(({ text, href }) => ({ text, href })), [{ text: "Tools", href: "/tools" }, { text: "About Murad", href: "/about" }]);
+      const current = nav.links.filter((link) => link.current === "page").map((link) => link.href);
+      assert.deepEqual(current, route === "/tools" || route === "/about" ? [route] : [], "aria-current marks the page you are on");
+      assert.deepEqual(nav.headerLinks.map((link) => link.href), ["/", "/tools", "/about"], "the header holds the logo and the two nav links only (no My Downloads, no Free Starter Pack, no buy button)");
+      assert(!nav.headerLinks.some((link) => link.checkout), "no checkout link in the site header");
       const chrome = await chromeHtml();
       assert.equal(chrome.headers, 1);
       assert.equal(chrome.footers, 1);
-      assert.equal(chrome.header, homeChrome.header, "header differs from /");
-      assert.equal(chrome.footer, homeChrome.footer, "footer differs from /");
-      const links = await linkInventory();
-      none(links.filter((link) => isBuyLink(link) && link.href !== checkoutHref).map((link) => link.href), "buy links with another href");
+      if (!siteChrome) siteChrome = chrome;
+      assert.equal(stripState(chrome.header), stripState(siteChrome.header), "header differs from the home page");
+      assert.equal(chrome.footer, siteChrome.footer, "footer differs from the home page");
+      const footer = await page.evaluate(() => {
+        const f = [...document.querySelectorAll("footer")].find((el) => !el.closest("main"));
+        return {
+          text: f.innerText,
+          cols: [...f.querySelectorAll(".mx-footer-cols > div")].map((col) => ({ head: col.querySelector(".mx-foot-h")?.textContent.trim(), links: [...col.querySelectorAll("a")].map((a) => ({ text: a.textContent.replace(/\s+/g, " ").trim(), href: a.getAttribute("href") })) })),
+        };
+      });
+      assert(footer.text.includes("Practical AI tools and setup kits. Download it. Make it yours."), "footer blurb");
+      assert.deepEqual(footer.cols.map((col) => col.head), ["Tools", "Murad", "Follow", "Fine print"]);
+      assert.deepEqual(footer.cols[0].links, [{ text: "All tools", href: "/tools" }, ...tools.map((tool) => ({ text: tool.shortName, href: tool.href }))]);
+      assert.deepEqual(footer.cols[1].links, [{ text: "Meet Murad", href: "/about" }, { text: "Contact", href: "mailto:murad@aiwithmurda.com" }]);
+      assert.deepEqual(footer.cols[3].links.map((link) => link.href), ["/terms", "/privacy"]);
       const { requests: pageRequests, consoleErrors: errors, pageErrors: crashes } = since(m);
       none(pageRequests.filter((r) => r.path.startsWith("/api/") || !r.sameOrigin).map((r) => r.url), `${route}: /api/ or cross-origin requests`);
       none(errors.map((e) => e.text), `${route}: console errors`);
       none(crashes.map((e) => e.message), `${route}: page errors`);
     });
-    await check(`${route}: no link to a retired page`, async () => {
+    await check(`${route}: no link to a retired page, no checkout link, no old product names`, async () => {
       const links = await linkInventory();
-      none(links.filter((link) => link.href && link.href.startsWith("/") && retiredPagePaths.some((p) => p.test(link.href.split(/[?#]/)[0]))).map((link) => `"${link.text}" -> ${link.href}`), `${route}: links to retired pages (they 301 to /)`);
+      none(links.filter((link) => link.href && link.href.startsWith("/") && retiredPagePaths.some((p) => p.test(link.href.split(/[?#]/)[0]))).map((link) => `"${link.text}" -> ${link.href}`), `${route}: links to retired pages`);
+      none(links.filter((link) => link.checkout || /whop\.com|checkout\.stripe|buy\.stripe|placeholder-checkout/i.test(link.href || "")).map((link) => `"${link.text}" -> ${link.href}`), `${route}: checkout links (the buyer reads the kit page first)`);
+      const copy = await visibleCopy();
+      none(oldProductNames.filter((name) => copy.includes(name)), `${route}: old product names`);
     });
+    if (route !== "/terms" && route !== "/privacy") {
+      await check(`${route}: copy rules (no em or en dash, no banned words, no "guarantee", no "coming soon")`, async () => {
+        const copy = await visibleCopy();
+        none([...copy.matchAll(/.{0,30}[—–].{0,30}/g)].map((m) => m[0]), "em or en dash");
+        const hits = bannedCopy.flatMap(([pattern, name]) => (copy.match(new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`)) || []).map((m) => `${name}: "${m}"`));
+        none(hits, "banned copy");
+        none(copy.match(/.{0,30}(guarantee|coming soon).{0,30}/gi) || [], '"guarantee" or "coming soon"');
+      });
+    }
   }
-  await check("/: no link to a retired page", async () => {
-    none(homeLinks.filter((link) => link.href && link.href.startsWith("/") && retiredPagePaths.some((p) => p.test(link.href.split(/[?#]/)[0]))).map((link) => `"${link.text}" -> ${link.href}`), "/: links to retired pages");
+
+  await check("/: hero (chip, h1, lede, two actions), the shelf from tools.js, the featured tool, the story; panels 01 / 03 to 03 / 03", async () => {
+    await visit("/", { settle: 300 });
+    const home = await page.evaluate(() => {
+      const t = (el) => (el?.textContent || "").replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
+      const hero = document.querySelector("main .mx-hero");
+      const shelf = document.querySelector('nav.mx-shelf[aria-label="Everything on the shelf"]');
+      const featured = document.querySelector("main #featured");
+      return {
+        counts: [...document.querySelectorAll("main .mx-panel-head .mx-count")].map(t),
+        descs: [...document.querySelectorAll("main .mx-panel-head .mx-desc")].map(t),
+        chip: t(hero?.querySelector(".mx-chip")),
+        lede: t(hero?.querySelector(".mx-lede")),
+        actions: [...(hero?.querySelectorAll(".mx-hero-copy .mx-actions a") || [])].map((a) => ({ text: t(a), href: a.getAttribute("href") })),
+        meta: Boolean(hero?.querySelector(".mx-hero-copy .mx-meta")),
+        caption: t(hero?.querySelector(".mx-portrait figcaption")),
+        shelf: shelf ? {
+          groups: shelf.querySelectorAll(".mx-shelf-group").length,
+          ticker: t(shelf.querySelector(".mx-ticker")),
+          note: t(shelf.querySelector(".mx-shelf-note")),
+          items: [...shelf.querySelectorAll("a.mx-shelf-item")].map((a) => ({ href: a.getAttribute("href"), name: t(a.querySelector(".mx-shelf-name")), meta: t(a.querySelector(".mx-shelf-meta")), price: t(a.querySelector(".mx-shelf-price")) })),
+          cap: t(shelf.querySelector(".mx-shelf-cap")),
+        } : null,
+        featured: featured ? {
+          heading: t(featured.querySelector("h2")),
+          text: t(featured),
+          img: featured.querySelector("img")?.getAttribute("src"),
+          links: [...featured.querySelectorAll("a")].map((a) => ({ text: t(a), href: a.getAttribute("href") })),
+        } : null,
+        story: t(document.querySelector("main #murad h2")),
+      };
+    });
+    assert.deepEqual(home.counts, ["01 / 03", "02 / 03", "03 / 03"]);
+    assert.deepEqual(home.descs, ["Storefront / Tools", "Featured tool", "The person behind the files"]);
+    assert.equal(home.chip, "Practical AI tools");
+    assert.equal(home.lede, "Practical AI tools and setup kits, from a business owner who builds with AI.");
+    assert.deepEqual(home.actions, [{ text: "See the Muse Control Kit", href: KIT }, { text: "All tools", href: "/tools" }]);
+    assert.equal(home.meta, false, "no $0 meta line");
+    assert.equal(home.caption, "I'm Murad. I started with inventory software. Now I share the tools and habits behind the builds.");
+    assert(home.shelf, "the shelf nav");
+    assert.equal(home.shelf.groups, 1, "one shelf group");
+    assert.equal(home.shelf.ticker, `Tools${String(tools.length).padStart(2, "0")} ${tools.length === 1 ? "tool" : "tools"}`);
+    assert.equal(home.shelf.note, "Start with the Muse Control Kit.");
+    assert.deepEqual(home.shelf.items, tools.map((tool) => ({ href: tool.href, name: tool.name, meta: tool.audience, price: `${tool.price} ${tool.billing.toLowerCase()}` })));
+    assert.equal(home.shelf.cap, "Digital downloads you set up yourself. Not a hosted AI service.");
+    assert(home.featured, "the featured tool panel");
+    assert.equal(home.featured.heading, featuredTool.name);
+    assert.equal(home.featured.img, featuredTool.image);
+    for (const part of [featuredTool.audience, featuredTool.summary, featuredTool.price, featuredTool.billing]) assert(home.featured.text.includes(part), `featured panel shows "${part}"`);
+    assert.deepEqual(home.featured.links, [{ text: featuredTool.cta, href: KIT }], "the featured panel links to the kit page only, not to checkout");
+    assert.equal(home.story, "I started with a store. Then I started building.");
   });
 
-  // ---------- unknown paths render the sales page client-side ----------
+  await check("/tools: one card per tool in tools.js, each one link (one tab stop) to its page", async () => {
+    await visit("/tools", { settle: 300 });
+    const cards = await page.evaluate(() => [...document.querySelectorAll("main .mx-toolgrid > li")].map((li) => ({
+      links: [...li.querySelectorAll("a, button, [tabindex]")].map((a) => a.getAttribute("href")),
+      text: li.textContent.replace(/\s+/g, " ").trim(),
+      img: li.querySelector("img")?.getAttribute("src"),
+    })));
+    assert.equal(cards.length, tools.length);
+    tools.forEach((tool, index) => {
+      assert.deepEqual(cards[index].links, [tool.href], `${tool.slug}: one link`);
+      for (const part of [tool.name, tool.audience, tool.summary, tool.price, tool.billing, tool.cta]) assert(cards[index].text.includes(part), `${tool.slug} card shows "${part}"`);
+      assert.equal(cards[index].img, tool.image);
+    });
+    // Label in name (WCAG 2.5.3): the link's name holds the tool name, the price and the visible go-label; the name is a heading.
+    const named = await page.evaluate(() => [...document.querySelectorAll("main .mx-toolcard")].map((a) => ({
+      ids: (a.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean).map((id) => document.getElementById(id)?.textContent.replace(/\s+/g, " ").trim()),
+      heading: a.querySelector("h2")?.textContent.trim(),
+    })));
+    tools.forEach((tool, index) => {
+      assert.deepEqual(named[index].ids, [tool.name, `${tool.billing}${tool.price}`, tool.cta], `${tool.slug}: the link is named by its name, price and "${tool.cta}"`);
+      assert.equal(named[index].heading, tool.name, `${tool.slug}: the tool name is an h2`);
+    });
+    const snapshot = await page.locator("main .mx-toolgrid").ariaSnapshot();
+    assert(snapshot.includes(`link "${tools[0].name} ${tools[0].billing} ${tools[0].price} ${tools[0].cta}"`), `accessible name in ${snapshot}`);
+  });
+
+  await check("/about: main's About page with the tools CTA, YouTube and Instagram only, panels 01 / 02 and 02 / 02", async () => {
+    await visit("/about", { settle: 300 });
+    const about = await page.evaluate(() => ({
+      counts: [...document.querySelectorAll("main .mx-panel-head .mx-count")].map((el) => el.textContent.trim()),
+      cta: [...document.querySelectorAll("main .mx-about-copy .mx-actions a")].map((a) => ({ text: a.textContent.replace(/[’‘]/g, "'").trim(), href: a.getAttribute("href") })),
+      elsewhere: [...document.querySelectorAll("main .mx-about-links a")].map((a) => a.querySelector(".mx-about-link-name")?.textContent.trim()),
+      text: document.querySelector("main").innerText.replace(/[’‘]/g, "'"),
+    }));
+    assert.deepEqual(about.counts, ["01 / 02", "02 / 02"]);
+    assert.deepEqual(about.cta, [{ text: "See what I've packaged", href: "/tools" }]);
+    assert.deepEqual(about.elsewhere, ["YouTube", "Instagram"]);
+    assert(about.text.includes("The tools here are setups you can adapt."));
+    assert(about.text.includes("60-day streaming challenge"), "his 60-day challenge history stays");
+  });
+
+  await check("/terms and /privacy: the back link goes to /tools", async () => {
+    for (const route of ["/terms", "/privacy"]) {
+      await visit(route);
+      const back = await page.locator("main .mx-legal-end a", { hasText: "Back to the tools" }).getAttribute("href");
+      assert.equal(back, "/tools", route);
+    }
+  });
+
+  await check("site header at 390: the menu opens, Escape closes it and returns focus to the toggle; Tab goes from the toggle into the menu", async () => {
+    await visit("/");
+    const toggle = page.locator("button.mx-nav-toggle");
+    const nav = page.locator("#public-navigation-links");
+    assert.equal(await nav.isVisible(), false, "menu closed on load");
+    await toggle.click();
+    assert.equal(await toggle.getAttribute("aria-label"), "Close navigation");
+    assert.equal(await toggle.getAttribute("aria-expanded"), "true");
+    assert.equal(await nav.isVisible(), true, "menu open");
+    await toggle.focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent.trim()), "Tools", "Tab from the toggle reaches the first menu link");
+    await page.keyboard.press("Escape");
+    assert.equal(await nav.isVisible(), false, "Escape closes the menu");
+    assert.equal(await page.evaluate(() => document.activeElement?.classList.contains("mx-nav-toggle")), true, "focus returns to the toggle");
+    assert.equal(await toggle.getAttribute("aria-label"), "Open navigation");
+  });
+
+  await check("site header at 1440: the two links show inline beside the logo, no toggle, nothing else on the right", async () => {
+    await setViewport({ width: 1440, height: 900 });
+    await visit("/");
+    const layout = await page.evaluate(() => {
+      const header = document.querySelector("header.mx-header");
+      const brand = header.querySelector(".mx-brand").getBoundingClientRect();
+      const links = [...header.querySelectorAll("#public-navigation-links a")].map((a) => a.getBoundingClientRect());
+      const container = header.querySelector(".mx-header-in").getBoundingClientRect();
+      return { toggle: getComputedStyle(header.querySelector(".mx-nav-toggle")).display, brandLeft: brand.left - container.left, lastRight: container.right - links.at(-1).right, visible: links.every((b) => b.width > 0) };
+    });
+    await setViewport(phone);
+    assert.equal(layout.toggle, "none");
+    assert(layout.visible, "nav links visible");
+    assert(Math.abs(layout.brandLeft) <= 1, "logo flush with the container's left edge");
+    assert(layout.lastRight >= -1 && layout.lastRight <= 24, `last nav link ends near the container's right edge (${layout.lastRight}px)`);
+  });
+
+  // ---------- paths without a page of their own ----------
   for (const route of ["/kit", "/store/memory-os", "/nope"]) {
-    await check(`${route}: renders the sales page client-side`, async () => {
+    await check(`${route}: renders the home page client-side`, async () => {
       const m = mark();
       await visit(route, { settle: 500 });
       assert.equal(new URL(page.url()).pathname, route, "no client-side redirect");
       const h1s = await page.evaluate(() => [...document.querySelectorAll("h1")].map((h) => h.textContent.replace(/\s+/g, " ").trim()));
-      assert.deepEqual(h1s, [salesH1]);
-      assert.equal(await page.locator("#price [data-checkout-link]").count(), 1);
-      assert.equal(await page.locator(".app-shell, .overlay-route, .admin-gate-shell").count(), 0);
+      assert.deepEqual(h1s, [homeH1]);
+      assert.equal(await page.locator(".app-shell, .overlay-route, .admin-gate-shell, .sp").count(), 0);
       assert.equal(await page.title(), publicPageMetadata["/"].title);
       assert.equal(await page.getAttribute('link[rel="canonical"]', "href"), "https://aiwithmurda.com/");
       const { requests: pageRequests, consoleErrors: errors, pageErrors: crashes } = since(m);
       none(pageRequests.filter((r) => r.path.startsWith("/api/") || !r.sameOrigin).map((r) => r.url), `${route}: /api/ or cross-origin requests`);
       none(errors.map((e) => e.text), `${route}: console errors`);
       none(crashes.map((e) => e.message), `${route}: page errors`);
+    });
+  }
+  // The server 301s these to /tools/musekit (smoke-retired-routes.mjs); the app also reads them case-insensitively.
+  for (const route of ["/tools/Musekit", "/TOOLS/MUSEKIT/"]) {
+    await check(`${route}: the app renders the kit page (paths are read in lower case)`, async () => {
+      await visit(route, { settle: 300 });
+      assert.equal(norm(await page.locator("h1").first().textContent()), salesH1);
+      assert.equal(await page.locator(".public-site--kit .sp-header [data-checkout-link]").count(), 1);
+      assert.equal(await page.getAttribute('link[rel="canonical"]', "href"), `https://aiwithmurda.com${KIT}`);
     });
   }
 
@@ -596,8 +810,11 @@ try {
       assert(since(m).requests.some((request) => request.path === "/api/daily-logs"), `${route}: broadcast data still loads`);
     });
   }
-  await check("/: signed-in owner still gets the sales page, not the workspace", async () => {
+  await check("/ and /tools/musekit: a signed-in owner still gets the public pages, not the workspace", async () => {
     await visit("/");
+    assert.equal(await page.locator(".app-shell, .overlay-route").count(), 0);
+    assert.equal(norm(await page.locator("h1").first().textContent()), homeH1);
+    await visit(KIT);
     assert.equal(await page.locator(".app-shell, .overlay-route").count(), 0);
     assert.equal(norm(await page.locator("h1").first().textContent()), salesH1);
   });
@@ -622,5 +839,5 @@ if (failed.length) {
   console.log(`FAIL: ${failed.length} of ${results.length} sales page checks failed. Report: ${path.join(output, "report.json")}`);
   process.exitCode = 1;
 } else {
-  console.log(`PASS: Sales page, Terms, Privacy, admin and overlay contracts (${results.length} checks, ${viewports.length} viewports). Report: ${path.join(output, "report.json")}`);
+  console.log(`PASS: Home, /tools, /about, kit sales page, Terms, Privacy, admin and overlay contracts (${results.length} checks, ${viewports.length} viewports). Report: ${path.join(output, "report.json")}`);
 }

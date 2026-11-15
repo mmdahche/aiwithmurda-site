@@ -15,10 +15,14 @@ Stripe (Backbone account, read-only restricted key) showed one paid checkout eve
 
 ## What the public site is now
 
-- `/` is the sales page (`src/pages/SalesPage.jsx`, `src/site/sales.css`), in the brief's order: headline, 16:9 video spot and buy button; problem; who it's for and not for; what you get; how it works; which setup (Murad's wording, word for word); story; price; refunds; questions; footer. No proof section until there are real results.
-- `/terms` and `/privacy` stay. Every other old path (products, shop, free downloads, member area, about, 60-day sprint pages, `/downloads/*`) answers with a 301 to `/` (`retiredPagePaths` in `server/index.mjs`). The TikTok verification files under `/60/`, `/terms/`, `/privacy/` are still served. `/terms`, `/privacy` and `/admin` are served directly (200, no trailing-slash redirect). The retired free downloads stay in `public/downloads` but `scripts/postbuild.mjs` removes them from `dist`, so they are not deployed.
-- All copy, the price, the checkout link and every placeholder live in `src/data/museKit.js`. Setting `checkoutUrl` and `salesVideoYouTubeId` there finishes those two placeholders.
-- The look keeps the reel brand (navy, Anton, Geist) but plainer: one reading column, hairlines, and one strong colour used only for the buy button.
+Same day, Murad changed course: he likes the live look and sees the kit as the first of many products, so the site was NOT reshaped around it.
+
+- `/` is the live home page again (`src/pages/StorefrontHome.jsx`, live look from the Nov 13 redesign) with the old products removed: hero (photo, "Download it. Make it yours."), a one-group Tools shelf, a Featured tool panel for the kit, and Murad's story section.
+- `/tools` lists every tool (`src/pages/ToolsPage.jsx`). Tools come from `src/data/tools.js`; adding a product = one object there plus its page. The first entry is featured on the home page.
+- `/tools/musekit` is the kit sales page (`src/pages/SalesPage.jsx`, `src/site/sales.css`), Instagram bio link. It keeps a focused header (logo and buy button, no menu) per Noor's brief. Case variants and aliases (`/tools/Musekit`, `/tools/muse-kit`, `/tools/muse`, `/musekit`, `/muse-kit`) 301 to it, keeping the query string.
+- `/about` (live About page, product leftovers removed), `/terms`, `/privacy` stay. Header nav: Tools, About Murad. Free Starter Pack and My Downloads are gone.
+- Retired paths: `/store` and `/store/*` 301 to `/tools`; other old product, free, member, 60-day and `/downloads` paths 301 to `/` (`server/index.mjs`). Prerendered pages are served from a fixed map at the plain path. The TikTok verification files under `/60/` are still served; retired free downloads stay in `public/downloads` but are not deployed.
+- All kit copy, the price, the checkout link and its placeholders live in `src/data/museKit.js`. Share images: `public/og-card.png` (site), `public/og-muse-kit.png` (kit), set per page by postbuild.
 
 ## Copy rules (Murad's, they outrank design)
 

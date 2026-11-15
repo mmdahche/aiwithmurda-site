@@ -62,7 +62,10 @@ import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
 import { LegalPage } from "./pages/LegalPage.jsx";
 import { SalesPage } from "./pages/SalesPage.jsx";
-import { SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
+import { StorefrontHome } from "./pages/StorefrontHome.jsx";
+import { ToolsPage as ToolsCatalogPage } from "./pages/ToolsPage.jsx";
+import { AboutMurad } from "./pages/AboutPage.jsx";
+import { KitFooter, KitHeader, SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
 import { metadataForPath } from "./data/siteMetadata.js";
@@ -849,8 +852,9 @@ function buildLaunchReadiness(items) {
   };
 }
 
+// Lower-case, no trailing slash: /tools/Musekit/ and /tools/musekit are the same page.
 function getRoute() {
-  const normalized = window.location.pathname.replace(/\/+$/, "");
+  const normalized = window.location.pathname.toLowerCase().replace(/\/+$/, "");
   return normalized || "/";
 }
 
@@ -1756,6 +1760,8 @@ function AdminGate({ authSession, authReady, children }) {
   );
 }
 
+const sitePages = new Set(["/", "/tools", "/about", "/terms", "/privacy"]);
+
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus, liveFollowers }) {
   useEffect(() => {
     const meta = metadataForPath(route);
@@ -1765,16 +1771,31 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) document.querySelector(selector)?.setAttribute("content", meta.title);
     for (const selector of ['meta[property="og:description"]', 'meta[name="twitter:description"]']) document.querySelector(selector)?.setAttribute("content", meta.description);
     document.querySelector('meta[property="og:url"]')?.setAttribute("content", `https://aiwithmurda.com${meta.path}`);
+    for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) document.querySelector(selector)?.setAttribute("content", `https://aiwithmurda.com${meta.image}`);
+    document.querySelector('meta[property="og:image:alt"]')?.setAttribute("content", meta.imageAlt);
     let robots = document.querySelector('meta[name="robots"]');
     if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
     robots.content = meta.noindex ? "noindex, nofollow" : "index, follow";
   }, [route]);
-  const page = route === "/terms" || route === "/privacy" ? route : "/";
+  // The Muse Control Kit sales page keeps its focused header and footer (Noor's brief: no menu of other
+  // products). Every other public page uses the site header and footer. Unknown paths show the home page.
+  if (route === "/tools/musekit") {
+    return (
+      <div className="public-site storefront-shell public-site--kit">
+        <KitHeader />
+        <SalesPage />
+        <KitFooter />
+      </div>
+    );
+  }
+  const page = sitePages.has(route) ? route : "/";
 
   return (
     <div className="public-site storefront-shell">
-      <SiteHeader />
-      {page === "/" && <SalesPage />}
+      <SiteHeader activeRoute={page} />
+      {page === "/" && <StorefrontHome />}
+      {page === "/tools" && <ToolsCatalogPage />}
+      {page === "/about" && <AboutMurad />}
       {page === "/terms" && <LegalPage type="terms" />}
       {page === "/privacy" && <LegalPage type="privacy" />}
       <SiteFooter />

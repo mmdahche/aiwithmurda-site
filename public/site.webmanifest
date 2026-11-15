@@ -1,7 +1,7 @@
 {
   "name": "AI with Murda",
   "short_name": "AIWM",
-  "description": "Facebook Marketplace Muse Control Kit: a setup kit for Meta's Muse assistant.",
+  "description": "Practical AI tools and setup kits from Murad, a business owner who builds with AI. Start with the Muse Control Kit for Facebook Marketplace sellers.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#040923",

@@ -162,7 +162,7 @@ export function LegalPage({ type }) {
           {isPrivacy
             ? <a className="mx-link" href="/terms">Read the Terms of Service <ArrowRight className="mx-i" aria-hidden="true" /></a>
             : <a className="mx-link" href="/privacy">Read the Privacy Policy <ArrowRight className="mx-i" aria-hidden="true" /></a>}
-          <a className="mx-link" href="/">Back to the kit <ArrowRight className="mx-i" aria-hidden="true" /></a>
+          <a className="mx-link" href="/tools">Back to the tools <ArrowRight className="mx-i" aria-hidden="true" /></a>
         </footer>
       </article>
     </main>

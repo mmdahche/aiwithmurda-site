@@ -1,11 +1,31 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { footerNotes } from "../data/museKit.js";
+import { tools } from "../data/tools.js";
 import { BuyButton } from "../pages/SalesPage.jsx";
 
 /*
-  Header and footer for the public site (the sales page, Terms and Privacy).
-  One product, one decision: the header holds the logo and the buy button only, no menu.
+  Headers and footers for the public site.
+
+  SiteHeader / SiteFooter: every site page (home, /tools, /about, /terms, /privacy), in the live look.
+  Names that tests and assistive tech rely on, keep them as written:
+  the "Open navigation" / "Close navigation" toggle label, the
+  "Public navigation" landmark with id "public-navigation-links", and the
+  "Tools" and "About Murad" links inside it.
+
+  KitHeader / KitFooter: the Muse Control Kit sales page (/tools/musekit) only. One product, one
+  decision: the logo and the buy button, no menu (Noor's brief). To give the kit page the full site
+  header instead, render <SiteHeader activeRoute="/tools/musekit" /> there in src/App.jsx.
 */
+
+const navLinks = [
+  { href: "/tools", label: "Tools" },
+  { href: "/about", label: "About Murad" },
+];
+
+function isActive(link, activeRoute = "") {
+  return activeRoute === link.href || activeRoute.startsWith(`${link.href}/`);
+}
 
 export function Brand() {
   return (
@@ -16,7 +36,128 @@ export function Brand() {
   );
 }
 
-export function SiteHeader() {
+function InstagramIcon() {
+  return (
+    <svg className="mx-i" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M17.5 6.5h.01" />
+    </svg>
+  );
+}
+
+function YouTubeIcon() {
+  return (
+    <svg className="mx-i" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2.5" y="5" width="19" height="14" rx="4" />
+      <path d="m10 9 5 3-5 3z" />
+    </svg>
+  );
+}
+
+export function SiteHeader({ activeRoute }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const toggleRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      toggleRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
+
+  return (
+    <>
+      <a className="mx-skip" href="#main-content">Skip to content</a>
+      <header className="mx mx-header">
+        <div className="mx-container mx-header-in">
+          <Brand />
+          {/* The toggle comes before the menu it opens, so Tab goes from the toggle straight into the open menu.
+              site.css keeps it last on screen with flex `order`. */}
+          <button
+            ref={toggleRef}
+            type="button"
+            className="mx-nav-toggle"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={menuOpen}
+            aria-controls="public-navigation-links"
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            <Menu className="mx-i mx-i--open" aria-hidden="true" />
+            <X className="mx-i mx-i--close" aria-hidden="true" />
+          </button>
+          <nav
+            id="public-navigation-links"
+            className={`mx-nav${menuOpen ? " is-open" : ""}`}
+            aria-label="Public navigation"
+          >
+            {navLinks.map((link) => (
+              <a key={link.href} href={link.href} aria-current={isActive(link, activeRoute) ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </header>
+    </>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <footer className="mx mx-footer">
+      <div className="mx-container">
+        <div className="mx-footer-in">
+          <div className="mx-footer-brand">
+            <Brand />
+            <p>Practical AI tools and setup kits. Download it. Make it yours.</p>
+            <p className="mx-built"><span>Built by the founder of&nbsp;<a href="https://backbonesolutions.ai">Backbone Solutions</a></span></p>
+          </div>
+          <nav className="mx-footer-cols" aria-label="Footer">
+            <div>
+              <p className="mx-foot-h" id="footer-tools">Tools</p>
+              <ul aria-labelledby="footer-tools">
+                <li><a href="/tools">All tools</a></li>
+                {tools.map((tool) => <li key={tool.slug}><a href={tool.href}>{tool.shortName}</a></li>)}
+              </ul>
+            </div>
+            <div>
+              <p className="mx-foot-h" id="footer-murad">Murad</p>
+              <ul aria-labelledby="footer-murad">
+                <li><a href="/about">Meet Murad</a></li>
+                <li><a href="mailto:murad@aiwithmurda.com">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="mx-foot-h" id="footer-follow">Follow</p>
+              <ul aria-labelledby="footer-follow">
+                <li><a href="https://www.instagram.com/aiwithmurda/"><InstagramIcon />@aiwithmurda</a></li>
+                <li><a href="https://www.youtube.com/channel/UC9iGjtlA3R4vopdNLTGbnuw"><YouTubeIcon />YouTube</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="mx-foot-h" id="footer-fine-print">Fine print</p>
+              <ul aria-labelledby="footer-fine-print">
+                <li><a href="/terms">Terms</a></li>
+                <li><a href="/privacy">Privacy</a></li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+        <div className="mx-footer-base">
+          <span>&copy; 2026 AI with Murda</span>
+          <span>Downloads and written guides, not a hosted AI service.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function KitHeader() {
   return (
     <>
       <a className="mx-skip" href="#main-content">Skip to content</a>
@@ -30,7 +171,7 @@ export function SiteHeader() {
   );
 }
 
-export function SiteFooter() {
+export function KitFooter() {
   return (
     <footer className="mx sp-footer">
       <div className="mx-container sp-footer-in">
