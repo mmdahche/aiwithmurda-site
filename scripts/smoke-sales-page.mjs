@@ -33,7 +33,7 @@ const viewports = [
   { width: 1920, height: 1080 },
 ];
 const phone = { width: 390, height: 844 };
-const salesH1 = "Muse writes the listing. You say yes.";
+const salesH1 = "This kit makes it a few photos and a yes.";
 const homeH1 = "Download it. Make it yours.";
 const KIT = "/tools/musekit";
 // Site pages: the live look, with the site header (Tools, About Murad) and the site footer.
@@ -68,6 +68,10 @@ const bannedCopy = [
   [/fully[-\s]?automated/i, '"fully automated"'],
   [/draft[-\s]?only/i, '"draft-only"'],
   [/you hit send yourself/i, '"you hit send yourself"'],
+  [/hands[-\s]?free/i, '"hands-free"'],
+  [/on autopilot/i, '"on autopilot"'],
+  [/set it and forget it/i, '"set it and forget it"'],
+  [/(won['’]t|never|don['’]t|not) (know|tell|notice|realize|realise|see)[^.]{0,40}\b(AI|bot|Muse)\b/i, "hints buyers won't know it's AI"],
   [/most popular/i, '"Most Popular"'],
   [/\blimited\b/i, '"limited"'],
   [/count\s?down/i, "countdown"],
@@ -293,7 +297,7 @@ try {
       assert.equal(checkoutIsPlaceholder, true);
       assert.match(checkoutHref, /placeholder/i);
     }
-    assert.equal(kitPieces.length, 4);
+    assert.equal(kitPieces.length, 5);
   });
 
   // ---------- layouts ----------

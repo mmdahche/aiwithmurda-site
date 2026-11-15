@@ -5,9 +5,11 @@
   so the sales page can be finished by editing this file only.
 
   Copy rules (from Murad's brief): no income or sales promises; never "guaranteed",
-  "proven", "battle-tested", "verified", "fully automated", "draft-only" or "you hit
-  send yourself"; no countdowns, scarcity, "Most Popular", value totals or bonuses;
-  no em dashes; short plain sentences; no facts about Murad that he did not write.
+  "proven", "battle-tested", "verified", "fully automated", "hands-free", "on autopilot",
+  "set it and forget it", "draft-only" or "you hit send yourself"; never say or hint that
+  buyers won't know it's AI; no countdowns, scarcity, "Most Popular", value totals or
+  bonuses; no em dashes; short plain sentences; no facts about Murad that he did not write.
+  Only the Automatic setup answers buyers by itself; never write that Ask me first does.
 
   Plain ESM only: scripts/postbuild.mjs imports this through siteMetadata.js.
 */
@@ -28,6 +30,12 @@ export const museKit = {
   salesVideoYouTubeId: null,
 };
 
+// The message (Noor's brief, Nov 15), word for word. Lead with posting, then name the automation.
+export const headline = "This kit makes it a few photos and a yes.";
+export const painLine = "Posting is the hard part of selling on Marketplace.";
+export const automationText = "It automates the busywork. On the automatic setup, once Muse knows an item, it answers the questions buyers ask most by itself. Offers and pickup times come to you ready to answer.";
+export const sellerKeeps = ["Every listing", "Every agreed price", "Every pickup time"];
+
 export const checkoutHref = museKit.checkoutUrl || "#placeholder-checkout-link";
 export const checkoutIsPlaceholder = !museKit.checkoutUrl;
 
@@ -46,8 +54,8 @@ export const setups = [
 ];
 
 // Section 4. PLACEHOLDER: Murad confirms the exact list and adds one line on each piece.
-// The four names come from his brief; nothing else about them is assumed.
-export const kitPieces = ["The setup prompt", "The setup steps", "The buyer reply guide", "The stop and safety sheet"];
+// The five names come from his brief (Nov 15 update); nothing else about them is assumed.
+export const kitPieces = ["The two setup prompts", "The \"Which setup is for you\" guide", "The setup steps", "The buyer reply guide", "The stop and safety sheet"];
 
 // Section 11. `check: true` marks an answer Murad should confirm before launch.
 export const faq = [

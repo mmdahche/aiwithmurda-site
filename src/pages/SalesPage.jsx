@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Check, Minus, Plus, Play, X } from "lucide-react";
-import { checkoutHref, checkoutIsPlaceholder, faq, kitPieces, museKit, setups } from "../data/museKit.js";
+import { automationText, checkoutHref, checkoutIsPlaceholder, faq, headline, kitPieces, museKit, painLine, sellerKeeps, setups } from "../data/museKit.js";
 
 /*
   The one sales page (Murad's brief, Nov 15). Sections in the brief's order:
@@ -80,11 +80,10 @@ export function SalesPage() {
       {/* 1. Above the fold: the result, the video, the button. */}
       <section className="sp-hero" aria-labelledby="sp-title">
         <div className="sp-col">
-          <p className="sp-kicker">For Facebook Marketplace sellers</p>
-          <h1 className="mx-display sp-h1" id="sp-title">Muse writes the listing. <span>You say yes.</span></h1>
-          <p className="sp-lede">
-            A setup kit for Meta's Muse assistant. Send Muse photos of an item, answer its questions, and approve the listing it writes.
-          </p>
+          <p className="sp-kicker">A Muse setup kit for Facebook Marketplace sellers</p>
+          {/* Noor's brief, Nov 15: the headline is exact, do not reword it. The pain line goes right under it. */}
+          <h1 className="mx-display sp-h1" id="sp-title">{headline}</h1>
+          <p className="sp-lede">{painLine}</p>
           <SalesVideo />
           <div className="sp-buy-row">
             <BuyButton />
@@ -99,6 +98,19 @@ export function SalesPage() {
         <p className="sp-text">
           Every item needs a write-up and a price. Then the same buyer questions come in, again and again. It all takes time, so items sit unposted.
         </p>
+        {/* The automation, named, with what stays with the seller right next to it. Only the Automatic setup answers buyers by itself. */}
+        <div className="sp-split">
+          <div className="sp-split-part">
+            <h3 className="sp-h3">What it automates</h3>
+            <p>{automationText}</p>
+          </div>
+          <div className="sp-split-part">
+            <h3 className="sp-h3">What stays with you</h3>
+            <ul className="sp-keep">
+              {sellerKeeps.map((item) => <li key={item}><Check className="mx-i" aria-hidden="true" /><span>{item}</span></li>)}
+            </ul>
+          </div>
+        </div>
       </Section>
 
       {/* 3. Who it's for, and who it's not for. */}
@@ -127,7 +139,7 @@ export function SalesPage() {
           />
         </figure>
         <Placeholder title="Confirm this list">
-          Check the four pieces below and add one short line on what each one does.
+          Check the five pieces below and add one short line on what each one does.
         </Placeholder>
         <ol className="sp-pieces">
           {kitPieces.map((piece) => <li key={piece}>{piece}</li>)}

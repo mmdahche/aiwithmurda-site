@@ -19,7 +19,7 @@ export const publicPageMetadata = {
   },
   "/tools/musekit": {
     title: `${museKit.name} | AI with Murda`,
-    description: `A setup kit for Meta's Muse assistant, for Facebook Marketplace sellers. Muse writes your listings and replies, and you approve listings, prices and pickup times. ${museKit.price}, one time.`,
+    description: `This kit makes it a few photos and a yes. A setup kit for Meta's Muse assistant, for Facebook Marketplace sellers. Muse writes the listing, and you approve listings, prices and pickup times. ${museKit.price}, one time.`,
     ...kitShareImage,
   },
   "/about": {

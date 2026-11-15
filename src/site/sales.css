@@ -18,7 +18,7 @@
 
 /* Headings and text */
 .sp-kicker { font: 500 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sp-muted); }
-.sp-h1 { margin-top: var(--sp-3); font-size: clamp(2.75rem, 12.5vw, 5rem); line-height: 1; }
+.sp-h1 { margin-top: var(--sp-3); font-size: clamp(2.5rem, 11vw, 5rem); line-height: 1; text-wrap: balance; }
 .sp-h1 span { display: block; }
 .sp-h2 { font-size: clamp(2rem, 8.5vw, 3rem); line-height: 1.02; }
 .sp-h3 { font: 650 1.125rem/1.3 var(--font-sans); letter-spacing: -.01em; color: var(--white); }
@@ -53,6 +53,18 @@
 .sp-placeholder-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--sp-muted); }
 .sp-placeholder-inline { padding: .5rem .75rem; border: 1.5px dashed rgba(255, 255, 255, .28); border-radius: var(--r-sm);
   font: 500 .8125rem/1.45 var(--font-mono); color: var(--sp-muted); text-align: left; }
+
+/* 2. The automation and what stays with the seller, side by side from tablet up. */
+.sp-split { display: grid; gap: var(--sp-6); margin-top: var(--sp-8); }
+.sp-split-part .sp-h3 { margin-top: 0; }
+.sp-split-part p { margin-top: var(--sp-3); font-size: 1.0625rem; line-height: 1.6; color: var(--sp-quiet); }
+.sp-keep { display: grid; gap: var(--sp-3); margin-top: var(--sp-4); }
+.sp-keep li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .75rem; align-items: start; font-size: 1.0625rem; line-height: 1.5; color: var(--white); }
+.sp-keep .mx-i { width: 1.25rem; height: 1.25rem; margin-top: .2rem; color: var(--white); stroke-width: 2.25; }
+@media (min-width: 40rem) {
+  .sp-split { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--sp-8); }
+  .sp-split-part + .sp-split-part { padding-left: var(--sp-6); border-left: 1px solid var(--sp-line); }
+}
 
 /* 3. Who it's for */
 .sp-list { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
