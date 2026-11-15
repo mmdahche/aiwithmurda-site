@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Check, Minus, Plus, Play, X } from "lucide-react";
-import { automationText, checkoutHref, checkoutIsPlaceholder, faq, headline, kitPieces, museKit, painLine, sellerKeeps, setups } from "../data/museKit.js";
+import { automationText, checkoutHref, checkoutIsPlaceholder, faq, headlinePhrases, kitPieces, museKit, painLine, sellerKeeps, setups } from "../data/museKit.js";
 
 /*
   The one sales page (Murad's brief, Nov 15). Sections in the brief's order:
@@ -82,7 +82,9 @@ export function SalesPage() {
         <div className="sp-col">
           <p className="sp-kicker">A Muse setup kit for Facebook Marketplace sellers</p>
           {/* Noor's brief, Nov 15: the headline is exact, do not reword it. The pain line goes right under it. */}
-          <h1 className="mx-display sp-h1" id="sp-title">{headline}</h1>
+          <h1 className="mx-display sp-h1" id="sp-title">
+            {headlinePhrases.map((phrase, index) => <React.Fragment key={phrase}>{index > 0 && " "}<span className="sp-h1-phrase">{phrase}</span></React.Fragment>)}
+          </h1>
           <p className="sp-lede">{painLine}</p>
           <SalesVideo />
           <div className="sp-buy-row">

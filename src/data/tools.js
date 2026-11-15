@@ -14,7 +14,7 @@ export const tools = [
     name: museKit.name,
     shortName: museKit.shortName,
     audience: "For Facebook Marketplace sellers",
-    summary: "A setup kit for Meta's Muse assistant. Muse writes your listings and replies, and you approve listings, prices and pickup times.",
+    summary: "This kit makes it a few photos and a yes. A setup kit for Meta's Muse assistant. Muse writes the listing, and you approve listings, prices and pickup times.",
     price: museKit.price,
     billing: museKit.billing,
     cta: "See the kit", // the link label on the /tools card and the home featured panel

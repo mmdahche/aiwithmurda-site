@@ -31,7 +31,9 @@ export const museKit = {
 };
 
 // The message (Noor's brief, Nov 15), word for word. Lead with posting, then name the automation.
-export const headline = "This kit makes it a few photos and a yes.";
+// Rendered phrase by phrase so a line never breaks inside "a few photos" or "and a yes.".
+export const headlinePhrases = ["This kit makes it", "a few photos", "and a yes."];
+export const headline = headlinePhrases.join(" ");
 export const painLine = "Posting is the hard part of selling on Marketplace.";
 export const automationText = "It automates the busywork. On the automatic setup, once Muse knows an item, it answers the questions buyers ask most by itself. Offers and pickup times come to you ready to answer.";
 export const sellerKeeps = ["Every listing", "Every agreed price", "Every pickup time"];
@@ -62,12 +64,12 @@ export const faq = [
   {
     q: "Do I need Muse?",
     a: "Yes. The kit is a setup for Meta's Muse assistant, so you need access to Muse.",
-    check: "Confirm where and how a buyer gets Muse, and whether it works on every phone and in every country you sell to.",
+    check: "Confirm where and how a seller gets Muse, and whether it works on every phone and in every country you sell to.",
   },
   {
     q: "Will Muse post or message buyers without my approval?",
     a: "The kit tells Muse to wait for your yes on every listing and price, in both setups. Replies depend on the setup. With Ask me first, Muse drafts every reply for your yes. With Automatic, Muse answers buyers about an item by itself once you've answered its questions about that item. It still waits for your yes on prices, and it asks you which day and time work before it tells a buyer.",
-    check: "Confirm that Muse follows the setup this closely in testing, and whether you want a line telling buyers to watch Muse's first few replies.",
+    check: "Confirm that Muse follows the setup this closely in testing, and whether you want a line telling sellers to watch Muse's first few replies.",
   },
   {
     q: "Which setup should I pick?",
@@ -84,12 +86,12 @@ export const faq = [
   {
     q: "What if Muse looks different on my phone?",
     a: "Muse's screens can differ by phone and country, so yours may not match every step exactly.",
-    check: "Add what a buyer should do if their screens don't match (for example, email you).",
+    check: "Add what a seller should do if their screens don't match (for example, email you).",
   },
   {
     q: "How do I get the kit after I pay?",
     a: null,
-    check: "PLACEHOLDER: how buyers receive the kit through Whop.",
+    check: "PLACEHOLDER: how kit buyers receive the kit through Whop.",
   },
 ];
 
