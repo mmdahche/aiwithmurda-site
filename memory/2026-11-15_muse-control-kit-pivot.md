@@ -26,7 +26,11 @@ Same day, Murad changed course: he likes the live look and sees the kit as the f
 
 ## Copy rules (Murad's, they outrank design)
 
-No income or sales promises; never "guaranteed", "proven", "battle-tested", "verified", "fully automated", "draft-only" or "you hit send yourself". The honest line: Muse writes it, and you approve listings, prices and pickup times. No countdowns, scarcity, "Most Popular", value totals or invented bonuses. No em dashes. Short plain sentences. Never write Murad's story or facts about him; leave a marked placeholder.
+No income or sales promises; never "guaranteed", "proven", "battle-tested", "verified", "fully automated", "hands-free", "on autopilot", "set it and forget it", "draft-only" or "you hit send yourself". Never say or hint that buyers won't know it's AI. The honest line: Muse writes it, and you approve listings, prices and pickup times. No countdowns, scarcity, "Most Popular", value totals or invented bonuses. No em dashes. Short plain sentences. Never write Murad's story or facts about him; leave a marked placeholder.
+
+## The message (Noor's updated brief, Nov 15)
+
+Lead with posting. Headline exactly "This kit makes it a few photos and a yes." (never reworded), with "Posting is the hard part of selling on Marketplace." right under it. Then name the automation word for word ("It automates the busywork. On the automatic setup, once Muse knows an item, it answers the questions buyers ask most by itself. Offers and pickup times come to you ready to answer.") with what stays with the seller beside it: every listing, every agreed price, every pickup time. Only the Automatic setup answers buyers by itself; never write that Ask me first does. What you get has five pieces: the two setup prompts, the "which setup is for you" guide, the setup steps, the buyer reply guide, the stop and safety sheet. The updated brief still says "one product only", but Murad's direct instruction (keep the site, kit at /tools/musekit) governs the site structure.
 
 ## Kept on purpose
 
