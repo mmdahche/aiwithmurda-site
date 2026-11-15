@@ -1,12 +1,13 @@
 import React from "react";
-import { ArrowRight, Check, Minus, Plus, Play, X } from "lucide-react";
+import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
 import { automationText, checkoutHref, checkoutIsPlaceholder, faq, headlinePhrases, kitPieces, museKit, painLine, sellerKeeps, setups } from "../data/museKit.js";
 
 /*
   The one sales page (Murad's brief, Nov 15). Sections in the brief's order:
   1 headline, video, button / 2 problem / 3 who it's for / 4 what you get / 5 how it works /
-  6 which setup / 7 story / 8 proof (left out on purpose until there are real results) /
-  9 price / 10 refunds / 11 questions / 12 footer (in SiteShell).
+  6 which setup / 7 story (shown once museKit.story is set) / 8 proof (left out until there are
+  real results) / 9 price / 10 refunds (shown once museKit.refundTerms is set) / 11 questions /
+  12 footer (in SiteShell). No placeholders on the live page.
   One strong colour: the buy button. Everything else stays neutral.
 */
 
@@ -24,22 +25,8 @@ export function BuyButton({ size = "lg", label = `Get the kit for ${museKit.pric
   );
 }
 
-function Placeholder({ title, children }) {
-  return (
-    <div className="sp-placeholder" role="note">
-      <p className="sp-placeholder-tag">Placeholder</p>
-      <p className="sp-placeholder-title">{title}</p>
-      {children && <p className="sp-placeholder-note">{children}</p>}
-    </div>
-  );
-}
-
-function CheckoutNote() {
-  if (!checkoutIsPlaceholder) return null;
-  return <p className="sp-placeholder-inline">Placeholder: the Whop checkout link goes here.</p>;
-}
-
-function SalesVideo() {
+// The hero's 16:9 spot: the unlisted YouTube video once it exists, the kit image until then.
+function HeroMedia() {
   if (museKit.salesVideoYouTubeId) {
     return (
       <div className="sp-video">
@@ -53,13 +40,20 @@ function SalesVideo() {
       </div>
     );
   }
+  return <KitImage className="sp-video sp-video--image" priority />;
+}
+
+function KitImage({ className = "", priority = false }) {
   return (
-    <div className="sp-video sp-video--placeholder" role="note">
-      <span className="sp-video-play" aria-hidden="true"><Play className="mx-i" /></span>
-      <p className="sp-placeholder-tag">Placeholder</p>
-      <p className="sp-placeholder-title">Sales video</p>
-      <p className="sp-placeholder-note">Swap in the unlisted YouTube video.</p>
-    </div>
+    <figure className={className}>
+      <img
+        src="/images/muse-control-kit.png"
+        alt={`${museKit.name}: a mockup of the kit`}
+        width="1600"
+        height="900"
+        fetchPriority={priority ? "high" : undefined}
+      />
+    </figure>
   );
 }
 
@@ -86,11 +80,10 @@ export function SalesPage() {
             {headlinePhrases.map((phrase, index) => <React.Fragment key={phrase}>{index > 0 && " "}<span className="sp-h1-phrase">{phrase}</span></React.Fragment>)}
           </h1>
           <p className="sp-lede">{painLine}</p>
-          <SalesVideo />
+          <HeroMedia />
           <div className="sp-buy-row">
             <BuyButton />
             <p className="sp-buy-meta">{museKit.price}. {museKit.billing}.</p>
-            <CheckoutNote />
           </div>
         </div>
       </section>
@@ -132,19 +125,17 @@ export function SalesPage() {
 
       {/* 4. What you get. */}
       <Section id="kit" title="What you get">
-        <figure className="sp-product">
-          <img
-            src="/images/muse-control-kit.png"
-            alt={`${museKit.name}: a mockup of the kit`}
-            width="1600"
-            height="900"
-          />
-        </figure>
-        <Placeholder title="Confirm this list">
-          Check the five pieces below and add one short line on what each one does.
-        </Placeholder>
+        {/* The kit image sits in the hero until the video exists; then it moves here. */}
+        {museKit.salesVideoYouTubeId && <KitImage className="sp-product" />}
         <ol className="sp-pieces">
-          {kitPieces.map((piece) => <li key={piece}>{piece}</li>)}
+          {kitPieces.map((piece) => (
+            <li key={piece.name}>
+              <span className="sp-piece">
+                <span className="sp-piece-name">{piece.name}</span>
+                <span className="sp-piece-detail">{piece.detail}</span>
+              </span>
+            </li>
+          ))}
         </ol>
       </Section>
 
@@ -171,10 +162,12 @@ export function SalesPage() {
         </div>
       </Section>
 
-      {/* 7. My story. */}
-      <Section id="story" title="My story">
-        <Placeholder title="Story">The story text goes here.</Placeholder>
-      </Section>
+      {/* 7. My story: only once Murad sends the text (museKit.story). */}
+      {museKit.story && (
+        <Section id="story" title="My story">
+          <p className="sp-text">{museKit.story}</p>
+        </Section>
+      )}
 
       {/* 8. Proof: left out on purpose until there are real results. */}
 
@@ -186,15 +179,16 @@ export function SalesPage() {
             <p className="sp-price-amount"><span className="mx-display">{museKit.price}</span><span className="sp-price-billing">{museKit.billing}</span></p>
             <p className="sp-price-detail">Muse writes the listings. You approve listings, prices and pickup times.</p>
             <BuyButton className="mx-btn--block" />
-            <CheckoutNote />
           </div>
         </div>
       </section>
 
-      {/* 10. Guarantee or refund. */}
-      <Section id="refunds" title="Refunds">
-        <Placeholder title="Refund terms">The refund terms go here.</Placeholder>
-      </Section>
+      {/* 10. Guarantee or refund: only once Murad decides (museKit.refundTerms). */}
+      {museKit.refundTerms && (
+        <Section id="refunds" title="Refunds">
+          <p className="sp-text">{museKit.refundTerms}</p>
+        </Section>
+      )}
 
       {/* 11. Questions and answers, closed by default. */}
       <Section id="faq" title="Questions">
@@ -207,17 +201,13 @@ export function SalesPage() {
                 <Minus className="mx-i sp-faq-close" aria-hidden="true" />
               </summary>
               <div className="sp-faq-a">
-                {item.a && <p>{item.a}</p>}
-                {item.check && (
-                  <p className="sp-placeholder-inline">{item.a ? "Check: " : ""}{item.check}</p>
-                )}
+                <p>{item.a}</p>
               </div>
             </details>
           ))}
         </div>
         <div className="sp-buy-row sp-buy-row--end">
           <BuyButton />
-          <CheckoutNote />
         </div>
       </Section>
     </main>
