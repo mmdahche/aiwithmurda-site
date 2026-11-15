@@ -5799,15 +5799,17 @@ app.get("/api/member-assets/operator-arsenal/:assetKey", requireUser, async (req
 // products, free downloads, member area and 60-day sprint answer with a permanent redirect to it.
 // Only page paths match: files under them (the TikTok verification .txt files in /60/) are still served.
 const retiredPagePaths = [
-  /^\/(about|store|kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|tools)\/?$/,
-  /^\/store\/[^/]+\/?$/,
-  /^\/free\/[^/]+\/?$/,
-  /^\/members\/module\/[^/]+\/?$/,
-  /^\/day\/[^/]+\/?$/,
-  /^\/downloads\/[^/]+$/, // the retired free downloads
+  /^\/(about|store|kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|tools|free|day|downloads)\/?$/,
+  /^\/(store|free|members|day|downloads)\/.+$/, // /60 stays out of this rule so /60/tiktok*.txt is still served
 ];
 app.get(retiredPagePaths, (req, res) => {
   res.redirect(301, "/");
+});
+
+// Prerendered pages are folders in dist (dist/terms/index.html). Serve them at the plain path, so
+// /terms answers 200 instead of express.static's 301 to /terms/.
+app.get(["/terms", "/privacy", "/admin"], (req, res) => {
+  res.sendFile(path.join(distDir, req.path.slice(1), "index.html"));
 });
 
 app.use(express.static(distDir));

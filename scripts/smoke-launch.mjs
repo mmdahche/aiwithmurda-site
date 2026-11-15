@@ -9,7 +9,6 @@ const checks = [
   { name: "deck", script: "scripts/smoke-deck.mjs" },
   { name: "stream", script: "scripts/smoke-stream-config.mjs" },
   { name: "subscribe", script: "scripts/smoke-subscribe.mjs" },
-  { name: "funnel", script: "scripts/smoke-funnel.mjs" },
 ];
 
 function runCheck(check) {

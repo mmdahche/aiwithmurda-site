@@ -4,7 +4,7 @@ import { museKit } from "./museKit.js";
 export const publicPageMetadata = {
   "/": {
     title: `${museKit.name} | AI with Murda`,
-    description: `A setup kit for Meta's Muse assistant, for Facebook Marketplace sellers. Muse writes it, and you approve listings, prices and pickup times. ${museKit.price}, one time.`,
+    description: `A setup kit for Meta's Muse assistant, for Facebook Marketplace sellers. Muse writes your listings and replies, and you approve listings, prices and pickup times. ${museKit.price}, one time.`,
   },
   "/terms": { title: "Terms of Service | AI with Murda", description: "Purchase, license, and service terms for AI with Murda." },
   "/privacy": { title: "Privacy Policy | AI with Murda", description: "How AI with Murda handles account, payment, and connected-service information." },

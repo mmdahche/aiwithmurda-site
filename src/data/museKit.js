@@ -53,12 +53,12 @@ export const kitPieces = ["The setup prompt", "The setup steps", "The buyer repl
 export const faq = [
   {
     q: "Do I need Muse?",
-    a: "Yes. The kit sets up Meta's Muse assistant, so you need Muse on your Facebook account.",
+    a: "Yes. The kit is a setup for Meta's Muse assistant, so you need access to Muse.",
     check: "Confirm where and how a buyer gets Muse, and whether it works on every phone and in every country you sell to.",
   },
   {
     q: "Will Muse post or message buyers without my approval?",
-    a: "Not listings or prices. In both setups you approve every listing and its price. Messages depend on the setup you pick. With Ask me first, nothing goes out until you say yes. With Automatic, Muse answers buyers about an item by itself once you've answered its questions about that item. Every price you agree to still waits for your yes, and Muse asks you which day and time work before it tells a buyer.",
+    a: "The kit tells Muse to wait for your yes on every listing and price, in both setups. Replies depend on the setup. With Ask me first, Muse drafts every reply for your yes. With Automatic, Muse answers buyers about an item by itself once you've answered its questions about that item. It still waits for your yes on prices, and it asks you which day and time work before it tells a buyer.",
     check: "Confirm that Muse follows the setup this closely in testing, and whether you want a line telling buyers to watch Muse's first few replies.",
   },
   {

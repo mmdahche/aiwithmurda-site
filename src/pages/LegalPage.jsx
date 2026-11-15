@@ -42,7 +42,7 @@ export function LegalPage({ type }) {
             <section>
               <h2>How information is used</h2>
               <p>
-                We use this information to operate the site, provide purchased access, display verified
+                We use this information to operate the site, provide purchased access, display
                 social metrics, maintain the combined follower ticker, prevent abuse, support users, and
                 improve the service. We do not sell connected social account data.
               </p>
@@ -162,7 +162,7 @@ export function LegalPage({ type }) {
           {isPrivacy
             ? <a className="mx-link" href="/terms">Read the Terms of Service <ArrowRight className="mx-i" aria-hidden="true" /></a>
             : <a className="mx-link" href="/privacy">Read the Privacy Policy <ArrowRight className="mx-i" aria-hidden="true" /></a>}
-          <a className="mx-link" href="/store">Back to the shop <ArrowRight className="mx-i" aria-hidden="true" /></a>
+          <a className="mx-link" href="/">Back to the kit <ArrowRight className="mx-i" aria-hidden="true" /></a>
         </footer>
       </article>
     </main>

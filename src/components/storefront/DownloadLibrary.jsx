@@ -10,7 +10,7 @@ import { downloadMemberAsset, downloadOperatorBundleAsset, downloadOperatorToolk
   `.sf-library-files article` (one per visible file, 12 per page), the
   "Your files" heading, the "Search your downloads" searchbox, the
   "Download collections" group, "Previous/Next download page",
-  "Download start guide" and "Open my workspace". Styles: src/site/members.css.
+  "Download start guide" and "Open my workspace". Its styles were in the retired src/site/members.css; unreachable from the public site now.
 */
 
 const pageSize = 12;

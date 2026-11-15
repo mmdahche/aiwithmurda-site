@@ -1,9 +1,11 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { metadataForPath, publicPageMetadata } from "../src/data/siteMetadata.js";
 
 const root = new URL("..", import.meta.url).pathname;
 const dist = join(root, "dist");
+// The retired free downloads stay in public/downloads (repo history) but are not deployed.
+await rm(join(dist, "downloads"), { recursive: true, force: true });
 // Prerendered head metadata for the public pages and the private admin page. Nothing else is a page now.
 const routes = new Set([
   ...Object.keys(publicPageMetadata).filter((route) => route !== "/").map((route) => route.slice(1)),

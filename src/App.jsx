@@ -971,33 +971,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const publicRoute = getRoute();
-    if (publicRoute !== "/60" && !publicRoute.startsWith("/day/")) return undefined;
-
-    let mounted = true;
-    let timer = null;
-    async function refreshPublicLogs() {
-      try {
-        const data = await getDailyLogs();
-        if (mounted && Array.isArray(data.logs) && data.logs.length) {
-          setLogs(data.logs);
-          setRemoteLogStatus("live");
-          updateRemoteMeta(data.logs);
-        }
-      } catch {
-        // Keep the last verified public record and retry on the next interval.
-      }
-      if (mounted) timer = window.setTimeout(refreshPublicLogs, 10_000);
-    }
-
-    timer = window.setTimeout(refreshPublicLogs, 10_000);
-    return () => {
-      mounted = false;
-      if (timer) window.clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
     let mounted = true;
 
     async function loadRemoteLogs() {

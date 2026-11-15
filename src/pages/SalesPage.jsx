@@ -106,7 +106,7 @@ export function SalesPage() {
         <ul className="sp-list" aria-label="This kit is for you if">
           <li><Check className="mx-i" aria-hidden="true" /><span>You sell used or collectible items on Facebook Marketplace.</span></li>
           <li><Check className="mx-i" aria-hidden="true" /><span>You run a shop, or you list often enough that it eats your time.</span></li>
-          <li><Check className="mx-i" aria-hidden="true" /><span>You want help with listings and buyer replies, and you want the final say.</span></li>
+          <li><Check className="mx-i" aria-hidden="true" /><span>You want help with listings and buyer replies, and the final say on listings, prices and pickup times.</span></li>
         </ul>
         <h3 className="sp-h3">Who it's not for</h3>
         <ul className="sp-list sp-list--not" aria-label="This kit is not for you if">
@@ -126,12 +126,12 @@ export function SalesPage() {
             height="900"
           />
         </figure>
+        <Placeholder title="Confirm this list">
+          Check the four pieces below and add one short line on what each one does.
+        </Placeholder>
         <ol className="sp-pieces">
           {kitPieces.map((piece) => <li key={piece}>{piece}</li>)}
         </ol>
-        <Placeholder title="Confirm this list">
-          Check the four pieces and add one short line on what each one does.
-        </Placeholder>
       </Section>
 
       {/* 5. How it works. */}
@@ -139,7 +139,7 @@ export function SalesPage() {
         <ol className="sp-steps">
           <li><span className="sp-step-n" aria-hidden="true">1</span><div><h3 className="sp-h3">Pick your setup</h3><p>Ask me first, or Automatic. Paste that one into Muse.</p></div></li>
           <li><span className="sp-step-n" aria-hidden="true">2</span><div><h3 className="sp-h3">Send Muse photos</h3><p>Take photos of the item you want to sell and send them to Muse.</p></div></li>
-          <li><span className="sp-step-n" aria-hidden="true">3</span><div><h3 className="sp-h3">Answer its questions</h3><p>Muse asks you about the item before it writes anything.</p></div></li>
+          <li><span className="sp-step-n" aria-hidden="true">3</span><div><h3 className="sp-h3">Answer its questions</h3><p>Muse asks you questions about the item.</p></div></li>
           <li><span className="sp-step-n" aria-hidden="true">4</span><div><h3 className="sp-h3">Say yes</h3><p>Muse writes the listing for your yes, then helps you answer buyers the way your setup says.</p></div></li>
         </ol>
       </Section>
@@ -159,7 +159,7 @@ export function SalesPage() {
 
       {/* 7. My story. */}
       <Section id="story" title="My story">
-        <Placeholder title="Murad's story">Murad is finishing this text and will send it.</Placeholder>
+        <Placeholder title="Story">The story text goes here.</Placeholder>
       </Section>
 
       {/* 8. Proof: left out on purpose until there are real results. */}
@@ -170,7 +170,7 @@ export function SalesPage() {
           <div className="sp-price-card">
             <h2 className="sp-price-name" id="price-title">{museKit.name}</h2>
             <p className="sp-price-amount"><span className="mx-display">{museKit.price}</span><span className="sp-price-billing">{museKit.billing}</span></p>
-            <p className="sp-price-detail">One kit. Two setups. You paste the one you want.</p>
+            <p className="sp-price-detail">Muse writes the listings. You approve listings, prices and pickup times.</p>
             <BuyButton className="mx-btn--block" />
             <CheckoutNote />
           </div>
@@ -179,7 +179,7 @@ export function SalesPage() {
 
       {/* 10. Guarantee or refund. */}
       <Section id="refunds" title="Refunds">
-        <Placeholder title="Refund or guarantee terms">This decision is Murad's. Add the terms here.</Placeholder>
+        <Placeholder title="Refund terms">The refund terms go here.</Placeholder>
       </Section>
 
       {/* 11. Questions and answers, closed by default. */}

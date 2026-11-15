@@ -103,7 +103,7 @@
 .sp-faq details[open] .sp-faq-open, .sp-faq details:not([open]) .sp-faq-close { display: none; }
 .sp-faq-a { display: grid; gap: var(--sp-3); padding-bottom: var(--sp-5); }
 .sp-faq-a p { font-size: 1rem; line-height: 1.6; color: var(--sp-quiet); max-width: 38em; }
-.sp-faq-a .sp-placeholder-inline { justify-self: start; }
+.sp-faq-a .sp-placeholder-inline { justify-self: start; font-size: .8125rem; line-height: 1.45; color: var(--sp-muted); }
 
 /* Header: the logo and the buy button. Nothing else. */
 .sp-header .mx-header-in { justify-content: space-between; }
@@ -116,7 +116,7 @@
 .sp-footer-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-6);
   padding-top: var(--sp-5); border-top: 1px solid var(--hairline); font: 400 .75rem/1.5 var(--font-mono); letter-spacing: .04em; color: #a3abc4; }
 .sp-footer-base nav { display: flex; flex-wrap: wrap; gap: 0 var(--sp-4); }
-.sp-footer-base a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--white); text-decoration: underline; text-underline-offset: .2em; }
+.sp-footer-base a { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; min-width: 2.75rem; color: var(--white); text-decoration: underline; text-underline-offset: .2em; }
 
 /* Larger screens: same single column, the hero button sits under the video at its natural width. */
 @media (min-width: 40rem) {
@@ -124,4 +124,16 @@
   .sp-hero .sp-buy, .sp-buy-row--end .sp-buy { width: auto; min-width: 18rem; }
   .sp-buy-meta { text-align: left; }
   .sp-price-card .sp-buy { width: auto; min-width: 18rem; }
+  /* Keep the hero button above the fold on laptop screens (1280x720 and up): the headline steps down
+     and the video shrinks with the window height, never below 20rem wide. */
+  .sp-h1 { font-size: clamp(2.75rem, 5.5vw, 4rem); }
+  .sp-hero .sp-video { width: min(100%, max(20rem, calc((100svh - 34rem) * 16 / 9))); }
 }
+
+/* One strong colour: keep the buy-button blue off everything that is not a buy button. */
+.public-site .mx :focus-visible { outline-color: var(--white); }
+.public-site .mx-legal .mx-link .mx-i,
+.public-site .mx-legal .mx-count,
+.public-site .mx-legal-meta p:first-child,
+.public-site .mx-legal-body h2::before { color: var(--sp-muted, #a3abc4); }
+.public-site .mx-legal a:hover { color: var(--white); text-decoration-color: var(--white); }

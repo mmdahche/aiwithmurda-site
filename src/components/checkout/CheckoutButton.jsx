@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createFutureMethodCheckout } from "../../lib/api.js";
 
-// Self-contained in the site system (styles: src/site/product.css, "mx-checkout"),
+// Self-contained in the site system (its styles were in the retired src/site/product.css; unreachable from the public site now),
 // so it reads the same on a storefront page and in the member area.
 export function CheckoutButton({ authSession, authReady, label = "Buy for $47" }) {
   const [status, setStatus] = useState("idle");

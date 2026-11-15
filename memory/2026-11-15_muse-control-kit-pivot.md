@@ -16,7 +16,7 @@ Stripe (Backbone account, read-only restricted key) showed one paid checkout eve
 ## What the public site is now
 
 - `/` is the sales page (`src/pages/SalesPage.jsx`, `src/site/sales.css`), in the brief's order: headline, 16:9 video spot and buy button; problem; who it's for and not for; what you get; how it works; which setup (Murad's wording, word for word); story; price; refunds; questions; footer. No proof section until there are real results.
-- `/terms` and `/privacy` stay. Every other old path (products, shop, free downloads, member area, about, 60-day sprint pages, `/downloads/*`) answers with a 301 to `/` (`retiredPagePaths` in `server/index.mjs`). The TikTok verification files under `/60/`, `/terms/`, `/privacy/` are still served.
+- `/terms` and `/privacy` stay. Every other old path (products, shop, free downloads, member area, about, 60-day sprint pages, `/downloads/*`) answers with a 301 to `/` (`retiredPagePaths` in `server/index.mjs`). The TikTok verification files under `/60/`, `/terms/`, `/privacy/` are still served. `/terms`, `/privacy` and `/admin` are served directly (200, no trailing-slash redirect). The retired free downloads stay in `public/downloads` but `scripts/postbuild.mjs` removes them from `dist`, so they are not deployed.
 - All copy, the price, the checkout link and every placeholder live in `src/data/museKit.js`. Setting `checkoutUrl` and `salesVideoYouTubeId` there finishes those two placeholders.
 - The look keeps the reel brand (navy, Anton, Geist) but plainer: one reading column, hairlines, and one strong colour used only for the buy button.
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createOperatorArsenalCheckout } from "../../lib/api.js";
 import { operatorArsenalProduct } from "../../data/operatorArsenal.js";
 
-// Self-contained in the site system (styles: src/site/product.css, "mx-checkout"),
+// Self-contained in the site system (its styles were in the retired src/site/product.css; unreachable from the public site now),
 // so it reads the same on a storefront page and in the member area.
 export function OperatorArsenalCheckoutButton({ authSession, authReady, compact = false }) {
   const [status, setStatus] = useState("idle");
