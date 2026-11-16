@@ -93,6 +93,10 @@ export const faq = [
     q: "What if Muse looks different on my phone?",
     a: "Muse's screens can differ by phone and country, so yours may not match every step exactly.",
   },
+  {
+    q: "How do I get the kit after I pay?",
+    a: "You pay on Whop. Right after, the ebook and both prompts are in your Whop account.",
+  },
 ];
 
 export const footerNotes = [

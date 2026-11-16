@@ -36,6 +36,10 @@ Lead with posting. Headline exactly "This kit makes it a few photos and a yes." 
 
 The admin workspace and OBS overlays (private, unchanged); old product data, product folders, member assets and server checkout, webhook and download endpoints (unreachable from the public site); old member, product and sprint components inside `src/App.jsx` (unrouted; the admin shares helpers with them). Deleted public page and component files remain in git history.
 
+## Go-live (Nov 16)
+
+Murad approved going live directly in this session (Noor relayed the Whop details). Every kit buy button goes to the Whop checkout `https://whop.com/checkout/plan_u1TnTYybKdPk7/` ($27, one time); the Whop product page is `https://whop.com/aiwithmurda/facebook-marketplace-muse-control-kit/`. What you get: the kit ebook (one PDF, about 34 pages) plus two plain-text prompts, "Prompt 1 - Ask me first" and "Prompt 2 - Automatic". Delivery: after paying on Whop, the files are in the buyer's Whop account. No placeholders on the live page: the hero shows the kit image until a sales video exists (`salesVideoYouTubeId`), and My story and Refunds appear only once `story` / `refundTerms` are set in `src/data/museKit.js`. Terms and Privacy got a minimal update naming Whop (effective Nov 16); the rest of the legal text is still the old site's and Murad may want a fuller rewrite. Stripe was re-checked read-only before launch: still no real customers, no subscriptions.
+
 ## Open
 
-Placeholders waiting on Murad: Whop checkout link, sales video, confirmed what-you-get list, his story, refund terms, several FAQ answers marked "Check". Terms and Privacy still describe the old site. The Render service is on the free plan and sleeps after 15 minutes idle; Murad plans to move it to a paid instance. Do not deploy until Murad says yes.
+Murad's story, refund terms (also set them on the Whop product), the sales video, and a fuller Terms/Privacy rewrite. Old Stripe checkout endpoints and the prebuild step that rebuilds retired product zips are still in place (unreachable from the site); switch them off only with Murad's OK. The Render service is on the free plan and sleeps after 15 minutes idle; Murad plans to move it to a paid instance.
