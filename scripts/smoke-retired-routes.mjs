@@ -217,6 +217,29 @@ for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kit
   });
 }
 
+// Go-live (Murad via Noor, Nov 15): every buy button goes to this one Whop checkout and no page is a placeholder.
+const whopCheckoutUrl = "https://whop.com/checkout/plan_u1TnTYybKdPk7/";
+await check(`production build: the kit page's app bundle carries the Whop checkout ${whopCheckoutUrl} and no placeholder checkout link or placeholder label`, async () => {
+  assert.equal(museKit.checkoutUrl, whopCheckoutUrl, "museKit.checkoutUrl is the go-live Whop checkout");
+  const html = await (await get(kitPath)).text();
+  const entry = html.match(/<script\b[^>]*type="module"[^>]*src="(\/assets\/[^"]+\.js)"/)?.[1];
+  assert(entry, "kit page has a module entry script");
+  const response = await get(entry);
+  const bundle = await response.text();
+  assert.equal(response.status, 200, `${entry}: ${describe(response)}`);
+  assert(bundle.includes(JSON.stringify(whopCheckoutUrl)), `${entry} does not carry the Whop checkout URL`);
+  const leftovers = ["#placeholder-checkout-link", "Placeholder:", "sp-placeholder", "sp-video--placeholder"].filter((text) => bundle.includes(text));
+  assert.deepEqual(leftovers, [], `${entry} still carries placeholder code`);
+});
+await check("prerendered HTML of every public page has no placeholder text", async () => {
+  const hits = [];
+  for (const route of Object.keys(publicPageMetadata)) {
+    const html = await (await get(route)).text();
+    for (const match of html.matchAll(/.{0,40}placeholder.{0,40}/gi)) hits.push(`${route}: ${match[0]}`);
+  }
+  assert.deepEqual(hits, []);
+});
+
 await check("dist/downloads is not deployed; every public page has a prerendered dist/<route>/index.html", async () => {
   const dist = new URL("../dist/", import.meta.url);
   await assert.rejects(fs.stat(new URL("downloads", dist)), "dist/downloads must not exist");

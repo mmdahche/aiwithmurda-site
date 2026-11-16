@@ -1,5 +1,5 @@
 /*
-  Facebook Marketplace Muse Control Kit: the one product aiwithmurda.com sells.
+  Facebook Marketplace Muse Control Kit: the first tool on aiwithmurda.com (/tools/musekit).
 
   Copy, price, checkout link and kit contents live here, in one file. Nothing on the live page is a
   placeholder: the video, story and refund sections appear once their values are set below.

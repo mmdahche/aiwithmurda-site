@@ -98,6 +98,7 @@
 .sp-pieces li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: baseline; padding-block: .875rem; border-bottom: 1px solid var(--sp-line);
   font-size: 1.0625rem; line-height: 1.45; color: var(--white); counter-increment: piece; }
 .sp-pieces li::before { content: counter(piece, decimal-leading-zero); font: 500 var(--fs-mono)/1 var(--font-mono); color: var(--sp-muted); }
+.sp-pieces li:last-child { border-bottom: 0; }
 .sp-piece { display: grid; gap: .25rem; }
 .sp-piece-name { color: var(--white); }
 .sp-piece-detail { font-size: var(--fs-sm); line-height: 1.45; color: var(--sp-muted); }

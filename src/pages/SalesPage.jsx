@@ -83,7 +83,7 @@ export function SalesPage() {
           <HeroMedia />
           <div className="sp-buy-row">
             <BuyButton />
-            <p className="sp-buy-meta">{museKit.price}. {museKit.billing}.</p>
+            <p className="sp-buy-meta">{museKit.price}. {museKit.billing}. Checkout on Whop.</p>
           </div>
         </div>
       </section>

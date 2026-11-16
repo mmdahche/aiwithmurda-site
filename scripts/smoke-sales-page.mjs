@@ -1,6 +1,9 @@
 // Local UI contract tests for the public site: the home page, /tools, /about, Terms and Privacy in the live
 // site look, the Muse Control Kit sales page at /tools/musekit with its own focused header and footer,
 // plus the admin workspace and OBS overlay routes that must stay as they were.
+// The kit page is checked in its go-live state (Murad via Noor, Nov 15): every buy button goes to the one
+// Whop checkout, the hero shows the 16:9 kit image until the sales video exists, story and refunds stay off
+// the page until their text is set in museKit.js, and no public page shows a placeholder.
 // Runs against the Vite dev server. Auth and every /api route are mocked, cross-origin requests are blocked;
 // nothing here charges a card, creates a customer or contacts production.
 //
@@ -13,7 +16,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
-import { checkoutHref, checkoutIsPlaceholder, faq, footerNotes, kitPieces, museKit, setups } from "../src/data/museKit.js";
+import { automationText, checkoutHref, checkoutIsPlaceholder, faq, footerNotes, headline, kitPieces, museKit, painLine, sellerKeeps, setups } from "../src/data/museKit.js";
 import { publicPageMetadata } from "../src/data/siteMetadata.js";
 import { featuredTool, tools } from "../src/data/tools.js";
 
@@ -59,6 +62,34 @@ const requiredQuestions = [
   "Which setup should I pick?",
   "Does this guarantee sales?",
 ];
+
+// Go-live facts from Murad (relayed by Noor, Nov 15). The live kit page has no placeholders.
+// Every buy button goes to this one Whop checkout ($27, one time).
+const whopCheckoutUrl = "https://whop.com/checkout/plan_u1TnTYybKdPk7/";
+// The message (Noor's brief v2): the exact headline, the pain line right under it, the automation named,
+// and what stays with the seller right next to it.
+const briefPainLine = "Posting is the hard part of selling on Marketplace.";
+const briefAutomation = "It automates the busywork. On the automatic setup, once Muse knows an item, it answers the questions buyers ask most by itself. Offers and pickup times come to you ready to answer.";
+const briefSellerKeeps = ["Every listing", "Every agreed price", "Every pickup time"];
+// What you get: the ebook (one PDF, about 34 pages) and the two plain-text setup prompts.
+const goLiveKitPieces = [
+  { name: /^(The )?Facebook Marketplace Muse Control Kit ebook$/i, detail: /^One PDF, about 34 pages\.?$/i },
+  { name: /^Prompt 1 - Ask me first$/, detail: /plain-text setup prompt/i },
+  { name: /^Prompt 2 - Automatic$/, detail: /plain-text setup prompt/i },
+];
+// Murad's FAQ answers, by question.
+const goLiveFaq = {
+  "Do I need Muse?": [/^Yes\b/, /Facebook account that can sell on Marketplace/i],
+  "Will Muse post or message buyers without my approval?": [
+    /Muse never posts a listing or agrees to a price or pickup time without your yes/i,
+    /Ask me first, every reply waits for you/i,
+    /Automatic, Muse answers common buyer questions by itself once it knows an item/i,
+  ],
+  "Which setup should I pick?": [/New to Muse\? Pick Ask me first/i, /fewer replies to handle\? Pick Automatic/i],
+  "Does this guarantee sales?": [/^No\b/],
+};
+// Sentences that say Muse acts on its own. Only the Automatic setup does; Ask me first never does.
+const actsAlone = /\b(by itself|on its own|by themselves|automatically)\b/i;
 // The brief's copy rules. "guarantee" is allowed only where the brief itself asks for it.
 const bannedCopy = [
   [/\bguaranteed\b/i, '"guaranteed"'],
@@ -81,7 +112,7 @@ const bannedCopy = [
   [/\bworth \$|\bvalued? at\b|\btotal value\b/i, "value totals"],
   [/\b(earn|make) (\$|money|more money|extra money)/i, "income promise"],
 ];
-const allowedGuaranteeCopy = [/doesn['’]t guarantee sales/gi, /does this guarantee sales\?/gi, /refund or guarantee terms/gi];
+const allowedGuaranteeCopy = [/doesn['’]t guarantee sales/gi, /does this guarantee sales\?/gi];
 // Server-side redirects in server/index.mjs (the old shop, retiredPagePaths and the kit aliases); no public
 // page may link to one.
 const retiredPagePaths = [
@@ -270,12 +301,47 @@ async function chromeHtml() {
 // Visible copy of the page: title, description, all text with every <details> opened, alt and aria labels.
 async function visibleCopy() {
   return page.evaluate(() => {
-    for (const details of document.querySelectorAll("details")) details.open = true;
-    const attributes = [...document.querySelectorAll("[alt],[aria-label],[title]")].flatMap((el) => [el.getAttribute("alt"), el.getAttribute("aria-label"), el.getAttribute("title")]).filter(Boolean);
+    const wasOpen = [...document.querySelectorAll("details")].map((details) => { const open = details.open; details.open = true; return [details, open]; });
+    const attributes = [...document.querySelectorAll("[alt],[aria-label],[title],[placeholder]")].flatMap((el) => [el.getAttribute("alt"), el.getAttribute("aria-label"), el.getAttribute("title"), el.getAttribute("placeholder")]).filter(Boolean);
     const text = [document.title, document.querySelector('meta[name="description"]')?.content || "", document.body.innerText, ...attributes].join("\n");
-    for (const details of document.querySelectorAll("details")) details.open = false;
+    for (const [details, open] of wasOpen) details.open = open;
     return text;
   });
+}
+
+// Go-live: nothing on a public page is a placeholder. No data-placeholder attribute, no placeholder class,
+// no visible text (or alt, aria-label, title, head copy) matching /placeholder/i, no "#placeholder" link.
+async function placeholderAudit(label) {
+  const found = await page.evaluate(() => [
+    ...[...document.querySelectorAll("[data-placeholder]")].map((el) => `[data-placeholder="${el.getAttribute("data-placeholder")}"] ${el.outerHTML.slice(0, 80)}`),
+    ...[...document.querySelectorAll("[class*='placeholder' i], [id*='placeholder' i]")].map((el) => `placeholder class or id: ${el.outerHTML.slice(0, 80)}`),
+    ...[...document.querySelectorAll("a[href*='placeholder' i]")].map((a) => `placeholder link: ${a.getAttribute("href")}`),
+  ]);
+  const copy = await visibleCopy();
+  for (const match of copy.matchAll(/.{0,40}placeholder.{0,40}/gi)) found.push(`visible text: "${match[0].trim()}"`);
+  none(found, `${label}: placeholders`);
+}
+
+// Only the Automatic setup answers buyers by itself. Every visible sentence that says Muse acts on its own
+// must be about Automatic (in the sentence itself, or in the setup card, FAQ answer or block it sits in)
+// and never about Ask me first.
+async function actsAloneViolations() {
+  return page.evaluate((source) => {
+    const pattern = new RegExp(source, "i");
+    const wasOpen = [...document.querySelectorAll("details")].map((details) => { const open = details.open; details.open = true; return [details, open]; });
+    const t = (s) => (s || "").replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
+    const hits = [];
+    for (const el of document.querySelectorAll("main p, main li, main h1, main h2, main h3, footer p, footer li")) {
+      for (const sentence of t(el.innerText || el.textContent).split(/(?<=[.!?])\s+/)) {
+        if (!pattern.test(sentence) || !/\b(Muse|buyers?|answers?|repl(y|ies))\b/i.test(sentence)) continue;
+        const block = el.closest("article, details, .sp-split-part, li") || el;
+        const about = /\bautomatic\b/i.test(sentence) ? sentence : t(block.querySelector("h3, h4, summary")?.textContent || block.textContent);
+        if (/ask me first/i.test(sentence) || !/\bautomatic\b/i.test(about)) hits.push(sentence);
+      }
+    }
+    for (const [details, open] of wasOpen) details.open = open;
+    return hits;
+  }, actsAlone.source);
 }
 
 try {
@@ -283,28 +349,58 @@ try {
   await check("museKit.js: the two setups match the brief word for word", async () => {
     assert.deepEqual(setups.map(({ name, text }) => ({ name, text })), briefSetups);
   });
-  await check("museKit.js: one offer, $27 one time, checkout link is Whop or a marked placeholder", async () => {
+  await check(`museKit.js: one offer, $27 one time, checkout is exactly the Whop link ${whopCheckoutUrl}`, async () => {
     assert.equal(museKit.price, "$27");
     assert.equal(museKit.priceCents, 2700);
     assert.match(museKit.billing, /^one time$/i);
-    if (museKit.checkoutUrl) {
-      const url = new URL(museKit.checkoutUrl);
-      assert.equal(url.protocol, "https:");
-      assert.match(url.hostname, /(^|\.)whop\.com$/, "Checkout must be the Whop link");
-      assert.equal(checkoutHref, museKit.checkoutUrl);
-      assert.equal(checkoutIsPlaceholder, false);
-    } else {
-      assert.equal(checkoutIsPlaceholder, true);
-      assert.match(checkoutHref, /placeholder/i);
+    assert.equal(museKit.checkoutUrl, whopCheckoutUrl, "museKit.checkoutUrl is the go-live Whop checkout");
+    const url = new URL(museKit.checkoutUrl);
+    assert.equal(url.protocol, "https:");
+    assert.equal(url.hostname, "whop.com", "Checkout must be the Whop link");
+    assert.equal(checkoutHref, museKit.checkoutUrl, "every buy button uses museKit.checkoutUrl");
+    assert.equal(checkoutIsPlaceholder, false, "the checkout link is not a placeholder");
+  });
+  await check("museKit.js: the message as in the brief (exact headline, pain line, automation text, what stays with you)", async () => {
+    assert.equal(headline, salesH1, "headline, word for word");
+    assert.equal(painLine, briefPainLine, "pain line, word for word");
+    assert.equal(automationText, briefAutomation, "automation text unchanged");
+    assert.deepEqual(sellerKeeps, briefSellerKeeps, "what stays with you: every listing, every agreed price, every pickup time");
+  });
+  await check("museKit.js: what you get is the real kit, 3 pieces as {name, detail} (the ebook and the two setup prompts)", async () => {
+    assert.equal(kitPieces.length, goLiveKitPieces.length, "3 kit pieces");
+    kitPieces.forEach((piece, index) => {
+      assert(piece && typeof piece === "object" && !Array.isArray(piece), `piece ${index + 1} is an object`);
+      assert.deepEqual(Object.keys(piece).sort(), ["detail", "name"], `piece ${index + 1} has exactly {name, detail}`);
+      assert(typeof piece.name === "string" && piece.name.trim(), `piece ${index + 1} has a name`);
+      assert(typeof piece.detail === "string" && piece.detail.trim(), `piece ${index + 1} has a detail`);
+      assert.match(piece.name, goLiveKitPieces[index].name, `piece ${index + 1} name`);
+      assert.match(piece.detail, goLiveKitPieces[index].detail, `piece ${index + 1} detail`);
+    });
+  });
+  await check("museKit.js: FAQ answers from Murad, every answer set, no check notes", async () => {
+    for (const item of faq) {
+      assert.deepEqual(Object.keys(item).sort(), ["a", "q"], `"${item.q}" has only a question and an answer (no check note)`);
+      assert(typeof item.a === "string" && item.a.trim(), `"${item.q}" has an answer`);
+      assert(!/placeholder|^check\b|\bconfirm\b|\bTBD\b|\bTODO\b/i.test(item.a), `"${item.q}" answer is final: ${item.a}`);
     }
-    assert.equal(kitPieces.length, 5);
+    for (const [question, patterns] of Object.entries(goLiveFaq)) {
+      const item = faq.find((entry) => entry.q === question);
+      assert(item, `FAQ has "${question}"`);
+      for (const pattern of patterns) assert.match(item.a, pattern, `"${question}" answer`);
+    }
+  });
+  await check("museKit.js: no placeholder left; story, refund terms and video stay off the page until set", async () => {
+    const copy = JSON.stringify({ museKit, checkoutHref, headline, painLine, automationText, sellerKeeps, setups, kitPieces, faq, footerNotes });
+    none(copy.match(/.{0,30}(placeholder|\bTODO\b|\bTBD\b).{0,30}/gi) || [], "placeholder text in museKit.js");
+    for (const key of ["story", "refundTerms"]) assert(museKit[key] === null || (typeof museKit[key] === "string" && museKit[key].trim()), `museKit.${key} is null or real text`);
+    assert(museKit.salesVideoYouTubeId === null || /^[A-Za-z0-9_-]{11}$/.test(museKit.salesVideoYouTubeId), "salesVideoYouTubeId is null or an 11-character YouTube ID");
   });
 
   // ---------- layouts ----------
   for (const viewport of viewports) {
     await setViewport(viewport);
     const label = `${viewport.width}x${viewport.height}`;
-    await check(`${label} layout of ${KIT} (no overflow, no clipped text, no text under 12px${viewport.width === 390 ? ", tap targets 44x44" : ""}; 16:9 video)`, async () => {
+    await check(`${label} layout of ${KIT} (no overflow, no clipped text, no text under 12px${viewport.width === 390 ? ", tap targets 44x44" : ""}; 16:9 ${museKit.salesVideoYouTubeId ? "video" : "kit image"} in the video spot, buy button right under it, above the fold; kit piece names visible)`, async () => {
       await visit(KIT);
       if ([390, 1440].includes(viewport.width)) {
         await page.screenshot({ path: path.join(output, `${viewport.width}-kit-first-viewport.png`) });
@@ -313,14 +409,47 @@ try {
       const ratio = await videoRatio();
       assert(ratio, "video spot missing");
       assert(Math.abs(ratio / (16 / 9) - 1) <= 0.01, `video spot is ${ratio.toFixed(4)}:1, not 16:9 within 1%`);
-      const image = await page.evaluate(() => {
-        const img = document.querySelector("main .sp-product img, main img[src*='muse-control-kit']");
-        if (!img) return null;
-        const b = img.getBoundingClientRect();
-        return { natural: img.naturalWidth / img.naturalHeight, rendered: b.width / b.height };
+      const hero = await page.evaluate(() => {
+        const section = document.querySelector("main > section");
+        const spot = section?.querySelector(".sp-video");
+        const img = spot?.querySelector("img");
+        const buy = section?.querySelector("[data-checkout-link]");
+        const box = (el) => { const b = el.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: b.width, height: b.height }; };
+        return {
+          spot: spot ? box(spot) : null,
+          iframes: section?.querySelectorAll("iframe").length ?? 0,
+          img: img ? { src: img.getAttribute("src"), alt: img.getAttribute("alt"), complete: img.complete, natural: img.naturalWidth / img.naturalHeight, ...box(img) } : null,
+          buy: buy ? { ...box(buy), afterSpot: Boolean(spot && (spot.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING)) } : null,
+          kitImages: document.querySelectorAll("#kit img").length,
+          scrollY: window.scrollY,
+          innerHeight: window.innerHeight,
+        };
       });
-      assert(image, "product image missing");
-      assert(Math.abs(image.natural / (16 / 9) - 1) <= 0.01 && Math.abs(image.rendered / (16 / 9) - 1) <= 0.01, `product image is not 16:9 (${JSON.stringify(image)})`);
+      assert(hero.spot, "the hero has no 16:9 video spot");
+      if (museKit.salesVideoYouTubeId) {
+        assert.equal(hero.iframes, 1, "the hero shows the sales video");
+        assert.equal(hero.kitImages, 1, "the kit image moves to What you get once the video exists");
+      } else {
+        assert.equal(hero.iframes, 0, "no video embed while salesVideoYouTubeId is null");
+        assert(hero.img, "the hero's 16:9 spot shows the kit image while there is no video");
+        assert.equal(hero.img.src, "/images/muse-control-kit.png");
+        assert(hero.img.alt && hero.img.alt.includes(museKit.name), `kit image alt names the kit: "${hero.img.alt}"`);
+        assert(hero.img.complete && Number.isFinite(hero.img.natural), "kit image loaded");
+        assert(Math.abs(hero.img.natural / (16 / 9) - 1) <= 0.01, `kit image file is not 16:9 (${hero.img.natural.toFixed(4)})`);
+        assert(Math.abs(hero.img.width / hero.img.height / (16 / 9) - 1) <= 0.01, `kit image is not shown at 16:9 (${hero.img.width}x${hero.img.height})`);
+        assert(hero.img.left >= hero.spot.left - 1 && hero.img.right <= hero.spot.right + 1 && hero.img.top >= hero.spot.top - 1 && hero.img.bottom <= hero.spot.bottom + 1, "kit image fills the video spot");
+        assert(hero.img.width >= hero.spot.width - 4 && hero.img.height >= hero.spot.height - 4, `kit image fills the video spot (${Math.round(hero.img.width)}x${Math.round(hero.img.height)} in ${Math.round(hero.spot.width)}x${Math.round(hero.spot.height)})`);
+        assert.equal(hero.kitImages, 0, "the kit image is shown once, in the hero");
+      }
+      assert(hero.buy && hero.buy.afterSpot, "the hero buy button comes after the video spot");
+      assert(hero.buy.top >= hero.spot.bottom - 1 && hero.buy.top - hero.spot.bottom <= 48, `hero buy button is not right under the video spot (spot bottom ${Math.round(hero.spot.bottom)}, button top ${Math.round(hero.buy.top)})`);
+      const buyCenter = (hero.buy.left + hero.buy.right) / 2;
+      assert(buyCenter >= hero.spot.left && buyCenter <= hero.spot.right, `hero buy button sits under the video spot (spot ${Math.round(hero.spot.left)}..${Math.round(hero.spot.right)}, button ${Math.round(hero.buy.left)}..${Math.round(hero.buy.right)})`);
+      assert.equal(hero.scrollY, 0);
+      assert(hero.buy.top >= 0 && hero.buy.bottom <= hero.innerHeight, `hero buy button is not fully above the fold (${Math.round(hero.buy.top)}..${Math.round(hero.buy.bottom)} of ${hero.innerHeight})`);
+      const names = page.locator("#kit .sp-piece-name");
+      assert.equal(await names.count(), kitPieces.length, "one name per kit piece");
+      for (let index = 0; index < kitPieces.length; index += 1) assert.equal(await names.nth(index).isVisible(), true, `"${kitPieces[index].name}" visible`);
       await auditLayout(`${label} ${KIT}`, { tapTargets: viewport.width === 390 });
     });
     for (const { route } of sitePages) {
@@ -347,7 +476,7 @@ try {
     assert.equal(await page.getAttribute('meta[property="og:image"]', "content"), "https://aiwithmurda.com/og-muse-kit.png");
   });
 
-  await check(`${KIT}: sections in the brief's order (headline+video+button, problem, for/not for, what you get, how it works, which setup, story, price, refunds, questions)`, async () => {
+  await check(`${KIT}: sections in the brief's order (hero, problem, fit, kit, how, setups, ${museKit.story ? "story, " : ""}price, ${museKit.refundTerms ? "refunds, " : ""}faq); ${[!museKit.story && "story", !museKit.refundTerms && "refunds"].filter(Boolean).join(" and ") || "nothing"} left out while unset`, async () => {
     const sections = await page.evaluate(() => [...document.querySelectorAll("main > section")].map((section) => {
       const video = section.querySelector(".sp-video");
       const h1 = section.querySelector("h1");
@@ -364,19 +493,71 @@ try {
       };
     }));
     const expected = [
-      ["headline, video, button", (s) => s.h1 && s.video && s.buy && s.heroOrder],
-      ["the problem", (s) => s.id === "problem" && /time/i.test(s.text) && /unposted|sit/i.test(s.text)],
-      ["who it's for and not for", (s) => /who it's for/i.test(s.heading) && /who it's not for/i.test(s.text)],
-      ["what you get", (s) => /what you get/i.test(s.heading) && kitPieces.every((piece) => s.text.includes(piece))],
-      ["how it works (3 or 4 steps)", (s) => /how it works/i.test(s.heading) && s.steps >= 3 && s.steps <= 4],
-      ["which setup", (s) => /which setup/i.test(s.heading)],
-      ["my story", (s) => /story/i.test(s.heading)],
-      ["price", (s) => s.id === "price" && s.text.includes(museKit.price) && s.buy],
-      ["refunds", (s) => /refund|guarantee/i.test(s.heading)],
-      ["questions", (s) => /question/i.test(s.heading) && s.details > 0],
+      ["", "hero: headline, video spot, button", (s) => s.heading === salesH1 && s.h1 && s.video && s.buy && s.heroOrder],
+      ["problem", "the problem", (s) => /time/i.test(s.text) && /unposted|sit/i.test(s.text)],
+      ["fit", "who it's for and not for", (s) => /who it's for/i.test(s.heading) && /who it's not for/i.test(s.text)],
+      ["kit", "what you get", (s) => /what you get/i.test(s.heading) && kitPieces.every((piece) => s.text.includes(norm(piece.name)) && s.text.includes(norm(piece.detail)))],
+      ["how", "how it works (3 or 4 steps)", (s) => /how it works/i.test(s.heading) && s.steps >= 3 && s.steps <= 4],
+      ["setups", "which setup", (s) => /which setup/i.test(s.heading)],
+      ...(museKit.story ? [["story", "my story", (s) => /my story/i.test(s.heading) && s.text.includes(norm(museKit.story))]] : []),
+      ["price", "price", (s) => s.text.includes(museKit.price) && s.buy],
+      ...(museKit.refundTerms ? [["refunds", "refunds", (s) => /refund|guarantee/i.test(s.heading) && s.text.includes(norm(museKit.refundTerms))]] : []),
+      ["faq", "questions", (s) => /question/i.test(s.heading) && s.details > 0 && s.buy],
     ];
-    assert.equal(sections.length, expected.length, `expected ${expected.length} sections, found ${sections.length}: ${sections.map((s) => s.id || s.heading).join(", ")}`);
-    expected.forEach(([name, test], index) => assert(test(sections[index]), `section ${index + 1} (id "${sections[index].id}", heading "${sections[index].heading}") does not meet the contract for "${name}"`));
+    assert.deepEqual(sections.map((s) => s.id), expected.map(([id]) => id), `section order (found ${sections.map((s) => s.id || s.heading).join(", ")})`);
+    expected.forEach(([, name, test], index) => assert(test(sections[index]), `section ${index + 1} (id "${sections[index].id}", heading "${sections[index].heading}") does not meet the contract for "${name}"`));
+    const leftOut = await page.evaluate(() => ({
+      story: Boolean(document.querySelector("#story, #story-title")),
+      refunds: Boolean(document.querySelector("#refunds, #refunds-title")),
+      headings: [...document.querySelectorAll("main h2, main h3")].map((h) => h.textContent.trim()).filter((text) => /my story|refund/i.test(text)),
+    }));
+    if (!museKit.story) assert.equal(leftOut.story, false, "no story section while museKit.story is null");
+    if (!museKit.refundTerms) assert.equal(leftOut.refunds, false, "no refunds section while museKit.refundTerms is null");
+    if (!museKit.story && !museKit.refundTerms) none(leftOut.headings, "story or refund headings");
+  });
+
+  await check(`${KIT}: the message (exact headline, the pain line right under it, the automation text right next to what stays with you)`, async () => {
+    const message = await page.evaluate(() => {
+      const t = (el) => (el?.textContent || "").replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
+      const h1 = document.querySelector("main h1");
+      const next = h1?.nextElementSibling;
+      const split = document.querySelector("#problem .sp-split");
+      return {
+        h1: t(h1),
+        next: { tag: next?.tagName || null, text: t(next) },
+        parts: [...(split?.children || [])].map((part) => ({
+          heading: t(part.querySelector("h3")),
+          text: t(part.querySelector("p")),
+          items: [...part.querySelectorAll("li")].map(t),
+        })),
+      };
+    });
+    assert.equal(message.h1, salesH1, "headline, word for word");
+    assert.deepEqual(message.next, { tag: "P", text: briefPainLine }, "the pain line is the line right under the headline");
+    assert.equal(message.parts.length, 2, "the automation and what stays with you sit side by side in one block");
+    assert.equal(message.parts[0].heading, "What it automates");
+    assert.equal(message.parts[0].text, briefAutomation, "automation text unchanged");
+    assert.equal(message.parts[1].heading, "What stays with you");
+    assert.deepEqual(message.parts[1].items, briefSellerKeeps, "what stays with you: every listing, every agreed price, every pickup time");
+  });
+
+  await check(`${KIT}: only the Automatic setup answers buyers by itself; Ask me first never does`, async () => {
+    none(await actsAloneViolations(), "sentences saying Muse acts by itself outside the Automatic setup");
+    const askFirst = await page.evaluate(() => document.querySelector("#setup-ask-first")?.closest("article")?.textContent.replace(/\s+/g, " ").trim() || "");
+    assert(askFirst.includes("Nothing goes out until you say yes"), "Ask me first card says nothing goes out until you say yes");
+    assert(!actsAlone.test(askFirst), `Ask me first card says Muse acts by itself: ${askFirst}`);
+  });
+
+  await check(`${KIT}: what you get lists the ${kitPieces.length} kit pieces from museKit.js, names and details visible`, async () => {
+    const pieces = await page.evaluate(() => [...document.querySelectorAll("#kit ol > li")].map((li) => ({
+      name: li.querySelector(".sp-piece-name")?.textContent.replace(/\s+/g, " ").trim() ?? null,
+      detail: li.querySelector(".sp-piece-detail")?.textContent.replace(/\s+/g, " ").trim() ?? null,
+    })));
+    assert.deepEqual(pieces, kitPieces.map(({ name, detail }) => ({ name, detail })));
+    for (const piece of kitPieces) {
+      assert.equal(await page.locator("#kit .sp-piece-name", { hasText: piece.name }).isVisible(), true, `"${piece.name}" visible`);
+      assert.equal(await page.locator("#kit .sp-piece-detail", { hasText: piece.detail }).first().isVisible(), true, `"${piece.detail}" visible`);
+    }
   });
 
   await check(`${KIT}: no proof, testimonial, rating or customer-count section`, async () => {
@@ -397,18 +578,24 @@ try {
     none(found, "proof section");
   });
 
-  await check(`${KIT}: every buy link has the same href, equal to museKit.js checkoutHref`, async () => {
+  await check(`${KIT}: every [data-checkout-link] href equals museKit.checkoutUrl (${whopCheckoutUrl}); header, hero, price and FAQ each have one`, async () => {
     const links = await linkInventory();
     const buy = links.filter(isBuyLink);
     assert(buy.length >= 4, `expected the header, hero, price and FAQ buy links, found ${buy.length}`);
-    none(buy.filter((link) => link.href !== checkoutHref || !link.checkout).map((link) => `${link.text} -> ${link.href}`), `buy links must all be <a data-checkout-link href="${checkoutHref}">`);
-    if (checkoutIsPlaceholder) {
-      const notes = await page.locator("main").getByText("Placeholder: the Whop checkout link goes here.").count();
-      assert(notes >= 1, "the placeholder checkout link must be visibly marked");
-    }
+    none(buy.filter((link) => link.href !== museKit.checkoutUrl || !link.checkout).map((link) => `${link.text} -> ${link.href}`), `buy links must all be <a data-checkout-link href="${museKit.checkoutUrl}">`);
+    const checkout = await page.evaluate(() => [...document.querySelectorAll("[data-checkout-link]")].map((a) => ({
+      tag: a.tagName,
+      href: a.getAttribute("href"),
+      resolved: a.href,
+      where: a.closest("main") ? a.closest("main > section")?.id ?? "?" : a.closest("header") ? "header" : "?",
+    })));
+    assert(checkout.length >= 4, `found ${checkout.length} [data-checkout-link] elements`);
+    none(checkout.filter((link) => link.tag !== "A" || link.href !== museKit.checkoutUrl || link.resolved !== whopCheckoutUrl).map((link) => `${link.where}: <${link.tag.toLowerCase()} href="${link.href}">`), `[data-checkout-link] must be <a href="${whopCheckoutUrl}">`);
+    for (const where of ["header", "", "price", "faq"]) assert(checkout.some((link) => link.where === where), `no buy button in the ${where || "hero"}`);
+    none(links.filter((link) => /^#|placeholder/i.test(link.href || "") && link.href !== "#main-content").map((link) => `"${link.text}" -> ${link.href}`), "placeholder or in-page links");
   });
 
-  await check(`${KIT}: a buy button above the fold at 390x844, right under the video`, async () => {
+  await check(`${KIT}: a buy button above the fold at 390x844, right under the ${museKit.salesVideoYouTubeId ? "video" : "kit image in the 16:9 video spot"}`, async () => {
     const links = await linkInventory();
     const hero = links.filter((link) => isBuyLink(link) && link.inMain && link.section === "");
     assert(hero.length >= 1, "no buy link in the hero section");
@@ -421,13 +608,24 @@ try {
   await check(`${KIT}: a buy link in the price section and one after the last FAQ answer`, async () => {
     const links = await linkInventory();
     assert(links.some((link) => isBuyLink(link) && link.section === "price"), "no buy link in the price section");
+    // Measured with the last answer closed and open: the buy button sits under the last answer either way.
     const afterLastAnswer = await page.evaluate(() => {
       const all = [...document.querySelectorAll("main details")];
       const last = all.at(-1);
-      if (!last) return false;
-      return [...document.querySelectorAll("main [data-checkout-link]")].some((a) => (last.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && a.closest("main > section") === last.closest("main > section") && a.getBoundingClientRect().top >= last.getBoundingClientRect().bottom);
+      if (!last) return { closed: false, open: false, detailsAfter: 0 };
+      const under = () => [...document.querySelectorAll("main [data-checkout-link]")].some((a) => (last.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING) && a.closest("main > section") === last.closest("main > section") && a.getBoundingClientRect().top >= last.getBoundingClientRect().bottom);
+      const closed = under();
+      last.open = true;
+      const answer = last.querySelector(".sp-faq-a");
+      const open = under() && Boolean(answer) && [...document.querySelectorAll("#faq [data-checkout-link]")].some((a) => a.getBoundingClientRect().top >= answer.getBoundingClientRect().bottom);
+      last.open = false;
+      const buy = [...document.querySelectorAll("#faq [data-checkout-link]")].at(-1);
+      const detailsAfter = buy ? all.filter((d) => buy.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING).length : 0;
+      return { closed, open, detailsAfter };
     });
-    assert(afterLastAnswer, "no buy link under the last FAQ answer");
+    assert(afterLastAnswer.closed, "no buy link under the last FAQ question");
+    assert(afterLastAnswer.open, "no buy link under the last FAQ answer once it is open");
+    assert.equal(afterLastAnswer.detailsAfter, 0, "no FAQ item after the FAQ buy button");
   });
 
   await check(`${KIT}: header has the logo link and one buy link, no other navigation`, async () => {
@@ -469,11 +667,12 @@ try {
     }
   });
 
-  await check(`${KIT}: FAQ closed on load, each answer opens on click, required questions present`, async () => {
+  await check(`${KIT}: FAQ closed on load, each answer opens on click and matches museKit.faq exactly (no check notes), required questions present`, async () => {
+    await visit(KIT); // a fresh load: earlier checks open the answers to read them
     const items = page.locator("#faq details");
     const count = await items.count();
     assert.equal(count, faq.length, "one <details> per FAQ item");
-    const openOnLoad = await page.evaluate(() => [...document.querySelectorAll("details")].filter((d) => d.open).length);
+    const openOnLoad = await page.evaluate(() => [...document.querySelectorAll("details")].filter((d) => d.open || d.hasAttribute("open")).length);
     assert.equal(openOnLoad, 0, "every <details> is closed on load");
     const questions = [];
     for (let index = 0; index < count; index += 1) {
@@ -486,16 +685,25 @@ try {
       await summary.click();
       assert.equal(await item.evaluate((d) => d.open), true, `"${question}" opens on click`);
       assert.equal(await answer.isVisible(), true, `"${question}" answer visible after click`);
-      const expected = faq.find((entry) => norm(entry.q) === question);
-      assert(expected, `"${question}" is not in museKit.js`);
-      const answerText = norm(await answer.innerText());
-      if (expected.a) assert(answerText.includes(norm(expected.a)), `"${question}" shows its answer`);
+      assert.equal(question, norm(faq[index].q), `question ${index + 1} is in museKit.faq order`);
+      const expected = faq[index];
+      const shown = await item.evaluate((d) => ({
+        afterSummary: [...d.children].filter((el) => el.tagName !== "SUMMARY").map((el) => el.className),
+        paragraphs: [...d.querySelectorAll(".sp-faq-a > *")].map((el) => ({ tag: el.tagName, className: el.className, text: el.textContent })),
+      }));
+      assert.deepEqual(shown.afterSummary, ["sp-faq-a"], `"${question}": one answer block after the question`);
+      assert.deepEqual(shown.paragraphs.map((p) => p.tag), ["P"], `"${question}": the answer is one paragraph, no check note`);
+      assert.equal(shown.paragraphs[0].className, "", `"${question}": the answer paragraph is not a note`);
+      assert.equal(norm(shown.paragraphs[0].text), norm(expected.a), `"${question}" shows its museKit.faq answer word for word`);
+      assert.equal(norm(await answer.innerText()), norm(expected.a), `"${question}" shows nothing but its answer`);
       await summary.click();
       assert.equal(await item.evaluate((d) => d.open), false, `"${question}" closes on a second click`);
     }
+    assert.deepEqual(questions, faq.map((entry) => norm(entry.q)), "the FAQ shows every museKit.faq question in order");
     for (const question of requiredQuestions) assert(questions.includes(question), `required question missing: ${question}`);
     const guarantee = faq.find((entry) => entry.q === "Does this guarantee sales?");
     assert.match(guarantee.a || "", /^No\b/, '"Does this guarantee sales?" is answered no');
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll("details")].filter((d) => d.open).length), 0, "every <details> closed again");
   });
 
   await check(`${KIT}: copy rules (no em or en dash, no banned words or phrases, no Most Popular, no countdown or limited)`, async () => {
@@ -503,8 +711,9 @@ try {
     none([...copy.matchAll(/.{0,30}[—–].{0,30}/g)].map((m) => m[0]), "em or en dash");
     const hits = bannedCopy.flatMap(([pattern, name]) => (copy.match(new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`)) || []).map((m) => `${name}: "${m}"`));
     none(hits, "banned copy");
-    const stray = allowedGuaranteeCopy.reduce((text, allowed) => text.replace(allowed, ""), copy).match(/.{0,30}guarantee.{0,30}/gi) || [];
-    none(stray, '"guarantee" outside the FAQ question, footer and refunds placeholder');
+    // "guarantee" may appear only in the FAQ question, the footer note and (once Murad sets them) his refund terms.
+    const withoutAllowed = allowedGuaranteeCopy.reduce((text, allowed) => text.replace(allowed, ""), museKit.refundTerms ? copy.split(museKit.refundTerms).join("") : copy);
+    none(withoutAllowed.match(/.{0,30}guarantee.{0,30}/gi) || [], '"guarantee" outside the FAQ question, the footer note and the refund terms');
     const timers = await page.evaluate(() => [...document.querySelectorAll("[class*='countdown' i], [id*='countdown' i], [class*='timer' i], [id*='timer' i], [class*='badge' i], [class*='ribbon' i]")].map((el) => el.outerHTML.slice(0, 80)));
     none(timers, "countdown, timer or badge elements");
     const footer = norm(await page.locator("footer").last().innerText());
@@ -512,15 +721,15 @@ try {
     assert(/doesn't guarantee sales/i.test(footer) && /differ by phone and country/i.test(footer) && /isn't made by or connected to Meta or Facebook/i.test(footer), "footer carries the brief's three notes");
   });
 
-  await check(`${KIT}: marked placeholders for the video, story, refunds and kit list`, async () => {
-    const placeholders = await page.evaluate(() => ({
-      video: Boolean(document.querySelector("main .sp-video iframe")) || /placeholder/i.test(document.querySelector("main .sp-video")?.textContent || ""),
-      story: /placeholder/i.test(document.querySelector("#story")?.textContent || ""),
-      refunds: /placeholder/i.test(document.querySelector("#refunds")?.textContent || ""),
-    }));
-    if (!museKit.salesVideoYouTubeId) assert(placeholders.video, "video placeholder is marked");
-    assert(placeholders.story, "story placeholder is marked");
-    assert(placeholders.refunds, "refunds placeholder is marked");
+  await check(`${KIT}: no placeholders (no data-placeholder element, no placeholder class, no visible text matching /placeholder/i, no check notes)`, async () => {
+    await placeholderAudit(KIT);
+    const notes = await page.evaluate(() => {
+      const wasOpen = [...document.querySelectorAll("details")].map((details) => { const open = details.open; details.open = true; return [details, open]; });
+      const text = document.querySelector("main").innerText;
+      for (const [details, open] of wasOpen) details.open = open;
+      return [...text.matchAll(/.{0,30}(\b(check|confirm|tbd|todo)\b\s*:|\bgoes here\b).{0,30}/gi)].map((m) => m[0]);
+    });
+    none(notes, "check or to-do notes on the page");
   });
 
   await check(`${KIT}: no /api/ request, no cross-origin request, no console error, no page error`, async () => {
@@ -601,6 +810,10 @@ try {
       none(links.filter((link) => link.checkout || /whop\.com|checkout\.stripe|buy\.stripe|placeholder-checkout/i.test(link.href || "")).map((link) => `"${link.text}" -> ${link.href}`), `${route}: checkout links (the buyer reads the kit page first)`);
       const copy = await visibleCopy();
       none(oldProductNames.filter((name) => copy.includes(name)), `${route}: old product names`);
+    });
+    await check(`${route}: no placeholders (no data-placeholder element, no visible text matching /placeholder/i); only Automatic answers buyers by itself`, async () => {
+      await placeholderAudit(route);
+      none(await actsAloneViolations(), `${route}: sentences saying Muse acts by itself outside the Automatic setup`);
     });
     if (route !== "/terms" && route !== "/privacy") {
       await check(`${route}: copy rules (no em or en dash, no banned words, no "guarantee", no "coming soon")`, async () => {
@@ -702,7 +915,7 @@ try {
     assert.deepEqual(about.counts, ["01 / 02", "02 / 02"]);
     assert.deepEqual(about.cta, [{ text: "See what I've packaged", href: "/tools" }]);
     assert.deepEqual(about.elsewhere, ["YouTube", "Instagram"]);
-    assert(about.text.includes("The tools here are setups you can adapt."));
+    assert(about.text.includes("Everything here is a setup you can adapt."));
     assert(about.text.includes("60-day streaming challenge"), "his 60-day challenge history stays");
   });
 

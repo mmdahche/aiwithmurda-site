@@ -42,7 +42,7 @@ export function AboutMurad() {
           <div className="mx-about-copy">
             <p className="mx-lede">I run a retail business. My interest in AI started with something practical: making inventory easier to manage.</p>
             <p className="mx-text">The deeper I got into inventory software, the clearer it became that point of sale needed to be part of the picture. That's the kind of work I use Claude Code and Codex for: breaking down a business problem, building a small piece, and checking it.</p>
-            <p className="mx-text">The tools here are setups you can adapt. They're tools to help you do the work, not a promise that AI will run a business for you.</p>
+            <p className="mx-text">Everything here is a setup you can adapt. They're tools to help you do the work, not a promise that AI will run a business for you.</p>
             <div className="mx-actions">
               <a className="mx-btn mx-btn--lg" href="/tools">See what I've packaged <ArrowRight className="mx-i" aria-hidden="true" /></a>
             </div>
