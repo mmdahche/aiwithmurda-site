@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Download, FileText, FolderArchive, Search } from "lucide-react";
-import { CheckItFirstNotice } from "../../pages/CheckItFirstPage.jsx";
 import { downloadMemberAsset, downloadOperatorBundleAsset, downloadOperatorToolkitAsset, downloadOperatorArsenalAsset, downloadOperatorUpdateAsset } from "../../lib/api.js";
 
 /*
@@ -11,7 +10,7 @@ import { downloadMemberAsset, downloadOperatorBundleAsset, downloadOperatorToolk
   `.sf-library-files article` (one per visible file, 12 per page), the
   "Your files" heading, the "Search your downloads" searchbox, the
   "Download collections" group, "Previous/Next download page",
-  "Download start guide" and "Open my workspace". Styles: src/site/members.css.
+  "Download start guide" and "Open my workspace". Its styles were in the retired src/site/members.css; unreachable from the public site now.
 */
 
 const pageSize = 12;
@@ -75,7 +74,7 @@ export function DownloadLibrary({ memberData, accessToken, access, onOpenCourse 
         <span className="mx-desc">Download library</span>
       </div>
 
-      <CheckItFirstNotice />
+      
 
       {start && (
         <div className="mx-card mx-lib-start sf-library-start">

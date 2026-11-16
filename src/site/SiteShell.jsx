@@ -1,23 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FolderDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { footerNotes } from "../data/museKit.js";
+import { tools } from "../data/tools.js";
+import { BuyButton } from "../pages/SalesPage.jsx";
 
 /*
-  Shared header and footer for every public route.
+  Headers and footers for the public site.
 
+  SiteHeader / SiteFooter: every site page (home, /tools, /about, /terms, /privacy), in the live look.
   Names that tests and assistive tech rely on, keep them as written:
   the "Open navigation" / "Close navigation" toggle label, the
   "Public navigation" landmark with id "public-navigation-links", and the
   "Tools" and "About Murad" links inside it.
+
+  KitHeader / KitFooter: the Muse Control Kit sales page (/tools/musekit) only. One product, one
+  decision: the logo and the buy button, no menu (Noor's brief). To give the kit page the full site
+  header instead, render <SiteHeader activeRoute="/tools/musekit" /> there in src/App.jsx.
 */
 
 const navLinks = [
-  { href: "/store", label: "Tools" },
+  { href: "/tools", label: "Tools" },
   { href: "/about", label: "About Murad" },
-  { href: "/start", label: "Free Starter Pack" },
 ];
 
-function isActive(link, activeRoute) {
-  return activeRoute === link.href || (link.href === "/store" && activeRoute === "/store/product");
+function isActive(link, activeRoute = "") {
+  return activeRoute === link.href || activeRoute.startsWith(`${link.href}/`);
 }
 
 export function Brand() {
@@ -94,10 +101,6 @@ export function SiteHeader({ activeRoute }) {
               </a>
             ))}
           </nav>
-          <a className="mx-btn mx-btn--ghost mx-btn--sm mx-account" href="/members">
-            <FolderDown className="mx-i" aria-hidden="true" />
-            <span>My Downloads</span>
-          </a>
         </div>
       </header>
     </>
@@ -111,23 +114,21 @@ export function SiteFooter() {
         <div className="mx-footer-in">
           <div className="mx-footer-brand">
             <Brand />
-            <p>Practical downloads for building with Claude Code and Codex. Download it. Make it yours.</p>
+            <p>Practical AI tools and setup kits. Download it. Make it yours.</p>
             <p className="mx-built"><span>Built by the founder of&nbsp;<a href="https://backbonesolutions.ai">Backbone Solutions</a></span></p>
           </div>
           <nav className="mx-footer-cols" aria-label="Footer">
             <div>
-              <p className="mx-foot-h" id="footer-shop">Shop</p>
-              <ul aria-labelledby="footer-shop">
-                <li><a href="/store">All tools</a></li>
-                <li><a href="/start">Starter pack</a></li>
-                <li><a href="/members">Your downloads</a></li>
+              <p className="mx-foot-h" id="footer-tools">Tools</p>
+              <ul aria-labelledby="footer-tools">
+                <li><a href="/tools">All tools</a></li>
+                {tools.map((tool) => <li key={tool.slug}><a href={tool.href}>{tool.shortName}</a></li>)}
               </ul>
             </div>
             <div>
               <p className="mx-foot-h" id="footer-murad">Murad</p>
               <ul aria-labelledby="footer-murad">
                 <li><a href="/about">Meet Murad</a></li>
-                <li><a href="/60">Build log archive</a></li>
                 <li><a href="mailto:murad@aiwithmurda.com">Contact</a></li>
               </ul>
             </div>
@@ -150,6 +151,40 @@ export function SiteFooter() {
         <div className="mx-footer-base">
           <span>&copy; 2026 AI with Murda</span>
           <span>Downloads and written guides, not a hosted AI service.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function KitHeader() {
+  return (
+    <>
+      <a className="mx-skip" href="#main-content">Skip to content</a>
+      <header className="mx mx-header sp-header">
+        <div className="mx-container mx-header-in">
+          <Brand />
+          <BuyButton size="sm" label="Get the kit" />
+        </div>
+      </header>
+    </>
+  );
+}
+
+export function KitFooter() {
+  return (
+    <footer className="mx sp-footer">
+      <div className="mx-container sp-footer-in">
+        <ul className="sp-footer-notes">
+          {footerNotes.map((note) => <li key={note}>{note}</li>)}
+        </ul>
+        <div className="sp-footer-base">
+          <span>&copy; 2026 AI with Murda</span>
+          <nav aria-label="Legal">
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+            <a href="mailto:murad@aiwithmurda.com">Contact</a>
+          </nav>
         </div>
       </div>
     </footer>

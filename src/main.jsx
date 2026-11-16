@@ -7,14 +7,10 @@ import "@fontsource/anton";
 import App from "./App.jsx";
 import "./styles.css";
 import "./site/tokens.css";
-import "./site/carryover.css";
 import "./site/site.css";
-import "./site/catalog.css";
-import "./site/product.css";
-import "./site/free.css";
-import "./site/members.css";
 import "./site/pages.css";
-import "./site/legacy.css";
+import "./site/home.css";
+import "./site/sales.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -1,7 +1,7 @@
 {
   "name": "AI with Murda",
   "short_name": "AIWM",
-  "description": "Murad's scripts, skills, and project setups for building with Claude Code and Codex.",
+  "description": "Practical AI tools and setup kits from Murad, a business owner who builds with AI. Start with the Muse Control Kit for Facebook Marketplace sellers.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#040923",

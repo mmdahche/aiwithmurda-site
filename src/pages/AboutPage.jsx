@@ -1,6 +1,5 @@
 import React from "react";
-import { ArrowRight, ArrowUpRight, Boxes, CreditCard, FolderDown, History, Store } from "lucide-react";
-import { SamplerBand } from "../components/storefront/StorefrontParts.jsx";
+import { ArrowRight, ArrowUpRight, Boxes, CreditCard, FolderDown, Store } from "lucide-react";
 
 // How the files came to exist: the four stops of the story, drawn as tiles.
 const route = [
@@ -19,7 +18,6 @@ function InstagramIcon() {
 }
 
 const elsewhere = [
-  { name: "The original build log", meta: "Archive of the 60-day challenge", href: "/60", Icon: History, Go: ArrowRight },
   { name: "YouTube", meta: "Channel", href: "https://www.youtube.com/channel/UC9iGjtlA3R4vopdNLTGbnuw", Icon: YouTubeIcon, Go: ArrowUpRight },
   { name: "Instagram", meta: "@aiwithmurda", href: "https://www.instagram.com/aiwithmurda/", Icon: InstagramIcon, Go: ArrowUpRight },
 ];
@@ -44,9 +42,9 @@ export function AboutMurad() {
           <div className="mx-about-copy">
             <p className="mx-lede">I run a retail business. My interest in AI started with something practical: making inventory easier to manage.</p>
             <p className="mx-text">The deeper I got into inventory software, the clearer it became that point of sale needed to be part of the picture. That's the kind of work I use Claude Code and Codex for: breaking down a business problem, building a small piece, and checking it.</p>
-            <p className="mx-text">The downloads here package those working habits into instructions, scripts, and project setups you can adapt. They're tools to help you do the work, not a promise that AI will run a business for you.</p>
+            <p className="mx-text">Everything here is a setup you can adapt. They're tools to help you do the work, not a promise that AI will run a business for you.</p>
             <div className="mx-actions">
-              <a className="mx-btn mx-btn--lg" href="/store">See what I've packaged <ArrowRight className="mx-i" aria-hidden="true" /></a>
+              <a className="mx-btn mx-btn--lg" href="/tools">See what I've packaged <ArrowRight className="mx-i" aria-hidden="true" /></a>
             </div>
           </div>
         </div>
@@ -83,7 +81,5 @@ export function AboutMurad() {
         </div>
       </div>
     </section>
-
-    <SamplerBand />
   </main>;
 }

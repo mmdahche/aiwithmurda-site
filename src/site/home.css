@@ -1,0 +1,67 @@
+/*
+  Additions to the live site system (site.css) for the tools-first home page and the /tools catalogue.
+  Same vocabulary as the live site: panels, Anton headlines, tickers, tiles, the cream card, one blue button.
+
+  1. Hero shelf with one group (tools.js), laid out wide instead of half a two-column grid
+  2. Featured tool panel on the home page
+  3. /tools: the tools grid; a lone card is laid out wide
+*/
+
+/* 1. One shelf group. Phone: the group as it is on the live site. From 60rem the heading sits beside the
+   list, so one tool fills the row instead of leaving an empty column. */
+@media (min-width: 60rem) {
+  .mx-shelf-groups--one { grid-template-columns: minmax(0, 1fr); }
+  .mx-shelf-groups--one .mx-shelf-group { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); grid-template-rows: auto; column-gap: var(--sp-8); align-items: center; }
+  .mx-shelf-groups--one .mx-shelf-items { margin-top: 0; }
+}
+
+/* A tool's price carries its cadence ("$27 one time", as on the live site's paid rows). On a phone it takes its own
+   line under the audience, so the name keeps its width; the audience stays (the live --paid row hides it). */
+@media (max-width: 39.99rem) {
+  .mx-shelf-groups--one .mx-shelf-item { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile meta go" "tile price go"; row-gap: .2rem; padding-block: .5rem; }
+  .mx-shelf-groups--one .mx-shelf-price { justify-self: start; margin-top: .15rem; }
+}
+
+/* The hero lede wraps to two even lines instead of leaving "uses them." alone on the second. */
+.mx-home .mx-hero .mx-lede { text-wrap: balance; }
+
+/* 2. Featured tool: the 16:9 kit mockup and what it is. Stacked on a phone, side by side from 60rem. */
+.mx-feature { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); margin-top: clamp(1.25rem, 3vw, 1.75rem); }
+.mx-feature-media { min-width: 0; }
+.mx-feature-media img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--r-lg); border: 1px solid var(--hairline-blue); }
+.mx-feature-copy { display: grid; gap: var(--sp-4); justify-items: start; align-content: center; min-width: 0; }
+/* The tool name is longer than a section headline: one step smaller than mx-display--md, so it stays three or four short lines. */
+.mx-feature-copy .mx-display { font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem); text-wrap: balance; overflow-wrap: anywhere; }
+.mx-feature-copy .mx-actions { margin-top: var(--sp-2); }
+@media (max-width: 39.99rem) {
+  .mx-feature-copy .mx-actions, .mx-feature-copy .mx-btn { width: 100%; }
+}
+@media (min-width: 60rem) {
+  .mx-feature { grid-template-columns: minmax(0, 13fr) minmax(0, 11fr); gap: clamp(2.5rem, 4.5vw, 4rem); align-items: center; }
+}
+
+/* 3. /tools */
+.mx-toolspage-head { display: grid; gap: var(--sp-4); margin-block: clamp(1.25rem, 3vw, 1.75rem) clamp(1.75rem, 4vw, 2.75rem); }
+.mx-toolgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--sp-5); }
+.mx-toolgrid > li { display: grid; min-width: 0; }
+/* The whole card is one link (one tab stop); "See the kit" is its visible label. */
+.mx-toolcard { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface);
+  color: var(--text); text-decoration: none; transition: border-color var(--dur-1) var(--ease); }
+.mx-toolcard:hover { border-color: var(--blue-200); }
+.mx-toolcard-media { display: block; border-bottom: 1px solid var(--hairline); }
+.mx-toolcard-media img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.mx-toolcard-body { display: grid; gap: var(--sp-3); align-content: start; justify-items: start; padding: var(--sp-5) var(--sp-4); }
+.mx-toolcard-meta { font: 400 var(--fs-mono)/1.45 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-toolcard-name { margin: 0; font: 600 var(--fs-title)/1.15 var(--font-sans); letter-spacing: -.022em; color: var(--white); text-wrap: balance; }
+.mx-toolcard-summary { max-width: 34em; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); text-wrap: pretty; }
+.mx-toolcard .mx-price-row { margin-top: var(--sp-1, .25rem); }
+.mx-toolcard-go { margin-top: var(--sp-2); }
+.mx-toolcard:hover .mx-toolcard-go { color: var(--blue-200); }
+@media (min-width: 40rem) { .mx-toolcard-body { padding: var(--sp-6); } }
+/* One tool: the card is wide, the picture beside the words, so it never reads as one cell of an empty grid. */
+@media (min-width: 52rem) {
+  .mx-toolgrid > li:only-child .mx-toolcard { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto; }
+  .mx-toolgrid > li:only-child .mx-toolcard-media { border-bottom: 0; border-right: 1px solid var(--hairline); }
+  .mx-toolgrid > li:only-child .mx-toolcard-media img { height: 100%; }
+  .mx-toolgrid > li:only-child .mx-toolcard-body { align-content: center; padding: var(--sp-8); }
+}

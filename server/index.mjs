@@ -5795,6 +5795,51 @@ app.get("/api/member-assets/operator-arsenal/:assetKey", requireUser, async (req
   }
 });
 
+// The Muse Control Kit sales page lives at /tools/musekit (the Instagram bio link). Any case variant of
+// it (/tools/Musekit, /TOOLS/MUSEKIT), a trailing slash, and the short aliases answer 301 to the canonical
+// lower-case path, keeping the query string (Instagram adds tracking parameters). The canonical path
+// itself is never redirected.
+const museKitPath = "/tools/musekit";
+const museKitAliases = new Set([museKitPath, "/tools/muse-kit", "/tools/muse", "/musekit", "/muse-kit"]);
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const lower = req.path.toLowerCase().replace(/\/+$/, "");
+  if (!museKitAliases.has(lower) || req.path === museKitPath) return next();
+  const query = req.originalUrl.indexOf("?");
+  res.redirect(301, `${museKitPath}${query === -1 ? "" : req.originalUrl.slice(query)}`);
+});
+
+// Retired pages (the old products, free downloads, member area and 60-day sprint) answer with a
+// permanent redirect: the old shop goes to /tools, everything else to the home page.
+// Only page paths match: files under /60/ (the TikTok verification .txt files) are still served.
+app.get([/^\/store(\/.*)?$/i], (req, res) => {
+  res.redirect(301, "/tools");
+});
+const retiredPagePaths = [
+  /^\/(kit|live-builds|operator-toolkit|operator-arsenal|start|members|60|live|free|day|downloads)\/?$/i,
+  /^\/(free|members|day|downloads)\/.+$/i, // /60 stays out of this rule so /60/tiktok*.txt is still served
+];
+app.get(retiredPagePaths, (req, res) => {
+  res.redirect(301, "/");
+});
+
+// Prerendered pages are folders in dist (dist/tools/musekit/index.html). Serve them at the plain path, so
+// /tools answers 200 instead of express.static's 301 to /tools/. The file comes from this fixed list,
+// never from the request path.
+const prerenderedPages = {
+  "/tools": "tools",
+  "/tools/musekit": "tools/musekit",
+  "/about": "about",
+  "/terms": "terms",
+  "/privacy": "privacy",
+  "/admin": "admin",
+};
+app.get(Object.keys(prerenderedPages), (req, res, next) => {
+  const folder = prerenderedPages[req.path.toLowerCase().replace(/\/+$/, "")];
+  if (!folder) return next();
+  res.sendFile(path.join(distDir, folder, "index.html"));
+});
+
 app.use(express.static(distDir));
 
 app.get(/.*/, (req, res) => {

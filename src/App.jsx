@@ -60,20 +60,15 @@ import { ReceiptPreview } from "./components/public/ControlRoom.jsx";
 import { BroadcastTicker, ExperienceHero } from "./components/public/ExperienceHero.jsx";
 import { InteractiveProofline } from "./components/public/Proofline.jsx";
 import { CheckoutButton } from "./components/checkout/CheckoutButton.jsx";
-import { StorefrontShop } from "./pages/StorefrontShop.jsx";
-import { StorefrontProduct } from "./pages/StorefrontProduct.jsx";
-import { StorefrontHome } from "./pages/StorefrontHome.jsx";
-import { AboutMurad } from "./pages/AboutPage.jsx";
 import { LegalPage } from "./pages/LegalPage.jsx";
-import { SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
-import { StarterPackPage } from "./pages/StarterPackPage.jsx";
-import { InboxCleanupPage } from "./pages/InboxCleanupPage.jsx";
-import { CheckItFirstPage } from "./pages/CheckItFirstPage.jsx";
+import { SalesPage } from "./pages/SalesPage.jsx";
+import { StorefrontHome } from "./pages/StorefrontHome.jsx";
+import { ToolsPage as ToolsCatalogPage } from "./pages/ToolsPage.jsx";
+import { AboutMurad } from "./pages/AboutPage.jsx";
+import { KitFooter, KitHeader, SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
 import { metadataForPath } from "./data/siteMetadata.js";
-import { BundlePage } from "./pages/BundlePage.jsx";
-import { ArsenalPage } from "./pages/ArsenalPage.jsx";
 import { OperatorToolkitCheckoutButton } from "./components/checkout/OperatorToolkitCheckoutButton.jsx";
 import { OperatorArsenalCheckoutButton } from "./components/checkout/OperatorArsenalCheckoutButton.jsx";
 import { seedLogs, sprintConfig } from "./data/seed.js";
@@ -857,8 +852,9 @@ function buildLaunchReadiness(items) {
   };
 }
 
+// Lower-case, no trailing slash: /tools/Musekit/ and /tools/musekit are the same page.
 function getRoute() {
-  const normalized = window.location.pathname.replace(/\/+$/, "");
+  const normalized = window.location.pathname.toLowerCase().replace(/\/+$/, "");
   return normalized || "/";
 }
 
@@ -878,7 +874,7 @@ function isLegacyOverlayRoute() {
 
 function routeNeedsCampaignData() {
   const route = getRoute();
-  return isLegacyOverlayRoute() || ["/admin", "/60", "/live", "/tools"].includes(route) || route.startsWith("/day/") || directOverlayRoutes.has(route);
+  return isLegacyOverlayRoute() || route === "/admin" || directOverlayRoutes.has(route);
 }
 
 function App() {
@@ -972,33 +968,6 @@ function App() {
     }
 
     if (routeNeedsCampaignData()) refreshCampaignStatus();
-    return () => {
-      mounted = false;
-      if (timer) window.clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const publicRoute = getRoute();
-    if (publicRoute !== "/60" && !publicRoute.startsWith("/day/")) return undefined;
-
-    let mounted = true;
-    let timer = null;
-    async function refreshPublicLogs() {
-      try {
-        const data = await getDailyLogs();
-        if (mounted && Array.isArray(data.logs) && data.logs.length) {
-          setLogs(data.logs);
-          setRemoteLogStatus("live");
-          updateRemoteMeta(data.logs);
-        }
-      } catch {
-        // Keep the last verified public record and retry on the next interval.
-      }
-      if (mounted) timer = window.setTimeout(refreshPublicLogs, 10_000);
-    }
-
-    timer = window.setTimeout(refreshPublicLogs, 10_000);
     return () => {
       mounted = false;
       if (timer) window.clearTimeout(timer);
@@ -1791,6 +1760,8 @@ function AdminGate({ authSession, authReady, children }) {
   );
 }
 
+const sitePages = new Set(["/", "/tools", "/about", "/terms", "/privacy"]);
+
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus, liveFollowers }) {
   useEffect(() => {
     const meta = metadataForPath(route);
@@ -1800,53 +1771,33 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
     for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) document.querySelector(selector)?.setAttribute("content", meta.title);
     for (const selector of ['meta[property="og:description"]', 'meta[name="twitter:description"]']) document.querySelector(selector)?.setAttribute("content", meta.description);
     document.querySelector('meta[property="og:url"]')?.setAttribute("content", `https://aiwithmurda.com${meta.path}`);
+    for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) document.querySelector(selector)?.setAttribute("content", `https://aiwithmurda.com${meta.image}`);
+    document.querySelector('meta[property="og:image:alt"]')?.setAttribute("content", meta.imageAlt);
     let robots = document.querySelector('meta[name="robots"]');
     if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
     robots.content = meta.noindex ? "noindex, nofollow" : "index, follow";
   }, [route]);
-  const dayRouteDay = getDayRouteDay(route);
-  const memberModuleKey = getMemberModuleRouteKey(route);
-  const storeSlug = route.startsWith("/store/") ? route.slice("/store/".length) : null;
-  const knownRoute = storeSlug ? "/store/product" : dayRouteDay
-    ? "/day"
-    : memberModuleKey
-      ? "/members"
-      : ["/", "/about", "/60", "/live", "/tools", "/start", "/free/inbox-cleanup", "/free/check-it-first", "/kit", "/store", "/live-builds", "/operator-toolkit", "/operator-arsenal", "/members", "/terms", "/privacy"].includes(route)
-        ? route
-        : "/";
+  // The Muse Control Kit sales page keeps its focused header and footer (Noor's brief: no menu of other
+  // products). Every other public page uses the site header and footer. Unknown paths show the home page.
+  if (route === "/tools/musekit") {
+    return (
+      <div className="public-site storefront-shell public-site--kit">
+        <KitHeader />
+        <SalesPage />
+        <KitFooter />
+      </div>
+    );
+  }
+  const page = sitePages.has(route) ? route : "/";
 
   return (
     <div className="public-site storefront-shell">
-      <SiteHeader activeRoute={knownRoute} />
-      {knownRoute === "/" && <StorefrontHome />}
-      {knownRoute === "/about" && <AboutMurad />}
-      {knownRoute === "/60" && <PublicDashboard config={config} logs={logs} latest={latest} weeks={weeks} liveFollowers={liveFollowers} />}
-      {knownRoute === "/day" && <DayReceiptPage config={config} logs={logs} day={dayRouteDay} />}
-      {knownRoute === "/live" && (
-        <LiveHub
-          latest={latest}
-          streamConfig={streamConfig}
-          streamConfigStatus={streamConfigStatus}
-          liveFollowers={liveFollowers}
-        />
-      )}
-      {knownRoute === "/tools" && <ToolsPage latest={latest} />}
-      {knownRoute === "/start" && <StarterPackPage />}
-      {knownRoute === "/free/inbox-cleanup" && <InboxCleanupPage />}
-      {knownRoute === "/free/check-it-first" && <CheckItFirstPage />}
-      {knownRoute === "/kit" && <StorefrontProduct slug="future-proof-method" authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/store" && <StorefrontShop />}
-      {knownRoute === "/store/product" && <StorefrontProduct slug={storeSlug} authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/live-builds" && (new URLSearchParams(window.location.search).has("session_id")
-        ? <BundlePage authSession={authSession} authReady={authReady} />
-        : <StorefrontProduct slug="operator-bundle" authSession={authSession} authReady={authReady} />)}
-      {knownRoute === "/operator-toolkit" && <StorefrontProduct slug="operator-toolkit" authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/operator-arsenal" && <ArsenalPage authSession={authSession} authReady={authReady} />}
-      {knownRoute === "/members" && (
-        <MembersPage authSession={authSession} authReady={authReady} activeModuleKey={memberModuleKey} />
-      )}
-      {knownRoute === "/terms" && <LegalPage type="terms" />}
-      {knownRoute === "/privacy" && <LegalPage type="privacy" />}
+      <SiteHeader activeRoute={page} />
+      {page === "/" && <StorefrontHome />}
+      {page === "/tools" && <ToolsCatalogPage />}
+      {page === "/about" && <AboutMurad />}
+      {page === "/terms" && <LegalPage type="terms" />}
+      {page === "/privacy" && <LegalPage type="privacy" />}
       <SiteFooter />
     </div>
   );

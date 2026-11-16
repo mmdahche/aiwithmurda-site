@@ -146,8 +146,12 @@ const sitemapResponse = await fetch(`${siteUrl}/sitemap.xml`);
 const sitemapText = await sitemapResponse.text();
 if (
   !sitemapResponse.ok ||
-  !sitemapText.includes("https://aiwithmurda.com/kit") ||
-  !sitemapText.includes("https://aiwithmurda.com/live-builds")
+  !sitemapText.includes("<loc>https://aiwithmurda.com/</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/tools</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/tools/musekit</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/about</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/terms</loc>") ||
+  !sitemapText.includes("<loc>https://aiwithmurda.com/privacy</loc>")
 ) {
   throw new Error(`Sitemap route failed: ${sitemapResponse.status}`);
 }
@@ -158,178 +162,77 @@ if (!manifestResponse.ok || !manifestText.includes("\"short_name\": \"AIWM\"")) 
   throw new Error(`Manifest route failed: ${manifestResponse.status}`);
 }
 
-const dashboardResponse = await fetch(`${siteUrl}/60/`);
-const dashboardHtml = await dashboardResponse.text();
-if (!dashboardResponse.ok || !dashboardHtml.includes("root")) {
-  throw new Error(`Public dashboard route failed: ${dashboardResponse.status}`);
-}
-
-const toolsResponse = await fetch(`${siteUrl}/tools/`);
-const toolsHtml = await toolsResponse.text();
-if (!toolsResponse.ok || !toolsHtml.includes("root")) {
-  throw new Error(`Public tools route failed: ${toolsResponse.status}`);
-}
-
 const adminResponse = await fetch(`${siteUrl}/admin/`);
 const adminHtml = await adminResponse.text();
 if (!adminResponse.ok || !adminHtml.includes("root")) {
   throw new Error(`Admin route failed: ${adminResponse.status}`);
 }
-
-const liveResponse = await fetch(`${siteUrl}/live/`);
-const liveHtml = await liveResponse.text();
-if (!liveResponse.ok || !liveHtml.includes("root")) {
-  throw new Error(`Live route failed: ${liveResponse.status}`);
-}
-const liveBundle = await fetchClientBundle(liveHtml, "Live route", siteUrl);
-if (!liveBundle.includes("Week 1 stream arc")) {
-  throw new Error("Live route client bundle missing Week 1 stream arc");
-}
-if (!liveBundle.includes("Daily Run Sheet")) {
+// The admin workspace and the OBS overlays share the one entry bundle with the public pages.
+// Every string below comes from admin or overlay code (AdminGate, DailyLog, SettingsView, the admin panels,
+// FollowerOverlay, the stream config the admin edits), so it stays in the bundle while those routes exist.
+const adminBundle = await fetchClientBundle(adminHtml, "Admin route", siteUrl);
+if (!adminBundle.includes("Daily Run Sheet")) {
   throw new Error("Client bundle missing Daily Run Sheet");
 }
-if (!liveBundle.includes("Daily Clip Packet")) {
+if (!adminBundle.includes("Daily Clip Packet")) {
   throw new Error("Client bundle missing Daily Clip Packet");
 }
-if (!liveBundle.includes("Live work queue") || !liveBundle.includes("Read-only automation")) {
+if (!adminBundle.includes("Live work queue") || !adminBundle.includes("Read-only automation")) {
   throw new Error("Client bundle missing daily operating console");
 }
-if (!liveBundle.includes("What is happening today.")) {
-  throw new Error("Client bundle missing public live work board");
-}
-if (!liveBundle.includes("Manual Gate Runbook")) {
+if (!adminBundle.includes("Manual Gate Runbook")) {
   throw new Error("Client bundle missing Manual Gate Runbook");
 }
-if (!liveBundle.includes("Stream Command Deck")) {
+if (!adminBundle.includes("Stream Command Deck")) {
   throw new Error("Client bundle missing Stream Command Deck");
 }
-if (!liveBundle.includes("Fake Stream Rehearsal") || !liveBundle.includes("Copy rehearsal")) {
+if (!adminBundle.includes("Fake Stream Rehearsal") || !adminBundle.includes("Copy rehearsal")) {
   throw new Error("Client bundle missing fake stream rehearsal workflow");
 }
-if (!liveBundle.includes("Platform setup") || !liveBundle.includes("STREAM_YOUTUBE_URL")) {
+if (!adminBundle.includes("Platform setup") || !adminBundle.includes("STREAM_YOUTUBE_URL")) {
   throw new Error("Client bundle missing stream platform setup workflow");
 }
-if (!liveBundle.includes("Stream Privacy Guard") || !liveBundle.includes("Never show secret screens")) {
+if (!adminBundle.includes("Stream Privacy Guard") || !adminBundle.includes("Never show secret screens")) {
   throw new Error("Client bundle missing stream privacy guard workflow");
 }
-if (!liveBundle.includes("Buyer Email Copy Deck")) {
+if (!adminBundle.includes("Buyer Email Copy Deck")) {
   throw new Error("Client bundle missing Buyer Email Copy Deck");
 }
-if (!liveBundle.includes("Admin login required")) {
+if (!adminBundle.includes("Admin login required")) {
   throw new Error("Client bundle missing admin login gate");
 }
-if (!liveBundle.includes("Password login is available")) {
+if (!adminBundle.includes("Password login is available")) {
   throw new Error("Client bundle missing admin password settings panel");
 }
-if (!liveBundle.includes("Send magic link backup")) {
+if (!adminBundle.includes("Send magic link backup")) {
   throw new Error("Client bundle missing admin magic-link backup");
 }
-if (!liveBundle.includes("Start $2 test purchase")) {
+if (!adminBundle.includes("Start $2 test purchase")) {
   throw new Error("Client bundle missing $2 test purchase control");
 }
-if (!liveBundle.includes("Metrics Automation Hub")) {
+if (!adminBundle.includes("Metrics Automation Hub")) {
   throw new Error("Client bundle missing Metrics Automation Hub");
 }
-if (!liveBundle.includes("Daily Snapshot Recovery")) {
+if (!adminBundle.includes("Daily Snapshot Recovery")) {
   throw new Error("Client bundle missing Daily Snapshot Recovery");
 }
-if (!liveBundle.includes("Combined audience")) {
-  throw new Error("Client bundle missing combined audience ticker");
-}
-if (!liveBundle.includes("Total followers")) {
+if (!adminBundle.includes("Total followers")) {
   throw new Error("Client bundle missing combined follower overlay");
 }
-if (!liveBundle.includes("Follower Ticker")) {
+if (!adminBundle.includes("Follower Ticker")) {
   throw new Error("Client bundle missing Follower Ticker Control");
 }
-if (!liveBundle.includes("/api/followers/stream")) {
+if (!adminBundle.includes("/api/followers/stream")) {
   throw new Error("Client bundle missing follower stream route");
 }
-if (!liveBundle.includes("Clip Intake Webhook")) {
+if (!adminBundle.includes("Clip Intake Webhook")) {
   throw new Error("Client bundle missing Clip Intake Webhook");
 }
-if (!liveBundle.includes("Social Accounts")) {
+if (!adminBundle.includes("Social Accounts")) {
   throw new Error("Client bundle missing Social Accounts control panel");
 }
-if (!liveBundle.includes("Enable instant")) {
+if (!adminBundle.includes("Enable instant")) {
   throw new Error("Client bundle missing Twitch EventSub control");
-}
-
-const kitResponse = await fetch(`${siteUrl}/kit/`);
-const kitHtml = await kitResponse.text();
-if (!kitResponse.ok || !kitHtml.includes("root")) {
-  throw new Error(`Kit route failed: ${kitResponse.status}`);
-}
-
-const storeResponse = await fetch(`${siteUrl}/store/`);
-const storeHtml = await storeResponse.text();
-if (!storeResponse.ok || !storeHtml.includes("root")) {
-  throw new Error(`Store route failed: ${storeResponse.status}`);
-}
-const storeBundle = await fetchClientBundle(storeHtml, "Store route", siteUrl);
-for (const shelfName of ["The AI with Murda shop", "MCP Builder Pack", "Research Engine", "Claude Setup Audit Suite", "Retail Ops AI Pack", "Swarm Intake Protocol", "Founder Finance Pack", "Proof Engine Kit", "Browser Automation Studio", "Design Studio Pack", "Content Engine Pack"]) {
-  if (!storeBundle.includes(shelfName)) {
-    throw new Error(`Store bundle missing shelf copy: ${shelfName}`);
-  }
-}
-if (!storeBundle.includes("Operator Arsenal")) {
-  throw new Error("Store bundle missing Operator Arsenal tier copy");
-}
-
-const arsenalResponse = await fetch(`${siteUrl}/operator-arsenal/`);
-const arsenalHtml = await arsenalResponse.text();
-if (!arsenalResponse.ok || !arsenalHtml.includes("root")) {
-  throw new Error(`Operator Arsenal route failed: ${arsenalResponse.status}`);
-}
-const arsenalBundle = await fetchClientBundle(arsenalHtml, "Operator Arsenal route", siteUrl);
-if (!arsenalBundle.includes("Operator Arsenal") || !arsenalBundle.includes("Unlock the complete library")) {
-  throw new Error("Operator Arsenal route client bundle missing sales copy");
-}
-
-const samplerResponse = await fetch(`${siteUrl}/downloads/operator-sampler.zip`);
-const samplerBytes = new Uint8Array(await samplerResponse.arrayBuffer());
-if (!samplerResponse.ok || samplerBytes.length < 1000 || samplerBytes[0] !== 0x50 || samplerBytes[1] !== 0x4b) {
-  throw new Error(`Operator sampler download failed: ${samplerResponse.status} ${samplerBytes.length} bytes`);
-}
-
-const liveBuildsResponse = await fetch(`${siteUrl}/live-builds/`);
-const liveBuildsHtml = await liveBuildsResponse.text();
-if (!liveBuildsResponse.ok || !liveBuildsHtml.includes("root")) {
-  throw new Error(`Live builds route failed: ${liveBuildsResponse.status}`);
-}
-const liveBuildsBundle = await fetchClientBundle(liveBuildsHtml, "Operator Bundle route", siteUrl);
-if (!liveBuildsBundle.includes("New Wave Operator Bundle") || !liveBuildsBundle.includes("Unlock the Operator Bundle")) {
-  throw new Error("Operator Bundle route client bundle missing second-product offer copy");
-}
-if (
-  !liveBuildsBundle.includes("Your advanced operator vault is active.") ||
-  !liveBuildsBundle.includes("The advanced vault is ready.")
-) {
-  throw new Error("Client bundle missing Operator Bundle member delivery copy");
-}
-if (!liveBuildsBundle.includes("Operator collections") || !liveBuildsBundle.includes("Debug + Quality")) {
-  throw new Error("Client bundle missing Operator Bundle collection copy");
-}
-
-const membersResponse = await fetch(`${siteUrl}/members/`);
-const membersHtml = await membersResponse.text();
-if (!membersResponse.ok || !membersHtml.includes("root")) {
-  throw new Error(`Members route failed: ${membersResponse.status}`);
-}
-const membersBundle = await fetchClientBundle(membersHtml, "Members route", siteUrl);
-if (
-  !membersBundle.includes("Capstone builder") ||
-  !membersBundle.includes("Download first-build handoff") ||
-  !membersBundle.includes("Download certificate") ||
-  !membersBundle.includes("Download share pack")
-) {
-  throw new Error("Members route client bundle missing course capstone builder");
-}
-
-const memberModuleResponse = await fetch(`${siteUrl}/members/module/setup-both-builders/`);
-const memberModuleHtml = await memberModuleResponse.text();
-if (!memberModuleResponse.ok || !memberModuleHtml.includes("root")) {
-  throw new Error(`Member module route failed: ${memberModuleResponse.status}`);
 }
 
 const overlayResponse = await fetch(`${siteUrl}/overlay/`);
@@ -354,12 +257,6 @@ const followerObsResponse = await fetch(`${siteUrl}/obs/followers/`);
 const followerObsHtml = await followerObsResponse.text();
 if (!followerObsResponse.ok || !followerObsHtml.includes("root")) {
   throw new Error(`Follower OBS alias route failed: ${followerObsResponse.status}`);
-}
-
-const dayReceiptResponse = await fetch(`${siteUrl}/day/1/`);
-const dayReceiptHtml = await dayReceiptResponse.text();
-if (!dayReceiptResponse.ok || !dayReceiptHtml.includes("root")) {
-  throw new Error(`Day receipt route failed: ${dayReceiptResponse.status}`);
 }
 
 const blockedWrite = await fetchJson(`${siteUrl}/api/admin/daily-logs`, {
@@ -478,18 +375,10 @@ console.log(
         robotsReadable: true,
         sitemapReadable: true,
         manifestReadable: true,
-        publicDashboardRoute: true,
-        publicToolsRoute: true,
         adminRoute: true,
-        publicLiveRoute: true,
-        publicLiveBuildsRoute: true,
-        liveBuildMemberDeliveryBundle: true,
-        liveBuildRoomQueueBundle: true,
-        publicLiveWeekOneArc: true,
         adminDailyRunSheetBundle: true,
         adminDailyClipPacketBundle: true,
         adminDailyOperatingConsoleBundle: true,
-        publicLiveWorkBoardBundle: true,
         adminManualGateRunbookBundle: true,
         adminStreamCommandDeckBundle: true,
         adminStreamRehearsalBundle: true,
@@ -510,14 +399,10 @@ console.log(
         adminTwitchStatusApi: true,
         adminSocialStatusApi: true,
         socialSeedFallbackExcluded: true,
-        kitRoute: true,
-        membersRoute: true,
-        memberModuleRoute: true,
         overlayRoute: true,
         followerOverlayRoute: true,
         obsAliasRoute: true,
         followerObsAliasRoute: true,
-        dayReceiptRoute: true,
         adminWritesBlockedWithoutToken: true,
         adminDailyPlanPatchBlockedWithoutLogin: true,
         adminClipIntakeBlockedWithoutToken: true,
