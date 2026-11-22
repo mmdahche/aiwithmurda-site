@@ -41,6 +41,7 @@ import {
   getCampaignState,
 } from "../src/lib/campaign.js";
 import { buildDeckHtml, toCsv } from "../src/lib/tracker.js";
+import { createTikTokTokenRefresher, tiktokRefreshExpiresAt } from "./tiktok-token.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -1615,45 +1616,33 @@ async function exchangeTikTokCode(code) {
   return data;
 }
 
-async function refreshTikTokStoredTokenIfNeeded(token) {
-  if (!token?.refresh_token) return token;
-  const expiresAt = token.expires_at ? new Date(token.expires_at).getTime() : 0;
-  if (expiresAt && expiresAt - Date.now() > 5 * 60 * 1000) return token;
-
-  const config = getTikTokConfig();
-  if (!config.configured) return token;
-  const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_key: config.clientKey,
-      client_secret: config.clientSecret,
-      grant_type: "refresh_token",
-      refresh_token: token.refresh_token,
-    }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.access_token) {
-    throw new Error(data.error_description || data.message || data.error || `tiktok_token_refresh_${response.status}`);
-  }
-
-  return storeIntegrationToken("tiktok", {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token || token.refresh_token,
-    token_type: data.token_type || token.token_type || "bearer",
-    scope: normalizeTwitchScopes(data.scope || token.scope),
-    expires_at: data.expires_in ? new Date(Date.now() + Number(data.expires_in) * 1000).toISOString() : null,
-    provider_user_id: data.open_id || token.provider_user_id,
-    provider_user_login: token.provider_user_login,
-    provider_user_name: token.provider_user_name,
-    broadcaster_user_id: null,
-    metadata: {
-      ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
-      refreshExpiresIn: data.refresh_expires_in || token.metadata?.refreshExpiresIn || null,
-      refreshedAt: new Date().toISOString(),
-    },
-  });
+// Marks the stored TikTok token as needing a reconnect, unless a newer token
+// has been written since `token` was read (that one may still be good).
+async function flagTikTokReconnect(token, reason) {
+  if (!supabaseAdmin || !token) return;
+  let query = supabaseAdmin
+    .from("integration_tokens")
+    .update({
+      metadata: {
+        ...(typeof token.metadata === "object" && token.metadata ? token.metadata : {}),
+        needsReconnect: true,
+        reconnectReason: reason,
+        reconnectFlaggedAt: new Date().toISOString(),
+      },
+    })
+    .eq("provider", "tiktok");
+  if (token.updated_at) query = query.eq("updated_at", token.updated_at);
+  const { error } = await query;
+  if (error) throw error;
 }
+
+const refreshTikTokStoredTokenIfNeeded = createTikTokTokenRefresher({
+  getConfig: getTikTokConfig,
+  readToken: async () => (await getStoredIntegrationToken("tiktok")).token,
+  storeToken: (values) => storeIntegrationToken("tiktok", values),
+  flagReconnect: flagTikTokReconnect,
+  normalizeScope: normalizeTwitchScopes,
+});
 
 async function exchangeYouTubeCode(code) {
   const config = getYouTubeConfig();
@@ -2190,6 +2179,7 @@ async function completeSocialOAuthConnection(provider, code) {
       metadata: {
         connectedAt: new Date().toISOString(),
         refreshExpiresIn: token.refresh_expires_in || null,
+        refreshExpiresAt: tiktokRefreshExpiresAt(token, Date.now()),
       },
     });
     const metric = await fetchTikTokSocialMetric(stored);
