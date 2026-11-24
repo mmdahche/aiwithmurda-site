@@ -4,6 +4,8 @@
 // The kit page is checked in its go-live state (Murad via Noor, Nov 15): every buy button goes to the one
 // Whop checkout, the hero shows the 16:9 kit image until the sales video exists, story and refunds stay off
 // the page until their text is set in museKit.js, and no public page shows a placeholder.
+// Since Nov 24 the kit is free on Whop (Murad via Noor): the checkout link is unchanged, the price reads "Free"
+// with no billing line, the buy buttons say "Get the free kit", and no page says "$27" or "one time".
 // Runs against the Vite dev server. Auth and every /api route are mocked, cross-origin requests are blocked;
 // nothing here charges a card, creates a customer or contacts production.
 //
@@ -64,8 +66,24 @@ const requiredQuestions = [
 ];
 
 // Go-live facts from Murad (relayed by Noor, Nov 15). The live kit page has no placeholders.
-// Every buy button goes to this one Whop checkout ($27, one time).
+// Every buy button goes to this one Whop checkout. Since Nov 24 it is free; the link is unchanged.
 const whopCheckoutUrl = "https://whop.com/checkout/plan_u1TnTYybKdPk7/";
+// The free kit (Murad via Noor, Nov 24), word for word.
+const kitPrice = "Free";
+const buyLabel = "Get the free kit"; // the hero, price card and FAQ buttons
+const headerBuyLabel = "Get the kit"; // the kit page header's small button stays as it was
+const heroBuyMeta = "Free. You get it through Whop."; // the line under the hero button
+const kitDescriptionEnd = "Free, through Whop."; // the end of the kit's meta, og and twitter description
+// The /tools card and the home featured panel read "Free | Ebook + 2 prompts"; the home shelf chip reads "Free".
+const kitTicker = { tag: "Free", bar: "Ebook + 2 prompts" };
+const kitShelfPrice = "Free";
+const getKitFaq = { q: "How do I get the kit?", a: "Tap the button and sign in to Whop. The ebook and both prompts are in your Whop account right after." };
+const termsKitSentence = "The Facebook Marketplace Muse Control Kit is free. Access and delivery run through Whop.";
+// The paid kit's copy, gone everywhere now that the kit is free.
+const paidKitCopy = [[/\$\s?27\b/g, '"$27"'], [/\bone[\s-]time\b/gi, '"one time"'], [/\$\s?\d[\d,.]*/g, "a price amount"]];
+// What the shelf chip and the price ticker show for a tool: the free kit word for word, any other tool from tools.js.
+const tickerFor = (tool) => tool.slug === "musekit" ? kitTicker : tool.billing ? { tag: tool.billing, bar: tool.price } : { tag: tool.price, bar: tool.priceDetail };
+const shelfPriceFor = (tool) => tool.slug === "musekit" ? kitShelfPrice : tool.billing ? `${tool.price} ${tool.billing.toLowerCase()}` : tool.price;
 // The message (Noor's brief v2): the exact headline, the pain line right under it, the automation named,
 // and what stays with the seller right next to it.
 const briefPainLine = "Posting is the hard part of selling on Marketplace.";
@@ -87,6 +105,7 @@ const goLiveFaq = {
   ],
   "Which setup should I pick?": [/New to Muse\? Pick Ask me first/i, /fewer replies to handle\? Pick Automatic/i],
   "Does this guarantee sales?": [/^No\b/],
+  [getKitFaq.q]: [new RegExp(`^${getKitFaq.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)],
 };
 // Sentences that say Muse acts on its own. Only the Automatic setup does; Ask me first never does.
 const actsAlone = /\b(by itself|on its own|by themselves|automatically)\b/i;
@@ -288,7 +307,7 @@ async function linkInventory() {
     };
   }));
 }
-const isBuyLink = (link) => link.checkout || link.href === checkoutHref || /get the kit|buy|checkout/i.test(link.text) || /whop\.com|checkout\.stripe|buy\.stripe/i.test(link.href || "");
+const isBuyLink = (link) => link.checkout || link.href === checkoutHref || /get the (free )?kit|buy|checkout/i.test(link.text) || /whop\.com|checkout\.stripe|buy\.stripe/i.test(link.href || "");
 
 async function chromeHtml() {
   return page.evaluate(() => {
@@ -322,6 +341,24 @@ async function placeholderAudit(label) {
   none(found, `${label}: placeholders`);
 }
 
+// The kit is free: no "$27", no "one time" and no price amount in the visible text (every <details> open, alt and
+// aria labels), any text in the body (hidden text too), the title, or any meta tag (description, og and twitter).
+async function paidCopyAudit(label) {
+  const pageText = await page.evaluate(() => {
+    const nodes = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) if (!walker.currentNode.parentElement?.closest("script,style,noscript,template")) nodes.push(walker.currentNode.textContent);
+    return [
+      `title: ${document.title}`,
+      ...[...document.querySelectorAll("meta[content]")].map((meta) => `${meta.getAttribute("name") || meta.getAttribute("property") || "meta"}: ${meta.getAttribute("content")}`),
+      `body text: ${nodes.join(" ")}`,
+    ].join("\n");
+  });
+  const text = `${await visibleCopy()}\n${pageText}`;
+  const found = [...new Set(paidKitCopy.flatMap(([pattern, name]) => [...text.matchAll(new RegExp(`.{0,30}(?:${pattern.source}).{0,30}`, pattern.flags))].map((m) => `${name}: "${m[0].trim()}"`)))];
+  none(found, `${label}: paid-kit copy ("$27", "one time" or a price) on a page of the free kit`);
+}
+
 // Only the Automatic setup answers buyers by itself. Every visible sentence that says Muse acts on its own
 // must be about Automatic (in the sentence itself, or in the setup card, FAQ answer or block it sits in)
 // and never about Ask me first.
@@ -349,16 +386,27 @@ try {
   await check("museKit.js: the two setups match the brief word for word", async () => {
     assert.deepEqual(setups.map(({ name, text }) => ({ name, text })), briefSetups);
   });
-  await check(`museKit.js: one offer, $27 one time, checkout is exactly the Whop link ${whopCheckoutUrl}`, async () => {
-    assert.equal(museKit.price, "$27");
-    assert.equal(museKit.priceCents, 2700);
-    assert.match(museKit.billing, /^one time$/i);
+  await check(`museKit.js: one offer, free (price "${kitPrice}", priceCents 0, billing null), checkout is still exactly the Whop link ${whopCheckoutUrl}`, async () => {
+    assert.equal(museKit.price, kitPrice, `museKit.price is "${kitPrice}"`);
+    assert.equal(museKit.priceCents, 0, "museKit.priceCents is 0");
+    assert.equal(museKit.billing, null, "a free kit has no billing cadence (museKit.billing is null)");
     assert.equal(museKit.checkoutUrl, whopCheckoutUrl, "museKit.checkoutUrl is the go-live Whop checkout");
     const url = new URL(museKit.checkoutUrl);
     assert.equal(url.protocol, "https:");
     assert.equal(url.hostname, "whop.com", "Checkout must be the Whop link");
     assert.equal(checkoutHref, museKit.checkoutUrl, "every buy button uses museKit.checkoutUrl");
     assert.equal(checkoutIsPlaceholder, false, "the checkout link is not a placeholder");
+  });
+  await check(`tools.js and siteMetadata.js: the kit is "${kitPrice}" with no billing ("${kitTicker.tag} | ${kitTicker.bar}"), its description ends "${kitDescriptionEnd}" with no "$27" or "one time"`, async () => {
+    const kitTool = tools.find((tool) => tool.slug === "musekit");
+    assert(kitTool, "tools.js lists the kit");
+    assert.equal(kitTool.price, kitPrice, "the kit's tools.js price");
+    assert.equal(kitTool.billing, null, "the kit's tools.js billing is null");
+    assert.equal(kitTool.priceDetail, kitTicker.bar, "the kit's tools.js price detail");
+    const description = publicPageMetadata[KIT].description;
+    assert(description.startsWith(`${salesH1} `), `the kit description starts with the headline: "${description}"`);
+    assert(description.endsWith(` ${kitDescriptionEnd}`), `the kit description ends "${kitDescriptionEnd}": "${description}"`);
+    none(paidKitCopy.flatMap(([pattern, name]) => (description.match(pattern) || []).map((m) => `${name}: "${m}"`)), "paid-kit copy in the kit description");
   });
   await check("museKit.js: the message as in the brief (exact headline, pain line, automation text, what stays with you)", async () => {
     assert.equal(headline, salesH1, "headline, word for word");
@@ -388,6 +436,8 @@ try {
       assert(item, `FAQ has "${question}"`);
       for (const pattern of patterns) assert.match(item.a, pattern, `"${question}" answer`);
     }
+    assert.deepEqual(faq.find((entry) => /how do i get the kit/i.test(entry.q)), getKitFaq, `"${getKitFaq.q}" is asked and answered word for word`);
+    none(faq.filter((entry) => /\b(pay|paid|payment)\b|\$\s?\d|\bone[\s-]time\b/i.test(`${entry.q} ${entry.a}`)).map((entry) => entry.q), "FAQ items that still talk about paying for the free kit");
   });
   await check("museKit.js: no placeholder left; story, refund terms and video stay off the page until set", async () => {
     const copy = JSON.stringify({ museKit, checkoutHref, headline, painLine, automationText, sellerKeeps, setups, kitPieces, faq, footerNotes });
@@ -473,7 +523,15 @@ try {
     assert.deepEqual(counts.h1s, [salesH1], "exactly one <h1>");
     assert.equal(await page.title(), publicPageMetadata[KIT].title);
     assert.equal(await page.getAttribute('link[rel="canonical"]', "href"), `https://aiwithmurda.com${KIT}`);
-    assert.equal(await page.getAttribute('meta[property="og:image"]', "content"), "https://aiwithmurda.com/og-muse-kit.png");
+    assert.equal(await page.getAttribute('meta[property="og:image"]', "content"), "https://aiwithmurda.com/og-muse-kit-free.png");
+  });
+
+  await check(`${KIT}: the meta, og and twitter descriptions are the kit description, ending "${kitDescriptionEnd}"`, async () => {
+    const descriptions = await page.evaluate(() => Object.fromEntries(['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]'].map((selector) => [selector, [...document.querySelectorAll(selector)].map((meta) => meta.getAttribute("content"))])));
+    for (const [selector, values] of Object.entries(descriptions)) {
+      assert.deepEqual(values, [publicPageMetadata[KIT].description], `${selector} is the kit description`);
+      assert(values[0].endsWith(` ${kitDescriptionEnd}`), `${selector} ends "${kitDescriptionEnd}": "${values[0]}"`);
+    }
   });
 
   await check(`${KIT}: sections in the brief's order (hero, problem, fit, kit, how, setups, ${museKit.story ? "story, " : ""}price, ${museKit.refundTerms ? "refunds, " : ""}faq); ${[!museKit.story && "story", !museKit.refundTerms && "refunds"].filter(Boolean).join(" and ") || "nothing"} left out while unset`, async () => {
@@ -500,7 +558,7 @@ try {
       ["how", "how it works (3 or 4 steps)", (s) => /how it works/i.test(s.heading) && s.steps >= 3 && s.steps <= 4],
       ["setups", "which setup", (s) => /which setup/i.test(s.heading)],
       ...(museKit.story ? [["story", "my story", (s) => /my story/i.test(s.heading) && s.text.includes(norm(museKit.story))]] : []),
-      ["price", "price", (s) => s.text.includes(museKit.price) && s.buy],
+      ["price", "price", (s) => s.text.includes(kitPrice) && s.buy],
       ...(museKit.refundTerms ? [["refunds", "refunds", (s) => /refund|guarantee/i.test(s.heading) && s.text.includes(norm(museKit.refundTerms))]] : []),
       ["faq", "questions", (s) => /question/i.test(s.heading) && s.details > 0 && s.buy],
     ];
@@ -578,7 +636,7 @@ try {
     none(found, "proof section");
   });
 
-  await check(`${KIT}: every [data-checkout-link] href equals museKit.checkoutUrl (${whopCheckoutUrl}); header, hero, price and FAQ each have one`, async () => {
+  await check(`${KIT}: every [data-checkout-link] href is exactly ${whopCheckoutUrl}; header ("${headerBuyLabel}"), hero, price and FAQ ("${buyLabel}") each have one`, async () => {
     const links = await linkInventory();
     const buy = links.filter(isBuyLink);
     assert(buy.length >= 4, `expected the header, hero, price and FAQ buy links, found ${buy.length}`);
@@ -588,10 +646,18 @@ try {
       href: a.getAttribute("href"),
       resolved: a.href,
       where: a.closest("main") ? a.closest("main > section")?.id ?? "?" : a.closest("header") ? "header" : "?",
+      text: a.textContent.replace(/\s+/g, " ").trim(),
     })));
     assert(checkout.length >= 4, `found ${checkout.length} [data-checkout-link] elements`);
-    none(checkout.filter((link) => link.tag !== "A" || link.href !== museKit.checkoutUrl || link.resolved !== whopCheckoutUrl).map((link) => `${link.where}: <${link.tag.toLowerCase()} href="${link.href}">`), `[data-checkout-link] must be <a href="${whopCheckoutUrl}">`);
+    none(checkout.filter((link) => link.tag !== "A" || link.href !== whopCheckoutUrl || link.href !== museKit.checkoutUrl || link.resolved !== whopCheckoutUrl).map((link) => `${link.where}: <${link.tag.toLowerCase()} href="${link.href}">`), `[data-checkout-link] must be <a href="${whopCheckoutUrl}">`);
     for (const where of ["header", "", "price", "faq"]) assert(checkout.some((link) => link.where === where), `no buy button in the ${where || "hero"}`);
+    // The free kit's labels, word for word: the header button stays "Get the kit"; the page buttons say "Get the free kit".
+    assert.deepEqual(checkout.map(({ where, text }) => ({ where: where || "hero", text })), [
+      { where: "header", text: headerBuyLabel },
+      { where: "hero", text: buyLabel },
+      { where: "price", text: buyLabel },
+      { where: "faq", text: buyLabel },
+    ], "buy buttons and their labels, in page order");
     none(links.filter((link) => /^#|placeholder/i.test(link.href || "") && link.href !== "#main-content").map((link) => `"${link.text}" -> ${link.href}`), "placeholder or in-page links");
   });
 
@@ -644,17 +710,37 @@ try {
     assert.equal(logo.href, "/", "the first header link is the logo, linking home");
     assert.match(`${logo.label} ${logo.text}`, /murda/i);
     assert(buy.checkout && buy.href === checkoutHref, "the second header link is the buy link");
+    assert.equal(buy.text, headerBuyLabel, `the header buy link still says "${headerBuyLabel}"`);
     none(header.other, "header navigation");
   });
 
-  await check(`${KIT}: the price $27 and \"one time\" appear in the price section and under the hero button; no other price`, async () => {
-    const price = norm(await page.locator("#price").innerText());
-    assert(price.includes(museKit.price), "price section shows $27");
-    assert(/one time/i.test(price), 'price section says "one time"');
-    const hero = norm(await page.locator("main > section").first().innerText());
-    assert(hero.includes(museKit.price) && /one time/i.test(hero), "hero shows $27, one time");
-    const amounts = [...new Set((await visibleCopy()).match(/\$\s?\d+(?:[.,]\d+)*/g) || [])];
-    assert.deepEqual(amounts, [museKit.price], `only one price on the page, found ${amounts.join(", ")}`);
+  await check(`${KIT}: the kit is free: the price card shows "${kitPrice}" with no billing line, the line under the hero button reads "${heroBuyMeta}"; no "$27", no "one time", no price amount (text, title, meta, og, twitter)`, async () => {
+    const shown = await page.evaluate(() => {
+      const t = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
+      const amount = document.querySelector("#price .sp-price-amount");
+      const hero = document.querySelector("main > section");
+      const row = hero?.querySelector(".sp-buy-row");
+      const button = row?.querySelector("[data-checkout-link]");
+      const meta = row ? [...row.querySelectorAll(".sp-buy-meta")] : [];
+      return {
+        amounts: [...document.querySelectorAll("#price .sp-price-amount")].length,
+        amount: t(amount),
+        parts: amount ? [...amount.children].map((el) => ({ className: el.className, text: t(el) })) : [],
+        billing: document.querySelectorAll(".sp-price-billing").length,
+        heroMeta: meta.map(t),
+        heroMetaEverywhere: [...document.querySelectorAll(".sp-buy-meta")].length,
+        metaAfterButton: Boolean(button && meta[0] && (button.compareDocumentPosition(meta[0]) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        metaUnderButton: Boolean(button && meta[0] && meta[0].getBoundingClientRect().top >= button.getBoundingClientRect().bottom - 1),
+      };
+    });
+    assert.equal(shown.amounts, 1, "one price amount on the price card");
+    assert.equal(shown.amount, kitPrice, `the price card reads "${kitPrice}"`);
+    assert.deepEqual(shown.parts, [{ className: "mx-display", text: kitPrice }], "the price amount holds the price only");
+    assert.equal(shown.billing, 0, "no billing element on the page (a free kit has no cadence)");
+    assert.deepEqual(shown.heroMeta, [heroBuyMeta], `the line under the hero button reads "${heroBuyMeta}"`);
+    assert.equal(shown.heroMetaEverywhere, 1, "the price line is only under the hero button");
+    assert(shown.metaAfterButton && shown.metaUnderButton, "the price line sits under the hero button");
+    await paidCopyAudit(KIT);
   });
 
   await check(`${KIT}: the two setup texts appear word for word as in museKit.js`, async () => {
@@ -675,6 +761,7 @@ try {
     const openOnLoad = await page.evaluate(() => [...document.querySelectorAll("details")].filter((d) => d.open || d.hasAttribute("open")).length);
     assert.equal(openOnLoad, 0, "every <details> is closed on load");
     const questions = [];
+    const answers = {};
     for (let index = 0; index < count; index += 1) {
       const item = items.nth(index);
       const summary = item.locator("summary");
@@ -696,11 +783,16 @@ try {
       assert.equal(shown.paragraphs[0].className, "", `"${question}": the answer paragraph is not a note`);
       assert.equal(norm(shown.paragraphs[0].text), norm(expected.a), `"${question}" shows its museKit.faq answer word for word`);
       assert.equal(norm(await answer.innerText()), norm(expected.a), `"${question}" shows nothing but its answer`);
+      answers[question] = norm(shown.paragraphs[0].text);
       await summary.click();
       assert.equal(await item.evaluate((d) => d.open), false, `"${question}" closes on a second click`);
     }
     assert.deepEqual(questions, faq.map((entry) => norm(entry.q)), "the FAQ shows every museKit.faq question in order");
     for (const question of requiredQuestions) assert(questions.includes(question), `required question missing: ${question}`);
+    // The free kit (Nov 24): "How do I get the kit?" replaces "How do I get the kit after I pay?".
+    assert(questions.includes(getKitFaq.q), `"${getKitFaq.q}" is asked on the page`);
+    assert.equal(answers[getKitFaq.q], getKitFaq.a, `"${getKitFaq.q}" is answered word for word`);
+    none(questions.filter((question) => /\b(pay|paid|payment)\b/i.test(question)), "FAQ questions about paying for the free kit");
     const guarantee = faq.find((entry) => entry.q === "Does this guarantee sales?");
     assert.match(guarantee.a || "", /^No\b/, '"Does this guarantee sales?" is answered no');
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("details")].filter((d) => d.open).length), 0, "every <details> closed again");
@@ -815,6 +907,9 @@ try {
       await placeholderAudit(route);
       none(await actsAloneViolations(), `${route}: sentences saying Muse acts by itself outside the Automatic setup`);
     });
+    await check(`${route}: the kit is free here too: no "$27", no "one time", no price amount (text, title, meta, og, twitter)`, async () => {
+      await paidCopyAudit(route);
+    });
     if (route !== "/terms" && route !== "/privacy") {
       await check(`${route}: copy rules (no em or en dash, no banned words, no "guarantee", no "coming soon")`, async () => {
         const copy = await visibleCopy();
@@ -851,6 +946,7 @@ try {
         featured: featured ? {
           heading: t(featured.querySelector("h2")),
           text: t(featured),
+          tickers: [...featured.querySelectorAll(".mx-ticker--price")].map((ticker) => ({ tag: t(ticker.querySelector(".mx-ticker-tag")), bar: t(ticker.querySelector(".mx-ticker-bar")), text: t(ticker) })),
           img: featured.querySelector("img")?.getAttribute("src"),
           links: [...featured.querySelectorAll("a")].map((a) => ({ text: t(a), href: a.getAttribute("href") })),
         } : null,
@@ -868,12 +964,17 @@ try {
     assert.equal(home.shelf.groups, 1, "one shelf group");
     assert.equal(home.shelf.ticker, `Tools${String(tools.length).padStart(2, "0")} ${tools.length === 1 ? "tool" : "tools"}`);
     assert.equal(home.shelf.note, "Start with the Muse Control Kit.");
-    assert.deepEqual(home.shelf.items, tools.map((tool) => ({ href: tool.href, name: tool.name, meta: tool.audience, price: `${tool.price} ${tool.billing.toLowerCase()}` })));
+    // The shelf chip of the free kit reads "Free" (no cadence).
+    assert.deepEqual(home.shelf.items, tools.map((tool) => ({ href: tool.href, name: tool.name, meta: tool.audience, price: shelfPriceFor(tool) })));
+    assert.equal(home.shelf.items.find((item) => item.href === KIT)?.price, kitShelfPrice, `the kit's shelf chip reads "${kitShelfPrice}"`);
     assert.equal(home.shelf.cap, "Digital downloads you set up yourself. Not a hosted AI service.");
     assert(home.featured, "the featured tool panel");
     assert.equal(home.featured.heading, featuredTool.name);
     assert.equal(home.featured.img, featuredTool.image);
-    for (const part of [featuredTool.audience, featuredTool.summary, featuredTool.price, featuredTool.billing]) assert(home.featured.text.includes(part), `featured panel shows "${part}"`);
+    for (const part of [featuredTool.audience, featuredTool.summary]) assert(home.featured.text.includes(part), `featured panel shows "${part}"`);
+    // The featured price ticker of the free kit: "Free | Ebook + 2 prompts".
+    const featuredTicker = tickerFor(featuredTool);
+    assert.deepEqual(home.featured.tickers, [{ ...featuredTicker, text: `${featuredTicker.tag}${featuredTicker.bar}` }], `the featured panel's price ticker reads "${featuredTicker.tag} | ${featuredTicker.bar}"`);
     assert.deepEqual(home.featured.links, [{ text: featuredTool.cta, href: KIT }], "the featured panel links to the kit page only, not to checkout");
     assert.equal(home.story, "I started with a store. Then I started building.");
   });
@@ -884,11 +985,14 @@ try {
       links: [...li.querySelectorAll("a, button, [tabindex]")].map((a) => a.getAttribute("href")),
       text: li.textContent.replace(/\s+/g, " ").trim(),
       img: li.querySelector("img")?.getAttribute("src"),
+      tickers: [...li.querySelectorAll(".mx-ticker--price")].map((ticker) => ({ tag: ticker.querySelector(".mx-ticker-tag")?.textContent.replace(/\s+/g, " ").trim(), bar: ticker.querySelector(".mx-ticker-bar")?.textContent.replace(/\s+/g, " ").trim() })),
     })));
     assert.equal(cards.length, tools.length);
     tools.forEach((tool, index) => {
       assert.deepEqual(cards[index].links, [tool.href], `${tool.slug}: one link`);
-      for (const part of [tool.name, tool.audience, tool.summary, tool.price, tool.billing, tool.cta]) assert(cards[index].text.includes(part), `${tool.slug} card shows "${part}"`);
+      for (const part of [tool.name, tool.audience, tool.summary, tool.cta]) assert(cards[index].text.includes(part), `${tool.slug} card shows "${part}"`);
+      // The free kit's card ticker reads "Free | Ebook + 2 prompts".
+      assert.deepEqual(cards[index].tickers, [tickerFor(tool)], `${tool.slug} card's price ticker reads "${tickerFor(tool).tag} | ${tickerFor(tool).bar}"`);
       assert.equal(cards[index].img, tool.image);
     });
     // Label in name (WCAG 2.5.3): the link's name holds the tool name, the price and the visible go-label; the name is a heading.
@@ -897,11 +1001,13 @@ try {
       heading: a.querySelector("h2")?.textContent.trim(),
     })));
     tools.forEach((tool, index) => {
-      assert.deepEqual(named[index].ids, [tool.name, `${tool.billing}${tool.price}`, tool.cta], `${tool.slug}: the link is named by its name, price and "${tool.cta}"`);
+      const ticker = tickerFor(tool);
+      assert.deepEqual(named[index].ids, [tool.name, `${ticker.tag}${ticker.bar}`, tool.cta], `${tool.slug}: the link is named by its name, price and "${tool.cta}"`);
       assert.equal(named[index].heading, tool.name, `${tool.slug}: the tool name is an h2`);
     });
     const snapshot = await page.locator("main .mx-toolgrid").ariaSnapshot();
-    assert(snapshot.includes(`link "${tools[0].name} ${tools[0].billing} ${tools[0].price} ${tools[0].cta}"`), `accessible name in ${snapshot}`);
+    const firstTicker = tickerFor(tools[0]);
+    assert(snapshot.includes(`link "${tools[0].name} ${firstTicker.tag} ${firstTicker.bar} ${tools[0].cta}"`), `accessible name in ${snapshot}`);
   });
 
   await check("/about: main's About page with the tools CTA, YouTube and Instagram only, panels 01 / 02 and 02 / 02", async () => {
@@ -917,6 +1023,16 @@ try {
     assert.deepEqual(about.elsewhere, ["YouTube", "Instagram"]);
     assert(about.text.includes("Everything here is a setup you can adapt."));
     assert(about.text.includes("60-day streaming challenge"), "his 60-day challenge history stays");
+  });
+
+  await check(`/terms: "Purchases and access" says "${termsKitSentence}"`, async () => {
+    await visit("/terms");
+    const sections = await page.evaluate(() => [...document.querySelectorAll("main section")]
+      .filter((section) => /^purchases and access$/i.test(section.querySelector("h2")?.textContent.trim() || ""))
+      .map((section) => [...section.querySelectorAll("p")].map((p) => p.textContent.replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim()).join(" ")));
+    assert.equal(sections.length, 1, 'one "Purchases and access" section');
+    assert(sections[0].includes(termsKitSentence), `"Purchases and access" says the kit is free: "${sections[0]}"`);
+    assert(!/one[\s-]time purchase|checkout and delivery run through whop/i.test(sections[0]), `"Purchases and access" still calls the kit a purchase: "${sections[0]}"`);
   });
 
   await check("/terms and /privacy: the back link goes to /tools", async () => {

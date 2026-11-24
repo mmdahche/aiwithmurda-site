@@ -4,7 +4,7 @@ Long-term project decisions and verified implementation state for the AI with Mu
 
 ## Memory Index
 
-- [`memory/2026-11-15_muse-control-kit-pivot.md`](memory/2026-11-15_muse-control-kit-pivot.md) - The site now sells one product: the Facebook Marketplace Muse Control Kit ($27, one time, Whop checkout). Old products, free downloads, member area and sprint pages are off the public site (301 to /); verified no real customers first. Copy rules and open placeholders inside.
+- [`memory/2026-11-15_muse-control-kit-pivot.md`](memory/2026-11-15_muse-control-kit-pivot.md) - The Facebook Marketplace Muse Control Kit is the first tool at /tools/musekit (free since Nov 24, 2026; was $27; Whop checkout link unchanged). Old products, free downloads, member area and sprint pages are off the public site (301 to /); verified no real customers first. Copy rules and open placeholders inside.
 - [`memory/2026-11-13_broll-storefront-redesign.md`](memory/2026-11-13_broll-storefront-redesign.md) - Complete visual redesign in the look of Murad's Instagram reels: reel navy and blue, Anton caps, numbered panels, ticker labels, dashed free cards and cream paid cards. Presentation only; routes, prices, checkout, login, admin and OBS overlays unchanged.
 - [`memory/2026-09-08_check-it-first-freebie.md`](memory/2026-09-08_check-it-first-freebie.md) - Approved first recommended free download: readable review guide, copy-ready AI prompt, honest safety limits and optional notices; video remains separate.
 - [`memory/2026-09-08_inbox-cleanup-two-routes.md`](memory/2026-09-08_inbox-cleanup-two-routes.md) - Guided with/without-AI paths, sample inbox, limited sender reports and validated AI suggestions; tutorial scripts ready, actual videos pending.

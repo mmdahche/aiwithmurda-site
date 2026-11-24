@@ -16,7 +16,8 @@ export const tools = [
     audience: "For Facebook Marketplace sellers",
     summary: "This kit makes it a few photos and a yes. A setup kit for Meta's Muse assistant. Muse writes the listing, and you approve listings, prices and pickup times.",
     price: museKit.price,
-    billing: museKit.billing,
+    billing: museKit.billing, // null for a free tool
+    priceDetail: "Ebook + 2 prompts", // shown next to "Free" when there is no billing cadence
     cta: "See the kit", // the link label on the /tools card and the home featured panel
     image: "/images/muse-control-kit.png",
     imageAlt: `${museKit.name}: a mockup of the kit`,

@@ -15,7 +15,7 @@
   .mx-shelf-groups--one .mx-shelf-items { margin-top: 0; }
 }
 
-/* A tool's price carries its cadence ("$27 one time", as on the live site's paid rows). On a phone it takes its own
+/* A paid tool's price carries its cadence (e.g. "$47 one time", as on the live site's paid rows); a free tool shows "Free". On a phone it takes its own
    line under the audience, so the name keeps its width; the audience stays (the live --paid row hides it). */
 @media (max-width: 39.99rem) {
   .mx-shelf-groups--one .mx-shelf-item { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "tile name go" "tile meta go" "tile price go"; row-gap: .2rem; padding-block: .5rem; }

@@ -11,7 +11,7 @@ import { automationText, checkoutHref, checkoutIsPlaceholder, faq, headlinePhras
   One strong colour: the buy button. Everything else stays neutral.
 */
 
-export function BuyButton({ size = "lg", label = `Get the kit for ${museKit.price}`, className = "" }) {
+export function BuyButton({ size = "lg", label = museKit.priceCents === 0 ? "Get the free kit" : `Get the kit for ${museKit.price}`, className = "" }) {
   return (
     <a
       className={`mx-btn ${size === "lg" ? "mx-btn--lg" : "mx-btn--sm"} sp-buy ${className}`}
@@ -83,7 +83,7 @@ export function SalesPage() {
           <HeroMedia />
           <div className="sp-buy-row">
             <BuyButton />
-            <p className="sp-buy-meta">{museKit.price}. {museKit.billing}. Checkout on Whop.</p>
+            <p className="sp-buy-meta">{museKit.billing ? `${museKit.price}. ${museKit.billing}. Checkout on Whop.` : `${museKit.price}. You get it through Whop.`}</p>
           </div>
         </div>
       </section>
@@ -176,7 +176,7 @@ export function SalesPage() {
         <div className="sp-col">
           <div className="sp-price-card">
             <h2 className="sp-price-name" id="price-title">{museKit.name}</h2>
-            <p className="sp-price-amount"><span className="mx-display">{museKit.price}</span><span className="sp-price-billing">{museKit.billing}</span></p>
+            <p className="sp-price-amount"><span className="mx-display">{museKit.price}</span>{museKit.billing && <span className="sp-price-billing">{museKit.billing}</span>}</p>
             <p className="sp-price-detail">Muse writes the listings. You approve listings, prices and pickup times.</p>
             <BuyButton className="mx-btn--block" />
           </div>
