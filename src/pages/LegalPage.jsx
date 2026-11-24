@@ -60,7 +60,7 @@ export function LegalPage({ type }) {
               <h2>Service providers</h2>
               <p>
                 We use infrastructure and payment providers such as Whop, Render, Supabase, Stripe, and Resend,
-                plus the social platforms you choose to connect. Checkout and delivery for the Facebook
+                plus the social platforms you choose to connect. Access and delivery for the Facebook
                 Marketplace Muse Control Kit run through Whop. These providers process information only
                 as needed to deliver their services and are governed by their own terms and policies.
               </p>
