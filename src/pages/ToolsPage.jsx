@@ -24,7 +24,7 @@ export function ToolsPage() {
               <h2 className="mx-toolcard-name" id={`tool-${tool.slug}-name`}>{tool.name}</h2>
               <span className="mx-toolcard-summary" id={`tool-${tool.slug}-summary`}>{tool.summary}</span>
               <span className="mx-price-row">
-                <span className="mx-ticker mx-ticker--price mx-ticker--price-sm" id={`tool-${tool.slug}-price`}><span className="mx-ticker-tag">{tool.billing}</span><span className="mx-ticker-bar">{tool.price}</span></span>
+                <span className="mx-ticker mx-ticker--price mx-ticker--price-sm" id={`tool-${tool.slug}-price`}><span className="mx-ticker-tag">{tool.billing || tool.price}</span><span className="mx-ticker-bar">{tool.billing ? tool.price : tool.priceDetail}</span></span>
               </span>
               <span className="mx-link mx-toolcard-go" id={`tool-${tool.slug}-go`}>{tool.cta} <ArrowRight className="mx-i" aria-hidden="true" /></span>
             </div>

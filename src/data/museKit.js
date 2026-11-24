@@ -17,11 +17,13 @@
 export const museKit = {
   name: "Facebook Marketplace Muse Control Kit",
   shortName: "Muse Control Kit",
-  price: "$27",
-  priceCents: 2700,
-  billing: "One time",
+  // Free since Nov 24 (Murad, via Noor): Muse now offers Marketplace sellers a free setup, so the kit is free
+  // on Whop ("Free access"). `billing` is null for a free kit; a paid kit would set e.g. "One time".
+  price: "Free",
+  priceCents: 0,
+  billing: null,
 
-  // The Whop checkout for the kit ($27, one time). Every buy button on the site uses this one value.
+  // The kit's Whop checkout (free; Whop shows "Free"). Every buy button on the site uses this one value.
   checkoutUrl: "https://whop.com/checkout/plan_u1TnTYybKdPk7/",
   // The kit's Whop product page (not linked from the site today).
   whopProductUrl: "https://whop.com/aiwithmurda/facebook-marketplace-muse-control-kit/",
@@ -94,8 +96,8 @@ export const faq = [
     a: "Muse's screens can differ by phone and country, so yours may not match every step exactly.",
   },
   {
-    q: "How do I get the kit after I pay?",
-    a: "You pay on Whop. Right after, the ebook and both prompts are in your Whop account.",
+    q: "How do I get the kit?",
+    a: "Tap the button and sign in to Whop. The ebook and both prompts are in your Whop account right after.",
   },
 ];
 

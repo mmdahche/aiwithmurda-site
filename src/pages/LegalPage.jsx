@@ -116,7 +116,7 @@ export function LegalPage({ type }) {
               <p>
                 Prices and billing terms are shown before checkout. Digital access is personal and may not
                 be resold, shared, or redistributed unless the offer explicitly permits it. The Facebook
-                Marketplace Muse Control Kit is a one-time purchase. Its checkout and delivery run through Whop.
+                Marketplace Muse Control Kit is free. Access and delivery run through Whop.
               </p>
             </section>
             <section>
