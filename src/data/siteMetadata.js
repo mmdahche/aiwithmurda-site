@@ -4,7 +4,7 @@ import { museKit } from "./museKit.js";
 // which is index.html itself) and writes the sitemap from these keys. Retired paths are redirected by the server.
 // Plain ESM only: postbuild imports this file.
 export const siteShareImage = { image: "/og-card.png", imageAlt: "AI with Murda: practical AI tools and setup kits from Murad." };
-export const kitShareImage = { image: "/og-muse-kit.png", imageAlt: `${museKit.name}, a setup kit for Meta's Muse assistant.` };
+export const kitShareImage = { image: "/og-muse-kit-free.png", imageAlt: `${museKit.name}, a setup kit for Meta's Muse assistant.` };
 
 export const publicPageMetadata = {
   "/": {

@@ -17,8 +17,8 @@
 export const museKit = {
   name: "Facebook Marketplace Muse Control Kit",
   shortName: "Muse Control Kit",
-  // Free since Nov 24 (Murad, via Noor): Muse now offers Marketplace sellers a free setup, so the kit is free
-  // on Whop ("Free access"). `billing` is null for a free kit; a paid kit would set e.g. "One time".
+  // Free since Nov 24, 2026 (Murad, via Noor): "Free access" on Whop, same checkout link.
+  // `billing` is null for a free kit; a paid kit would set e.g. "One time".
   price: "Free",
   priceCents: 0,
   billing: null,

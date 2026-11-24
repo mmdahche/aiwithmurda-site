@@ -89,7 +89,7 @@ export function StorefrontHome() {
             <h2 className="mx-display mx-display--md" id="featured-title">{featuredTool.name}</h2>
             <p className="mx-text">{featuredTool.summary}</p>
             <p className="mx-price-row">
-              <span className="mx-ticker mx-ticker--price"><span className="mx-ticker-tag">{featuredTool.billing || featuredTool.price}</span><span className="mx-ticker-bar">{featuredTool.billing ? featuredTool.price : featuredTool.priceDetail}</span></span>
+              <span className={`mx-ticker mx-ticker--price${featuredTool.billing ? "" : " mx-ticker--price-sm"}`}><span className="mx-ticker-tag">{featuredTool.billing || featuredTool.price}</span><span className="mx-ticker-bar">{featuredTool.billing ? featuredTool.price : featuredTool.priceDetail}</span></span>
             </p>
             <div className="mx-actions">
               <a className="mx-btn mx-btn--lg" href={featuredTool.href}>{featuredTool.cta} <ArrowRight className="mx-i" aria-hidden="true" /></a>

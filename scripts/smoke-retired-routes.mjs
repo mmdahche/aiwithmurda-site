@@ -1,7 +1,8 @@
 // Route and metadata contract for the production Express server (server/index.mjs serving dist/).
 // The home page, /tools, the Muse Control Kit page at /tools/musekit, /about, Terms, Privacy and the admin
 // answer 200. Case variants and aliases of the kit page answer 301 -> /tools/musekit, the old shop 301 -> /tools,
-// the other retired pages and free downloads 301 -> "/", and the prerendered heads carry the right metadata.
+// the other retired pages and free downloads 301 -> "/", and the prerendered heads carry the right metadata
+// (the kit is free since Nov 24: its description ends "Free, through Whop." and no head says "$27" or "one time").
 // Read-only GET requests; safe against a local server or the live site.
 //
 //   ./node_modules/.bin/vite build && node scripts/postbuild.mjs
@@ -18,6 +19,10 @@ const canonicalOrigin = "https://aiwithmurda.com";
 const publicDir = new URL("../public/", import.meta.url);
 
 const kitPath = "/tools/musekit";
+// The free kit (Murad via Noor, Nov 24): its description ends "Free, through Whop."; no page head says "$27" or "one time".
+const kitHeadline = "This kit makes it a few photos and a yes.";
+const kitDescriptionEnd = "Free, through Whop.";
+const paidKitCopy = /\$\s?\d|\bone[\s-]time\b/i;
 // The Instagram bio link and anything a person might type for it: 301 to the one lower-case path.
 const kitAliases = [
   "/tools/Musekit", "/tools/MuseKit", "/TOOLS/MUSEKIT", "/Tools/musekit", "/tools/musekit/", "/tools/Musekit/",
@@ -173,7 +178,7 @@ await check('/site.webmanifest has short_name "AIWM" and a site-level descriptio
   assert.equal(manifest.description, publicPageMetadata["/"].description, "manifest description is the home page description");
 });
 
-for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/og-muse-kit.png", { width: 1200, height: 630 }], ["/images/muse-control-kit.png", null]]) {
+for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/og-muse-kit-free.png", { width: 1200, height: 630 }], ["/images/muse-control-kit.png", null]]) {
   await check(`${route} is a 200 PNG image${size ? ` (${size.width}x${size.height})` : " (16:9)"}`, async () => {
     const response = await get(route);
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -204,11 +209,14 @@ for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kit
     assert.deepEqual(head.ogImage, [`${canonicalOrigin}${meta.image}`], "og:image");
     assert.deepEqual(head.twitterImage, [`${canonicalOrigin}${meta.image}`], "twitter:image");
     assert.deepEqual(head.ogImageAlt, [meta.imageAlt], "og:image:alt");
-    assert.equal(meta.image, metaPath === kitPath ? "/og-muse-kit.png" : "/og-card.png", "the kit page shares the kit card, every other page the site card");
+    assert.equal(meta.image, metaPath === kitPath ? "/og-muse-kit-free.png" : "/og-card.png", "the kit page shares the kit card, every other page the site card");
     assert(!/[—–]/.test(head.titles[0] + head.description[0] + head.ogImageAlt[0]), "no em or en dash in the head copy");
     if (metaPath === kitPath) {
+      // The kit is free (Murad via Noor, Nov 24): the description ends "Free, through Whop." and has no "$27, one time".
       for (const value of [...head.description, ...head.ogDescription, ...head.twitterDescription]) {
-        assert(value.includes(`${museKit.price}, one time`), `"${museKit.price}, one time" mangled in "${value}"`);
+        assert(value.startsWith(`${kitHeadline} `), `the kit description starts with the headline: "${value}"`);
+        assert(value.endsWith(` ${kitDescriptionEnd}`), `"${kitDescriptionEnd}" missing or mangled at the end of "${value}"`);
+        assert(!paidKitCopy.test(value), `the free kit's description still says "$27" or "one time": "${value}"`);
       }
       assert.equal(head.titles[0], `${museKit.name} | AI with Murda`, "kit page title names the kit");
     }
@@ -236,6 +244,19 @@ await check("prerendered HTML of every public page has no placeholder text", asy
   for (const route of Object.keys(publicPageMetadata)) {
     const html = await (await get(route)).text();
     for (const match of html.matchAll(/.{0,40}placeholder.{0,40}/gi)) hits.push(`${route}: ${match[0]}`);
+  }
+  assert.deepEqual(hits, []);
+});
+await check(`the kit is free: museKit.price "Free", no billing; no prerendered public page or the web manifest says "$27" or "one time"`, async () => {
+  assert.equal(museKit.price, "Free");
+  assert.equal(museKit.priceCents, 0);
+  assert.equal(museKit.billing, null);
+  const hits = [];
+  for (const route of [...Object.keys(publicPageMetadata), "/site.webmanifest"]) {
+    const response = await get(route);
+    const body = decode(await response.text());
+    assert.equal(response.status, 200, `${route}: ${describe(response)}`);
+    for (const match of body.matchAll(new RegExp(`.{0,40}(?:${paidKitCopy.source}).{0,40}`, "gi"))) hits.push(`${route}: ${match[0]}`);
   }
   assert.deepEqual(hits, []);
 });

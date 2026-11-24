@@ -15,7 +15,7 @@ export function LegalPage({ type }) {
         <header className="mx-legal-head">
           <h1 className="mx-display mx-display--lg" id="legal-title">{isPrivacy ? "Privacy Policy" : "Terms of Service"}</h1>
           <div className="mx-legal-meta">
-            <p>Effective November 16, 2026</p>
+            <p>Effective November 24, 2026</p>
             <p>Contact <a href="mailto:murad@aiwithmurda.com">murad@aiwithmurda.com</a></p>
           </div>
         </header>
