@@ -66,6 +66,7 @@ import { StorefrontHome } from "./pages/StorefrontHome.jsx";
 import { ToolsPage as ToolsCatalogPage } from "./pages/ToolsPage.jsx";
 import { AboutMurad } from "./pages/AboutPage.jsx";
 import { StepsPage } from "./pages/StepsPage.jsx";
+import { copyPlainText } from "./lib/copyPlainText.js";
 import { KitFooter, KitHeader, SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
@@ -7932,40 +7933,6 @@ function formatBuyerOnboardingEmailDeck(emails) {
       "",
     ]),
   ].join("\n");
-}
-
-async function copyPlainText(text) {
-  if (!text) return false;
-
-  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      // Fall through to the manual copy path for embedded browsers.
-    }
-  }
-
-  if (typeof document === "undefined") return false;
-
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.top = "-1000px";
-  textarea.style.left = "-1000px";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
-
-  try {
-    return document.execCommand("copy");
-  } catch {
-    return false;
-  } finally {
-    textarea.remove();
-  }
 }
 
 function platformLabel(platform) {

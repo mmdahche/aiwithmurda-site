@@ -126,38 +126,89 @@
 }
 
 /* 3. STEPS (/steps) --------------------------------------------------------- */
-/* The free setups behind the how-to reels (Instagram keyword STEPS). Jump list, then one panel per video. */
-.mx-steps-top { padding-top: clamp(.75rem, 2vw, 1.25rem); background-repeat: no-repeat;
-  background-image: radial-gradient(52rem 30rem at 14% -4rem, color-mix(in srgb, var(--royal-500) 62%, transparent), color-mix(in srgb, var(--royal-700) 30%, transparent) 46%, transparent 74%); }
-.mx-steps-intro { display: grid; justify-items: start; gap: var(--sp-4); margin-top: clamp(1.25rem, 3vw, 1.75rem); container-type: inline-size; }
-.mx-steps-intro .mx-display { font-size: clamp(2.25rem, 9cqi, 5rem); }
+/* The free setups behind the how-to reels (Instagram keyword STEPS). Jump list, then one panel per video.
+   The top panel is a .mx-hero (glow and padding come from there). Every [blank] in a prompt is a mono chip,
+   and the same chip marks "[brackets]" in the chip line and the lede, so the top of the page is the legend. */
+.mx-steps-intro { display: grid; justify-items: start; gap: var(--sp-4); margin-top: var(--sp-6); }
 .mx-steps-intro .mx-lede { color: var(--white); max-width: 34em; }
-.mx-steps-jump ol { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: grid; gap: var(--sp-2); grid-template-columns: minmax(0, 1fr); }
-.mx-steps-jump a { display: flex; gap: var(--sp-3); align-items: baseline; padding: .8rem 1rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-md);
-  background: var(--navy-850); color: var(--text); text-decoration: none; font-size: var(--fs-body); line-height: 1.35; }
-.mx-steps-jump a:hover, .mx-steps-jump a:focus-visible { border-color: var(--blue-400); }
-.mx-steps-section { padding-top: var(--panel-gap); scroll-margin-top: calc(var(--header-h) + 1rem); }
-.mx-steps-title { margin: var(--sp-5) 0 var(--sp-4); font: 800 clamp(1.5rem, 4vw, 2.25rem)/1.15 var(--font-display); color: var(--white); text-wrap: balance; }
-.mx-steps-list { margin: 0 0 var(--sp-5); padding-left: 1.4em; display: grid; gap: var(--sp-3); color: var(--text-2); font-size: var(--fs-body); line-height: var(--lh-body); max-width: 42em; }
-.mx-steps-list li::marker { color: var(--blue-200); font-family: var(--font-mono); }
-.mx-steps-prompt { margin: 0 0 var(--sp-4); border: 1px solid var(--hairline-blue); border-radius: var(--r-md); background: var(--navy-900); overflow: hidden; }
-.mx-steps-prompt-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: .6rem .6rem .6rem 1rem; border-bottom: 1px solid var(--hairline); }
-.mx-steps-prompt-label { font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--blue-200); }
-.mx-steps-copy { flex-shrink: 0; }
-.mx-steps-prompt-text { margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word; font: 400 .9375rem/1.55 var(--font-mono); color: var(--text); }
-.mx-steps-links { list-style: none; margin: 0 0 var(--sp-4); padding: 0; display: grid; gap: var(--sp-2); }
-.mx-steps-links a { color: var(--blue-200); }
-.mx-steps-links .mx-i { width: 1em; height: 1em; vertical-align: -.1em; }
-.mx-steps-catch { margin-top: var(--sp-2); padding: 1rem 1.1rem; border-left: 3px solid var(--amber, #f5b942); background: var(--navy-850); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
-.mx-steps-catch-head { margin: 0 0 .35rem; font: 600 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
-.mx-steps-catch ul { margin: 0; padding-left: 1.2em; display: grid; gap: .35rem; color: var(--text-2); font-size: var(--fs-sm); }
-.mx-steps-top-link { margin: var(--sp-5) 0 0; font-size: var(--fs-sm); }
-.mx-steps-top-link a { color: var(--text-3); }
-@media (min-width: 47.5rem) {
-  .mx-steps-jump ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mx-steps-note { margin-top: var(--sp-5); }
+.mx-steps-blank { padding: .12em .32em; border-radius: var(--r-xs); background: var(--navy-700); color: var(--blue-200); font-family: var(--font-mono); font-size: .875em; font-weight: 500;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* a short blank moves to the next line whole; with very large text it may wrap inside itself instead of running past the edge */
+.mx-steps-blank--short { display: inline-block; max-width: 100%; }
+/* a short chip and the punctuation mark after it share a line; the chip itself may still wrap with very large text */
+.mx-steps-keep { white-space: nowrap; }
+.mx-steps-keep > .mx-steps-blank { white-space: pre-wrap; }
+.mx-steps-intro .mx-chip .mx-steps-blank { font-size: 1em; }
+
+/* jump list: hairline rows, the idiom of .mx-about-links; each row names the setup and the video */
+.mx-steps-jump ol { margin: var(--sp-5) 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid var(--hairline); }
+.mx-steps-jump li { display: grid; border-bottom: 1px solid var(--hairline); }
+.mx-steps-jump a { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr) auto; grid-template-areas: "n name go" "n video go"; column-gap: var(--sp-3); row-gap: var(--sp-1);
+  grid-template-rows: auto 1fr; align-items: baseline; min-height: 4rem; padding: var(--sp-3) 0; text-decoration: none; overflow-wrap: anywhere; }
+.mx-steps-jump .mx-count { grid-area: n; }
+.mx-steps-jump-name { grid-area: name; color: var(--white); font-weight: 600; font-size: 1.0625rem; line-height: 1.25; letter-spacing: -.012em; text-wrap: balance; }
+.mx-steps-jump-video { grid-area: video; font: 400 var(--fs-mono)/1.4 var(--font-mono); letter-spacing: .02em; color: var(--text-2); }
+.mx-steps-jump-go { grid-area: go; align-self: center; width: 1.125rem; height: 1.125rem; color: var(--accent); stroke-width: 2.25; }
+.mx-steps-jump a:hover .mx-steps-jump-name { color: var(--blue-200); }
+
+/* sections: the site already pads every #jump by the header (scroll-padding-top); the negative margin
+   cancels the space above the panel, so a jump lands on the panel head, not on the previous section */
+.mx-steps-section { padding-top: var(--panel-gap); scroll-margin-top: calc(-1 * var(--panel-gap)); }
+.mx-steps-section .mx-panel { padding-bottom: var(--sp-4); }
+.mx-steps-section .mx-desc { color: var(--text-2); }
+.mx-steps-title { margin: var(--sp-5) 0; font-size: clamp(1.75rem, 7.4vw, 3rem); }
+/* jump and back links move focus to the title and the list; programmatic focus draws no ring */
+.mx-stepspage .mx-steps-title:focus, .mx-stepspage .mx-steps-jump:focus { outline: none; }
+
+/* the three steps: Anton numeral in a ring (the kit page's idiom), bright text */
+.mx-steps-list { counter-reset: step; margin: 0 0 var(--sp-6); padding: 0; display: grid; gap: var(--sp-4); max-width: 40em; }
+.mx-steps-list li { counter-increment: step; display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: var(--sp-3); align-items: start; padding-top: var(--sp-1);
+  color: var(--text-bright); font-size: 1.0625rem; line-height: 1.5; overflow-wrap: anywhere; }
+.mx-steps-list li::before { content: counter(step); display: grid; place-items: center; width: 2.25rem; height: 2.25rem; margin-top: calc(-1 * var(--sp-1));
+  border: 1.5px solid var(--edge-control); border-radius: 50%; font: 400 1.125rem/1 var(--font-display); color: var(--white); }
+
+/* prompts: the only boxes on the page. The head sticks under the site header so Copy stays in reach. */
+.mx-steps-prompts { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-6); }
+.mx-steps-prompt { margin: 0; border: 1px solid var(--hairline-blue); border-radius: var(--r-md); background: var(--navy-900); overflow: hidden; overflow: clip; }
+.mx-steps-prompt-head { position: sticky; top: calc(4rem + 1px); z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--hairline); border-radius: var(--r-md) var(--r-md) 0 0; background: var(--navy-900); }
+.mx-steps-prompt-label { flex: 1 1 8rem; min-width: 0; font: 500 var(--fs-mono-sm)/1.35 var(--font-mono); letter-spacing: .03em; text-transform: uppercase; color: var(--blue-200);
+  text-wrap: balance; overflow-wrap: anywhere; }
+.mx-steps-copy { flex-shrink: 0; min-width: 7rem; margin-left: auto; }
+.mx-steps-copy-hint { flex: 1 0 100%; padding-right: var(--sp-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--white); }
+.mx-steps-prompt-text { margin: 0; padding: var(--sp-4); white-space: pre-line; overflow-wrap: anywhere; font: 400 1rem/1.55 var(--font-sans); color: var(--text-bright);
+  -webkit-user-select: all; user-select: all; }
+
+/* help links, the catch (a hairline note, no box), and the way back up */
+.mx-steps-links { margin: 0 0 var(--sp-4); padding: 0; display: grid; gap: 0; }
+/* a long link name wraps with its arrow on the last line, not parked at the far edge */
+.mx-steps-links .mx-link { display: inline-block; padding-block: var(--sp-3); line-height: 1.4; overflow-wrap: anywhere; }
+.mx-steps-links .mx-i { display: inline-block; margin-left: var(--sp-2); vertical-align: -.15em; }
+.mx-steps-link-tail { white-space: nowrap; }
+.mx-steps-catch { margin: 0; padding: var(--sp-4) 0 0; border-top: 1px solid var(--hairline); }
+.mx-steps-catch-head { margin: 0 0 var(--sp-2); color: var(--text-bright); }
+.mx-steps-catch ul { margin: 0; padding: 0; display: grid; gap: var(--sp-2); max-width: 40em; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
+.mx-steps-catch li { display: grid; grid-template-columns: var(--sp-3) minmax(0, 1fr); gap: var(--sp-2); overflow-wrap: anywhere; }
+.mx-steps-catch li::before { content: ""; width: .3125rem; height: .3125rem; margin-top: .6em; border-radius: 50%; background: var(--slate); }
+.mx-steps-back { margin: var(--sp-4) 0 0; }
+.mx-steps-back .mx-link:hover .mx-i { transform: translateY(-3px); }
+
+@media (max-width: 39.99rem) {
+  /* phone: the chip becomes a mono kicker instead of a cramped two-line pill */
+  .mx-steps-intro { gap: var(--sp-3); margin-top: var(--sp-4); }
+  .mx-steps-intro .mx-chip { display: block; min-height: 0; padding: 0; border: 0; background: none; letter-spacing: .1em; line-height: 1.5; color: var(--text-2); text-wrap: balance; }
+  .mx-steps-intro .mx-chip-dot { display: inline-block; margin-right: var(--sp-2); vertical-align: .12em; }
 }
-/* the base reset removes list markers: the numbered steps need theirs back */
-.mx-steps-list { list-style: decimal outside; }
-.mx-steps-list li { display: list-item; padding-left: .3em; }
-.mx-steps-catch ul { list-style: disc outside; }
-.mx-steps-catch li { display: list-item; }
+@media (min-width: 47.5rem) {
+  .mx-steps-jump ol { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-8); }
+}
+@media (min-width: 60rem) {
+  /* desktop: steps, links and the catch on the left, the prompts beside them */
+  .mx-steps-body { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: repeat(4, auto) 1fr; column-gap: var(--sp-16); align-items: start; }
+  .mx-steps-body > .mx-steps-list, .mx-steps-body > .mx-steps-links, .mx-steps-body > .mx-steps-catch { grid-column: 1; }
+  .mx-steps-body > .mx-steps-back { grid-column: 1; }
+  .mx-steps-body > .mx-steps-prompts { grid-column: 2; grid-row: 1 / -1; margin-bottom: 0; }
+  .mx-steps-body--solo > .mx-steps-list { grid-row: 1 / -1; }
+  .mx-steps-body--solo > .mx-steps-links, .mx-steps-body--solo > .mx-steps-catch { grid-column: 2; }
+}

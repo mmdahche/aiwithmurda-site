@@ -1,6 +1,6 @@
 // Route and metadata contract for the production Express server (server/index.mjs serving dist/).
-// The home page, /tools, the Muse Control Kit page at /tools/musekit, /about, Terms, Privacy and the admin
-// answer 200. Case variants and aliases of the kit page answer 301 -> /tools/musekit, the old shop 301 -> /tools,
+// The home page, /tools, the Muse Control Kit page at /tools/musekit, /about, the free setups page /steps, Terms, Privacy
+// and the admin answer 200. Case variants and aliases of the kit page answer 301 -> /tools/musekit, the old shop 301 -> /tools,
 // the other retired pages and free downloads 301 -> "/", and the prerendered heads carry the right metadata
 // (the kit is free since Nov 24: its description ends "Free, through Whop." and no head says "$27" or "one time").
 // Read-only GET requests; safe against a local server or the live site.
@@ -35,7 +35,7 @@ const retiredPaths = [
   "/60", "/60/", "/live", "/day/1", "/downloads",
   "/downloads/operator-sampler.zip", "/downloads/CHECK-IT-FIRST.md", "/downloads/email-cleanup-kit.zip",
 ];
-const htmlPages = ["/", "/tools", "/tools/", kitPath, "/about", "/about/", "/terms", "/terms/", "/privacy", "/privacy/", "/admin", "/admin/"];
+const htmlPages = ["/", "/tools", "/tools/", kitPath, "/about", "/about/", "/steps", "/steps/", "/Steps", "/steps?utm_source=ig", "/terms", "/terms/", "/privacy", "/privacy/", "/admin", "/admin/"];
 // Unchanged routes that fall through to the SPA: the OBS overlays and any unknown path.
 const spaPages = ["/overlay", "/obs", "/overlay/followers", "/obs/followers", "/nope"];
 
@@ -150,13 +150,13 @@ await check("TikTok verification files under /60/, /terms/ and /privacy/ answer 
   assert(count >= 3);
 });
 
-await check("/sitemap.xml lists exactly /, /tools, /tools/musekit, /about, /terms and /privacy", async () => {
+await check("/sitemap.xml lists exactly /, /tools, /tools/musekit, /about, /steps, /terms and /privacy", async () => {
   const response = await get("/sitemap.xml");
   const body = await response.text();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") || "", /xml/);
   const locs = [...body.matchAll(/<loc>([^<]*)<\/loc>/g)].map(([, loc]) => loc.trim());
-  assert.deepEqual(locs.sort(), ["/", "/about", "/privacy", "/terms", "/tools", "/tools/musekit"].map((route) => `${canonicalOrigin}${route}`));
+  assert.deepEqual(locs.sort(), ["/", "/about", "/privacy", "/steps", "/terms", "/tools", "/tools/musekit"].map((route) => `${canonicalOrigin}${route}`));
   assert.deepEqual(Object.keys(publicPageMetadata).map((route) => `${canonicalOrigin}${route}`).sort(), locs, "sitemap matches siteMetadata.js");
   for (const tool of tools) assert(locs.includes(`${canonicalOrigin}${tool.href}`), `sitemap lists ${tool.href} (tools.js)`);
 });
@@ -190,7 +190,7 @@ for (const [route, size] of [["/og-card.png", { width: 1200, height: 630 }], ["/
   });
 }
 
-for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kitPath], ["/about", "/about"], ["/terms/", "/terms"], ["/privacy/", "/privacy"], ["/admin/", "/admin"]]) {
+for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kitPath], ["/about", "/about"], ["/steps", "/steps"], ["/Steps/", "/steps"], ["/terms/", "/terms"], ["/privacy/", "/privacy"], ["/admin/", "/admin"]]) {
   await check(`prerendered head of ${route}: title, description, canonical, og:url, og:image${metaPath === "/admin" ? ", noindex" : ""}`, async () => {
     const response = await get(route);
     const html = await response.text();
@@ -220,6 +220,8 @@ for (const [route, metaPath] of [["/", "/"], ["/tools", "/tools"], [kitPath, kit
       }
       assert.equal(head.titles[0], `${museKit.name} | AI with Murda`, "kit page title names the kit");
     }
+    // A literal, not read from siteMetadata.js, so a changed or wrong /steps title in that file is caught here.
+    if (metaPath === "/steps") assert.equal(head.titles[0], "Free AI setups from my videos | AI with Murda", "/steps page title");
     if (meta.noindex) assert.deepEqual(head.robots, ["noindex, nofollow"], "admin is noindex");
     else assert(!head.robots.some((value) => /noindex/i.test(value)), `${route} must be indexable`);
   });
