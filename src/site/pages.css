@@ -124,3 +124,40 @@
   .mx-legal-body section { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-16); padding-block: var(--sp-8); }
   .mx-legal-body h2 { padding-top: .3rem; }
 }
+
+/* 3. STEPS (/steps) --------------------------------------------------------- */
+/* The free setups behind the how-to reels (Instagram keyword STEPS). Jump list, then one panel per video. */
+.mx-steps-top { padding-top: clamp(.75rem, 2vw, 1.25rem); background-repeat: no-repeat;
+  background-image: radial-gradient(52rem 30rem at 14% -4rem, color-mix(in srgb, var(--royal-500) 62%, transparent), color-mix(in srgb, var(--royal-700) 30%, transparent) 46%, transparent 74%); }
+.mx-steps-intro { display: grid; justify-items: start; gap: var(--sp-4); margin-top: clamp(1.25rem, 3vw, 1.75rem); container-type: inline-size; }
+.mx-steps-intro .mx-display { font-size: clamp(2.25rem, 9cqi, 5rem); }
+.mx-steps-intro .mx-lede { color: var(--white); max-width: 34em; }
+.mx-steps-jump ol { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: grid; gap: var(--sp-2); grid-template-columns: minmax(0, 1fr); }
+.mx-steps-jump a { display: flex; gap: var(--sp-3); align-items: baseline; padding: .8rem 1rem; border: 1px solid var(--hairline-blue); border-radius: var(--r-md);
+  background: var(--navy-850); color: var(--text); text-decoration: none; font-size: var(--fs-body); line-height: 1.35; }
+.mx-steps-jump a:hover, .mx-steps-jump a:focus-visible { border-color: var(--blue-400); }
+.mx-steps-section { padding-top: var(--panel-gap); scroll-margin-top: calc(var(--header-h) + 1rem); }
+.mx-steps-title { margin: var(--sp-5) 0 var(--sp-4); font: 800 clamp(1.5rem, 4vw, 2.25rem)/1.15 var(--font-display); color: var(--white); text-wrap: balance; }
+.mx-steps-list { margin: 0 0 var(--sp-5); padding-left: 1.4em; display: grid; gap: var(--sp-3); color: var(--text-2); font-size: var(--fs-body); line-height: var(--lh-body); max-width: 42em; }
+.mx-steps-list li::marker { color: var(--blue-200); font-family: var(--font-mono); }
+.mx-steps-prompt { margin: 0 0 var(--sp-4); border: 1px solid var(--hairline-blue); border-radius: var(--r-md); background: var(--navy-900); overflow: hidden; }
+.mx-steps-prompt-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: .6rem .6rem .6rem 1rem; border-bottom: 1px solid var(--hairline); }
+.mx-steps-prompt-label { font: 500 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--blue-200); }
+.mx-steps-copy { flex-shrink: 0; }
+.mx-steps-prompt-text { margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word; font: 400 .9375rem/1.55 var(--font-mono); color: var(--text); }
+.mx-steps-links { list-style: none; margin: 0 0 var(--sp-4); padding: 0; display: grid; gap: var(--sp-2); }
+.mx-steps-links a { color: var(--blue-200); }
+.mx-steps-links .mx-i { width: 1em; height: 1em; vertical-align: -.1em; }
+.mx-steps-catch { margin-top: var(--sp-2); padding: 1rem 1.1rem; border-left: 3px solid var(--amber, #f5b942); background: var(--navy-850); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.mx-steps-catch-head { margin: 0 0 .35rem; font: 600 var(--fs-mono-sm)/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.mx-steps-catch ul { margin: 0; padding-left: 1.2em; display: grid; gap: .35rem; color: var(--text-2); font-size: var(--fs-sm); }
+.mx-steps-top-link { margin: var(--sp-5) 0 0; font-size: var(--fs-sm); }
+.mx-steps-top-link a { color: var(--text-3); }
+@media (min-width: 47.5rem) {
+  .mx-steps-jump ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* the base reset removes list markers: the numbered steps need theirs back */
+.mx-steps-list { list-style: decimal outside; }
+.mx-steps-list li { display: list-item; padding-left: .3em; }
+.mx-steps-catch ul { list-style: disc outside; }
+.mx-steps-catch li { display: list-item; }

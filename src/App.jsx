@@ -65,6 +65,7 @@ import { SalesPage } from "./pages/SalesPage.jsx";
 import { StorefrontHome } from "./pages/StorefrontHome.jsx";
 import { ToolsPage as ToolsCatalogPage } from "./pages/ToolsPage.jsx";
 import { AboutMurad } from "./pages/AboutPage.jsx";
+import { StepsPage } from "./pages/StepsPage.jsx";
 import { KitFooter, KitHeader, SiteFooter, SiteHeader } from "./site/SiteShell.jsx";
 import { getStorefrontReturnPath } from "./data/storefront.js";
 import { DownloadLibrary } from "./components/storefront/DownloadLibrary.jsx";
@@ -1760,7 +1761,7 @@ function AdminGate({ authSession, authReady, children }) {
   );
 }
 
-const sitePages = new Set(["/", "/tools", "/about", "/terms", "/privacy"]);
+const sitePages = new Set(["/", "/tools", "/about", "/terms", "/privacy", "/steps"]);
 
 function PublicSite({ route, config, logs, latest, weeks, authSession, authReady, streamConfig, streamConfigStatus, liveFollowers }) {
   useEffect(() => {
@@ -1796,6 +1797,7 @@ function PublicSite({ route, config, logs, latest, weeks, authSession, authReady
       {page === "/" && <StorefrontHome />}
       {page === "/tools" && <ToolsCatalogPage />}
       {page === "/about" && <AboutMurad />}
+      {page === "/steps" && <StepsPage />}
       {page === "/terms" && <LegalPage type="terms" />}
       {page === "/privacy" && <LegalPage type="privacy" />}
       <SiteFooter />

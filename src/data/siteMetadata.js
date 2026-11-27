@@ -22,6 +22,11 @@ export const publicPageMetadata = {
     description: `This kit makes it a few photos and a yes. A setup kit for Meta's Muse assistant, for Facebook Marketplace sellers. Muse writes the listing, and you approve listings, prices and pickup times. Free, through Whop.`,
     ...kitShareImage,
   },
+  "/steps": {
+    title: "Free AI setups from my videos | AI with Murda",
+    description: "The free setups from Murad's how-to videos: the steps and the exact prompts for running a store with AI. Copy, paste, and change the parts in brackets.",
+    ...siteShareImage,
+  },
   "/about": {
     title: "Meet Murad | AI with Murda",
     description: "From running a retail business to building inventory and point-of-sale software with AI. Meet the person behind the tools.",

@@ -5820,6 +5820,7 @@ const prerenderedPages = {
   "/tools": "tools",
   "/tools/musekit": "tools/musekit",
   "/about": "about",
+  "/steps": "steps",
   "/terms": "terms",
   "/privacy": "privacy",
   "/admin": "admin",
